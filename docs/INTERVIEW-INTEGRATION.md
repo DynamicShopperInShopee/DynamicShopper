@@ -10,7 +10,7 @@ keeps draft answers, supports skipping each question and previews the actual
 plan changes. Closing the dialog returns focus to the opener. Apply focuses
 the shelf and exposes chat for further changes.
 
-Each recognized answer maps directly to an authored setting. The shopper can choose a goal, evidence, priority and reading style independently. Only large text changes the theme. Skipped or unknown answers preserve the corresponding settings.
+Each recognized answer maps directly to an authored setting. The shopper can choose a goal, evidence, priority and reading style independently. Large text selects large-print; choosing another reading style while in large-print returns to standard. Skipped or unknown answers preserve the corresponding settings.
 
 Apply records one Undo step when the view changes. Returning from a listing restores the accepted view and its history through an opaque tab-local key. The tests cover every complete or skipped combination, product facts, locale, keyboard focus, cart, capacity, navigation, chat refinement and Undo.
 

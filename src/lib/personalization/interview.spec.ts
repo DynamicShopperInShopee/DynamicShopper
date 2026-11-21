@@ -7,6 +7,19 @@ import { interview, interviewProposal } from './interview';
 const answers = { goal: 'compare', evidence: 'specs', priority: 'durability', reading: 'large' };
 
 describe('storefront interview proposal', () => {
+	it.each(['comfortable', 'compact', 'spacious'])(
+		'lets a shopper leave large text by explicitly choosing %s',
+		(reading) => {
+			const plan = {
+				...structuredClone(defaultPlan),
+				theme: 'large-print' as const,
+				density: 'spacious' as const
+			};
+			const result = interviewProposal({ reading }, plan);
+			expect({ ...plan, ...result.patch }).toMatchObject({ theme: 'standard', density: reading });
+			expect(interviewProposal({}, plan).patch).toEqual({});
+		}
+	);
 	it('keeps facts and search context unchanged for every complete or skipped combination', () => {
 		const before = JSON.stringify(products);
 		const plan = { ...structuredClone(defaultPlan), query: 'rice cooker', maxPrice: 1500 };
