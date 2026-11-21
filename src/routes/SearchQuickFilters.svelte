@@ -17,6 +17,7 @@
 		openFilters,
 		changeCategory,
 		toggleLanguage,
+		interviewControl,
 		shoppingTasks,
 		harnessLink
 	}: {
@@ -29,6 +30,7 @@
 		openFilters: (trigger: HTMLButtonElement) => void;
 		changeCategory: (value: Category | 'all') => void;
 		toggleLanguage?: () => void;
+		interviewControl?: Snippet;
 		shoppingTasks?: Snippet;
 		harnessLink?: Snippet;
 	} = $props();
@@ -101,6 +103,7 @@
 				{/each}
 			</select>
 		</label>
+		{@render interviewControl?.()}
 		{#if cooker}
 			{#each sizes as [volume, id] (volume)}
 				<button
@@ -143,6 +146,9 @@
 		</button>
 	{/if}
 </nav>
+{#if cooker}
+	<div class="compact-space" aria-hidden="true"></div>
+{/if}
 
 <style>
 	nav {
@@ -225,8 +231,16 @@
 		grid-template-rows: auto;
 	}
 	@media (max-width: 699px) {
+		nav:not(.single-row, .condensed) .chips {
+			padding-block: 0;
+			row-gap: 1px;
+		}
 		.condensed .chips {
 			grid-template-rows: auto;
+		}
+		/* Preserve the shelf's scroll position when one visible row collapses. */
+		.condensed + .compact-space {
+			block-size: calc(var(--tap) + 1px - 0.6rem);
 		}
 	}
 </style>

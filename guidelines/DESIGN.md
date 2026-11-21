@@ -57,24 +57,24 @@ The system deliberately refuses the orange marketplace grid with badges, banners
 
 A near-monochrome receipt palette: ink on paper, two state inks, and, in one theme, a carbon-copy blue.
 
-| Name | Hex | Role |
-| --- | --- | --- |
-| Thermal Paper | `#fbfbf8` | Page ground (standard, vibrant, large print) |
-| Slip White | `#ffffff` | Cards, slips, inputs, secondary buttons; minimal's page ground |
-| Carbon Ink | `#16161a` | Text, primary buttons, the shopper's chat bubble, input borders, heavy rules, active tab underline; the accent in standard, minimal and large print |
-| Faded Ink | `#5d5d63` | Secondary text, inactive tabs, labels, review quotes |
-| Paper Seam | `#e9e6dc` | Every hairline border, card and chip outlines, slip outlines, scrollbars, the art tile behind product glyphs |
-| Verified Green | `#0f7b4a` | Applied vouchers, the savings line, the verification stamp. Nothing else |
-| Void Red | `#d1263b` | Expired vouchers, the struck original price, "Expires soon", error borders. Nothing else |
-| Minimal Seam | `#ecebe6` | Minimal theme's fainter seams |
-| Carbon-Copy Blue | `#2f3ccf` | Vibrant theme's accent only. Chosen because it is neither state colour |
-| Carbon-Copy Muted | `#4f5068` | Vibrant theme's secondary text |
-| Carbon-Copy Seam | `#e3e3ef` | Vibrant theme's seams |
-| Large-Print Ink | `#0d0d10` | Large print's darker text |
-| Large-Print Muted | `#3d3d42` | Large print's secondary text |
-| Large-Print Seam | `#858172` | Large print's seams, dark enough to see (3:1 against paper) |
-| Large-Print Green | `#0b6b3f` | Large print's state green |
-| Large-Print Red | `#b01e31` | Large print's state red |
+| Name              | Hex       | Role                                                                                                                                                |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thermal Paper     | `#fbfbf8` | Page ground (standard, vibrant, large print)                                                                                                        |
+| Slip White        | `#ffffff` | Cards, slips, inputs, secondary buttons; minimal's page ground                                                                                      |
+| Carbon Ink        | `#16161a` | Text, primary buttons, the shopper's chat bubble, input borders, heavy rules, active tab underline; the accent in standard, minimal and large print |
+| Faded Ink         | `#5d5d63` | Secondary text, inactive tabs, labels, review quotes                                                                                                |
+| Paper Seam        | `#e9e6dc` | Every hairline border, card and chip outlines, slip outlines, scrollbars, the art tile behind product glyphs                                        |
+| Verified Green    | `#0f7b4a` | Applied vouchers, the savings line, the verification stamp. Nothing else                                                                            |
+| Void Red          | `#d1263b` | Expired vouchers, the struck original price, "Expires soon", error borders. Nothing else                                                            |
+| Minimal Seam      | `#ecebe6` | Minimal theme's fainter seams                                                                                                                       |
+| Carbon-Copy Blue  | `#2f3ccf` | Vibrant theme's accent only. Chosen because it is neither state colour                                                                              |
+| Carbon-Copy Muted | `#4f5068` | Vibrant theme's secondary text                                                                                                                      |
+| Carbon-Copy Seam  | `#e3e3ef` | Vibrant theme's seams                                                                                                                               |
+| Large-Print Ink   | `#0d0d10` | Large print's darker text                                                                                                                           |
+| Large-Print Muted | `#3d3d42` | Large print's secondary text                                                                                                                        |
+| Large-Print Seam  | `#858172` | Large print's seams, dark enough to see (3:1 against paper)                                                                                         |
+| Large-Print Green | `#0b6b3f` | Large print's state green                                                                                                                           |
+| Large-Print Red   | `#b01e31` | Large print's state red                                                                                                                             |
 
 ### Rules
 
@@ -85,20 +85,20 @@ A near-monochrome receipt palette: ink on paper, two state inks, and, in one the
 
 The four themes are token variants of one world, not separate looks.
 
-| Token | Standard | Minimal | Vibrant | Large print |
-| --- | --- | --- | --- | --- |
-| Page | `#fbfbf8` | `#ffffff` | `#fbfbf8` | `#fbfbf8` |
-| Surface | `#ffffff` | `#ffffff` | `#ffffff` | `#ffffff` |
-| Text | `#16161a` | `#16161a` | `#16161a` | `#0d0d10` |
-| Muted | `#5d5d63` | `#5d5d63` | `#4f5068` | `#3d3d42` |
-| Accent | `#16161a` | `#16161a` | `#2f3ccf` | `#16161a` |
-| On accent | `#ffffff` | `#ffffff` | `#ffffff` | `#ffffff` |
-| Seam | `#e9e6dc` | `#ecebe6` | `#e3e3ef` | `#858172` |
-| Green / Red | `#0f7b4a` / `#d1263b` | same | same | `#0b6b3f` / `#b01e31` |
-| Corner radius | 4px | 0 | 6px | 6px |
-| Base text | 16px | 16px | 16px | 20px |
-| Smallest text | 12px | 12px | 12px | 20px |
-| Tap target | 44px | 44px | 44px | 48px |
+| Token         | Standard              | Minimal   | Vibrant   | Large print           |
+| ------------- | --------------------- | --------- | --------- | --------------------- |
+| Page          | `#fbfbf8`             | `#ffffff` | `#fbfbf8` | `#fbfbf8`             |
+| Surface       | `#ffffff`             | `#ffffff` | `#ffffff` | `#ffffff`             |
+| Text          | `#16161a`             | `#16161a` | `#16161a` | `#0d0d10`             |
+| Muted         | `#5d5d63`             | `#5d5d63` | `#4f5068` | `#3d3d42`             |
+| Accent        | `#16161a`             | `#16161a` | `#2f3ccf` | `#16161a`             |
+| On accent     | `#ffffff`             | `#ffffff` | `#ffffff` | `#ffffff`             |
+| Seam          | `#e9e6dc`             | `#ecebe6` | `#e3e3ef` | `#858172`             |
+| Green / Red   | `#0f7b4a` / `#d1263b` | same      | same      | `#0b6b3f` / `#b01e31` |
+| Corner radius | 4px                   | 0         | 6px       | 6px                   |
+| Base text     | 16px                  | 16px      | 16px      | 20px                  |
+| Smallest text | 12px                  | 12px      | 12px      | 20px                  |
+| Tap target    | 44px                  | 44px      | 44px      | 48px                  |
 
 Character: **standard** is paper and seams with 4px corners; **minimal** is white paper, fainter seams, square corners; **vibrant** is the carbon-copy blue accent with 6px corners; **large print** has darker ink and seams, a 20px floor and 48px targets.
 
@@ -113,15 +113,15 @@ The whole page canvas, including overscroll, follows the active theme's page col
 
 All sizes derive from the theme's base (16px, or 20px in large print), and nested text never compounds. No visible text falls below the theme's floor.
 
-| Style | Face | Size (× base) | Use |
-| --- | --- | --- | --- |
-| Price | Mono 700, tight tracking, line-height 1 | 2.125 | The headline price on a card. The biggest thing on the shelf |
-| Total | Mono 700 | 1.5 | The TOTAL row of a deal receipt |
-| Wordmark | Sans 700, tight tracking | 1.25 | "DynamicShopper" in the header only |
-| Title | Sans 600, snug, balanced | 1.125 | Product names, chat and empty-state headings |
-| Body | Sans 400 | 1 | UI copy, chat, review quotes |
-| Figure | Mono 400, tabular | 0.875 | Receipt rows, specs, ratings, table numbers, right-aligned in tables |
-| Label | Sans 600, uppercase, 0.05em tracking | 0.75 | Table column heads and receipt titles only |
+| Style    | Face                                    | Size (× base) | Use                                                                  |
+| -------- | --------------------------------------- | ------------- | -------------------------------------------------------------------- |
+| Price    | Mono 700, tight tracking, line-height 1 | 2.125         | The headline price on a card. The biggest thing on the shelf         |
+| Total    | Mono 700                                | 1.5           | The TOTAL row of a deal receipt                                      |
+| Wordmark | Sans 700, tight tracking                | 1.25          | "DynamicShopper" in the header only                                  |
+| Title    | Sans 600, snug, balanced                | 1.125         | Product names, chat and empty-state headings                         |
+| Body     | Sans 400                                | 1             | UI copy, chat, review quotes                                         |
+| Figure   | Mono 400, tabular                       | 0.875         | Receipt rows, specs, ratings, table numbers, right-aligned in tables |
+| Label    | Sans 600, uppercase, 0.05em tracking    | 0.75          | Table column heads and receipt titles only                           |
 
 ### Rules
 
@@ -314,3 +314,7 @@ foreground in every theme. Chat changes the body and product presentation only.
 The root storefront passes directOnly:true to its validated interview mapping; CNN
 inference is not used by this route. Existing model experiments remain archival.
 The current main chat uses its bounded live adapter with offline fallback.
+
+The digital description reads as one continuous illustrated listing. Introductory and capacity captions sit in the photographs' quiet areas; large print may place text above a photo to keep it readable. Cooking modes use large, unboxed symbols, and the preset timer uses a clock illustration. Dimension values stay beside their measurement arrows, with technical facts below. Package contents form one group. Every caption and measurement retains its catalog fact metadata. The review-photo panel leads with the catalog summary under “From the listing” and separately identifies its simulated photos.
+
+On phone category results, a single sticky search row replaces the home masthead and keeps language selection visible beside search and sorting/filtering. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.
