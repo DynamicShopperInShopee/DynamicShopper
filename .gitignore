@@ -32,7 +32,7 @@ test-results
 *.pdf
 
 # Sourced catalog runtime data and standalone build output
-/data/
+/data
 /preview/dist/
 __pycache__/
 *.pyc
