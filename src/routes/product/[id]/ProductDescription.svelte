@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatNumber } from '../../../lib/store-search';
+	import ProductDetails from './ProductDetails.svelte';
 	import ShopProducts from './ShopProducts.svelte';
-	import SpecificationRows from './SpecificationRows.svelte';
 	import type { catalog, Language, riceCookerSpecs } from '../../../lib/store-catalog';
 
 	let {
@@ -9,13 +9,15 @@
 		language,
 		shopProducts,
 		review,
-		specs
+		specs,
+		openSpecifications
 	}: {
 		product: (typeof catalog)[number];
 		language: Language;
 		shopProducts: typeof catalog;
 		review?: string;
 		specs?: (typeof riceCookerSpecs)[string];
+		openSpecifications: (trigger: HTMLButtonElement) => void;
 	} = $props();
 	const th = $derived(language === 'th');
 </script>
@@ -32,17 +34,7 @@
 
 <ShopProducts shop={product.shop} products={shopProducts} {language} />
 
-<section id="details" aria-labelledby="details-title">
-	<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>
-	<p data-fact="name" data-raw={product.name[language]}>{product.name[language]}</p>
-	{#if product.id === 'cooker-1'}
-		<div class="detail-photo" aria-hidden="true"></div>
-	{/if}
-	{#if specs}
-		<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
-		<SpecificationRows {specs} {th} />
-	{/if}
-</section>
+<ProductDetails {product} {language} {specs} {openSpecifications} />
 
 <style>
 	section {
@@ -53,20 +45,6 @@
 	h2 {
 		margin: 0 0 0.5rem;
 		font-size: 1.125rem;
-	}
-	p {
-		margin: 0;
-	}
-	.detail-photo {
-		margin-block: 0.85rem 1rem;
-		aspect-ratio: 1;
-		width: min(100%, 32rem);
-		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
-			no-repeat;
-	}
-	h3 {
-		font-size: 1rem;
-		margin-block: 1rem 0.25rem;
 	}
 	.rating {
 		display: flex;

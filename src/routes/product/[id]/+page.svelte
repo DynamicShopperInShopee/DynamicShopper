@@ -16,7 +16,14 @@
 	const specs = $derived(riceCookerSpecs[product.id]);
 	const review = $derived(riceCookerReviews[product.id]?.[data.language]);
 	let hero = $state<HTMLDivElement>();
+	let sheet = $state<HTMLDialogElement>();
 	let overHero = $state(true);
+
+	function openSpecifications(trigger: HTMLButtonElement) {
+		if (!sheet || sheet.open) return;
+		trigger.focus({ preventScroll: true });
+		sheet.showModal();
+	}
 
 	onMount(() => {
 		if (!hero) return;
@@ -91,9 +98,10 @@
 		shopProducts={data.shopProducts}
 		{review}
 		{specs}
+		{openSpecifications}
 	/>
 	{#if specs}
-		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} />
+		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} {openSpecifications} bind:sheet />
 	{/if}
 </main>
 

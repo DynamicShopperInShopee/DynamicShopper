@@ -136,7 +136,7 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await expect(listing.locator('[data-fact="rating"]')).toHaveCount(0);
 	const reviews = page.getByRole('region', { name: 'Product reviews' });
 	await expect(reviews.locator('[data-fact="rating"]')).toHaveText('4.8');
-	await page.getByRole('button', { name: 'Specifications' }).click();
+	await actions.getByRole('button', { name: 'Specifications' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Specifications' });
 	await expect(sheet).toBeVisible();
 	const sheetBox = await sheet.boundingBox();
@@ -149,6 +149,20 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await actions.getByRole('link', { name: 'Details' }).click();
 	const details = page.getByRole('region', { name: 'Product details' });
 	await expect(details.locator('[data-fact="power"]')).toHaveText('700 W');
+	const specsRow = details.getByRole('button', { name: 'Specifications' });
+	await expect(specsRow).toBeVisible();
+	// Some browsers activate a clicked button without focusing it first.
+	await specsRow.evaluate((button: HTMLButtonElement) => button.click());
+	await expect(sheet).toBeVisible();
+	await expect(sheet.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
+	await page.keyboard.press('Escape');
+	await expect(sheet).toBeHidden();
+	await expect(specsRow).toBeFocused();
+	const openCooker = details.getByRole('img', { name: 'Open rice cooker with cooked rice' });
+	await openCooker.scrollIntoViewIfNeeded();
+	await expect
+		.poll(() => openCooker.evaluate((image: HTMLImageElement) => image.naturalWidth))
+		.toBeGreaterThan(0);
 	await expect(page.locator('main header')).toHaveAttribute('data-over-hero', 'false');
 	await page.evaluate(() => window.scrollTo(0, 0));
 	await expect(page.locator('main header')).toHaveAttribute('data-over-hero', 'true');

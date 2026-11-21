@@ -4,10 +4,16 @@
 	let {
 		specs,
 		th,
-		hasReview
-	}: { specs: readonly [number, number, number, number]; th: boolean; hasReview: boolean } =
-		$props();
-	let sheet = $state<HTMLDialogElement>();
+		hasReview,
+		openSpecifications,
+		sheet = $bindable()
+	}: {
+		specs: readonly [number, number, number, number];
+		th: boolean;
+		hasReview: boolean;
+		openSpecifications: (trigger: HTMLButtonElement) => void;
+		sheet: HTMLDialogElement | undefined;
+	} = $props();
 </script>
 
 <nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>
@@ -41,12 +47,17 @@
 		</svg>
 		{th ? 'รายละเอียด' : 'Details'}
 	</a>
-	<button type="button" aria-haspopup="dialog" onclick={() => sheet?.showModal()}>
+	<button
+		type="button"
+		aria-controls="product-specifications"
+		aria-haspopup="dialog"
+		onclick={(event) => openSpecifications(event.currentTarget)}
+	>
 		{th ? 'สเปกสินค้า' : 'Specifications'}
 	</button>
 </nav>
 
-<dialog bind:this={sheet} aria-labelledby="specs-title">
+<dialog id="product-specifications" bind:this={sheet} aria-labelledby="specs-title">
 	<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
 	<div class="sheet-content">
 		<SpecificationRows {specs} {th} />
