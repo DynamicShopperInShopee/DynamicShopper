@@ -4,15 +4,23 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { categories, products, specs, type Category, type Locale } from '#lib/catalog/index.ts';
-	import { personaPlan, rankProducts } from '#lib/personalization/index.ts';
+	import { rankProducts, type ShopperPlan } from '#lib/personalization/index.ts';
+	import { optimizeDeal, type PricingContext } from '#lib/pricing/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
 	import { comparePresets, type ComparePreset } from '#lib/storefront/compare.ts';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
+	import { getStoreOpenedAt } from '#lib/storefront/clock.ts';
 
 	let interactive = $state(false);
+	let pricingContext = $state<PricingContext>();
 	onMount(() => {
 		interactive = true;
+		const openedAt = getStoreOpenedAt();
+		const refreshClock = () => (pricingContext = { openedAt, now: Math.max(openedAt, Date.now()) });
+		refreshClock();
+		const timer = window.setInterval(refreshClock, 60_000);
+		return () => window.clearInterval(timer);
 	});
 	const session = getStoreSession();
 	const locale = $derived(page.url.searchParams.get('lang') === 'th' ? 'th' : 'en');
@@ -44,13 +52,25 @@
 	const th = $derived(locale === 'th');
 	const title = $derived(th ? 'เทียบมุมมองหน้าร้าน' : 'Compare views');
 
-	function listingHref(id: string, lang: Locale, theme: 'minimal' | 'vibrant' | 'large-print') {
+	function listingHref(id: string, lang: Locale, theme: ShopperPlan['theme']) {
 		const params = new URLSearchParams({ lang, theme: theme === 'large-print' ? 'large' : theme });
 		return resolve(`/product/[id]?${params.toString()}`, { id });
 	}
-	function productsFor(persona: 'tech' | 'visual' | 'mom') {
-		const plan = { ...personaPlan(persona, locale), query, category: category ?? null };
-		return rankProducts(products, plan).map(({ product }) => product.id);
+	function productsFor(plan: ShopperPlan) {
+		return rankProducts(products, { ...plan, query, category: category ?? null }).map(
+			({ product }) => product.id
+		);
+	}
+
+	function vouchersFor(id: string) {
+		if (!pricingContext) return [];
+		const quote = optimizeDeal([{ productId: id, quantity: 1 }], pricingContext);
+		return quote
+			? [
+					...quote.appliedVouchers,
+					...quote.unusedVouchers.filter(({ reason }) => reason === 'beaten')
+				]
+			: [];
 	}
 </script>
 
@@ -96,6 +116,7 @@
 		{locale}
 		{productsFor}
 		{columns}
+		{vouchersFor}
 		categoryFor={(id: string) => glyphs.get(id)}
 		{listingHref}
 	/>

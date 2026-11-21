@@ -2,12 +2,18 @@
 	import { resolveCatalogFact } from './catalogFact';
 	import type { Snippet } from 'svelte';
 	import type { Category } from '#lib/store-catalog.js';
+	import type { ShopperPlan } from '#lib/personalization/index.ts';
 	import Fact from './Fact.svelte';
-	import ProductShelf from './ProductShelf.svelte';
+	import ProductShelf, { type ShelfVoucher } from './ProductShelf.svelte';
 	import type { FactLocale, LocalizedText, ResolvePrintedFact } from './verifyFacts';
 
 	type Section = 'picks' | 'compare' | 'matters' | 'reviews' | 'deal' | 'share' | 'products';
 	type Layout = 'grid' | 'table' | 'large-print';
+	const planSections = {
+		'top-picks': 'picks',
+		'what-matters': 'matters',
+		'best-deal': 'deal'
+	} as const;
 
 	let {
 		sections,
@@ -18,6 +24,8 @@
 		resolve = resolveCatalogFact,
 		listingHref,
 		categoryFor,
+		details,
+		vouchersFor,
 		reasons,
 		priorities = [],
 		deal,
@@ -34,6 +42,8 @@
 		resolve?: ResolvePrintedFact;
 		listingHref: (id: string) => string;
 		categoryFor?: (id: string) => Category | undefined;
+		details?: readonly ShopperPlan['details'][number][];
+		vouchersFor?: (id: string) => readonly ShelfVoucher[];
 		reasons?: Snippet<[string]>;
 		priorities?: readonly LocalizedText[];
 		deal?: Snippet<[string]>;
@@ -97,7 +107,12 @@
 			share: !comparePane && share !== undefined,
 			products: true
 		};
-		for (const entry of new Set(sections)) {
+		const requested = sections.map((section) =>
+			Object.hasOwn(planSections, section)
+				? planSections[section as keyof typeof planSections]
+				: section
+		);
+		for (const entry of new Set(requested)) {
 			if (!Object.hasOwn(visibility, entry)) continue;
 			const section = entry as Section;
 			if (section === 'products' || !visibility[section]) continue;
@@ -116,7 +131,13 @@
 </script>
 
 {#if !eligible.length}
-	<section id="products" tabindex="-1" class="empty" aria-label={t.empty} lang={locale}>
+	<section
+		id={comparePane ? undefined : 'products'}
+		tabindex="-1"
+		class="empty"
+		aria-label={t.empty}
+		lang={locale}
+	>
 		<h2>{t.empty}</h2>
 		{#if activeFilters.length}
 			<ul>
@@ -130,7 +151,7 @@
 		{#each ordered.sections as section (section)}
 			{#if section === 'products' && ordered.remaining.length}
 				<section
-					id={firstShelf === section ? 'products' : undefined}
+					id={!comparePane && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t.products}
 				>
@@ -143,11 +164,13 @@
 						{resolve}
 						{listingHref}
 						{categoryFor}
+						{details}
+						{vouchersFor}
 					/>
 				</section>
 			{:else if section === 'picks' || section === 'compare'}
 				<section
-					id={firstShelf === section ? 'products' : undefined}
+					id={!comparePane && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t[section]}
 				>
@@ -160,6 +183,8 @@
 						{resolve}
 						{listingHref}
 						{categoryFor}
+						{details}
+						{vouchersFor}
 						extras={section === 'picks' ? reasons : undefined}
 					/>
 				</section>

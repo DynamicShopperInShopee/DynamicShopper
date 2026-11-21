@@ -55,13 +55,16 @@ test('compares one catalog search in two personas and opens the Thai listing', a
 	const left = page.getByRole('region', { name: 'Left view', exact: true });
 	const right = page.getByRole('region', { name: 'Right view', exact: true });
 	await expect(right.getByRole('combobox')).toHaveValue('visual');
+	await expect(left.getByRole('heading', { name: 'What matters' })).toBeVisible();
+	await expect(right.getByRole('heading', { name: 'What buyers say' })).toBeVisible();
+	await expect(right.locator('[data-field="voucher.code"]').first()).toBeVisible();
 	await right.getByRole('combobox').selectOption('mom');
 	const anchor = '[data-product="cooker-one-button"][data-field="price"]';
 	await expect(left.locator(anchor)).toHaveText('฿690');
 	await expect(right.locator(anchor)).toHaveText('690 บาท');
 	await expect(right.locator(anchor)).toHaveAttribute('data-raw', '690');
 	await expect(right.locator('[data-field="price"]')).toHaveCount(3);
-	await expect(page.locator('[data-proof="passed"]')).toHaveAttribute('data-raw', '15');
+	await expect(page.locator('[data-proof="passed"]')).toHaveAttribute('data-raw', '9');
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
 		true
 	);
@@ -112,7 +115,7 @@ test('opens the comparison offline after the storefront is ready', async ({ page
 		.getByRole('region', { name: 'Right view', exact: true })
 		.getByRole('combobox')
 		.selectOption('mom');
-	await expect(page.locator('[data-proof="passed"]')).toHaveAttribute('data-raw', '15');
+	await expect(page.locator('[data-proof="passed"]')).toHaveAttribute('data-raw', '9');
 	await page
 		.getByRole('region', { name: 'Right view', exact: true })
 		.getByRole('link')
