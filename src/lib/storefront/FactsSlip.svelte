@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { observeMountedFacts } from './observeMountedFacts';
 	import {
 		verifyFacts,
 		type FactCheck,
@@ -45,36 +45,14 @@
 	$effect.pre(() => {
 		const root = scope;
 		const lookup = resolve;
-		// Each locale needs a fresh check even if a value prints the same way.
 		const currentLocale = locale;
-		let revision = 0;
-
-		function scheduleCheck() {
-			const scheduled = ++revision;
-			result = undefined;
-			void tick().then(() => {
-				if (scheduled !== revision) return;
-				result = root ? verifyFacts(root, lookup, currentLocale) : { checked: 0, mismatches: [] };
-			});
-		}
-
-		scheduleCheck();
-		if (!root)
-			return () => {
-				revision++;
-			};
-
-		const observer = new MutationObserver(scheduleCheck);
-		observer.observe(root, {
-			attributes: true,
-			characterData: true,
-			childList: true,
-			subtree: true
-		});
-		return () => {
-			revision++;
-			observer.disconnect();
-		};
+		return observeMountedFacts(
+			[root],
+			() => (root ? verifyFacts(root, lookup, currentLocale) : { checked: 0, mismatches: [] }),
+			(value) => {
+				result = value;
+			}
+		);
 	});
 </script>
 

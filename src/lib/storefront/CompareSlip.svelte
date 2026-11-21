@@ -1,0 +1,112 @@
+<script lang="ts">
+	import { observeMountedFacts } from './observeMountedFacts';
+	import {
+		compareFacts,
+		type CompareCheck,
+		type FactLocale,
+		type ResolvePrintedFact
+	} from './verifyFacts';
+
+	let {
+		left,
+		right,
+		leftLocale,
+		rightLocale,
+		locale,
+		resolve
+	}: {
+		left: HTMLElement | undefined;
+		right: HTMLElement | undefined;
+		leftLocale: FactLocale;
+		rightLocale: FactLocale;
+		locale: FactLocale;
+		resolve: ResolvePrintedFact;
+	} = $props();
+
+	const copy = {
+		en: {
+			title: 'Compare facts',
+			pending: 'Checking both views…',
+			empty: 'No shared facts to check yet',
+			passed: (checked: number) => `Facts identical (${checked} checked)`,
+			left: 'Left view',
+			right: 'Right view',
+			identity: 'Unknown fact',
+			source: 'Incorrect source',
+			raw: 'Incorrect stored value',
+			text: 'Incorrect printed value'
+		},
+		th: {
+			title: 'เทียบข้อมูลทั้งสองมุมมอง',
+			pending: 'กำลังตรวจทั้งสองมุมมอง…',
+			empty: 'ยังไม่มีข้อมูลร่วมให้ตรวจ',
+			passed: (checked: number) => `ข้อมูลตรงกัน (ตรวจแล้ว ${checked} รายการ)`,
+			left: 'มุมมองซ้าย',
+			right: 'มุมมองขวา',
+			identity: 'ไม่รู้จักข้อมูลนี้',
+			source: 'แหล่งข้อมูลไม่ถูกต้อง',
+			raw: 'ค่าที่บันทึกไม่ถูกต้อง',
+			text: 'ค่าที่แสดงไม่ถูกต้อง'
+		}
+	};
+
+	const t = $derived(copy[locale]);
+	let result = $state<CompareCheck>();
+
+	$effect.pre(() => {
+		const a = left;
+		const b = right;
+		const aLocale = leftLocale;
+		const bLocale = rightLocale;
+		const lookup = resolve;
+		return observeMountedFacts(
+			[a, b],
+			() =>
+				a && b
+					? compareFacts({ root: a, locale: aLocale }, { root: b, locale: bLocale }, lookup)
+					: { checked: 0, mismatches: [] },
+			(value) => {
+				result = value;
+			}
+		);
+	});
+</script>
+
+<section aria-label={t.title} aria-live="polite">
+	<h2>{t.title}</h2>
+	{#if !result}
+		<p>{t.pending}</p>
+	{:else if result.mismatches.length}
+		<ul>
+			{#each result.mismatches as mismatch}
+				<li>{t[mismatch.side]} · {t[mismatch.reason]} · {mismatch.productId} · {mismatch.field}</li>
+			{/each}
+		</ul>
+	{:else if result.checked > 0}
+		<p data-proof="passed" data-raw={result.checked}>{t.passed(result.checked)}</p>
+	{:else}
+		<p>{t.empty}</p>
+	{/if}
+</section>
+
+<style>
+	section {
+		max-width: 28rem;
+		padding: 1rem;
+		border: 1px solid var(--seam, #e9e6dc);
+		background: var(--surface, #fff);
+	}
+	h2 {
+		margin: 0 0 0.5rem;
+		font-size: inherit;
+	}
+	[data-proof='passed'] {
+		display: inline-block;
+		padding: 0.25em 0.5em;
+		border: 1px solid currentColor;
+		color: var(--verified, #0f7b4a);
+	}
+	ul {
+		color: var(--void, #b01e31);
+	}
+</style>

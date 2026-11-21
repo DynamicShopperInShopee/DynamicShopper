@@ -16,7 +16,7 @@ export type ResolvePrintedFact = (
 	locale: FactLocale
 ) => PrintedFact | undefined;
 
-interface FactMismatch {
+export interface FactMismatch {
 	productId: string;
 	field: string;
 	reason: 'identity' | 'source' | 'raw' | 'text';
@@ -37,15 +37,13 @@ function matchesRaw(serialized: string | null, expected: FactValue): boolean {
 	}
 }
 
-export function verifyFacts(
-	root: ParentNode,
-	resolve: ResolvePrintedFact,
-	locale: FactLocale = 'en'
-): FactCheck {
+function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: FactLocale) {
 	const nodes = root.querySelectorAll<HTMLElement>('[data-fact]');
 	const result: FactCheck = { checked: 0, mismatches: [] };
+	const identities = new Map<string, PrintedFact>();
 
 	for (const node of nodes) {
+		if (!node.getClientRects().length || getComputedStyle(node).visibility !== 'visible') continue;
 		const { product = '', field = '', source } = node.dataset;
 
 		const fact = product && field ? resolve(product, field, locale) : undefined;
@@ -57,9 +55,60 @@ export function verifyFacts(
 		}
 
 		result.checked++;
+		const previousMismatchCount = result.mismatches.length;
 		if (source !== fact.source) report('source');
 		if (!matchesRaw(node.getAttribute('data-raw'), fact.raw)) report('raw');
 		if (node.innerText !== fact.text) report('text');
+		if (result.mismatches.length === previousMismatchCount) {
+			identities.set(JSON.stringify([product, field]), fact);
+		}
+	}
+
+	return { result, identities };
+}
+
+export function verifyFacts(
+	root: ParentNode,
+	resolve: ResolvePrintedFact,
+	locale: FactLocale = 'en'
+): FactCheck {
+	return inspectFacts(root, resolve, locale).result;
+}
+
+interface View {
+	root: ParentNode;
+	locale: FactLocale;
+}
+
+export interface CompareCheck {
+	checked: number;
+	mismatches: (FactMismatch & { side: 'left' | 'right' })[];
+}
+
+export function compareFacts(left: View, right: View, resolve: ResolvePrintedFact): CompareCheck {
+	const a = inspectFacts(left.root, resolve, left.locale);
+	const b = inspectFacts(right.root, resolve, right.locale);
+	const result: CompareCheck = {
+		checked: 0,
+		mismatches: [
+			...a.result.mismatches.map((mismatch) => ({ ...mismatch, side: 'left' as const })),
+			...b.result.mismatches.map((mismatch) => ({ ...mismatch, side: 'right' as const }))
+		]
+	};
+
+	for (const [key, fact] of a.identities) {
+		const match = b.identities.get(key);
+		if (!match) continue;
+		if (Object.is(fact.raw, match.raw)) {
+			result.checked++;
+		} else {
+			result.mismatches.push({
+				productId: fact.productId,
+				field: fact.field,
+				reason: 'raw',
+				side: 'right'
+			});
+		}
 	}
 
 	return result;
