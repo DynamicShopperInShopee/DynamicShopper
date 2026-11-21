@@ -9,13 +9,11 @@
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
 	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
 	import { formatBaht, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
-	import { findAddOns, optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
+	import { findAddOns, optimizeDeal, type BasketItem } from '../lib/pricing/index.ts';
 	import {
 		defaultPlan,
-		interpretOffline,
 		personaPlan,
 		rankProducts,
-		validateProposal,
 		type ShopperPlan,
 		type Turn
 	} from '../lib/personalization';
@@ -26,8 +24,9 @@
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
 	import { getStoreOpenedAt } from '../lib/storefront/clock';
-	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
-	import { projectLiveHints } from '../lib/personalization/live';
+	import { watchPricingClock } from '../lib/storefront/live-quote';
+	import { reconcilePlanPatch } from '../lib/personalization/locked-plan';
+	import { createAssistantSession } from '../lib/storefront/assistant-session.svelte';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
@@ -70,30 +69,9 @@
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
-	let poisonArmed = $state(false);
-	let liveEnabled = $state(false);
-	let livePending = $state(false);
-	let liveFallback = $state(false);
-	let liveModel = $state<string>();
-	let liveRequest: AbortController | undefined;
-	let pendingLocalTurn: Turn | undefined;
-
-	function cancelLive() {
-		liveRequest?.abort();
-		liveRequest = undefined;
-		pendingLocalTurn = undefined;
-		livePending = false;
-	}
-	function toggleLive() {
-		const fallback = pendingLocalTurn;
-		cancelLive();
-		liveEnabled = !liveEnabled;
-		if (fallback) applyTurn(fallback);
-	}
-	let turn = $state<Turn>();
 	let changes = $state<(keyof ShopperPlan)[]>([]);
 	let focusedProduct = $state<string>();
-	let quote = $state<{ receipt: DealReceipt; locale: Locale; addOns: readonly AddOn[] }>();
+	let selectedBasket = $state<{ items: readonly BasketItem[]; locale: Locale }>();
 	let closeQuoteButton = $state<HTMLButtonElement>();
 	let quoteTrigger: HTMLElement | undefined;
 	let opening = $state<number>();
@@ -133,6 +111,20 @@
 	const a = $derived(assistantCopy[language]);
 	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
 	let shareCopied = $state(false);
+	const assistant = createAssistantSession(
+		() => ({
+			plan: activePlan,
+			locks,
+			focus: products.some((product) => product.catalogId === focusedProduct)
+				? focusedProduct
+				: products[0]?.catalogId
+		}),
+		applyTurn,
+		() => {
+			changes = [];
+		}
+	);
+	const turn = $derived(assistant.turn);
 
 	function remember() {
 		undoStack = [
@@ -147,7 +139,7 @@
 		];
 	}
 	function register(key: keyof ShopperPlan) {
-		cancelLive();
+		assistant.cancel();
 		if (!locks.includes(key)) locks = [...locks, key];
 	}
 	function writePlan(next: ShopperPlan) {
@@ -159,22 +151,23 @@
 		maxPrice = draftPrice = next.maxPrice ?? undefined;
 	}
 	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
-		cancelLive();
+		assistant.cancel();
 		const previous = $state.snapshot(activePlan);
-		const entries = Object.entries(patch).filter(
-			([key, value]) =>
-				value !== undefined &&
-				!(respectLocks && locks.includes(key as keyof ShopperPlan)) &&
-				JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
+		const accepted = reconcilePlanPatch(previous, patch, respectLocks ? locks : []);
+		const entries = Object.entries(accepted).filter(
+			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
 		);
 		changes = entries.map(([key]) => key as keyof ShopperPlan);
 		if (!changes.length) return;
 		remember();
 		writePlan({ ...previous, ...Object.fromEntries(entries) });
+		if (changes.includes('category') && changes.includes('query') && !query) {
+			locks = locks.filter((field) => field !== 'query');
+		}
 		adapted = true;
 	}
 	function undo() {
-		cancelLive();
+		assistant.cancel();
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
@@ -186,7 +179,7 @@
 		changes = [];
 	}
 	function restoreDefaults() {
-		cancelLive();
+		assistant.cancel();
 		remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
@@ -232,6 +225,12 @@
 			a.priorities
 		);
 	}
+	function explanationFor(productId: string): readonly string[] {
+		if (!adapted || sort !== 'default' || plan.simplified || ranked.length < 2) return [];
+		return (ranked.find(({ product }) => product.id === productId)?.terms ?? [])
+			.filter(({ contribution }) => contribution > 0)
+			.map(({ key }) => termName(key, productId));
+	}
 	function changeName(key: keyof ShopperPlan) {
 		return key in a ? a[key as keyof typeof a] : a.appearance;
 	}
@@ -240,22 +239,27 @@
 	}
 	function openBasket(productIds: readonly string[], locale: Locale = language) {
 		const openedAt = getStoreOpenedAt();
-		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
-		const basket = productIds.map((productId) => ({ productId, quantity: 1 }));
-		const receipt = optimizeDeal(basket, context);
-		if (!receipt) return;
+		opening = openedAt;
+		referenceTime = Math.max(openedAt, Date.now());
+		const items = productIds.map((productId) => ({ productId, quantity: 1 }));
 		quoteTrigger =
 			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
 		focusedProduct = productIds[0];
-		quote = { receipt, locale, addOns: findAddOns(basket, context) };
+		selectedBasket = { items, locale };
 		void tick().then(() => closeQuoteButton?.focus());
 	}
 	function closeDeal() {
-		quote = undefined;
+		selectedBasket = undefined;
 		quoteTrigger?.focus();
 	}
+	const quote = $derived.by(() => {
+		if (!selectedBasket || opening === undefined || referenceTime === undefined) return;
+		const context = { openedAt: opening, now: referenceTime };
+		const { items, locale } = selectedBasket;
+		const receipt = optimizeDeal(items, context);
+		return receipt ? { receipt, locale, addOns: findAddOns(items, context) } : undefined;
+	});
 	function applyTurn(next: Turn) {
-		turn = next;
 		changes = [];
 		switch (next.intent) {
 			case 'change':
@@ -273,76 +277,6 @@
 		}
 	}
 
-	function send(message: string) {
-		cancelLive();
-		liveModel = undefined;
-		liveFallback = false;
-		const focus = products.some((product) => product.catalogId === focusedProduct)
-			? focusedProduct
-			: products[0]?.catalogId;
-		const simulating = dev && poisonArmed;
-		poisonArmed = false;
-		const local = simulating
-			? validateProposal(
-					{
-						intent: 'change',
-						patch: { price: 1, layout: 'foreign', sections: ['unknown'] },
-						reply: '฿1'
-					},
-					activePlan,
-					focus
-				)
-			: interpretOffline(message, activePlan, focus);
-		if (
-			simulating ||
-			!dev ||
-			!liveEnabled ||
-			(local.intent !== 'chat' && local.intent !== 'change')
-		) {
-			applyTurn(local);
-			return;
-		}
-		const hints = projectLiveHints(message);
-		if (!hints.length) {
-			applyTurn(local);
-			return;
-		}
-		const request = new AbortController();
-		liveRequest = request;
-		pendingLocalTurn = local;
-		livePending = true;
-		turn = undefined;
-		changes = [];
-		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
-			(result) => {
-				if (liveRequest !== request) return;
-				liveRequest = undefined;
-				pendingLocalTurn = undefined;
-				livePending = false;
-				if (!result) {
-					liveFallback = true;
-					applyTurn(local);
-					return;
-				}
-				const proposed = validateProposal(
-					{ intent: 'change', patch: result.patch },
-					activePlan,
-					focus
-				);
-				const additions = fillPresentationGaps(local.patch, proposed.patch, activePlan, locks);
-				const dropped = result.rejected
-					? [...new Set([...proposed.dropped, 'unknown-field'])]
-					: proposed.dropped;
-				if (!Object.keys(additions).length) {
-					applyTurn({ ...local, dropped });
-					return;
-				}
-				liveModel = result.model;
-				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
-			}
-		);
-	}
-
 	async function shareLook() {
 		const link = new SvelteURL(page.url.href);
 		link.search = '';
@@ -356,13 +290,12 @@
 	}
 	onMount(() => {
 		opening = getStoreOpenedAt();
-		referenceTime = Math.max(opening, Date.now());
-		const timer = window.setInterval(() => {
-			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
-		}, 60_000);
+		const stopClock = watchPricingClock(opening, (now) => {
+			referenceTime = now;
+		});
 		return () => {
-			cancelLive();
-			window.clearInterval(timer);
+			assistant.cancel();
+			stopClock();
 		};
 	});
 	onMount(() => {
@@ -436,7 +369,7 @@
 	}
 
 	function clearFilters() {
-		cancelLive();
+		assistant.cancel();
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
 		maxPrice = undefined;
@@ -807,7 +740,7 @@
 
 		{#if !eventDemo}
 			<section class="shopper-tools" aria-label={a.persona}>
-				<ShoppingAssistant locale={language} onSend={send} />
+				<ShoppingAssistant locale={language} onSend={assistant.send} />
 				<div class="shopper-actions">
 					{#each personas as persona (persona)}
 						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
@@ -830,7 +763,7 @@
 						{a.trace}
 					</button>
 				</div>
-				{#if livePending}
+				{#if assistant.pending}
 					<p class="assistant-reply" role="status">
 						{language === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
 					</p>
@@ -838,7 +771,7 @@
 				{#if turn}
 					<div class="assistant-reply" aria-live="polite">
 						<span class="mode-label">
-							{liveModel ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
+							{assistant.model ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
 						</span>
 						<p>{turn.reply}</p>
 						{#if turn.citations.length}
@@ -894,18 +827,18 @@
 				{#if traceOpen}
 					<div class="assistant-reply" aria-label={a.trace}>
 						<p>
-							{liveModel
-								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${liveModel}`
+							{assistant.model
+								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${assistant.model}`
 								: a.offline}
 						</p>
-						{#if liveFallback}<p>
+						{#if assistant.fallback}<p>
 								{language === 'th'
 									? 'ใช้การตอบแบบออฟไลน์แทน'
 									: 'Live model unavailable. Used offline mode.'}
 							</p>{/if}
 						{#if dev}
-							<button type="button" onclick={toggleLive} aria-pressed={liveEnabled}>
-								{liveEnabled
+							<button type="button" onclick={assistant.toggle} aria-pressed={assistant.enabled}>
+								{assistant.enabled
 									? language === 'th'
 										? 'บังคับโหมดออฟไลน์'
 										: 'Force offline'
@@ -919,10 +852,10 @@
 						{#if !changes.length}<p>{a.noChange}</p>{/if}
 						{#if dev}<button
 								type="button"
-								disabled={poisonArmed}
-								onclick={() => (poisonArmed = true)}
+								disabled={assistant.poisonArmed}
+								onclick={assistant.armPoison}
 							>
-								{poisonArmed ? a.armed : a.poison}
+								{assistant.poisonArmed ? a.armed : a.poison}
 							</button>{/if}
 					</div>
 				{/if}
@@ -994,6 +927,7 @@
 						locale={language}
 						onDeal={openDeal}
 						highlightedSpecs={plan.highlightedSpecs}
+						explain={explanationFor}
 					/>
 				{:else}
 					{#if !eventDemo && adapted && plan.sections.includes('compare')}
@@ -1004,6 +938,7 @@
 							locale={language}
 							onDeal={openDeal}
 							highlightedSpecs={plan.highlightedSpecs}
+							explain={explanationFor}
 						/>
 					{/if}
 					<ul
@@ -1104,9 +1039,7 @@
 										locale={language}
 									/>
 									{#if !eventDemo}
-										{@const reasons =
-											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
-											[]}
+										{@const reasons = explanationFor(product.catalogId)}
 										{#if adapted && plan.details.includes('summary')}
 											<FactValue
 												tag="p"
@@ -1134,8 +1067,8 @@
 											<details class="rank">
 												<summary>{a.rank}</summary>
 												<ul>
-													{#each reasons.slice(0, 3) as reason (reason.key)}
-														<li>{termName(reason.key, product.catalogId)}</li>
+													{#each reasons.slice(0, 3) as reason (reason)}
+														<li>{reason}</li>
 													{/each}
 												</ul>
 											</details>

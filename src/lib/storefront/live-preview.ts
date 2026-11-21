@@ -8,7 +8,7 @@ export function fillPresentationGaps(
 	locks: readonly (keyof ShopperPlan)[]
 ) {
 	return Object.fromEntries(
-		Object.entries(model).filter(([field, value]) => {
+		Object.entries(readLiveProposal(model).patch).filter(([field, value]) => {
 			const key = field as keyof ShopperPlan;
 			return !Object.hasOwn(local, key) && !locks.includes(key) && current[key] !== value;
 		})
@@ -42,12 +42,9 @@ export async function requestLivePreview(
 		)
 			return null;
 		const { patch, rejected } = readLiveProposal(value.patch);
-		return Object.keys(patch).length
-			? {
-					patch,
-					model: value.model,
-					rejected: rejected || ('rejected' in value && value.rejected === true)
-				}
+		const hasRejection = rejected || ('rejected' in value && value.rejected === true);
+		return Object.keys(patch).length || hasRejection
+			? { patch, model: value.model, rejected: hasRejection }
 			: null;
 	} catch {
 		return null;

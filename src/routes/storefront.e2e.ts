@@ -1,4 +1,48 @@
 import { expect, test } from '@playwright/test';
+import { vouchers } from '../lib/catalog';
+import { optimizeDeal } from '../lib/pricing';
+
+test('moves from an explicit mouse search to Mom mode without losing the undo state', async ({
+	page,
+	context
+}) => {
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await context.setOffline(true);
+	await page.getByRole('searchbox').fill('gaming mouse');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	await expect(page.locator('#products [data-product]')).toHaveCount(8);
+	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
+	await page.getByRole('button', { name: 'Send' }).click();
+	await expect(page.locator('#products [data-product]')).toHaveCount(3);
+	await expect(page.locator('#products [data-product="cooker-one-button"]')).toBeVisible();
+	await expect(page.getByRole('searchbox')).toHaveValue('');
+	await page.getByRole('button', { name: 'ย้อนกลับ' }).click();
+	await expect(page.getByRole('searchbox')).toHaveValue('gaming mouse');
+	await expect(page.locator('#products [data-product]')).toHaveCount(8);
+});
+
+test('refreshes an open shelf quote when a voucher expires offline', async ({ page, context }) => {
+	const openedAt = Date.UTC(2026, 10, 21);
+	const expiry = vouchers.find(({ code }) => code === 'MEGA8')!.expiresAfterMs;
+	const basket = [{ productId: 'titan-max', quantity: 1 }];
+	const before = optimizeDeal(basket, { openedAt, now: openedAt + expiry - 1 })!;
+	const after = optimizeDeal(basket, { openedAt, now: openedAt + expiry })!;
+	await page.clock.install({ time: openedAt - 1000 });
+	await page.clock.pauseAt(openedAt);
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await context.setOffline(true);
+	await page.clock.fastForward(expiry - 1);
+	await page
+		.locator('#products [data-product="titan-max"]')
+		.getByRole('button', { name: 'Best price' })
+		.dispatchEvent('click');
+	const total = page.locator('[data-deal-fact="total"]');
+	await expect(total).toHaveAttribute('data-raw', String(before.total));
+	await page.clock.runFor(1);
+	await expect(total).toHaveAttribute('data-raw', String(after.total));
+});
 
 test('verifies rendered Thai facts and withdraws the proof when the price changes', async ({
 	page

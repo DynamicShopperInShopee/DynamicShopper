@@ -128,8 +128,22 @@ describe('local assistant transport', () => {
 		expect(provider).not.toHaveBeenCalled();
 	});
 
-	it('falls back on unusable model content', async () => {
-		const provider = vi.fn<typeof fetch>().mockResolvedValue(providerOutput({ reply: '฿1' }));
+	it('preserves rejection evidence when every proposed field is invalid', async () => {
+		const provider = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(providerOutput({ layout: 'foreign', reply: '฿1' }));
+		const response = await handleLocalAssistant(
+			request(JSON.stringify({ hints })),
+			url,
+			options,
+			provider
+		);
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({ patch: {}, model: 'gpt-5-mini', rejected: true });
+	});
+
+	it('falls back on usable responses with no proposal', async () => {
+		const provider = vi.fn<typeof fetch>().mockResolvedValue(providerOutput({ layout: null }));
 		const response = await handleLocalAssistant(
 			request(JSON.stringify({ hints })),
 			url,

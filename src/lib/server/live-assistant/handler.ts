@@ -5,6 +5,7 @@ import { readJson } from './read-json';
 const loopback = ['localhost', '127.0.0.1', '[::1]'];
 const loopbackPeers = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 const headers = { 'cache-control': 'no-store' };
+const maxRequestBytes = 1024;
 
 function error(status: number, reason: string) {
 	return Response.json({ error: reason }, { status, headers });
@@ -25,9 +26,14 @@ export async function handleLocalAssistant(
 		return error(415, 'invalid-request');
 	}
 
+	// Reject oversized declared bodies before cancelling a streamed read can reset the HTTP socket.
+	const contentLength = request.headers.get('content-length');
+	if (contentLength !== null && Number(contentLength) > maxRequestBytes)
+		return error(413, 'invalid-request');
+
 	let body: unknown;
 	try {
-		body = await readJson(request.body, 1024);
+		body = await readJson(request.body, maxRequestBytes);
 	} catch {
 		return error(400, 'invalid-request');
 	}

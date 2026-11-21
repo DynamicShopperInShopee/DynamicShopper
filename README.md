@@ -27,6 +27,8 @@ Run `bun run dev --host 127.0.0.1` and open the printed loopback URL. In **X-ray
 
 The local model receives a short list of allowlisted presentation hints. Product facts, prices, raw messages, and conversation history stay in the app. The model may propose a theme, layout, density or language. Listing questions and deal math use the existing deterministic paths.
 
+Run `bunx playwright test --config playwright.local.config.ts` for the local browser security and fallback checks. That suite uses a separate development server with the provider credentials cleared.
+
 Run `bun run scripts/evaluate-local-assistant.ts` to compare the model and fallback on five fixed synthetic presentation cases. This opt-in command makes billable API requests and prints per-case matches without printing keys or provider payloads. Treat the results as smoke-test evidence.
 
 ## Database configuration

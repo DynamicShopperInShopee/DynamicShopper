@@ -44,6 +44,7 @@ export async function requestLivePatch(
 				instructions: [
 					'Suggest store presentation changes based solely on these finite preference hints.',
 					'Favor readability for older readers, minimal clutter for quick scanning, and comparison tables for specs.',
+					'When the shopper prioritizes imagery, favor a grid layout or spacious density.',
 					'Give explicit language and layout hints precedence. Return null for fields the hints do not support.'
 				].join(' '),
 				input: JSON.stringify(validatedHints),
@@ -71,7 +72,7 @@ export async function requestLivePatch(
 		const content = message.content.find((part) => part?.type === 'output_text');
 		if (typeof content?.text !== 'string') return null;
 		const { patch, rejected } = readLiveProposal(JSON.parse(content.text));
-		return Object.keys(patch).length > 0
+		return Object.keys(patch).length || rejected
 			? { patch, model, ...(rejected ? { rejected } : {}) }
 			: null;
 	} catch {

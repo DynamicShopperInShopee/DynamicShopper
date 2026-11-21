@@ -2,16 +2,19 @@
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
 	import FactValue from './FactValue.svelte';
+	import { assistantCopy } from './copy';
 
 	let {
 		products,
 		locale,
 		onDeal,
+		explain,
 		highlightedSpecs = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
 		onDeal: (productId: string, locale: Locale) => void;
+		explain?: (productId: string) => readonly string[];
 		highlightedSpecs?: readonly SpecKey[];
 	} = $props();
 
@@ -53,11 +56,25 @@
 			</thead>
 			<tbody>
 				{#each products as product (product.id)}
+					{@const reasons = explain?.(product.id) ?? []}
 					<tr data-product={product.id}>
 						<th scope="row">
 							<a href={resolve(`/product/[id]?lang=${locale}`, { id: product.id })}>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
+							{#if reasons.length}
+								<details>
+									<summary>{assistantCopy[locale].rank}</summary>
+									<div class="ranking-reasons">
+										<p>{th ? 'เหตุผลสำคัญเรียงก่อน' : 'Biggest reasons first'}</p>
+										<ul role="list">
+											{#each reasons as reason (reason)}
+												<li>{reason}</li>
+											{/each}
+										</ul>
+									</div>
+								</details>
+							{/if}
 						</th>
 						{#each columns as column (column.key)}
 							<td class="figure">
@@ -119,13 +136,17 @@
 		text-align: start;
 	}
 	a,
-	button {
+	button,
+	summary {
 		min-block-size: var(--tap, 44px);
-		display: inline-flex;
-		align-items: center;
 		color: inherit;
 		text-decoration: underline;
 		text-underline-offset: 0.18em;
+	}
+	a,
+	button {
+		display: inline-flex;
+		align-items: center;
 	}
 	a {
 		min-inline-size: 8rem;
@@ -133,6 +154,45 @@
 	button {
 		white-space: nowrap;
 		cursor: pointer;
+	}
+	summary {
+		align-content: center;
+		cursor: pointer;
+	}
+	.ranking-reasons {
+		border: 1px dashed var(--ink);
+		padding: 0.5rem;
+		font-weight: normal;
+	}
+	.ranking-reasons p {
+		margin: 0 0 0.25rem;
+		font-weight: 600;
+	}
+	.ranking-reasons ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.ranking-reasons li {
+		display: grid;
+		grid-template-columns: 1fr 2.5rem;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.ranking-reasons li::after {
+		content: '';
+		block-size: 0.2rem;
+		inline-size: 100%;
+		background: var(--ink);
+	}
+	.ranking-reasons li:nth-child(2)::after {
+		inline-size: 75%;
+	}
+	.ranking-reasons li:nth-child(3)::after {
+		inline-size: 50%;
+	}
+	.ranking-reasons li:nth-child(n + 4)::after {
+		inline-size: 25%;
 	}
 	.figure {
 		text-align: end;

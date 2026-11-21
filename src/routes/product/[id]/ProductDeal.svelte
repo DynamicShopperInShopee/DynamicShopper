@@ -1,22 +1,34 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Locale } from '../../../lib/catalog';
-	import { optimizeDeal, type DealReceipt } from '../../../lib/pricing';
+	import { optimizeDeal } from '../../../lib/pricing';
 	import { getStoreOpenedAt } from '../../../lib/storefront/clock';
 	import DealSlip from '../../../lib/storefront/DealSlip.svelte';
+	import { watchPricingClock } from '../../../lib/storefront/live-quote';
 
 	let { productId, locale }: { productId: string; locale: Locale } = $props();
 	let openedAt = $state<number>();
-	let receipt = $state<DealReceipt | null>();
+	let now = $state<number>();
+	const receipt = $derived(
+		openedAt === undefined || now === undefined
+			? undefined
+			: optimizeDeal([{ productId, quantity: 1 }], { openedAt, now })
+	);
 	const th = $derived(locale === 'th');
+	const showingDeal = $derived(now !== undefined);
 
 	onMount(() => {
 		openedAt = getStoreOpenedAt();
 	});
 
+	$effect(() => {
+		if (openedAt === undefined || !showingDeal) return;
+		return watchPricingClock(openedAt, (time) => (now = time));
+	});
+
 	function showDeal() {
 		if (openedAt === undefined) return;
-		receipt = optimizeDeal([{ productId, quantity: 1 }], { openedAt, now: Date.now() });
+		now = Math.max(openedAt, Date.now());
 	}
 </script>
 
