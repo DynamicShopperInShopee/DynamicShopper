@@ -7,10 +7,12 @@ The storefront interview maps recognized answer IDs to fixed presentation settin
 Apply preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
 metadata. The same catalog, deterministic ranking and optimizer serve this view;
-no separate pricing or product data path is introduced. Both interview modes
-run entirely in the browser. The guided conversation matches replies to the
-authored bilingual choices and sends only the selected IDs to Review.
-The legacy interview HTTP endpoint returns Gone for older clients.
+no separate pricing or product data path is introduced. The preference
+interview can call OpenAI from the production server using only the shopper's
+dialogue and locale; its key stays server-side and same-origin JSON checks
+remain enabled. When the provider is unavailable, the conversation continues
+with the same four authored questions on the device, so typed replies still
+work without a key or network.
 
 ## Standalone sourced catalog
 

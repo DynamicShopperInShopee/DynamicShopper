@@ -82,8 +82,8 @@
 		<div class="assistant-option">
 			<p>
 				{t(
-					'Prefer a conversation? Answer one question at a time in the guided chat.',
-					'หากชอบคุยมากกว่าเลือกในแบบฟอร์ม ลองตอบคำถามทีละข้อในแชตได้'
+					'Prefer a conversation? Open the AI interview; the four direct choices also work offline.',
+					'อยากคุยกับผู้ช่วยไหม? เริ่มสัมภาษณ์ด้วย AI ได้ หรือเลือกคำตอบสั้น ๆ แบบออฟไลน์ก็ได้'
 				)}
 			</p>
 			<button
