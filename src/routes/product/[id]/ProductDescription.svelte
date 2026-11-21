@@ -18,12 +18,11 @@
 </script>
 
 {#if review}
-	<section id="reviews" aria-labelledby="reviews-title">
-		<h2 id="reviews-title">{th ? 'รีวิวสินค้า' : 'Product reviews'}</h2>
-		<p class="rating">
+	<section id="reviews" aria-label={th ? 'รีวิวสินค้า' : 'Product reviews'}>
+		<h2 class="rating">
 			<strong data-fact="rating" data-raw={product.rating}>{formatNumber(product.rating)}</strong>
 			{th ? 'คะแนนสินค้า' : 'Product rating'}
-		</p>
+		</h2>
 		<blockquote data-fact="review" data-raw={review}>{review}</blockquote>
 	</section>
 {/if}
@@ -73,6 +72,7 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: baseline;
+		font-weight: 600;
 	}
 	.rating strong {
 		font-family: var(--product-figure-font);

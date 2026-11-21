@@ -126,6 +126,15 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	expect((actionBox?.y ?? 0) + (actionBox?.height ?? 0)).toBe(844);
 
 	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
+	const shipping = page.locator('[data-fact="shipping"]');
+	await expect(shipping).toHaveText('฿50');
+	const shippingLabel = page.getByText('Shipping', { exact: true });
+	const labelBox = await shippingLabel.boundingBox();
+	const feeBox = await shipping.boundingBox();
+	expect(feeBox?.y ?? 0).toBeGreaterThan(labelBox?.y ?? 0);
+	await expect(page.locator('[data-fact="rating"]')).toHaveCount(1);
+	const reviews = page.getByRole('region', { name: 'Product reviews' });
+	await expect(reviews.locator('[data-fact="rating"]')).toHaveText('4.8');
 	await page.getByRole('button', { name: 'Specifications' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Specifications' });
 	await expect(sheet).toBeVisible();
