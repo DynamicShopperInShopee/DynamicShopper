@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Fact from './Fact.svelte';
 	import {
 		type FactLocale,
@@ -18,7 +19,8 @@
 		locale,
 		columns,
 		resolve,
-		listingHref
+		listingHref,
+		extras
 	}: {
 		productIds: readonly string[];
 		layout: 'table' | 'grid' | 'large-print';
@@ -26,6 +28,7 @@
 		columns: readonly SpecColumn[];
 		resolve: ResolvePrintedFact;
 		listingHref: (id: string) => string;
+		extras?: Snippet<[string]>;
 	} = $props();
 
 	const copy = {
@@ -98,6 +101,7 @@
 							{/if}
 						{/each}
 					</dl>
+					{@render extras?.(row.id)}
 				</li>
 			{/each}
 		</ul>
