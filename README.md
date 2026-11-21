@@ -8,6 +8,8 @@ DynamicShopper is a bilingual shopping prototype for the hackathon. Shoppers can
 
 See the [demo journey](guidelines/JOURNEY.md), [product brief](guidelines/PRODUCT.md), and [system design](guidelines/SYSTEM-DESIGN.md).
 
+The [shopping workflow research](research/milestone-2-shopping-workflows.md) proposes the next customizable, responsive views and defines their owner handoffs and acceptance checks.
+
 ## Choose your team assignment
 
 In your own checkout, run `git fetch origin` and switch to your existing task branch. If you need a branch, run `git switch -c <your-branch> origin/main` with your chosen name. Open one assignment in a fresh Sol session and use its start prompt. Owner 4 coordinates the first contract PR while Owners 1–3 provide examples and begin independent checks. Each teammate commits and pushes to their own branch.
