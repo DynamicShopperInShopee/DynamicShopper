@@ -13,6 +13,8 @@ bun run dev
 
 ### Try the demo
 
+[Watch the 51-second silent walkthrough](docs/demo/DynamicShopper-final-demo.mp4) of the interview, shopping assistant, catalog citation, deal receipt and Undo.
+
 1. Open `/` and choose **Rice cookers**. Select **1.8 L**. Choose **ไทย** to try the same journey in Thai.
 2. Select **Start a quick interview** (**เริ่มตอบคำถามสั้น ๆ**). Answer **Compare** and **Specs**, skip the remaining questions, and review the proposed changes. **Apply my view** opens the filtered comparison table. Closing the draft leaves the shelf as it was.
 3. Open a product, inspect a catalog specification, then choose **Back to store**. The applied interview and capacity selection return. Choose **Refine this view in chat** to ask a question. **Undo** returns to the preceding store state.
