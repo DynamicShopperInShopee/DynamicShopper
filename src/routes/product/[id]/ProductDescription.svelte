@@ -38,7 +38,7 @@
 <style>
 	section {
 		scroll-margin-top: 4rem;
-		border-top: 1px solid #e9e6dc;
+		border-top: 0.5rem solid #f3f3f3;
 		padding: 1rem;
 	}
 	h2 {

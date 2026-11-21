@@ -43,20 +43,23 @@
 	.actions {
 		position: sticky;
 		display: flex;
-		gap: 0.5rem;
+		gap: 0;
 		align-items: stretch;
 		bottom: 0;
 		border-top: 1px solid #e9e6dc;
 		background: white;
-		padding: 0.5rem 1rem max(0.5rem, env(safe-area-inset-bottom));
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 	.actions button {
-		flex: 1;
+		flex: 2;
 		width: auto;
+		border-radius: 0;
 	}
 	.actions a {
+		flex: 1;
 		display: grid;
 		place-items: center;
+		border-inline-end: 1px solid #e9e6dc;
 		min-height: 48px;
 		padding: 0 0.4rem;
 		color: inherit;

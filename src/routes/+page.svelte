@@ -1075,6 +1075,9 @@
 	.demo-photo:where(.art) {
 		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
 	}
+	.demo-photo[data-model='cooker-1'] {
+		background: #d0dce6 url('../lib/assets/products/cooker-one-button.jpg') center / cover no-repeat;
+	}
 	.demo-photo[data-category='earbuds'] {
 		background-position: 50% 0;
 	}

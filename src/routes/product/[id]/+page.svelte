@@ -18,13 +18,44 @@
 
 <main lang={data.language} data-product={product.id}>
 	<header>
-		<a href={resolve('/')}>{th ? 'กลับหน้าร้าน' : 'Back to store'}</a>
+		<a class="back" href={resolve('/')} aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}>
+			<svg
+				viewBox="0 0 24 24"
+				width="24"
+				height="24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.6"
+				aria-hidden="true"
+			>
+				<path d="M21 12H4m7-7-7 7 7 7" />
+			</svg>
+		</a>
+		<a class="header-search" href={resolve('/')}>
+			<svg
+				viewBox="0 0 20 20"
+				width="18"
+				height="18"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+				aria-hidden="true"
+			>
+				<circle cx="8" cy="8" r="5" /><path d="m12 12 5 5" />
+			</svg>
+			{th ? 'ค้นหาสินค้า' : 'Search products'}
+		</a>
 		<a href={`${resolve('/product/[id]', { id: product.id })}?lang=${th ? 'en' : 'th'}`}>
 			{th ? 'English' : 'ไทย'}
 		</a>
 	</header>
 	<div class="listing">
-		<div class="art" data-category={product.category} aria-hidden="true"></div>
+		<div
+			class="art"
+			data-category={product.category}
+			data-model={product.id}
+			aria-hidden="true"
+		></div>
 		<section aria-labelledby="product-title">
 			<dl class="prices">
 				<div>
@@ -39,6 +70,10 @@
 						</dd>
 					</div>
 				{/if}
+				<div class="sold">
+					<dt>{th ? 'ขายแล้ว' : 'Sold'}</dt>
+					<dd data-fact="sold" data-raw={product.sold}>{formatNumber(product.sold)}</dd>
+				</div>
 			</dl>
 			<h1 id="product-title" data-fact="name" data-raw={product.name[data.language]}>
 				{product.name[data.language]}
@@ -54,10 +89,6 @@
 				<div>
 					<dt>{th ? 'คะแนน' : 'Rating'}</dt>
 					<dd data-fact="rating" data-raw={product.rating}>{formatNumber(product.rating)}</dd>
-				</div>
-				<div>
-					<dt>{th ? 'ขายแล้ว' : 'Sold'}</dt>
-					<dd data-fact="sold" data-raw={product.sold}>{formatNumber(product.sold)}</dd>
 				</div>
 			</dl>
 		</section>
@@ -79,19 +110,31 @@
 	}
 	header {
 		display: flex;
-		justify-content: space-between;
+		align-items: center;
+		gap: 0.65rem;
 		border-bottom: 1px solid #e9e6dc;
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		background: #fff;
-		padding-inline: 1rem;
+		padding: 0.375rem 0.75rem;
 	}
 	header a {
 		min-height: 44px;
 		display: flex;
 		align-items: center;
 		color: inherit;
+	}
+	.back {
+		flex: 0 0 44px;
+		justify-content: center;
+	}
+	.header-search {
+		flex: 1;
+		min-width: 0;
+		gap: 0.5rem;
+		padding-inline: 0.65rem;
+		background: #f4f4f4;
 	}
 	.listing {
 		display: grid;
@@ -112,6 +155,10 @@
 	.art[data-category='cooker'] {
 		background-position: 0 100%;
 	}
+	.art[data-model='cooker-1'] {
+		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
+			no-repeat;
+	}
 	.art[data-category='skin'] {
 		background-position: 50% 100%;
 	}
@@ -129,7 +176,7 @@
 	}
 	dd {
 		margin: 0;
-		font-family: ui-monospace, monospace;
+		font-family: 'IBM Plex Mono', ui-monospace, monospace;
 	}
 	section {
 		min-width: 0;
@@ -162,6 +209,19 @@
 		height: 1px;
 		overflow: hidden;
 		clip-path: inset(50%);
+	}
+	.prices .sold {
+		display: flex;
+		gap: 0.25rem;
+		margin-inline-start: auto;
+		font-size: 0.875rem;
+	}
+	.prices .sold dt {
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip-path: none;
 	}
 	.prices dd[data-fact='price'] {
 		font-size: 1.7rem;
