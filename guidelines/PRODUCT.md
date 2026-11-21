@@ -34,7 +34,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 2. **Every AI change is visible and reversible.** Each change is explained in a short "What changed" note, shows up as removable chips, and can be undone in one step. Reset is always one click away.
 3. **Show the proof, not the claim.** Every promise about facts has a surface that demonstrates it.
 4. **Never depend on the network.** With no AI key, no connection or a misbehaving model, the store still understands the shopper through a keyword fallback, labelled "Offline mode".
-5. **Explicit control beats inference.** Chips, a persona picker, Undo, Reset, a language switch, category tabs and a search box always work, and what the shopper sets directly is never overridden by guesswork.
+5. **Explicit control beats inference.** Chips, Undo, Reset, a language switch, category tabs and a search box always work, and what the shopper sets directly is never overridden by guesswork.
 6. **Same truth for everyone.** Two shoppers may see very different stores, but every shared fact is identical.
 7. **Thai and English are equal.** Every word of the interface exists in both, and mixed-language messages are normal input.
 
@@ -43,13 +43,13 @@ Everyone who uses the store should come away believing two things at once: "the 
 ### What the product should do
 
 - **Chat reshapes the store.** A message in Thai, English or a mix changes theme, layout, density, language, which details cards show, ranking priorities, filters and which sections the page contains.
-- **Explicit control.** A preferences bar of removable chips, a persona picker, Undo, Reset, a language switch, category tabs and search.
+- **Explicit control.** A preferences bar of removable chips, Undo, Reset, a language switch, category tabs and search. The optional four-question interview asks about shopping needs and automatically applies one validated presentation when completed. Drafts are inert; Undo restores the previous view and answers. There is no separate preview/Apply gate or manual preset, persona or theme chooser in the main flow.
 - **Deterministic ranking** over catalog facts and the shopper's priorities, with a "Why this order?" explanation that uses no numbers.
 - **Voucher optimizer.** The best legal voucher and coin stack as a printed receipt, reasons for every unused voucher, and "Only if you need it" add-ons that unlock a voucher at a known extra cost.
 - **Agent-composed pages.** The AI reads the catalog with read-only tools and composes the page from a fixed library of fact-locked sections.
 - **Share with family.** A link (and a LINE share) that carries the store's look, nothing personal.
-- **Compare views.** Two personas side by side on the same search, with a check that the facts are identical.
-- **Mom mode.** Large print, Thai, three choices, reachable from chat ("ซื้อให้แม่ อายุ 65") or the persona picker.
+- **Compare views.** Two inspection examples side by side on the same search, with a check that the facts are identical. Comparison cannot apply a view to the store.
+- **Mom mode.** Large print, Thai, three choices, reachable from chat ("ซื้อให้แม่ อายุ 65") or the optional needs interview.
 - **Product questions with citations.** Answers only by pointing at the listing's specs, reviews or summary.
 - **X-ray and red team.** A view of the pipeline behind the last reply, a "Force offline" switch, and a simulated poisoned model.
 - **Accuracy scoreboard.** How well the AI and the fallback understand a golden set of about sixty real shopper messages, and how many facts either one leaked (the target is zero).
@@ -104,4 +104,19 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 Seller insight into what shoppers ask for; photo search; Thai voice input for mom mode; gentle sort suggestions from browsing (never applied automatically); plain-language specs in mom mode ("about 10 cups" next to 1.8 L); running against a local model.
 
+## Direct decision help and Smart Basket
+
+Accepted: cooker results offer explicit easy-use and comparison tasks without an
+interview or chat. They preserve current eligibility and theme; an independent Undo
+restores the previous decision view without mutating search, filters or cart. Easy-use
+selects up to three catalog-tagged simple models ordered by program count then ID.
+The comparison shows catalog price, capacity, programs and warranty, with cart actions.
+
+Smart Basket offers at most one curated catalog-supported companion, with a cited
+source review and the target skin-type fact. The current demo pairs vitamin-C serum
+with ceramide moisturiser; no cooker companion is asserted. Both quotes use the same
+optimizer context and coin balance. Add is explicit, rejection hides the offer for
+this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
+The catalog remains simulated; this is not a clinical compatibility guarantee or a
+new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
 Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.

@@ -1,4 +1,13 @@
 <script lang="ts">
+	import DecisionShelf from '../lib/storefront/DecisionShelf.svelte';
+	import SmartBasket from '../lib/storefront/SmartBasket.svelte';
+	let decisionMode = $state('');
+	let decisionHistory = $state<string[]>([]);
+	function chooseDecision(mode: string) {
+		if (mode === decisionMode) return;
+		decisionHistory = [...decisionHistory, decisionMode];
+		decisionMode = mode;
+	}
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
 	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
@@ -36,7 +45,6 @@
 	import {
 		defaultPlan,
 		interpretOffline,
-		personaPlan,
 		rankProducts,
 		validateProposal,
 		type ShopperPlan,
@@ -107,8 +115,6 @@
 	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
-	let personasOpen = $state(false);
-	let personaTrigger = $state<HTMLButtonElement>();
 	let traceOpen = $state(false);
 	let traceTrigger = $state<HTMLButtonElement>();
 	let traceMerge = $state<'applied' | 'unchanged'>();
@@ -236,7 +242,6 @@
 		return session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
 	}
 	const a = $derived(assistantCopy[language]);
-	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
 
 	let restoredFields = $state<(keyof ShopperPlan)[]>([]);
 	let cartRestored = $state(false);
@@ -360,7 +365,7 @@
 	}
 	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
 		const result = interviewProposal(answers, activePlan, {
-			directOnly,
+			directOnly: true,
 			lockedFields: locks
 		});
 		const previous = $state.snapshot(activePlan);
@@ -389,9 +394,9 @@
 		adapted = true;
 		turn = undefined;
 		await tick();
-		const shelf = document.getElementById('products');
-		shelf?.scrollIntoView({ block: 'start', behavior: 'instant' });
-		shelf?.focus({ preventScroll: true });
+		const receipt = document.getElementById('store-change-receipt');
+		receipt?.scrollIntoView({ block: 'start', behavior: 'instant' });
+		receipt?.focus({ preventScroll: true });
 	}
 	async function focusAssistant() {
 		await tick();
@@ -401,33 +406,6 @@
 		const previous = [...locks];
 		changePlan({ [key]: structuredClone(defaultPlan[key]) }, false);
 		locks = previous.filter((item) => item !== key);
-	}
-	function selectPersona(persona: (typeof personas)[number]) {
-		changePlan(
-			{
-				...personaPlan(persona, language),
-				query,
-				category: activePlan.category,
-				maxPrice: activePlan.maxPrice
-			},
-			false
-		);
-		for (const field of [
-			'theme',
-			'layout',
-			'density',
-			'details',
-			'simplified',
-			'sections',
-			'priorities'
-		] as const)
-			register(field);
-		if (persona === 'mom') register('locale');
-	}
-	function closePersonasOnEscape(event: KeyboardEvent) {
-		if (event.key !== 'Escape' || !personasOpen) return;
-		personasOpen = false;
-		personaTrigger?.focus();
 	}
 	function listingHref(id: string) {
 		return resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, { id });
@@ -1214,12 +1192,17 @@
 					>
 						{a.compare}
 					</a>
-					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
-						{#each themes as option (option)}
-							<option value={option}>{t[option]}</option>
-						{/each}
-					</select>
-					{@render languageSwitch()}
+					<button
+						type="button"
+						lang={language === 'th' ? 'en' : 'th'}
+						disabled={!interactive}
+						onclick={() => {
+							register('locale');
+							language = language === 'th' ? 'en' : 'th';
+						}}
+					>
+						{language === 'th' ? 'English' : 'ไทย'}
+					</button>
 					<CartControls locale={language} onBestPrice={() => openBasket()} />
 					<button
 						type="button"
@@ -1667,7 +1650,7 @@
 					</div>
 				{/if}
 				{#if changes.length}
-					<div class="assistant-reply" role="status">
+					<div id="store-change-receipt" tabindex="-1" class="assistant-reply" role="status">
 						<strong>{a.changed}</strong>
 						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
 					</div>
@@ -1690,53 +1673,16 @@
 					largePrint={theme === 'large'}
 					{theme}
 				/>
-				<div class="shopper-toolbar">
-					<div class="shopper-actions shopper-views">
-						<button
-							type="button"
-							aria-expanded={compareOpen}
-							onclick={() => (compareOpen = !compareOpen)}
-						>
-							{compareOpen ? a.closeCompare : a.compare}
-						</button>
-						<button
-							type="button"
-							disabled={!interactive}
-							aria-expanded={personasOpen}
-							aria-controls="shopper-presets"
-							bind:this={personaTrigger}
-							onclick={() => (personasOpen = !personasOpen)}
-							onkeydown={closePersonasOnEscape}
-						>
-							{a.persona}
-							<svg class="disclosure" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-								<path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
-							</svg>
-						</button>
-						<div
-							id="shopper-presets"
-							class="shopper-actions shopper-presets"
-							hidden={!personasOpen}
-						>
-							{#each personas as persona (persona)}
-								<button
-									type="button"
-									id={`persona-${persona}`}
-									disabled={!interactive}
-									onclick={() => selectPersona(persona)}
-									onkeydown={closePersonasOnEscape}
-								>
-									{a[persona]}
-								</button>
-							{/each}
-						</div>
-					</div>
-					<div class="shopper-actions shelf-utilities">
-						{#if !adapted || !interviewAnswers}
-							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-						{/if}
-						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
-					</div>
+				<div class="shopper-actions">
+					<button
+						type="button"
+						aria-expanded={compareOpen}
+						onclick={() => (compareOpen = !compareOpen)}
+					>
+						{compareOpen ? a.closeCompare : a.compare}
+					</button>
+					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+					<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
 				</div>
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
@@ -1816,6 +1762,24 @@
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
+		{#if cookerSearch}<div class="decision-actions">
+				<button onclick={() => chooseDecision('easy')}>
+					{language === 'th' ? 'ซื้อให้แม่ ใช้ง่าย' : 'For mum, easy to use'}
+				</button>
+				<button onclick={() => chooseDecision('compare')}>
+					{language === 'th' ? 'เทียบก่อนซื้อ' : 'Compare before buying'}
+				</button>
+				<button
+					disabled={!decisionHistory.length}
+					onclick={() => {
+						decisionMode = decisionHistory.at(-1) ?? '';
+						decisionHistory = decisionHistory.slice(0, -1);
+					}}
+				>
+					{language === 'th' ? 'ย้อนกลับการช่วยเลือก' : 'Undo decision view'}
+				</button>
+			</div>{/if}
+		<SmartBasket locale={language} />
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div
 				class="results-header"
@@ -1844,6 +1808,13 @@
 						<p>{t.emptyHint}</p>
 						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
 					</div>
+				{:else if cookerSearch && decisionMode}
+					<DecisionShelf
+						ids={products.map((p) => p.catalogId)}
+						locale={language}
+						mode={decisionMode}
+						{listingHref}
+					/>
 				{:else if eventDemo}
 					{@render shelf(
 						products.map((product) => product.catalogId),
@@ -1880,6 +1851,20 @@
 </div>
 
 <style>
+	.decision-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-block: 1rem;
+	}
+	.decision-actions button {
+		font: inherit;
+		min-height: 48px;
+		padding: 0.5rem 1rem;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid currentColor;
+	}
 	:global(body) {
 		margin: 0;
 	}
@@ -2150,53 +2135,6 @@
 		gap: 0.4rem;
 		align-items: center;
 		margin-block: 0.55rem;
-	}
-	.shopper-toolbar {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		column-gap: 1rem;
-		row-gap: 0.15rem;
-		margin-block-start: 0.65rem;
-	}
-	.shopper-toolbar .shopper-actions {
-		margin-block: 0;
-	}
-	.shopper-views,
-	.shelf-utilities {
-		min-inline-size: 0;
-		align-content: start;
-	}
-	.shopper-toolbar button[aria-expanded='true'] {
-		border-color: var(--accent);
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
-	}
-	.disclosure {
-		margin-inline-start: 0.25rem;
-		vertical-align: middle;
-	}
-	button[aria-expanded='true'] .disclosure {
-		rotate: 180deg;
-	}
-	.shelf-utilities button {
-		border-color: transparent;
-		background: transparent;
-	}
-	.shelf-utilities button:not(:disabled):hover {
-		border-color: var(--seam);
-	}
-	.shelf-utilities button:disabled {
-		color: var(--muted);
-		cursor: not-allowed;
-	}
-	.shopper-presets:not([hidden]) {
-		flex-basis: 100%;
-		padding-block-start: 0.55rem;
-		border-block-start: 1px dashed var(--seam);
-	}
-	.shopper-presets[hidden] {
-		display: none;
 	}
 	.assistant-reply {
 		border: 1px dashed var(--seam);
@@ -2775,5 +2713,35 @@
 		.event-demo.category-search:not([data-theme='large']) .price :global(s) {
 			font-size: 0.75rem;
 		}
+	}
+
+	/* Fixed brand chrome is deliberately outside theme tokens. */
+	.store .masthead,
+	.store .marketplace-brand,
+	.store .search {
+		background: #ee4d2d;
+		color: #30160f;
+	}
+	.store .search {
+		padding: 0.5rem;
+	}
+	.store .brand,
+	.store .marketplace-identity {
+		color: #fff;
+		font-size: 1.25rem;
+		font-weight: 750;
+	}
+	.store .search button[type='submit'],
+	.store .search button[type='submit']:hover {
+		background: #b5321a;
+		color: #fff;
+		border-color: #b5321a;
+	}
+	.store .search input {
+		background: #fff;
+		color: #16161a;
+	}
+	.store .masthead .compare-link {
+		color: #30160f;
 	}
 </style>

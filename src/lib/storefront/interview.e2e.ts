@@ -10,6 +10,12 @@ async function interview(page: Page, thai = false, directOnly = true, editing = 
 	const dialog = page.getByRole('dialog', {
 		name: thai ? 'ปรับร้านให้เหมาะกับคุณ' : 'Make the shop fit you'
 	});
+	await dialog
+		.getByText(thai ? 'มุมมองนี้เลือกมาอย่างไร' : 'How this view is chosen', { exact: true })
+		.click();
+	await dialog
+		.getByRole('checkbox', { name: thai ? 'ใช้เฉพาะคำตอบที่เลือก' : 'Use direct answers only' })
+		.setChecked(directOnly);
 	for (const [question, answer] of [
 		['goal', 'browse'],
 		['evidence', 'specs'],
@@ -22,8 +28,8 @@ async function interview(page: Page, thai = false, directOnly = true, editing = 
 				name:
 					question === 'reading'
 						? thai
-							? 'ดูมุมมองที่เสนอ'
-							: 'Preview my view'
+							? 'ตอบเสร็จแล้ว'
+							: 'Finish interview'
 						: thai
 							? 'ถัดไป'
 							: 'Next',
@@ -31,17 +37,8 @@ async function interview(page: Page, thai = false, directOnly = true, editing = 
 			})
 			.click();
 	}
-	await dialog
-		.getByText(thai ? 'มุมมองนี้เลือกมาอย่างไร' : 'How this view is chosen', { exact: true })
-		.click();
-	if (directOnly)
-		await dialog
-			.getByRole('checkbox', { name: thai ? 'ใช้เฉพาะคำตอบที่เลือก' : 'Use direct answers only' })
-			.check();
-	else await expect(dialog.getByTestId('interview-backend')).toContainText('CNN');
-	await dialog
-		.getByRole('button', { name: thai ? 'ใช้มุมมองนี้' : 'Apply my view', exact: true })
-		.click();
+	await expect(dialog).toHaveCount(0);
+	await expect(page.locator('#store-change-receipt')).toBeVisible();
 }
 
 for (const width of [390, 1440]) {
@@ -94,7 +91,7 @@ for (const width of [390, 1440]) {
 	});
 }
 
-test('interview drafts leave the store alone and Thai CNN Apply retains the project identity', async ({
+test('interview drafts leave the store alone and Thai CNN completion retains the project identity', async ({
 	page
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
