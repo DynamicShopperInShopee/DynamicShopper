@@ -25,10 +25,22 @@
 	}
 </script>
 
-<dialog use:show oncancel={onclose} aria-labelledby="interview-dialog-title">
-	<header>
-		<h2 id="interview-dialog-title">{title}</h2>
-		<button type="button" onclick={onclose} aria-label={closeLabel}>
+<dialog
+	class="fixed inset-[auto_0_0] mx-auto my-0 box-border max-h-[88dvh] w-full max-w-full border-0 border-none bg-[var(--paper)] p-0 text-[var(--ink)] [border-top:2px_solid_var(--ink)] backdrop:bg-[#16161a66] open:grid open:grid-rows-[auto_minmax(0,1fr)] min-[701px]:inset-0 min-[701px]:m-auto min-[701px]:h-fit min-[701px]:w-[min(36rem,calc(100%-3rem))] min-[701px]:rounded-[var(--radius)] min-[701px]:border min-[701px]:border-t-2 min-[701px]:border-solid min-[701px]:border-[var(--ink)]"
+	use:show
+	oncancel={onclose}
+	aria-labelledby="interview-dialog-title"
+>
+	<header
+		class="flex items-center justify-between gap-3 p-[0.375rem_0.75rem_0.375rem_1.125rem] [border-bottom:1px_solid_var(--seam)]"
+	>
+		<h2 class="m-0 text-[length:var(--size)] font-semibold" id="interview-dialog-title">{title}</h2>
+		<button
+			class="grid min-h-[var(--tap)] min-w-[var(--tap)] cursor-pointer place-items-center border-0 border-none bg-transparent text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)]"
+			type="button"
+			onclick={onclose}
+			aria-label={closeLabel}
+		>
 			<svg
 				aria-hidden="true"
 				width="20"
@@ -42,72 +54,5 @@
 			</svg>
 		</button>
 	</header>
-	<div class="content">{@render children()}</div>
+	<div class="content min-h-0 overflow-auto overscroll-contain">{@render children()}</div>
 </dialog>
-
-<style>
-	dialog {
-		box-sizing: border-box;
-		position: fixed;
-		inset: auto 0 0;
-		margin: 0 auto;
-		width: 100%;
-		max-width: 100%;
-		max-height: 88dvh;
-		padding: 0;
-		border: 0;
-		border-top: 2px solid var(--ink);
-		background: var(--paper);
-		color: var(--ink);
-	}
-	dialog[open] {
-		display: grid;
-		grid-template-rows: auto minmax(0, 1fr);
-	}
-	dialog::backdrop {
-		background: #16161a66;
-	}
-	header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		padding: 0.375rem 0.75rem 0.375rem 1.125rem;
-		border-bottom: 1px solid var(--seam);
-	}
-	h2 {
-		font-size: var(--size);
-		font-weight: 600;
-		margin: 0;
-	}
-	button {
-		display: grid;
-		place-items: center;
-		min-height: var(--tap);
-		min-width: var(--tap);
-		background: transparent;
-		border: 0;
-		color: var(--ink);
-		cursor: pointer;
-	}
-	button:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: -2px;
-	}
-	.content {
-		min-block-size: 0;
-		overflow: auto;
-		overscroll-behavior: contain;
-	}
-	@media (min-width: 701px) {
-		dialog {
-			inset: 0;
-			margin: auto;
-			width: min(36rem, calc(100% - 3rem));
-			height: fit-content;
-			border: 1px solid var(--ink);
-			border-top-width: 2px;
-			border-radius: var(--radius);
-		}
-	}
-</style>

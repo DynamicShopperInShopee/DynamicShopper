@@ -57,25 +57,42 @@
 <svelte:window onkeydown={handleDesktopEscape} />
 
 {#snippet contents()}
-	<div class="actions">
-		<button type="button" bind:this={closeButton} onclick={close}>
+	<div class="actions mb-2 flex justify-end">
+		<button
+			class="min-h-[var(--tap,44px)] min-w-[var(--tap,44px)] cursor-pointer rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-3 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
+			type="button"
+			bind:this={closeButton}
+			onclick={close}
+		>
 			{locale === 'th' ? 'ปิดการดูขั้นตอน' : 'Close X-ray'}
 		</button>
 	</div>
-	<div class="proof-content">
+	<div
+		class={[
+			'proof-content [&_>_section]:max-w-none [&_>_section]:border-0 [&_>_section]:border-none [&_>_section]:p-0'
+		]}
+	>
 		{@render children()}
 	</div>
 {/snippet}
 
 {#if open}
 	{#if desktop.current}
-		<div class="anchor">
-			<aside {id} lang={locale} aria-label={assistantCopy[locale].trace} class="drawer">
+		<div
+			class="anchor pointer-events-none sticky inset-bs-[var(--xray-sticky-offset,0px)] z-[2] h-0"
+		>
+			<aside
+				{id}
+				lang={locale}
+				aria-label={assistantCopy[locale].trace}
+				class="drawer pointer-events-auto ms-auto box-border max-h-[calc(100dvh-var(--xray-sticky-offset,0px))] w-[min(100%,320px)] min-w-0 overflow-auto overscroll-contain bg-[var(--surface,#fff)] p-4 wrap-anywhere text-[var(--ink,#16161a)] [border-inline-start:1px_solid_var(--ink,#16161a)]"
+			>
 				{@render contents()}
 			</aside>
 		</div>
 	{:else}
 		<dialog
+			class="fixed inset-[auto_0_0] m-0 box-border h-[75dvh] max-h-none w-full max-w-none min-w-0 overflow-auto overscroll-contain border-0 border-none bg-[var(--surface,#fff)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] wrap-anywhere text-[var(--ink,#16161a)] [border-block-start:2px_solid_var(--ink,#16161a)] backdrop:bg-[rgb(0_0_0/35%)]"
 			{id}
 			lang={locale}
 			aria-label={assistantCopy[locale].trace}
@@ -89,71 +106,3 @@
 		</dialog>
 	{/if}
 {/if}
-
-<style>
-	.anchor {
-		position: sticky;
-		inset-block-start: var(--xray-sticky-offset, 0px);
-		z-index: 2;
-		block-size: 0;
-		pointer-events: none;
-	}
-	.drawer,
-	dialog {
-		box-sizing: border-box;
-		min-inline-size: 0;
-		padding: 1rem;
-		color: var(--ink, #16161a);
-		background: var(--surface, #fff);
-		overflow: auto;
-		overscroll-behavior: contain;
-		overflow-wrap: anywhere;
-	}
-	.drawer {
-		inline-size: min(100%, 320px);
-		max-block-size: calc(100dvh - var(--xray-sticky-offset, 0px));
-		margin-inline-start: auto;
-		border-inline-start: 1px solid var(--ink, #16161a);
-		pointer-events: auto;
-	}
-	dialog {
-		position: fixed;
-		inset: auto 0 0;
-		margin: 0;
-		inline-size: 100%;
-		block-size: 75dvh;
-		max-inline-size: none;
-		max-block-size: none;
-		padding-block-end: max(1rem, env(safe-area-inset-bottom));
-		border: 0;
-		border-block-start: 2px solid var(--ink, #16161a);
-	}
-	dialog::backdrop {
-		background: rgb(0 0 0 / 35%);
-	}
-	.actions {
-		display: flex;
-		justify-content: flex-end;
-		margin-block-end: 0.5rem;
-	}
-	.proof-content > :global(section) {
-		max-inline-size: none;
-		padding: 0;
-		border: 0;
-	}
-	button {
-		min-inline-size: var(--tap, 44px);
-		min-block-size: var(--tap, 44px);
-		padding-inline: 0.75rem;
-		border: 1px solid currentColor;
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		color: inherit;
-		font: inherit;
-		cursor: pointer;
-	}
-	button:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-</style>

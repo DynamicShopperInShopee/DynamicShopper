@@ -154,17 +154,36 @@
 	}
 </script>
 
-<section id="criteria-overview" tabindex="-1" aria-labelledby="criteria-title">
-	<h2 id="criteria-title">{th ? 'เกณฑ์การเลือกสินค้า' : 'Shopping criteria'}</h2>
-	<div class="groups">
-		<details>
-			<summary>
-				<h3>{th ? 'เงื่อนไข' : 'Requirements'}</h3>
-				<span>
+<section
+	class="my-4 scroll-mt-[5rem] text-[var(--ink)]"
+	id="criteria-overview"
+	tabindex="-1"
+	aria-labelledby="criteria-title"
+>
+	<h2 class="mx-0 mt-0 mb-2 text-[1.125em] leading-[1.3] font-[650]" id="criteria-title">
+		{th ? 'เกณฑ์การเลือกสินค้า' : 'Shopping criteria'}
+	</h2>
+	<div
+		class="groups grid grid-cols-3 [align-items:start] [border-block:1px_solid_var(--seam)] [@media(max-width:760px)]:grid-cols-[1fr]"
+	>
+		<details class="group/criteria min-w-0">
+			<summary
+				class={[
+					"relative grid min-h-[var(--tap,44px)] cursor-pointer [align-content:start] gap-[0.2rem] p-[0.6rem_1.8rem_0.6rem_0.75rem] after:absolute after:end-3 after:top-4 after:h-[0.45rem] after:w-[0.45rem] after:[transform:rotate(45deg)] after:content-[''] after:[border-bottom:1.5px_solid] after:[border-right:1.5px_solid] group-open/criteria:after:[transform:rotate(225deg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] [&::-webkit-details-marker]:hidden"
+				]}
+			>
+				<h3 class="m-0 text-[1em] leading-[1.35] font-semibold">
+					{th ? 'เงื่อนไข' : 'Requirements'}
+				</h3>
+				<span class="leading-[1.45] wrap-anywhere text-[var(--muted,#5d5d63)]">
 					{requirements.join(' · ')}
 					{#if plan.maxPrice !== null}
 						{requirements.length ? ' · ' : ''}{th ? 'ไม่เกิน ' : 'Up to '}
-						<span data-preference="maxPrice" data-raw={plan.maxPrice}>
+						<span
+							class="leading-[1.45] wrap-anywhere text-[var(--muted,#5d5d63)]"
+							data-preference="maxPrice"
+							data-raw={plan.maxPrice}
+						>
 							{formatBaht(plan.maxPrice, plan.locale)}
 						</span>
 					{/if}
@@ -181,10 +200,11 @@
 							: 'All products'}{/if}
 				</span>
 			</summary>
-			<div class="controls">
-				<label>
+			<div class="controls grid gap-[0.55rem] px-3 pt-1 pb-[0.8rem]">
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'หมวดสินค้า' : 'Product category'}
 					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						value={plan.category ?? ''}
 						onchange={(event) =>
 							onChange({
@@ -197,19 +217,39 @@
 							</option>{/each}
 					</select>
 				</label>
-				<form onsubmit={(event) => submitRequirement(event, 'query')}>
-					<label>
-						{th ? 'คำค้น' : 'Search terms'}<input name="query" maxlength="80" value={plan.query} />
+				<form
+					class="flex flex-wrap [align-items:end] gap-[0.3rem]"
+					onsubmit={(event) => submitRequirement(event, 'query')}
+				>
+					<label class="grid min-w-0 [flex:1_1_7rem] gap-[0.2rem]">
+						{th ? 'คำค้น' : 'Search terms'}<input
+							class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+							name="query"
+							maxlength="80"
+							value={plan.query}
+						/>
 					</label>
-					<button>{th ? 'ใช้คำค้น' : 'Apply search'}</button>
-					{#if plan.query}<button type="button" onclick={() => onChange({ query: '' })}>
+					<button
+						class="min-h-[var(--tap,44px)] w-auto min-w-0 cursor-pointer rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+					>
+						{th ? 'ใช้คำค้น' : 'Apply search'}
+					</button>
+					{#if plan.query}<button
+							class="min-h-[var(--tap,44px)] w-auto min-w-0 cursor-pointer rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+							type="button"
+							onclick={() => onChange({ query: '' })}
+						>
 							{th ? 'ล้างคำค้น' : 'Clear search'}
 						</button>{/if}
 				</form>
-				<form onsubmit={(event) => submitRequirement(event, 'maxPrice')}>
-					<label>
+				<form
+					class="flex flex-wrap [align-items:end] gap-[0.3rem]"
+					onsubmit={(event) => submitRequirement(event, 'maxPrice')}
+				>
+					<label class="grid min-w-0 [flex:1_1_7rem] gap-[0.2rem]">
 						{th ? 'งบสูงสุด (บาท)' : 'Maximum budget (baht)'}
 						<input
+							class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							name="maxPrice"
 							type="number"
 							inputmode="numeric"
@@ -220,25 +260,34 @@
 							placeholder={th ? 'ไม่จำกัด' : 'No limit'}
 						/>
 					</label>
-					<button>{th ? 'ใช้งบนี้' : 'Apply budget'}</button>
+					<button
+						class="min-h-[var(--tap,44px)] w-auto min-w-0 cursor-pointer rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+					>
+						{th ? 'ใช้งบนี้' : 'Apply budget'}
+					</button>
 					{#if plan.maxPrice !== null}<button
+							class="min-h-[var(--tap,44px)] w-auto min-w-0 cursor-pointer rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							type="button"
 							onclick={() => onChange({ maxPrice: null })}
 						>
 							{th ? 'ยกเลิกงบ' : 'Remove budget'}
 						</button>{/if}
 				</form>
-				{#if onShipping}<label class="check">
+				{#if onShipping}<label
+						class="check flex min-h-[var(--tap,44px)] min-w-0 items-center gap-2"
+					>
 						<input
+							class="h-[1.1rem] w-[1.1rem] [flex:0_0_auto] accent-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							type="checkbox"
 							checked={freeShipping}
 							onchange={(event) => onShipping?.(event.currentTarget.checked)}
 						/>{th ? 'เลือกเฉพาะสินค้าที่ส่งฟรี' : 'Require free shipping'}
 					</label>{/if}
 				{#if onCapacity && (focusCategory === 'rice-cooker' || selectedCap)}
-					<label>
+					<label class="grid min-w-0 gap-[0.2rem]">
 						{th ? 'ความจุหม้อหุงข้าว' : 'Cooker capacity'}
 						<select
+							class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							value={capacity ?? ''}
 							onchange={(event) =>
 								onCapacity?.(
@@ -259,18 +308,22 @@
 						</select>
 					</label>
 				{/if}
-				<label class="check">
+				<label class="check flex min-h-[var(--tap,44px)] min-w-0 items-center gap-2">
 					<input
+						class="h-[1.1rem] w-[1.1rem] [flex:0_0_auto] accent-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						type="checkbox"
 						checked={plan.mallOnly}
 						onchange={(event) => onChange({ mallOnly: event.currentTarget.checked })}
 					/>{th ? 'เฉพาะร้าน Mall' : 'Mall shops only'}
 				</label>
-				<fieldset>
+				<fieldset
+					class="m-0 min-w-0 border-0 border-none px-0 pt-[0.4rem] pb-0 [border-top:1px_dashed_var(--seam)]"
+				>
 					<legend>{th ? 'ร้านค้า' : 'Shops'}</legend>
 					{#each shops.filter((shop) => !focusCategory || shop.categories.includes(focusCategory) || plan.shops.includes(shop.id)) as shop (shop.id)}
-						<label class="check">
+						<label class="check flex min-h-[var(--tap,44px)] min-w-0 items-center gap-2">
 							<input
+								class="h-[1.1rem] w-[1.1rem] [flex:0_0_auto] accent-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 								type="checkbox"
 								checked={plan.shops.includes(shop.id)}
 								onchange={(event) => changeShop(shop.id, event.currentTarget.checked)}
@@ -280,18 +333,27 @@
 				</fieldset>
 			</div>
 		</details>
-		<details>
-			<summary>
-				<h3>{th ? 'ความต้องการ' : 'Preferences'}</h3>
-				<span>
+		<details
+			class="group/criteria min-w-0 [border-inline-start:1px_solid_var(--seam)] [@media(max-width:760px)]:[border-inline-start:0] [@media(max-width:760px)]:[border-top:1px_solid_var(--seam)]"
+		>
+			<summary
+				class={[
+					"relative grid min-h-[var(--tap,44px)] cursor-pointer [align-content:start] gap-[0.2rem] p-[0.6rem_1.8rem_0.6rem_0.75rem] after:absolute after:end-3 after:top-4 after:h-[0.45rem] after:w-[0.45rem] after:[transform:rotate(45deg)] after:content-[''] after:[border-bottom:1.5px_solid] after:[border-right:1.5px_solid] group-open/criteria:after:[transform:rotate(225deg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] [&::-webkit-details-marker]:hidden"
+				]}
+			>
+				<h3 class="m-0 text-[1em] leading-[1.35] font-semibold">
+					{th ? 'ความต้องการ' : 'Preferences'}
+				</h3>
+				<span class="leading-[1.45] wrap-anywhere text-[var(--muted,#5d5d63)]">
 					{preferenceSummary.join(' · ') || (th ? 'ยังไม่ได้เลือก' : 'No preferences selected')}
 				</span>
 			</summary>
-			<div class="controls">
+			<div class="controls grid gap-[0.55rem] px-3 pt-1 pb-[0.8rem]">
 				{#each activePriorities as key (key)}
-					<label>
+					<label class="grid min-w-0 gap-[0.2rem]">
 						{rankingTerms[key][th ? 1 : 0]}
 						<select
+							class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							value={plan.priorities[key] === 1
 								? 'high'
 								: plan.priorities[key] === 0.5
@@ -311,9 +373,10 @@
 					</label>
 				{/each}
 				{#each activeSpecs as spec (spec.key)}
-					<label>
+					<label class="grid min-w-0 gap-[0.2rem]">
 						{spec.label[plan.locale]}
 						<select
+							class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 							value={plan.specPreferences[spec.key]}
 							onchange={(event) => setSpec(spec.key, event.currentTarget.value)}
 						>
@@ -325,9 +388,13 @@
 						</select>
 					</label>
 				{/each}
-				<label>
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'เพิ่มความต้องการ' : 'Add a preference'}
-					<select bind:this={addPreference} onchange={addChoice}>
+					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+						bind:this={addPreference}
+						onchange={addChoice}
+					>
 						<option value="">{th ? 'เลือกหัวข้อ' : 'Choose a preference'}</option>
 						{#each priorities.filter((key) => !activePriorities.includes(key)) as key (key)}<option
 								value={key}
@@ -343,15 +410,24 @@
 				</label>
 			</div>
 		</details>
-		<details>
-			<summary>
-				<h3>{th ? 'มุมมอง' : 'View'}</h3>
-				<span>{viewNames.join(' · ')}</span>
+		<details
+			class="group/criteria min-w-0 [border-inline-start:1px_solid_var(--seam)] [@media(max-width:760px)]:[border-inline-start:0] [@media(max-width:760px)]:[border-top:1px_solid_var(--seam)]"
+		>
+			<summary
+				class={[
+					"relative grid min-h-[var(--tap,44px)] cursor-pointer [align-content:start] gap-[0.2rem] p-[0.6rem_1.8rem_0.6rem_0.75rem] after:absolute after:end-3 after:top-4 after:h-[0.45rem] after:w-[0.45rem] after:[transform:rotate(45deg)] after:content-[''] after:[border-bottom:1.5px_solid] after:[border-right:1.5px_solid] group-open/criteria:after:[transform:rotate(225deg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] [&::-webkit-details-marker]:hidden"
+				]}
+			>
+				<h3 class="m-0 text-[1em] leading-[1.35] font-semibold">{th ? 'มุมมอง' : 'View'}</h3>
+				<span class="leading-[1.45] wrap-anywhere text-[var(--muted,#5d5d63)]">
+					{viewNames.join(' · ')}
+				</span>
 			</summary>
-			<div class="controls">
-				<label>
+			<div class="controls grid gap-[0.55rem] px-3 pt-1 pb-[0.8rem]">
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'ภาษาที่แสดง' : 'Display language'}
 					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						value={plan.locale}
 						onchange={(event) =>
 							onChange({ locale: event.currentTarget.value === 'th' ? 'th' : 'en' })}
@@ -359,9 +435,10 @@
 						<option value="en" lang="en">English</option><option value="th" lang="th">ไทย</option>
 					</select>
 				</label>
-				<label>
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'ธีมหน้าร้าน' : 'Storefront theme'}
 					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						value={plan.theme}
 						onchange={(event) => {
 							const theme = themes.find((key) => key === event.currentTarget.value);
@@ -373,9 +450,10 @@
 							</option>{/each}
 					</select>
 				</label>
-				<label>
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'การจัดวาง' : 'Layout'}
 					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						value={plan.layout}
 						onchange={(event) => {
 							const layout = layouts.find((key) => key === event.currentTarget.value);
@@ -387,9 +465,10 @@
 							</option>{/each}
 					</select>
 				</label>
-				<label>
+				<label class="grid min-w-0 gap-[0.2rem]">
 					{th ? 'ระยะห่าง' : 'Spacing'}
 					<select
+						class="min-h-[var(--tap,44px)] w-full min-w-0 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] px-2 text-ellipsis text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						value={plan.density}
 						onchange={(event) => {
 							const density = densities.find((key) => key === event.currentTarget.value);
@@ -401,8 +480,9 @@
 							</option>{/each}
 					</select>
 				</label>
-				<label class="check">
+				<label class="check flex min-h-[var(--tap,44px)] min-w-0 items-center gap-2">
 					<input
+						class="h-[1.1rem] w-[1.1rem] [flex:0_0_auto] accent-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
 						type="checkbox"
 						checked={plan.simplified}
 						onchange={(event) => onChange({ simplified: event.currentTarget.checked })}
@@ -412,137 +492,3 @@
 		</details>
 	</div>
 </section>
-
-<style>
-	section {
-		margin-block: 1rem;
-		scroll-margin-block-start: 5rem;
-		color: var(--ink);
-	}
-	h2 {
-		margin: 0 0 0.5rem;
-		font-size: 1.125em;
-		line-height: 1.3;
-		font-weight: 650;
-	}
-	.groups {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		align-items: start;
-		border-block: 1px solid var(--seam);
-	}
-	details {
-		min-width: 0;
-	}
-	details + details {
-		border-inline-start: 1px solid var(--seam);
-	}
-	summary {
-		position: relative;
-		display: grid;
-		align-content: start;
-		padding: 0.6rem 1.8rem 0.6rem 0.75rem;
-		min-height: var(--tap, 44px);
-		gap: 0.2rem;
-		cursor: pointer;
-	}
-	summary::-webkit-details-marker {
-		display: none;
-	}
-	summary::after {
-		content: '';
-		position: absolute;
-		inset-inline-end: 0.75rem;
-		top: 1rem;
-		width: 0.45rem;
-		height: 0.45rem;
-		border-right: 1.5px solid;
-		border-bottom: 1.5px solid;
-		transform: rotate(45deg);
-	}
-	details[open] > summary::after {
-		transform: rotate(225deg);
-	}
-	h3 {
-		font-size: 1em;
-		line-height: 1.35;
-		font-weight: 600;
-		margin: 0;
-	}
-	summary span {
-		color: var(--muted, #5d5d63);
-		line-height: 1.45;
-		overflow-wrap: anywhere;
-	}
-	.controls {
-		display: grid;
-		padding: 0.25rem 0.75rem 0.8rem;
-		gap: 0.55rem;
-	}
-	label {
-		display: grid;
-		min-inline-size: 0;
-		gap: 0.2rem;
-	}
-	select,
-	input:not([type='checkbox']),
-	button {
-		min-width: 0;
-		width: 100%;
-		min-height: var(--tap, 44px);
-		font: inherit;
-		color: var(--ink);
-		background: var(--surface);
-		border: 1px solid var(--seam);
-		border-radius: var(--radius);
-		padding-inline: 0.5rem;
-	}
-	select {
-		text-overflow: ellipsis;
-	}
-	form {
-		display: flex;
-		align-items: end;
-		flex-wrap: wrap;
-		gap: 0.3rem;
-	}
-	form label {
-		flex: 1 1 7rem;
-	}
-	button {
-		cursor: pointer;
-		width: auto;
-	}
-	fieldset {
-		min-width: 0;
-		margin: 0;
-		padding: 0.4rem 0 0;
-		border: 0;
-		border-top: 1px dashed var(--seam);
-	}
-	.check {
-		display: flex;
-		align-items: center;
-		min-height: var(--tap, 44px);
-		gap: 0.5rem;
-	}
-	.check input {
-		flex: 0 0 auto;
-		width: 1.1rem;
-		height: 1.1rem;
-		accent-color: var(--accent);
-	}
-	:where(summary, button, input, select):focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	@media (max-width: 760px) {
-		.groups {
-			grid-template-columns: 1fr;
-		}
-		details + details {
-			border-inline-start: 0;
-			border-top: 1px solid var(--seam);
-		}
-	}
-</style>

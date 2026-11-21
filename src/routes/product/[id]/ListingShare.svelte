@@ -71,7 +71,9 @@
 </script>
 
 <button
-	class="icon"
+	class={[
+		'icon pointer-events-auto grid min-h-[var(--tap,44px)] w-[var(--tap,44px)] flex-[0_0_var(--tap,44px)] cursor-pointer place-items-center rounded-[50%] bg-transparent text-[var(--accent,#16161a)] [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current focus-visible:outline-solid [@media(max-width:699px)]:[&.over-hero]:bg-[#27394e] [@media(max-width:699px)]:[&.over-hero]:text-white'
+	]}
 	class:over-hero={overHero}
 	bind:this={shareButton}
 	type="button"
@@ -94,16 +96,40 @@
 </button>
 
 {#if showStrip}
-	<div class="strip">
+	<div
+		class="strip hidden [@media(max-width:699px)]:fixed [@media(max-width:699px)]:inset-x-0 [@media(max-width:699px)]:bottom-[var(--listing-actions-height)] [@media(max-width:699px)]:flex [@media(max-width:699px)]:h-[var(--tap,44px)] [@media(max-width:699px)]:items-center [@media(max-width:699px)]:justify-between [@media(max-width:699px)]:gap-2 [@media(max-width:699px)]:bg-[#373737] [@media(max-width:699px)]:px-3 [@media(max-width:699px)]:text-[max(0.875rem,var(--action-font-floor,0rem))] [@media(max-width:699px)]:text-white"
+	>
 		<span>{th ? 'แชร์สินค้านี้' : 'Share this product'}</span>
-		<button type="button" onclick={share} aria-busy={busy}>{th ? 'แชร์' : 'Share'}</button>
+		<button
+			class="pointer-events-auto h-full min-w-[var(--tap,44px)] cursor-pointer px-[0.65rem] text-inherit underline [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current focus-visible:outline-solid"
+			type="button"
+			onclick={share}
+			aria-busy={busy}
+		>
+			{th ? 'แชร์' : 'Share'}
+		</button>
 	</div>
 {/if}
-<div class="feedback" role="status">{copied ? (th ? 'คัดลอกลิงก์แล้ว' : 'Link copied') : ''}</div>
-<dialog bind:this={manual} aria-labelledby="share-dialog-title" onclose={restoreFocus}>
-	<h2 id="share-dialog-title">{th ? 'แชร์ลิงก์สินค้า' : 'Share product link'}</h2>
+<div
+	class={[
+		'feedback [&:not(:empty)]:pointer-events-none [&:not(:empty)]:absolute [&:not(:empty)]:end-3 [&:not(:empty)]:top-full [&:not(:empty)]:rounded [&:not(:empty)]:bg-[#16161a] [&:not(:empty)]:px-3 [&:not(:empty)]:py-[0.4rem] [&:not(:empty)]:text-white'
+	]}
+	role="status"
+>
+	{copied ? (th ? 'คัดลอกลิงก์แล้ว' : 'Link copied') : ''}
+</div>
+<dialog
+	class="pointer-events-auto m-auto w-[min(calc(100%-2rem),28rem)] rounded-lg border border-[var(--seam,#e9e6dc)] bg-white p-[1.1rem] text-[#16161a] backdrop:bg-[rgb(0_0_0/40%)]"
+	bind:this={manual}
+	aria-labelledby="share-dialog-title"
+	onclose={restoreFocus}
+>
+	<h2 class="mx-0 mt-0 mb-3 font-semibold" id="share-dialog-title">
+		{th ? 'แชร์ลิงก์สินค้า' : 'Share product link'}
+	</h2>
 	<label for="share-url">{th ? 'เลือกลิงก์เพื่อคัดลอก' : 'Select the link to copy it'}</label>
 	<input
+		class="mx-0 mt-[0.4rem] mb-[0.85rem] block min-h-[var(--tap,44px)] w-full border border-[#777] px-2 [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current focus-visible:outline-solid"
 		id="share-url"
 		readonly
 		type="url"
@@ -111,103 +137,11 @@
 		value={link}
 		onfocus={(e) => e.currentTarget.select()}
 	/>
-	<form method="dialog"><button>{th ? 'เสร็จสิ้น' : 'Done'}</button></form>
+	<form method="dialog">
+		<button
+			class="pointer-events-auto block min-h-[var(--tap,44px)] w-full cursor-pointer rounded bg-[#16161a] text-white [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current focus-visible:outline-solid"
+		>
+			{th ? 'เสร็จสิ้น' : 'Done'}
+		</button>
+	</form>
 </dialog>
-
-<style>
-	button {
-		font: inherit;
-		cursor: pointer;
-		pointer-events: auto;
-	}
-	button:focus-visible,
-	input:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: -3px;
-	}
-	.icon {
-		flex: 0 0 var(--tap, 44px);
-		display: grid;
-		place-items: center;
-		width: var(--tap, 44px);
-		min-height: var(--tap, 44px);
-		border-radius: 50%;
-		color: var(--accent, #16161a);
-		background: transparent;
-	}
-	.strip {
-		display: none;
-	}
-	.feedback:not(:empty) {
-		position: absolute;
-		inset-inline-end: 0.75rem;
-		top: 100%;
-		padding: 0.4rem 0.75rem;
-		background: #16161a;
-		color: white;
-		border-radius: 4px;
-		pointer-events: none;
-	}
-	dialog {
-		pointer-events: auto;
-		width: min(calc(100% - 2rem), 28rem);
-		margin: auto;
-		padding: 1.1rem;
-		background: white;
-		color: #16161a;
-		border: 1px solid var(--seam, #e9e6dc);
-		border-radius: 8px;
-	}
-	dialog::backdrop {
-		background: rgb(0 0 0 / 40%);
-	}
-	h2 {
-		font: inherit;
-		font-weight: 600;
-		margin: 0 0 0.75rem;
-	}
-	input {
-		display: block;
-		margin: 0.4rem 0 0.85rem;
-		width: 100%;
-		min-height: var(--tap, 44px);
-		border: 1px solid #777;
-		padding: 0 0.5rem;
-		font: inherit;
-	}
-	form button {
-		display: block;
-		width: 100%;
-		min-height: var(--tap, 44px);
-		color: white;
-		background: #16161a;
-		border-radius: 4px;
-	}
-	@media (max-width: 699px) {
-		.icon.over-hero {
-			background: #27394e;
-			color: white;
-		}
-		.strip {
-			position: fixed;
-			bottom: var(--listing-actions-height);
-			inset-inline: 0;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 0.5rem;
-			height: var(--tap, 44px);
-			padding-inline: 0.75rem;
-			color: white;
-			background: #373737;
-			font-size: max(0.875rem, var(--action-font-floor, 0rem));
-		}
-		.strip button {
-			height: 100%;
-			min-width: var(--tap, 44px);
-			padding-inline: 0.65rem;
-			color: inherit;
-			text-decoration: underline;
-		}
-	}
-</style>

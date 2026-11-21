@@ -943,6 +943,9 @@
 
 {#snippet languageSwitch()}
 	<button
+		class={[
+			'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+		]}
 		type="button"
 		lang={language === 'th' ? 'en' : 'th'}
 		disabled={!interactive}
@@ -957,7 +960,9 @@
 
 {#snippet harnessLink()}
 	<a
-		class="assistant-link"
+		class={[
+			'assistant-link [&.assistant-link]:ms-[auto] [&.assistant-link]:inline-flex [&.assistant-link]:min-h-[var(--tap)] [&.assistant-link]:items-center [&.assistant-link]:text-[length:var(--small)] [&.assistant-link]:text-[var(--ink)] [&.assistant-link]:underline [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+		]}
 		href={resolve('/harness#assistant')}
 		onclick={(event) => {
 			if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
@@ -984,16 +989,37 @@
 {#snippet rankingExplanation(productId: string)}
 	{@const reasons = ranked.find(({ product }) => product.id === productId)?.terms ?? []}
 	{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
-		<details class="rank">
-			<summary>{a.rank}</summary>
-			<ul>
+		<details class={['rank [&.rank]:relative [&.rank]:z-[1] [&.rank]:justify-self-start']}>
+			<summary
+				class={[
+					'[.rank_&]:[&:is(summary)]:cursor-pointer [.rank_&]:[&:is(summary)]:content-center [.rank_&]:[&:is(summary)]:[min-block-size:var(--tap)]'
+				]}
+			>
+				{a.rank}
+			</summary>
+			<ul class={['[.rank_&]:[&:is(ul)]:list-none [.rank_&]:[&:is(ul)]:p-[0]']}>
 				{#each reasons.slice(0, 3) as reason (reason.key)}
-					<li>
-						<span>{termName(reason.key, productId)}</span><span
-							class="rank-track"
+					<li
+						class={[
+							'[.rank_&]:[&:is(li)]:grid [.rank_&]:[&:is(li)]:grid-cols-[1fr_35%] [.rank_&]:[&:is(li)]:items-center [.rank_&]:[&:is(li)]:gap-[0.5rem]'
+						]}
+					>
+						<span
+							class={[
+								'[.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+							]}
+						>
+							{termName(reason.key, productId)}
+						</span><span
+							class={[
+								'rank-track [&.rank-track]:block [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+							]}
 							aria-hidden="true"
 						>
 							<span
+								class={[
+									'[&[data-rank-bar]]:block [&[data-rank-bar]]:h-[0.375rem] [&[data-rank-bar]]:bg-[currentColor] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+								]}
 								data-rank-bar
 								style:width={`${reasons[0].contribution > 0 ? (reason.contribution / reasons[0].contribution) * 100 : 0}%`}
 							></span>
@@ -1022,16 +1048,25 @@
 			interviewDetails={interviewAnswers ? plan.details : []}
 		/>
 	{:else}
-		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
+		<ul
+			class={[
+				'product-grid m-[0] grid list-none grid-cols-[repeat(3,_minmax(0,_1fr))] gap-[0.75rem] p-[0] [&.list-layout]:grid-cols-[minmax(0,_1fr)] group-[.event-demo]/store:[&.product-grid]:grid-cols-[repeat(4,_minmax(0,_1fr))] group-[.event-demo]/store:[&.product-grid]:gap-[0.5rem] group-[.event-demo]/store:[&.product-grid]:px-[0.5rem] [.rank_&]:[&:is(ul)]:list-none [.rank_&]:[&:is(ul)]:p-[0] [@media(max-width:520px)]:[&.product-grid]:grid-cols-[minmax(0,_1fr)] [@media(max-width:710px)]:group-[.event-demo]/store:[&.product-grid]:grid-cols-[repeat(2,_minmax(0,_1fr))] [@media(max-width:760px)]:[&.product-grid]:grid-cols-[repeat(2,_minmax(0,_1fr))]'
+			]}
+			class:list-layout={shelfLayout === 'list' || theme === 'large'}
+		>
 			{#each shelfProducts as product (product.id)}
 				{#if eventDemo}
 					<li
-						class="product"
+						class={[
+							"product [&.product]:relative [&.product]:grid [&.product]:min-w-[0] [&.product]:grid-cols-[minmax(0,_1fr)] [&.product]:grid-rows-[7.5rem_1fr] [&.product]:rounded-[var(--radius)] [&.product]:bg-[var(--surface)] [&.product]:[overflow-wrap:anywhere] [&.product]:[border:1px_solid_var(--seam)] group-[.event-demo]/store:[&.product]:grid-cols-[minmax(0,_1fr)] group-[.event-demo]/store:[&.product]:grid-rows-[auto_1fr] [&.product:has(.product-link:focus-visible)]:[outline:2px_solid_var(--accent)] [&.product:has(.product-link:focus-visible)]:[outline-offset:2px] [.rank_&]:[&:is(li)]:grid [.rank_&]:[&:is(li)]:grid-cols-[1fr_35%] [.rank_&]:[&:is(li)]:items-center [.rank_&]:[&:is(li)]:gap-[0.5rem] [@media(max-width:520px)]:[&.product]:grid-cols-[minmax(5rem,_25%)_minmax(0,_1fr)] [@media(max-width:520px)]:[&.product]:grid-rows-[auto] [@media(max-width:520px)]:group-[[data-theme='large']]/store:[&.product]:grid-cols-[minmax(4rem,_20%)_minmax(0,_1fr)]"
+						]}
 						data-product={product.catalogId}
 						data-product-card={product.catalogId}
 					>
 						<div
-							class="art demo-photo"
+							class={[
+								'art demo-photo [&.art]:grid [&.art]:place-items-center [&.art]:text-[var(--accent)] group-[.event-demo]/store:[&.art]:relative group-[.event-demo]/store:[&.art]:[aspect-ratio:1] [&.art:not(.demo-photo)]:bg-[#e9e6dc]'
+							]}
 							data-category={product.category}
 							data-model={product.id}
 							data-cooker-photo={product.catalogId}
@@ -1045,10 +1080,20 @@
 									compact
 								/>{/if}
 						</div>
-						<div class="card-body">
-							<h3>
+						<div
+							class={[
+								"card-body [&.card-body]:flex [&.card-body]:min-w-[0] [&.card-body]:flex-col [&.card-body]:p-[0.8rem] group-[.event-demo]/store:[&.card-body]:gap-[0.25rem] group-[.event-demo]/store:[&.card-body]:p-[0.45rem_0.5rem_0.6rem] group-[[data-density='compact']]/store:[&.card-body]:gap-[0.3rem] group-[[data-density='compact']]/store:[&.card-body]:p-[0.5rem] group-[[data-density='spacious']]/store:[&.card-body]:gap-[0.65rem] group-[[data-density='spacious']]/store:[&.card-body]:p-[1rem] [&.card-body]:[&_.shop]:mt-[0.2rem] [&.card-body]:[&_.shop]:text-[length:var(--small)] [&.card-body]:[&_.shop]:text-[var(--muted)] group-[.event-demo]/store:[&.card-body]:[&_.shop]:[order:3]"
+							]}
+						>
+							<h3
+								class={[
+									'[&:is(h3)]:m-[0] [&:is(h3)]:text-[length:var(--size)] [&:is(h3)]:leading-[1.4] [&:is(h3)]:font-[650] [.card-body_&]:[&:is(h3)]:mb-[0.45rem] [.event-demo_.card-body_&]:[&:is(h3)]:m-[0] [.event-demo_.card-body_&]:[&:is(h3)]:min-h-[2.7em] [.event-demo_.card-body_&]:[&:is(h3)]:text-[max(0.9375rem,_var(--small))] [.event-demo_.card-body_&]:[&:is(h3)]:leading-[1.35] [.event-demo_.card-body_&]:[&:is(h3)]:font-[400]'
+								]}
+							>
 								<a
-									class="product-link"
+									class={[
+										"product-link [&.product-link::after]:absolute [&.product-link::after]:inset-[0] [&.product-link::after]:[content:''] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]"
+									]}
 									href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
 										id: product.id
 									})}
@@ -1056,8 +1101,18 @@
 									<FactValue productId={product.catalogId} field="name" locale={language} />
 								</a>
 							</h3>
-							<div class="price">
-								<span class="visually-hidden">{t.price} </span>
+							<div
+								class={[
+									'price [&.price]:mt-[auto] [&.price]:flex [&.price]:flex-wrap [&.price]:items-baseline [&.price]:gap-[0.25rem_0.6rem] group-[.event-demo]/store:[&.price]:m-[0] group-[.event-demo]/store:[&.price]:gap-[0.15rem_0.4rem] [&.price]:[&_s]:text-[length:var(--small)] [&.price]:[&_s]:text-[var(--void)] group-[.event-demo]/store:[&.price]:[&_s]:text-[var(--muted)] [&.price]:[&_strong]:text-[max(1.45rem,_var(--size))] group-[.event-demo]/store:[&.price]:[&_strong]:text-[max(1.1rem,_var(--size))] group-[.event-demo]/store:[&.price]:[&_strong]:text-[var(--accent)]'
+								]}
+							>
+								<span
+									class={[
+										'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+									]}
+								>
+									{t.price}
+								</span>
 								<FactValue
 									tag="strong"
 									class="figure"
@@ -1066,7 +1121,13 @@
 									locale={language}
 								/>
 								{#if product.originalPrice !== null}
-									<span class="visually-hidden">{t.was} </span>
+									<span
+										class={[
+											'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+										]}
+									>
+										{t.was}
+									</span>
 									<FactValue
 										tag="s"
 										class="figure"
@@ -1076,7 +1137,11 @@
 									/>
 								{/if}
 							</div>
-							<div class="shipping">
+							<div
+								class={[
+									'shipping [&.shipping]:[margin-block:0.25rem_0.45rem] [&.shipping]:flex [&.shipping]:items-baseline [&.shipping]:gap-[0.4rem] [&.shipping]:py-[0.32rem] [&.shipping]:text-[length:var(--small)] [&.shipping]:text-[var(--muted)] [&.shipping]:[border-block:1px_dashed_var(--seam)] group-[.event-demo]/store:[&.shipping]:[order:2] group-[.event-demo]/store:[&.shipping]:m-[0] group-[.event-demo]/store:[&.shipping]:items-center group-[.event-demo]/store:[&.shipping]:justify-start group-[.event-demo]/store:[&.shipping]:gap-[0.35rem] group-[.event-demo]/store:[&.shipping]:py-[0] group-[.event-demo]/store:[&.shipping]:[border:0] [&.shipping]:[&_.shipping-shop]:min-w-[0] [&.shipping]:[&_.shipping-shop]:[flex:1] [&.shipping]:[&_.shipping-shop]:overflow-hidden [&.shipping]:[&_.shipping-shop]:ps-[0.35rem] [&.shipping]:[&_.shipping-shop]:text-ellipsis [&.shipping]:[&_.shipping-shop]:whitespace-nowrap [&.shipping]:[&_.shipping-shop]:[border-inline-start:1px_solid_var(--seam)]'
+								]}
+							>
 								<svg
 									aria-hidden="true"
 									viewBox="0 0 24 24"
@@ -1092,8 +1157,19 @@
 										r="2"
 									/>
 								</svg>
-								<span class="visually-hidden">{t.shipping}</span>
-								<span class="leader" aria-hidden="true"></span>
+								<span
+									class={[
+										'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+									]}
+								>
+									{t.shipping}
+								</span>
+								<span
+									class={[
+										'leader [&.leader]:[flex:1] [&.leader]:[border-bottom:1px_dotted_var(--muted)] group-[.event-demo]/store:[&.leader]:hidden [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+									]}
+									aria-hidden="true"
+								></span>
 								<FactValue
 									class="figure"
 									productId={product.catalogId}
@@ -1107,8 +1183,16 @@
 									locale={language}
 								/>
 							</div>
-							<div class="metadata">
-								<span>
+							<div
+								class={[
+									'metadata [&.metadata]:flex [&.metadata]:flex-wrap [&.metadata]:justify-between [&.metadata]:gap-[0.2rem_0.45rem] [&.metadata]:text-[length:var(--small)] [&.metadata]:text-[var(--muted)] group-[.event-demo]/store:[&.metadata]:[order:1] group-[.event-demo]/store:[&.metadata]:items-center group-[.event-demo]/store:[&.metadata]:justify-start'
+								]}
+							>
+								<span
+									class={[
+										'[.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+									]}
+								>
 									<svg
 										viewBox="0 0 20 20"
 										width="15"
@@ -1122,7 +1206,13 @@
 											d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
 										/>
 									</svg>
-									<span class="visually-hidden">{t.rating} </span>
+									<span
+										class={[
+											'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+										]}
+									>
+										{t.rating}
+									</span>
 									<FactValue
 										class="figure"
 										productId={product.catalogId}
@@ -1130,7 +1220,11 @@
 										locale={language}
 									/>
 								</span>
-								<span>
+								<span
+									class={[
+										'[.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+									]}
+								>
 									{t.sold}
 									<FactValue
 										class="figure"
@@ -1151,13 +1245,23 @@
 						vouchers={cardVouchers.get(product.catalogId) ?? []}
 						href={listingHref(product.id)}
 					>
-						<div class="card-actions">
+						<div
+							class={[
+								'card-actions [&.card-actions]:relative [&.card-actions]:z-[1] [&.card-actions]:mt-[0.65rem] [&.card-actions]:flex [&.card-actions]:flex-wrap [&.card-actions]:items-start [&.card-actions]:gap-[0.5rem] [&.card-actions]:self-start'
+							]}
+						>
 							<AddToCart
 								productId={product.catalogId}
 								locale={language}
 								onAdd={session.addProduct}
 							/>
-							<button class="best-price" type="button" onclick={() => openDeal(product.catalogId)}>
+							<button
+								class={[
+									'best-price [&.best-price]:relative [&.best-price]:z-[1] [&.best-price]:justify-self-start [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+								]}
+								type="button"
+								onclick={() => openDeal(product.catalogId)}
+							>
 								{a.deal}
 							</button>
 						</div>
@@ -1179,18 +1283,41 @@
 <svelte:window onkeydown={handleTraceKey} />
 
 <div
-	class="store"
+	class={[
+		"store group/store min-h-screen bg-[var(--paper)] text-[var(--ink)] [font:var(--size)/1.5_'IBM_Plex_Sans_Thai','Noto_Sans_Thai',system-ui,sans-serif] [&.event-demo]:[overflow-anchor:none] [&.store]:[&_.figure]:[font-family:'IBM_Plex_Mono',_'IBM_Plex_Sans_Thai',_ui-monospace,_monospace] [&.store]:[&_.figure]:tabular-nums"
+	]}
 	class:event-demo={eventDemo}
 	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
 >
-	<a class="skip" href="#products">{t.skip}</a>
+	<a
+		class={[
+			'skip [&.skip]:absolute [&.skip]:h-[1px] [&.skip]:w-[1px] [&.skip]:overflow-hidden [&.skip]:[clip-path:inset(50%)] [&.skip:focus]:inset-[0.5rem_auto_auto_0.5rem] [&.skip:focus]:z-[1] [&.skip:focus]:h-[auto] [&.skip:focus]:w-[auto] [&.skip:focus]:bg-[var(--surface)] [&.skip:focus]:p-[0.5rem] [&.skip:focus]:text-[var(--ink)] [&.skip:focus]:[clip-path:none] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+		]}
+		href="#products"
+	>
+		{t.skip}
+	</a>
 	{#if !eventDemo}
-		<header class="masthead">
-			<div class="wrap masthead-inner">
-				<a class="brand" href={resolve('/')} aria-label="DynamicShopper">
+		<header
+			class={[
+				'masthead [&.masthead]:bg-[var(--surface)] [&.masthead]:[border-bottom:1px_solid_var(--seam)]'
+			]}
+		>
+			<div
+				class={[
+					'wrap masthead-inner [&.masthead-inner]:flex [&.masthead-inner]:flex-wrap [&.masthead-inner]:items-center [&.masthead-inner]:justify-between [&.masthead-inner]:gap-[0.65rem] [&.masthead-inner]:py-[0.6rem] [&.wrap]:mx-[auto] [&.wrap]:w-[min(100%_-_2.5rem,_70rem)] [@media(max-width:520px)]:[&.masthead-inner]:gap-[0.3rem_0.5rem] [@media(max-width:520px)]:[&.masthead-inner]:py-[0.35rem] [@media(max-width:520px)]:[&.wrap]:w-[calc(100%_-_1.5rem)]'
+				]}
+			>
+				<a
+					class={[
+						'brand [&.brand]:inline-flex [&.brand]:min-h-[var(--tap)] [&.brand]:items-center [&.brand]:gap-[0.45rem] [&.brand]:font-[750] [&.brand]:tracking-[-0.035em] [&.brand]:text-[var(--ink)] [&.brand]:no-underline [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+					]}
+					href={resolve('/')}
+					aria-label="DynamicShopper"
+				>
 					<svg
 						viewBox="0 0 24 24"
 						width="25"
@@ -1204,15 +1331,28 @@
 					</svg>
 					DynamicShopper
 				</a>
-				<div class="settings">
+				<div
+					class={[
+						'settings [&.settings]:flex [&.settings]:flex-wrap [&.settings]:items-center [&.settings]:gap-[0.65rem] [@media(max-width:520px)]:[&.settings]:gap-[0.3rem_0.5rem]'
+					]}
+				>
 					<a
-						class="compare-link"
+						class={[
+							'compare-link [&.compare-link]:inline-flex [&.compare-link]:min-h-[var(--tap,_44px)] [&.compare-link]:items-center [&.compare-link]:underline [&.compare-link]:[text-underline-offset:0.15em] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+						]}
 						data-offline-ready={session.offlineReady}
 						href={resolve(`/compare?${compareParams}`)}
 					>
 						{a.compare}
 					</a>
-					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
+					<select
+						class={[
+							'[&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [&:is(select)]:box-border [&:is(select)]:min-h-[var(--tap)] [&:is(select)]:min-w-[0] [&:is(select)]:rounded-[var(--radius)] [&:is(select)]:bg-[var(--surface)] [&:is(select)]:p-[0.4rem_0.7rem] [&:is(select)]:text-[var(--ink)] [&:is(select)]:[border:1px_solid_var(--ink)] [&:is(select)]:[font:inherit] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)] [@media(max-width:520px)]:[.sort_&]:[&:is(select)]:max-w-[12.25rem]'
+						]}
+						aria-label={t.theme}
+						bind:value={theme}
+						onchange={() => register('theme')}
+					>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -1220,6 +1360,9 @@
 					{@render languageSwitch()}
 					<CartControls locale={language} onBestPrice={() => openBasket()} />
 					<button
+						class={[
+							"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:border-[var(--accent)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:underline [.shopper-toolbar_&]:[&[aria-expanded='true']]:[text-underline-offset:0.2em] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+						]}
 						type="button"
 						bind:this={traceTrigger}
 						disabled={!interactive}
@@ -1235,11 +1378,32 @@
 		</header>
 	{/if}
 
-	<main class="wrap">
-		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
+	<main
+		class={[
+			'wrap [&.wrap]:mx-[auto] [&.wrap]:w-[min(100%_-_2.5rem,_70rem)] [&:is(main)]:pt-[clamp(1.15rem,_4vw,_3rem)] group-[.event-demo]/store:[&:is(main)]:w-[min(100%,_64rem)] group-[.event-demo]/store:[&:is(main)]:pt-[0] [@media(max-width:520px)]:[&.wrap]:w-[calc(100%_-_1.5rem)]'
+		]}
+	>
+		<h1
+			class={[
+				'[&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [&:is(h1)]:m-[0] [&:is(h1)]:text-[clamp(1.85rem,_5vw,_3.25rem)] [&:is(h1)]:leading-[1.23] [&:is(h1)]:tracking-[-0.035em]'
+			]}
+			class:visually-hidden={eventDemo}
+		>
+			{t.title}
+		</h1>
 		{#if eventDemo}
-			<header class="marketplace-brand" aria-label="DynamicShopper">
-				<a href={resolve('/')} class="marketplace-identity">
+			<header
+				class={[
+					'marketplace-brand [&.marketplace-brand]:flex [&.marketplace-brand]:items-center [&.marketplace-brand]:justify-between [&.marketplace-brand]:bg-[var(--marketplace-orange)] [&.marketplace-brand]:p-[0.75rem_1rem_0.2rem] [&.marketplace-brand]:text-[white]'
+				]}
+				aria-label="DynamicShopper"
+			>
+				<a
+					href={resolve('/')}
+					class={[
+						'marketplace-identity [&.marketplace-identity]:inline-flex [&.marketplace-identity]:min-h-[44px] [&.marketplace-identity]:items-center [&.marketplace-identity]:gap-[0.55rem] [&.marketplace-identity]:text-[1.25rem] [&.marketplace-identity]:font-[750] [&.marketplace-identity]:tracking-[-0.035em] [&.marketplace-identity]:text-[inherit] [&.marketplace-identity]:no-underline [&.marketplace-identity:focus-visible]:[outline-color:white] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+					]}
+				>
 					<svg
 						width="28"
 						height="30"
@@ -1251,15 +1415,35 @@
 					>
 						<path d="M5 9h18l2 18H3L5 9Z" /><path d="M9 12V8a5 5 0 0 1 10 0v4" />
 					</svg>
-					<span>DynamicShopper</span>
+					<span
+						class={[
+							'[.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+						]}
+					>
+						DynamicShopper
+					</span>
 				</a>
 				{@render languageSwitch()}
 			</header>
 		{/if}
 
-		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
+		<form
+			class={[
+				'search [&.search]:[margin-block:0.85rem_1.1rem] [&.search]:flex [&.search]:flex-nowrap [&.search]:items-center [&.search]:gap-[0.65rem] group-[.event-demo]/store:[&.search]:sticky group-[.event-demo]/store:[&.search]:top-[0] group-[.event-demo]/store:[&.search]:z-[3] group-[.event-demo]/store:[&.search]:m-[0] group-[.event-demo]/store:[&.search]:gap-[0.375rem] group-[.event-demo]/store:[&.search]:bg-[var(--marketplace-orange)] group-[.event-demo]/store:[&.search]:p-[0.375rem_0.5rem] [@media(max-width:699px)]:group-[.event-demo]/store:[&.search.cooker-search]:grid [@media(max-width:699px)]:group-[.event-demo]/store:[&.search.cooker-search]:grid-cols-[var(--tap)_minmax(0,_1fr)_var(--tap)] [@media(max-width:699px)]:group-[.event-demo]/store:[&.search.cooker-search]:gap-[0.125rem] [@media(max-width:699px)]:group-[.event-demo]/store:[&.search.cooker-search]:px-[0.125rem]'
+			]}
+			class:cooker-search={cookerSearch}
+			role="search"
+			onsubmit={submitSearch}
+		>
 			{#if eventDemo}
-				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
+				<button
+					type="button"
+					class={[
+						'search-back group-[.event-demo]/store:[&.search-back]:[flex:0_0_44px] group-[.event-demo]/store:[&.search-back]:p-[0] group-[.event-demo]/store:[&.search-back]:text-[var(--accent)] group-[.event-demo]/store:[&.search-back]:[border:0] [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)] [@media(max-width:699px)]:[.cooker-search_&]:[&.search-back]:[grid-area:1_/_1]'
+					]}
+					aria-label={t.reset}
+					onclick={reset}
+				>
 					<svg
 						viewBox="0 0 24 24"
 						width="22"
@@ -1273,8 +1457,18 @@
 					</svg>
 				</button>
 			{/if}
-			<label class="visually-hidden" for="search">{t.search}</label>
+			<label
+				class={[
+					'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)]'
+				]}
+				for="search"
+			>
+				{t.search}
+			</label>
 			<input
+				class={[
+					'[&::placeholder]:text-[var(--muted)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [&:is(input)]:box-border [&:is(input)]:min-h-[var(--tap)] [&:is(input)]:min-w-[0] [&:is(input)]:rounded-[var(--radius)] [&:is(input)]:bg-[var(--surface)] [&:is(input)]:p-[0.4rem_0.7rem] [&:is(input)]:text-[var(--ink)] [&:is(input)]:[border:1px_solid_var(--ink)] [&:is(input)]:[font:inherit] [.budget_&]:[&:is(input)]:w-[min(100%,_12rem)] [.event-demo_.search_&]:[&:is(input)]:rounded-[0.375rem] [.event-demo_.search_&]:[&:is(input)]:border-[white] [.event-demo_.search_&]:[&:is(input)]:bg-[white] [.event-demo_.search_&]:[&:is(input)]:pe-[2.75rem] [.search_&]:[&:is(input)]:[flex:1] [.shipping-option_&]:[&:is(input)]:h-[1.15rem] [.shipping-option_&]:[&:is(input)]:min-h-[0] [.shipping-option_&]:[&:is(input)]:w-[1.15rem] [.shipping-option_&]:[&:is(input)]:[accent-color:var(--accent)] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:w-[100%] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[padding-inline:var(--tap)_0.5rem] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[grid-area:1_/_2]'
+				]}
 				id="search"
 				disabled={!interactive}
 				maxlength={eventDemo ? searchLimit : undefined}
@@ -1283,7 +1477,13 @@
 				bind:value={draftQuery}
 			/>
 			{#if eventDemo}
-				<button type="submit" class="search-icon" aria-label={t.submit}>
+				<button
+					type="submit"
+					class={[
+						'search-icon group-[.event-demo]/store:[&.search-icon]:z-[1] group-[.event-demo]/store:[&.search-icon]:ms-[-3.125rem] group-[.event-demo]/store:[&.search-icon]:w-[44px] group-[.event-demo]/store:[&.search-icon]:[flex:none] group-[.event-demo]/store:[&.search-icon]:bg-[transparent] group-[.event-demo]/store:[&.search-icon]:text-[var(--ink)] group-[.event-demo]/store:[&.search-icon]:[border:0] [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&.search-icon]:m-[0] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&.search-icon]:w-[var(--tap)] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&.search-icon]:justify-self-start [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&.search-icon]:[grid-area:1_/_2]'
+					]}
+					aria-label={t.submit}
+				>
 					<svg
 						viewBox="0 0 24 24"
 						width="22"
@@ -1304,7 +1504,9 @@
 					/>
 				{:else}
 					<button
-						class="filter-trigger"
+						class={[
+							'filter-trigger group-[.event-demo]/store:[&.filter-trigger]:gap-[0.2rem] group-[.event-demo]/store:[&.filter-trigger]:bg-[white] group-[.event-demo]/store:[&.filter-trigger]:px-[0.4rem] group-[.event-demo]/store:[&.filter-trigger]:text-[var(--accent)] group-[.event-demo]/store:[&.filter-trigger]:[border:0] [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
 						type="button"
 						aria-haspopup="dialog"
 						onclick={(event) => openFilters(event.currentTarget)}
@@ -1324,7 +1526,14 @@
 					</button>
 				{/if}
 			{:else}
-				<button class="primary" type="submit">{t.submit}</button>
+				<button
+					class={[
+						'primary [&.primary]:border-[var(--accent)] [&.primary]:bg-[var(--accent)] [&.primary]:font-[650] [&.primary]:text-[white] [&.primary:hover]:bg-[var(--accent)] [&.primary:hover]:underline [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+					]}
+					type="submit"
+				>
+					{t.submit}
+				</button>
 			{/if}
 		</form>
 
@@ -1358,11 +1567,27 @@
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		{#if eventDemo && !cookerSearch}
-			<div class="sort-tabs" role="group" aria-label={t.sort}>
-				<button type="button" aria-pressed={sort === 'default'} onclick={() => (sort = 'default')}>
+			<div
+				class={[
+					'sort-tabs [&.sort-tabs]:grid [&.sort-tabs]:grid-cols-[repeat(4,_minmax(0,_1fr))] [&.sort-tabs]:[border-bottom:1px_solid_var(--seam)] group-[.event-demo]/store:[&.sort-tabs]:bg-[var(--surface)]'
+				]}
+				role="group"
+				aria-label={t.sort}
+			>
+				<button
+					class={[
+						"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+					]}
+					type="button"
+					aria-pressed={sort === 'default'}
+					onclick={() => (sort = 'default')}
+				>
 					{language === 'th' ? 'เกี่ยวข้อง' : 'Relevance'}
 				</button>
 				<button
+					class={[
+						"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+					]}
 					type="button"
 					aria-pressed={sort === 'top-rated'}
 					onclick={() => (sort = 'top-rated')}
@@ -1370,6 +1595,9 @@
 					{t['top-rated']}
 				</button>
 				<button
+					class={[
+						"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+					]}
 					type="button"
 					aria-pressed={sort === 'top-sales'}
 					onclick={() => (sort = 'top-sales')}
@@ -1377,6 +1605,9 @@
 					{t['top-sales']}
 				</button>
 				<button
+					class={[
+						'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&.active]:border-[var(--accent)] [.sort-tabs_&]:[&.active]:text-[var(--accent)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+					]}
 					type="button"
 					aria-label={sort === 'price-low' ? t['price-high'] : t['price-low']}
 					class:active={sort === 'price-low' || sort === 'price-high'}
@@ -1399,7 +1630,14 @@
 					</svg>
 				</button>
 				{#if sort === 'price-low' || sort === 'price-high'}
-					<span id="price-sort-direction" class="visually-hidden">{t[sort]}</span>
+					<span
+						id="price-sort-direction"
+						class={[
+							'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+						]}
+					>
+						{t[sort]}
+					</span>
 				{/if}
 			</div>
 		{/if}
@@ -1421,9 +1659,17 @@
 				changeCategory={(value) => chooseCategory(value, true)}
 			/>
 		{:else}
-			<nav class="categories" aria-label={t.categories}>
+			<nav
+				class={[
+					'categories [&.categories]:flex [&.categories]:flex-wrap [&.categories]:gap-[0_0.55rem] [&.categories]:[border-bottom:1px_solid_var(--seam)] group-[.event-demo]/store:[&.categories]:sticky group-[.event-demo]/store:[&.categories]:top-[calc(var(--tap)_+_0.75rem)] group-[.event-demo]/store:[&.categories]:z-[2] group-[.event-demo]/store:[&.categories]:[scrollbar-width:none] group-[.event-demo]/store:[&.categories]:flex-nowrap group-[.event-demo]/store:[&.categories]:gap-[0.375rem] group-[.event-demo]/store:[&.categories]:overflow-x-auto group-[.event-demo]/store:[&.categories]:bg-[var(--surface)] group-[.event-demo]/store:[&.categories]:p-[0.375rem_0.5rem]'
+				]}
+				aria-label={t.categories}
+			>
 				{#if eventDemo}
 					<button
+						class={[
+							"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+						]}
 						type="button"
 						aria-pressed={freeShipping}
 						onclick={() => {
@@ -1450,6 +1696,9 @@
 					</button>
 				{/if}
 				<button
+					class={[
+						"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+					]}
 					disabled={!interactive}
 					aria-pressed={category === 'all'}
 					onclick={() => chooseCategory('all')}
@@ -1458,6 +1707,9 @@
 				</button>
 				{#each categoryKeys as key (key)}
 					<button
+						class={[
+							"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+						]}
 						disabled={!interactive}
 						aria-pressed={category === key}
 						onclick={() => chooseCategory(key)}
@@ -1469,16 +1721,39 @@
 		{/if}
 
 		{#if !eventDemo}
-			<div class="toolbar">
-				<label class="sort">
-					<span>{t.sort}</span>
-					<select bind:value={sort} onchange={cancelPending}>
+			<div
+				class={[
+					'toolbar [&.toolbar]:my-[1rem] [&.toolbar]:flex [&.toolbar]:flex-wrap [&.toolbar]:items-center [&.toolbar]:justify-between [&.toolbar]:gap-[0.65rem] [@media(max-width:520px)]:[&.toolbar]:gap-[0.4rem]'
+				]}
+			>
+				<label
+					class={[
+						'sort [&.sort]:flex [&.sort]:flex-wrap [&.sort]:items-center [&.sort]:gap-[0.65rem] [&.sort]:text-[length:var(--small)] [&.sort]:text-[var(--muted)] [@media(max-width:520px)]:[&.sort]:gap-[0.4rem]'
+					]}
+				>
+					<span
+						class={[
+							'[.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+						]}
+					>
+						{t.sort}
+					</span>
+					<select
+						class={[
+							'[&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [&:is(select)]:box-border [&:is(select)]:min-h-[var(--tap)] [&:is(select)]:min-w-[0] [&:is(select)]:rounded-[var(--radius)] [&:is(select)]:bg-[var(--surface)] [&:is(select)]:p-[0.4rem_0.7rem] [&:is(select)]:text-[var(--ink)] [&:is(select)]:[border:1px_solid_var(--ink)] [&:is(select)]:[font:inherit] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)] [@media(max-width:520px)]:[.sort_&]:[&:is(select)]:max-w-[12.25rem]'
+						]}
+						bind:value={sort}
+						onchange={cancelPending}
+					>
 						{#each sorts as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
 					</select>
 				</label>
 				<button
+					class={[
+						"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:border-[var(--accent)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:underline [.shopper-toolbar_&]:[&[aria-expanded='true']]:[text-underline-offset:0.2em] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+					]}
 					aria-expanded={filtersOpen}
 					aria-controls="search-filters"
 					onclick={() => (filtersOpen = !filtersOpen)}
@@ -1500,9 +1775,12 @@
 		{/if}
 
 		{#snippet filterFields()}
-			<label class="budget">
+			<label class={['budget [&.budget]:grid [&.budget]:gap-[0.3rem]']}>
 				{t.maxPrice}
 				<input
+					class={[
+						'[&::placeholder]:text-[var(--muted)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [&:is(input)]:box-border [&:is(input)]:min-h-[var(--tap)] [&:is(input)]:min-w-[0] [&:is(input)]:rounded-[var(--radius)] [&:is(input)]:bg-[var(--surface)] [&:is(input)]:p-[0.4rem_0.7rem] [&:is(input)]:text-[var(--ink)] [&:is(input)]:[border:1px_solid_var(--ink)] [&:is(input)]:[font:inherit] [.budget_&]:[&:is(input)]:w-[min(100%,_12rem)] [.event-demo_.search_&]:[&:is(input)]:rounded-[0.375rem] [.event-demo_.search_&]:[&:is(input)]:border-[white] [.event-demo_.search_&]:[&:is(input)]:bg-[white] [.event-demo_.search_&]:[&:is(input)]:pe-[2.75rem] [.search_&]:[&:is(input)]:[flex:1] [.shipping-option_&]:[&:is(input)]:h-[1.15rem] [.shipping-option_&]:[&:is(input)]:min-h-[0] [.shipping-option_&]:[&:is(input)]:w-[1.15rem] [.shipping-option_&]:[&:is(input)]:[accent-color:var(--accent)] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:w-[100%] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[padding-inline:var(--tap)_0.5rem] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[grid-area:1_/_2]'
+					]}
 					type="number"
 					min="0"
 					max={Number.MAX_SAFE_INTEGER}
@@ -1511,21 +1789,70 @@
 					bind:value={draftPrice}
 				/>
 			</label>
-			<label class="shipping-option">
-				<input type="checkbox" bind:checked={draftShipping} />
+			<label
+				class={[
+					'shipping-option [&.shipping-option]:inline-flex [&.shipping-option]:min-h-[var(--tap)] [&.shipping-option]:cursor-pointer [&.shipping-option]:items-center [&.shipping-option]:gap-[0.45rem]'
+				]}
+			>
+				<input
+					class={[
+						'[&::placeholder]:text-[var(--muted)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [&:is(input)]:box-border [&:is(input)]:min-h-[var(--tap)] [&:is(input)]:min-w-[0] [&:is(input)]:rounded-[var(--radius)] [&:is(input)]:bg-[var(--surface)] [&:is(input)]:p-[0.4rem_0.7rem] [&:is(input)]:text-[var(--ink)] [&:is(input)]:[border:1px_solid_var(--ink)] [&:is(input)]:[font:inherit] [.budget_&]:[&:is(input)]:w-[min(100%,_12rem)] [.event-demo_.search_&]:[&:is(input)]:rounded-[0.375rem] [.event-demo_.search_&]:[&:is(input)]:border-[white] [.event-demo_.search_&]:[&:is(input)]:bg-[white] [.event-demo_.search_&]:[&:is(input)]:pe-[2.75rem] [.search_&]:[&:is(input)]:[flex:1] [.shipping-option_&]:[&:is(input)]:h-[1.15rem] [.shipping-option_&]:[&:is(input)]:min-h-[0] [.shipping-option_&]:[&:is(input)]:w-[1.15rem] [.shipping-option_&]:[&:is(input)]:[accent-color:var(--accent)] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:w-[100%] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[padding-inline:var(--tap)_0.5rem] [@media(max-width:699px)]:[.event-demo_.search.cooker-search_&]:[&:is(input)]:[grid-area:1_/_2]'
+					]}
+					type="checkbox"
+					bind:checked={draftShipping}
+				/>
 				{t.freeOnly}
 			</label>
-			<div class="filter-actions">
-				<button class="primary" type="submit">{t.apply}</button>
-				<button type="button" onclick={clearFilters}>{t.clear}</button>
+			<div
+				class={[
+					'filter-actions [&.filter-actions]:flex [&.filter-actions]:flex-wrap [&.filter-actions]:items-center [&.filter-actions]:gap-[0.65rem] [.demo-filter_&]:[&.filter-actions]:mt-[auto] [.demo-filter_&]:[&.filter-actions]:flex-row-reverse'
+				]}
+			>
+				<button
+					class={[
+						'primary [&.primary]:border-[var(--accent)] [&.primary]:bg-[var(--accent)] [&.primary]:font-[650] [&.primary]:text-[white] [&.primary:hover]:bg-[var(--accent)] [&.primary:hover]:underline [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+					]}
+					type="submit"
+				>
+					{t.apply}
+				</button>
+				<button
+					class={[
+						'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+					]}
+					type="button"
+					onclick={clearFilters}
+				>
+					{t.clear}
+				</button>
 			</div>
 		{/snippet}
 
 		{#if eventDemo}
-			<dialog class="demo-filter" bind:this={filterDialog} aria-labelledby="demo-filter-title">
-				<div class="drawer-heading">
-					<h2 id="demo-filter-title">{t.filters}</h2>
+			<dialog
+				class={[
+					'demo-filter [&.demo-filter]:m-[0_0_0_auto] [&.demo-filter]:box-border [&.demo-filter]:h-[100dvh] [&.demo-filter]:max-h-[none] [&.demo-filter]:w-[min(88%,_24rem)] [&.demo-filter]:max-w-[none] [&.demo-filter]:bg-[var(--surface)] [&.demo-filter]:p-[0] [&.demo-filter]:text-[var(--ink)] [&.demo-filter]:[border:0] [&.demo-filter::backdrop]:bg-[rgb(0_0_0_/_48%)] [&.demo-filter[open]]:flex [&.demo-filter[open]]:flex-col'
+				]}
+				bind:this={filterDialog}
+				aria-labelledby="demo-filter-title"
+			>
+				<div
+					class={[
+						'drawer-heading [&.drawer-heading]:flex [&.drawer-heading]:items-center [&.drawer-heading]:justify-between [&.drawer-heading]:gap-[0.5rem] [&.drawer-heading]:bg-[var(--paper)] [&.drawer-heading]:p-[0.5rem_0.75rem]'
+					]}
+				>
+					<h2
+						class={[
+							'[&:is(h2)]:m-[0] [&:is(h2)]:text-[1.375rem] [.drawer-heading_&]:[&:is(h2)]:text-[1rem] [.event-demo_.results-header_&]:[&:is(h2)]:text-[length:var(--small)] [.event-demo_.results-header_&]:[&:is(h2)]:text-[var(--muted)]'
+						]}
+						id="demo-filter-title"
+					>
+						{t.filters}
+					</h2>
 					<button
+						class={[
+							'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
 						type="button"
 						aria-label={language === 'th' ? 'ปิด' : 'Close'}
 						onclick={() => filterDialog?.close()}
@@ -1542,10 +1869,24 @@
 						</svg>
 					</button>
 				</div>
-				<form class="filters" onsubmit={applyFilters}>{@render filterFields()}</form>
+				<form
+					class={[
+						'filters [&.filters]:mb-[1rem] [&.filters]:flex [&.filters]:flex-wrap [&.filters]:items-end [&.filters]:gap-[0.85rem_1.1rem] [&.filters]:rounded-[var(--radius)] [&.filters]:bg-[var(--surface)] [&.filters]:p-[0.85rem] [&.filters]:[border:1px_solid_var(--ink)] [&.filters[hidden]]:hidden [.demo-filter_&]:[&.filters]:m-[0] [.demo-filter_&]:[&.filters]:[flex:1] [.demo-filter_&]:[&.filters]:flex-col [.demo-filter_&]:[&.filters]:flex-nowrap [.demo-filter_&]:[&.filters]:items-stretch [.demo-filter_&]:[&.filters]:[border:0]'
+					]}
+					onsubmit={applyFilters}
+				>
+					{@render filterFields()}
+				</form>
 			</dialog>
 		{:else}
-			<form id="search-filters" class="filters" hidden={!filtersOpen} onsubmit={applyFilters}>
+			<form
+				id="search-filters"
+				class={[
+					'filters [&.filters]:mb-[1rem] [&.filters]:flex [&.filters]:flex-wrap [&.filters]:items-end [&.filters]:gap-[0.85rem_1.1rem] [&.filters]:rounded-[var(--radius)] [&.filters]:bg-[var(--surface)] [&.filters]:p-[0.85rem] [&.filters]:[border:1px_solid_var(--ink)] [&.filters[hidden]]:hidden [.demo-filter_&]:[&.filters]:m-[0] [.demo-filter_&]:[&.filters]:[flex:1] [.demo-filter_&]:[&.filters]:flex-col [.demo-filter_&]:[&.filters]:flex-nowrap [.demo-filter_&]:[&.filters]:items-stretch [.demo-filter_&]:[&.filters]:[border:0]'
+				]}
+				hidden={!filtersOpen}
+				onsubmit={applyFilters}
+			>
 				{@render filterFields()}
 			</form>
 		{/if}
@@ -1562,9 +1903,19 @@
 		{/if}
 
 		{#if hasFilters}
-			<div class="chips">
+			<div
+				class={[
+					'chips [&.chips]:mb-[1rem] [&.chips]:flex [&.chips]:flex-wrap [&.chips]:items-center [&.chips]:gap-[0.65rem] group-[.event-demo]/store:[&.chips]:m-[0.375rem]'
+				]}
+			>
 				{#if selectedCapacityProduct}
-					<button type="button" onclick={() => selectCapacity(undefined)}>
+					<button
+						class={[
+							'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
+						type="button"
+						onclick={() => selectCapacity(undefined)}
+					>
 						{language === 'th' ? 'ความจุ' : 'Capacity'}
 						<FactValue
 							productId={selectedCapacityProduct.id}
@@ -1586,6 +1937,9 @@
 				{/if}
 				{#if maxPrice !== undefined}
 					<button
+						class={[
+							'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
 						type="button"
 						onclick={() => {
 							cancelPending();
@@ -1611,6 +1965,9 @@
 				{/if}
 				{#if freeShipping}
 					<button
+						class={[
+							'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
 						type="button"
 						onclick={() => {
 							cancelPending();
@@ -1636,13 +1993,27 @@
 		{/if}
 
 		{#if !eventDemo}
-			<section class="shopper-tools" aria-label={a.persona}>
+			<section
+				class={[
+					'shopper-tools [&.shopper-tools]:my-[1rem] [&.shopper-tools]:py-[0.7rem] [&.shopper-tools]:[border-block:1px_solid_var(--seam)]'
+				]}
+				aria-label={a.persona}
+			>
 				{#if restoredFields.length || cartRestored}
-					<div class="assistant-reply" role="status">
+					<div
+						class={[
+							'assistant-reply [&.assistant-reply]:my-[0.55rem] [&.assistant-reply]:p-[0.6rem_0.75rem] [&.assistant-reply]:[overflow-wrap:anywhere] [&.assistant-reply]:[border:1px_dashed_var(--seam)]'
+						]}
+						role="status"
+					>
 						<strong>
 							{language === 'th' ? 'กู้คืนหน้าร้านที่บันทึกไว้แล้ว' : 'Restored your saved store'}
 						</strong>
-						<p>
+						<p
+							class={[
+								'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+							]}
+						>
 							{[
 								...new Set(restoredFields.map(changeName)),
 								...(cartRestored ? [language === 'th' ? 'ตะกร้า' : 'Cart'] : [])
@@ -1651,12 +2022,28 @@
 					</div>
 				{/if}
 				{#if changes.length}
-					<div class="assistant-reply" role="status">
+					<div
+						class={[
+							'assistant-reply [&.assistant-reply]:my-[0.55rem] [&.assistant-reply]:p-[0.6rem_0.75rem] [&.assistant-reply]:[overflow-wrap:anywhere] [&.assistant-reply]:[border:1px_dashed_var(--seam)]'
+						]}
+						role="status"
+					>
 						<strong>{a.changed}</strong>
-						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
+						<p
+							class={[
+								'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+							]}
+						>
+							{[...new Set(changes.map(changeName))].join(' · ')}
+						</p>
 					</div>
 				{/if}
-				{#if sharedLookOpened}<p role="status">
+				{#if sharedLookOpened}<p
+						class={[
+							'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+						]}
+						role="status"
+					>
 						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
 					</p>{/if}
 				<ShoppingAssistant
@@ -1674,9 +2061,20 @@
 					largePrint={theme === 'large'}
 					{theme}
 				/>
-				<div class="shopper-toolbar">
-					<div class="shopper-actions shopper-views">
+				<div
+					class={[
+						'shopper-toolbar [&.shopper-toolbar]:mt-[0.65rem] [&.shopper-toolbar]:flex [&.shopper-toolbar]:flex-wrap [&.shopper-toolbar]:justify-between [&.shopper-toolbar]:gap-x-[1rem] [&.shopper-toolbar]:gap-y-[0.15rem]'
+					]}
+				>
+					<div
+						class={[
+							'shopper-actions shopper-views [&.shopper-actions]:my-[0.55rem] [&.shopper-actions]:flex [&.shopper-actions]:flex-wrap [&.shopper-actions]:items-center [&.shopper-actions]:gap-[0.4rem] [&.shopper-views]:content-start [&.shopper-views]:[min-inline-size:0] [.shopper-toolbar_&]:[&.shopper-actions]:my-[0]'
+						]}
+					>
 						<button
+							class={[
+								"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:border-[var(--accent)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:underline [.shopper-toolbar_&]:[&[aria-expanded='true']]:[text-underline-offset:0.2em] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+							]}
 							type="button"
 							aria-expanded={compareOpen}
 							onclick={() => (compareOpen = !compareOpen)}
@@ -1684,6 +2082,9 @@
 							{compareOpen ? a.closeCompare : a.compare}
 						</button>
 						<button
+							class={[
+								"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:border-[var(--accent)] [.shopper-toolbar_&]:[&[aria-expanded='true']]:underline [.shopper-toolbar_&]:[&[aria-expanded='true']]:[text-underline-offset:0.2em] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+							]}
 							type="button"
 							disabled={!interactive}
 							aria-expanded={personasOpen}
@@ -1693,17 +2094,30 @@
 							onkeydown={closePersonasOnEscape}
 						>
 							{a.persona}
-							<svg class="disclosure" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+							<svg
+								class={[
+									"disclosure [&.disclosure]:ms-[0.25rem] [&.disclosure]:[vertical-align:middle] [button[aria-expanded='true']_&]:[&.disclosure]:rotate-[180deg]"
+								]}
+								width="12"
+								height="12"
+								viewBox="0 0 12 12"
+								aria-hidden="true"
+							>
 								<path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
 							</svg>
 						</button>
 						<div
 							id="shopper-presets"
-							class="shopper-actions shopper-presets"
+							class={[
+								'shopper-actions shopper-presets [&.shopper-actions]:my-[0.55rem] [&.shopper-actions]:flex [&.shopper-actions]:flex-wrap [&.shopper-actions]:items-center [&.shopper-actions]:gap-[0.4rem] [&.shopper-presets:not([hidden])]:[flex-basis:100%] [&.shopper-presets:not([hidden])]:pt-[0.55rem] [&.shopper-presets:not([hidden])]:[border-block-start:1px_dashed_var(--seam)] [&.shopper-presets[hidden]]:hidden [.shopper-toolbar_&]:[&.shopper-actions]:my-[0]'
+							]}
 							hidden={!personasOpen}
 						>
 							{#each personas as persona (persona)}
 								<button
+									class={[
+										'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+									]}
 									type="button"
 									id={`persona-${persona}`}
 									disabled={!interactive}
@@ -1715,19 +2129,48 @@
 							{/each}
 						</div>
 					</div>
-					<div class="shopper-actions shelf-utilities">
+					<div
+						class={[
+							'shopper-actions shelf-utilities [&.shelf-utilities]:content-start [&.shelf-utilities]:[min-inline-size:0] [&.shopper-actions]:my-[0.55rem] [&.shopper-actions]:flex [&.shopper-actions]:flex-wrap [&.shopper-actions]:items-center [&.shopper-actions]:gap-[0.4rem] [.shopper-toolbar_&]:[&.shopper-actions]:my-[0]'
+						]}
+					>
 						{#if !adapted || !interviewAnswers}
-							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+							<button
+								class={[
+									'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+								]}
+								type="button"
+								disabled={!undoStack.length}
+								onclick={undo}
+							>
+								{a.undo}
+							</button>
 						{/if}
-						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
+						<button
+							class={[
+								'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+							]}
+							type="button"
+							onclick={() => restoreDefaults()}
+						>
+							{a.reset}
+						</button>
 					</div>
 				</div>
 				{#if adapted || locks.length}
-					<div class="shopper-actions" aria-label={a.appearance}>
+					<div
+						class={[
+							'shopper-actions [&.shopper-actions]:my-[0.55rem] [&.shopper-actions]:flex [&.shopper-actions]:flex-wrap [&.shopper-actions]:items-center [&.shopper-actions]:gap-[0.4rem] [.shopper-toolbar_&]:[&.shopper-actions]:my-[0]'
+						]}
+						aria-label={a.appearance}
+					>
 						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
 							{@const key = value as keyof ShopperPlan}
 							{#if JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])}
 								<button
+									class={[
+										'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+									]}
 									type="button"
 									aria-label={`${a.remove} ${changeName(key)}`}
 									onclick={() => removePreference(key)}
@@ -1753,6 +2196,9 @@
 				>
 					{#if dev}
 						<button
+							class={[
+								"[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.categories_&]:[&[aria-pressed='true']]:font-[700] [.categories_&]:[&[aria-pressed='true']]:text-[var(--ink)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.event-demo_.categories_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.event-demo_.categories_&]:[&[aria-pressed='true']]:text-[var(--accent)] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [.sort-tabs_&]:[&[aria-pressed='true']]:border-[var(--accent)] [.sort-tabs_&]:[&[aria-pressed='true']]:text-[var(--accent)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]"
+							]}
 							type="button"
 							disabled={forceOffline}
 							onclick={toggleLive}
@@ -1762,17 +2208,31 @@
 						</button>
 					{/if}
 					{#if liveFallback}
-						<p>
+						<p
+							class={[
+								'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+							]}
+						>
 							{language === 'th'
 								? 'ใช้การตอบแบบออฟไลน์แทน'
 								: 'Live model unavailable. Used offline mode.'}
 						</p>
 					{/if}
-					{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
+					{#if turn?.dropped.length}<p
+							class={[
+								'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+							]}
+						>
+							{a.rejected}
+						</p>{/if}
 				</Xray>
 			</XrayDrawer>
 			{#if compareOpen}
-				<div class="comparison-area">
+				<div
+					class={[
+						'comparison-area [@media(min-width:1024px)]:group-[.trace-open]/store:[&.comparison-area]:pe-[calc(320px_+_1rem)]'
+					]}
+				>
 					<CompareShelves
 						plan={activePlan}
 						locale={language}
@@ -1782,8 +2242,16 @@
 				</div>
 			{/if}
 			{#if quote}
-				<section class="quote" lang={quote.locale}>
+				<section
+					class={[
+						'quote [&.quote]:my-[1rem] [&.quote]:py-[0.7rem] [&.quote]:[border-block:1px_solid_var(--seam)] [@media(min-width:1024px)]:group-[.trace-open]/store:[&.quote]:pe-[calc(320px_+_1rem)]'
+					]}
+					lang={quote.locale}
+				>
 					<button
+						class={[
+							'[&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+						]}
 						type="button"
 						bind:this={closeQuoteButton}
 						onclick={closeDeal}
@@ -1800,21 +2268,59 @@
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
-		<section id="products" aria-labelledby="products-heading" tabindex="-1">
+		<section
+			class={[
+				'[@media(min-width:1024px)]:group-[.trace-open]/store:[&#products]:pe-[calc(320px_+_1rem)]'
+			]}
+			id="products"
+			aria-labelledby="products-heading"
+			tabindex="-1"
+		>
 			<div
-				class="results-header"
+				class={[
+					'results-header [&.results-header]:mb-[0.75rem] [&.results-header]:flex [&.results-header]:items-baseline [&.results-header]:justify-between [&.results-header]:gap-[1rem] [&.results-header]:pb-[0.4rem] [&.results-header]:[border-bottom:2px_solid_var(--ink)] group-[.event-demo]/store:[&.results-header]:mb-[0] group-[.event-demo]/store:[&.results-header]:p-[0.3rem_0.5rem] group-[.event-demo]/store:[&.results-header]:[border:0] [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)]'
+				]}
 				class:visually-hidden={skinSearch || (cookerSearch && sort === 'default')}
 			>
-				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
+				<h2
+					class={[
+						'[&:is(h2)]:m-[0] [&:is(h2)]:text-[1.375rem] [.drawer-heading_&]:[&:is(h2)]:text-[1rem] [.event-demo_.results-header_&]:[&:is(h2)]:text-[length:var(--small)] [.event-demo_.results-header_&]:[&:is(h2)]:text-[var(--muted)]'
+					]}
+					id="products-heading"
+				>
+					{cookerSearch && sort !== 'default' ? t[sort] : t.products}
+				</h2>
 				{#if eventDemo && !cookerSearch && !skinSearch}
 					{@render harnessLink()}
-					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
+					<a
+						class={[
+							'assistant-link [&.assistant-link]:ms-[auto] [&.assistant-link]:inline-flex [&.assistant-link]:min-h-[var(--tap)] [&.assistant-link]:items-center [&.assistant-link]:text-[length:var(--small)] [&.assistant-link]:text-[var(--ink)] [&.assistant-link]:underline [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+						]}
+						href={resolve('/?view=receipt#assistant')}
+					>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
 				{/if}
-				<p aria-live="polite">
-					<span class="visually-hidden">{t.products} </span>
-					<span class="figure" data-fact="resultCount" data-raw={products.length}>
+				<p
+					class={[
+						'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+					]}
+					aria-live="polite"
+				>
+					<span
+						class={[
+							'visually-hidden [&.visually-hidden]:absolute [&.visually-hidden]:h-[1px] [&.visually-hidden]:w-[1px] [&.visually-hidden]:overflow-hidden [&.visually-hidden]:[clip-path:inset(50%)] [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+						]}
+					>
+						{t.products}
+					</span>
+					<span
+						class={[
+							'figure [.event-demo_.metadata_>_&]:[&:first-child]:p-[0_0.2rem] [.event-demo_.metadata_>_&]:[&:first-child]:[border:1px_solid_var(--seam)] [.metadata_>_&]:[&:is(span)]:inline-flex [.metadata_>_&]:[&:is(span)]:items-center [.metadata_>_&]:[&:is(span)]:gap-[0.25rem]'
+						]}
+						data-fact="resultCount"
+						data-raw={products.length}
+					>
 						{formatNumber(products.length)}
 					</span>
 				</p>
@@ -1823,10 +2329,34 @@
 			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
 			<div bind:this={proofRoot}>
 				{#if products.length === 0}
-					<div class="empty">
-						<h3>{t.empty}</h3>
-						<p>{t.emptyHint}</p>
-						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
+					<div
+						class={[
+							'empty [&.empty]:p-[1rem] [&.empty]:[border:1px_dashed_var(--ink)] group-[.event-demo]/store:[&.empty]:m-[0.5rem]'
+						]}
+					>
+						<h3
+							class={[
+								'[&:is(h3)]:m-[0] [&:is(h3)]:text-[length:var(--size)] [&:is(h3)]:leading-[1.4] [&:is(h3)]:font-[650] [.card-body_&]:[&:is(h3)]:mb-[0.45rem] [.event-demo_.card-body_&]:[&:is(h3)]:m-[0] [.event-demo_.card-body_&]:[&:is(h3)]:min-h-[2.7em] [.event-demo_.card-body_&]:[&:is(h3)]:text-[max(0.9375rem,_var(--small))] [.event-demo_.card-body_&]:[&:is(h3)]:leading-[1.35] [.event-demo_.card-body_&]:[&:is(h3)]:font-[400]'
+							]}
+						>
+							{t.empty}
+						</h3>
+						<p
+							class={[
+								'[&:is(p)]:m-[0] [.assistant-reply_&]:[&:is(p)]:my-[0.25rem] [.empty_&]:[&:is(p)]:[margin-block:0.25rem_0.8rem] [.results-header_&]:[&:is(p)]:text-[length:var(--small)] [.results-header_&]:[&:is(p)]:text-[var(--muted)]'
+							]}
+						>
+							{t.emptyHint}
+						</p>
+						<button
+							type="button"
+							class={[
+								'primary [&.primary]:border-[var(--accent)] [&.primary]:bg-[var(--accent)] [&.primary]:font-[650] [&.primary]:text-[white] [&.primary:hover]:bg-[var(--accent)] [&.primary:hover]:underline [&:hover]:bg-[var(--paper)] [&:is(button)]:box-border [&:is(button)]:inline-flex [&:is(button)]:min-h-[var(--tap)] [&:is(button)]:min-w-[0] [&:is(button)]:cursor-pointer [&:is(button)]:items-center [&:is(button)]:justify-center [&:is(button)]:gap-[0.35rem] [&:is(button)]:rounded-[var(--radius)] [&:is(button)]:bg-[var(--surface)] [&:is(button)]:p-[0.4rem_0.7rem] [&:is(button)]:text-[var(--ink)] [&:is(button)]:[border:1px_solid_var(--ink)] [&:is(button)]:[font:inherit] group-[:not(.event-demo)]/store:[&:is(button)]:[min-inline-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px] [.categories_&]:[&:is(button)]:rounded-[0] [.categories_&]:[&:is(button)]:[border-width:0_0_3px] [.categories_&]:[&:is(button)]:[border-style:solid] [.categories_&]:[&:is(button)]:border-[transparent] [.categories_&]:[&:is(button)]:bg-[transparent] [.categories_&]:[&:is(button)]:px-[0.45rem] [.categories_&]:[&:is(button)]:text-[var(--muted)] [.chips_&]:[&:is(button)]:rounded-[999px] [.chips_&]:[&:is(button)]:text-[length:var(--small)] [.demo-filter_.filter-actions_&]:[&:is(button)]:[flex:1] [.demo-filter_.filter-actions_&]:[&:is(button)]:border-[var(--accent)] [.drawer-heading_&]:[&:is(button)]:bg-[transparent] [.drawer-heading_&]:[&:is(button)]:[border:0] [.event-demo_.categories_&]:[&:is(button)]:[flex:none] [.event-demo_.categories_&]:[&:is(button)]:rounded-[var(--radius)] [.event-demo_.categories_&]:[&:is(button)]:bg-[#f5f5f5] [.event-demo_.categories_&]:[&:is(button)]:px-[0.5rem] [.event-demo_.categories_&]:[&:is(button)]:text-[length:var(--small)] [.event-demo_.categories_&]:[&:is(button)]:whitespace-nowrap [.event-demo_.categories_&]:[&:is(button)]:[border:1px_solid_transparent] [.shelf-utilities_&]:[&:disabled]:cursor-not-allowed [.shelf-utilities_&]:[&:disabled]:text-[var(--muted)] [.shelf-utilities_&]:[&:is(button)]:border-[transparent] [.shelf-utilities_&]:[&:is(button)]:bg-[transparent] [.shelf-utilities_&]:[&:not(:disabled):hover]:border-[var(--seam)] [.sort-tabs_&]:[&:is(button)]:rounded-[0] [.sort-tabs_&]:[&:is(button)]:[border-width:0_0_2px] [.sort-tabs_&]:[&:is(button)]:[border-style:solid] [.sort-tabs_&]:[&:is(button)]:border-[transparent] [.sort-tabs_&]:[&:is(button)]:p-[0.25rem] [.sort-tabs_&]:[&:is(button)]:[overflow-wrap:anywhere] [.sort-tabs_&]:[&:is(button)]:text-[var(--muted)] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:px-[0.45rem] [@media(max-width:520px)]:[.settings_&]:[&:is(button,_select)]:text-[length:var(--small)]'
+							]}
+							onclick={reset}
+						>
+							{t.reset}
+						</button>
 					</div>
 				{:else if eventDemo}
 					{@render shelf(
@@ -1850,856 +2380,25 @@
 				{/if}
 			</div>
 		</section>
-		<footer>
+		<footer
+			class={[
+				'[&:is(footer)]:py-[1.25rem] [&:is(footer)]:text-[length:var(--small)] [&:is(footer)]:text-[var(--muted)] group-[.event-demo]/store:[&:is(footer)]:px-[0.5rem]'
+			]}
+		>
 			{eventDemo
 				? language === 'th'
 					? 'DynamicShopper · ภาพประกอบสินค้าจำลอง'
 					: 'DynamicShopper · Illustrative product images'
 				: t.simulated}
-			{#if !eventDemo}<a class="inspection-link" href="#xray" onclick={() => (traceOpen = true)}>
+			{#if !eventDemo}<a
+					class={[
+						'inspection-link [&.inspection-link]:ms-[1rem] [&.inspection-link]:inline-flex [&.inspection-link]:items-center [&.inspection-link]:text-[inherit] [&.inspection-link]:[min-block-size:var(--tap)] [&:is(button,_a,_input,_select):focus-visible]:[outline:2px_solid_var(--accent)] [&:is(button,_a,_input,_select):focus-visible]:[outline-offset:2px]'
+					]}
+					href="#xray"
+					onclick={() => (traceOpen = true)}
+				>
 					{language === 'th' ? 'ตรวจสอบหน้าร้านนี้' : 'Inspect this store'}
 				</a>{/if}
 		</footer>
 	</main>
 </div>
-
-<style>
-	:global(body) {
-		margin: 0;
-	}
-	.store {
-		--paper: #fbfbf8;
-		--surface: #fff;
-		--ink: #16161a;
-		--muted: #5d5d63;
-		--seam: #e9e6dc;
-		--accent: #16161a;
-		--void: #d1263b;
-		--radius: 4px;
-		--tap: 44px;
-		--size: 1rem;
-		--small: 0.875rem;
-		min-height: 100vh;
-		background: var(--paper);
-		color: var(--ink);
-		font:
-			var(--size)/1.5 'IBM Plex Sans Thai',
-			'Noto Sans Thai',
-			system-ui,
-			sans-serif;
-	}
-	.store[data-theme='minimal'] {
-		--paper: #fff;
-		--seam: #ecebe6;
-		--radius: 0;
-	}
-	.store[data-theme='vibrant'] {
-		--accent: #2f3ccf;
-		--muted: #4f5068;
-		--seam: #e3e3ef;
-		--radius: 6px;
-	}
-	.store[data-theme='large'] {
-		--ink: #0d0d10;
-		--accent: #0d0d10;
-		--muted: #3d3d42;
-		--seam: #858172;
-		--void: #b01e31;
-		--radius: 6px;
-		--size: 1.25rem;
-		--small: 1.25rem;
-		--tap: 48px;
-	}
-	.store :is(button, a, input, select):focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	.store:not(.event-demo) button {
-		min-inline-size: var(--tap);
-	}
-	.wrap {
-		width: min(100% - 2.5rem, 70rem);
-		margin-inline: auto;
-	}
-	.masthead {
-		border-bottom: 1px solid var(--seam);
-		background: var(--surface);
-	}
-	.compare-link {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap, 44px);
-		text-decoration: underline;
-		text-underline-offset: 0.15em;
-	}
-	.masthead-inner,
-	.settings,
-	.search,
-	.toolbar,
-	.sort,
-	.filter-actions,
-	.chips {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-		flex-wrap: wrap;
-	}
-	.masthead-inner {
-		justify-content: space-between;
-		padding-block: 0.6rem;
-	}
-	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		min-height: var(--tap);
-		color: var(--ink);
-		text-decoration: none;
-		font-weight: 750;
-		letter-spacing: -0.035em;
-	}
-	button,
-	input,
-	select {
-		box-sizing: border-box;
-		min-height: var(--tap);
-		min-width: 0;
-		font: inherit;
-		color: var(--ink);
-		background: var(--surface);
-		border: 1px solid var(--ink);
-		border-radius: var(--radius);
-		padding: 0.4rem 0.7rem;
-	}
-	button {
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-	}
-	button:hover {
-		background: var(--paper);
-	}
-	.primary {
-		color: white;
-		background: var(--accent);
-		border-color: var(--accent);
-		font-weight: 650;
-	}
-	.primary:hover {
-		background: var(--accent);
-		text-decoration: underline;
-	}
-	main {
-		padding-top: clamp(1.15rem, 4vw, 3rem);
-	}
-	h1,
-	h2,
-	h3,
-	p {
-		margin: 0;
-	}
-	h1 {
-		font-size: clamp(1.85rem, 5vw, 3.25rem);
-		line-height: 1.23;
-		letter-spacing: -0.035em;
-	}
-	.search {
-		margin-block: 0.85rem 1.1rem;
-		flex-wrap: nowrap;
-	}
-	.search input {
-		flex: 1;
-	}
-	input::placeholder {
-		color: var(--muted);
-	}
-	.categories {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0 0.55rem;
-		border-bottom: 1px solid var(--seam);
-	}
-	.categories button {
-		padding-inline: 0.45rem;
-		background: transparent;
-		border: 0;
-		border-radius: 0;
-		border-bottom: 3px solid transparent;
-		color: var(--muted);
-	}
-	.categories button[aria-pressed='true'] {
-		border-color: var(--accent);
-		color: var(--ink);
-		font-weight: 700;
-	}
-	.toolbar {
-		justify-content: space-between;
-		margin-block: 1rem;
-	}
-	.sort {
-		color: var(--muted);
-		font-size: var(--small);
-	}
-	.filters {
-		display: flex;
-		gap: 0.85rem 1.1rem;
-		flex-wrap: wrap;
-		align-items: end;
-		padding: 0.85rem;
-		border: 1px solid var(--ink);
-		background: var(--surface);
-		border-radius: var(--radius);
-		margin-bottom: 1rem;
-	}
-	.filters[hidden] {
-		display: none;
-	}
-	.budget {
-		display: grid;
-		gap: 0.3rem;
-	}
-	.budget input {
-		width: min(100%, 12rem);
-	}
-	.shipping-option {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap);
-		gap: 0.45rem;
-		cursor: pointer;
-	}
-	.shipping-option input {
-		min-height: 0;
-		width: 1.15rem;
-		height: 1.15rem;
-		accent-color: var(--accent);
-	}
-	.chips {
-		margin-bottom: 1rem;
-	}
-	.chips button {
-		border-radius: 999px;
-		font-size: var(--small);
-	}
-	.results-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 1rem;
-		border-bottom: 2px solid var(--ink);
-		padding-bottom: 0.4rem;
-		margin-bottom: 0.75rem;
-	}
-	h2 {
-		font-size: 1.375rem;
-	}
-	.results-header p,
-	footer,
-	.shipping,
-	.metadata,
-	.card-body :global(.shop) {
-		color: var(--muted);
-		font-size: var(--small);
-	}
-	.product-grid {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.75rem;
-	}
-	.store[data-density='compact'] .card-body {
-		padding: 0.5rem;
-		gap: 0.3rem;
-	}
-	.store[data-density='spacious'] .card-body {
-		padding: 1rem;
-		gap: 0.65rem;
-	}
-	.list-layout {
-		grid-template-columns: minmax(0, 1fr);
-	}
-	.shopper-tools,
-	.quote {
-		margin-block: 1rem;
-		border-block: 1px solid var(--seam);
-		padding-block: 0.7rem;
-	}
-	.shopper-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-		align-items: center;
-		margin-block: 0.55rem;
-	}
-	.shopper-toolbar {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		column-gap: 1rem;
-		row-gap: 0.15rem;
-		margin-block-start: 0.65rem;
-	}
-	.shopper-toolbar .shopper-actions {
-		margin-block: 0;
-	}
-	.shopper-views,
-	.shelf-utilities {
-		min-inline-size: 0;
-		align-content: start;
-	}
-	.shopper-toolbar button[aria-expanded='true'] {
-		border-color: var(--accent);
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
-	}
-	.disclosure {
-		margin-inline-start: 0.25rem;
-		vertical-align: middle;
-	}
-	button[aria-expanded='true'] .disclosure {
-		rotate: 180deg;
-	}
-	.shelf-utilities button {
-		border-color: transparent;
-		background: transparent;
-	}
-	.shelf-utilities button:not(:disabled):hover {
-		border-color: var(--seam);
-	}
-	.shelf-utilities button:disabled {
-		color: var(--muted);
-		cursor: not-allowed;
-	}
-	.shopper-presets:not([hidden]) {
-		flex-basis: 100%;
-		padding-block-start: 0.55rem;
-		border-block-start: 1px dashed var(--seam);
-	}
-	.shopper-presets[hidden] {
-		display: none;
-	}
-	.assistant-reply {
-		border: 1px dashed var(--seam);
-		padding: 0.6rem 0.75rem;
-		margin-block: 0.55rem;
-		overflow-wrap: anywhere;
-	}
-	.assistant-reply p {
-		margin-block: 0.25rem;
-	}
-
-	.card-actions {
-		position: relative;
-		z-index: 1;
-		align-self: flex-start;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		align-items: flex-start;
-		margin-block-start: 0.65rem;
-	}
-	.best-price,
-	.rank {
-		position: relative;
-		z-index: 1;
-		justify-self: start;
-	}
-	.rank summary {
-		min-block-size: var(--tap);
-		align-content: center;
-		cursor: pointer;
-	}
-	.rank ul {
-		padding: 0;
-		list-style: none;
-	}
-	.rank li {
-		display: grid;
-		grid-template-columns: 1fr 35%;
-		gap: 0.5rem;
-		align-items: center;
-	}
-	.rank-track,
-	[data-rank-bar] {
-		display: block;
-	}
-	[data-rank-bar] {
-		height: 0.375rem;
-		background: currentColor;
-	}
-
-	.product-link::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-	}
-	.product:has(.product-link:focus-visible) {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	.product {
-		position: relative;
-		min-width: 0;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		grid-template-rows: 7.5rem 1fr;
-		border: 1px solid var(--seam);
-		border-radius: var(--radius);
-		background: var(--surface);
-		overflow-wrap: anywhere;
-	}
-	.art {
-		display: grid;
-		place-items: center;
-		color: var(--accent);
-	}
-	.art:not(.demo-photo) {
-		background: #e9e6dc;
-	}
-	.card-body {
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-		padding: 0.8rem;
-	}
-	h3 {
-		font-size: var(--size);
-		line-height: 1.4;
-		font-weight: 650;
-	}
-	.card-body h3 {
-		margin-bottom: 0.45rem;
-	}
-	.store :global(.figure) {
-		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
-		font-variant-numeric: tabular-nums;
-	}
-	.price {
-		display: flex;
-		gap: 0.25rem 0.6rem;
-		align-items: baseline;
-		flex-wrap: wrap;
-		margin-top: auto;
-	}
-	.price :global(strong) {
-		font-size: max(1.45rem, var(--size));
-	}
-	.price :global(s) {
-		color: var(--void);
-		font-size: var(--small);
-	}
-	.shipping {
-		display: flex;
-		align-items: baseline;
-		gap: 0.4rem;
-		margin-block: 0.25rem 0.45rem;
-		padding-block: 0.32rem;
-		border-block: 1px dashed var(--seam);
-	}
-	.leader {
-		flex: 1;
-		border-bottom: 1px dotted var(--muted);
-	}
-	.metadata {
-		display: flex;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: 0.2rem 0.45rem;
-	}
-	.metadata > span {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-	.card-body :global(.shop) {
-		margin-top: 0.2rem;
-	}
-	.empty {
-		padding: 1rem;
-		border: 1px dashed var(--ink);
-	}
-	.empty p {
-		margin-block: 0.25rem 0.8rem;
-	}
-	footer {
-		padding-block: 1.25rem;
-	}
-	.skip,
-	.visually-hidden {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-	}
-	.skip:focus {
-		clip-path: none;
-		z-index: 1;
-		inset: 0.5rem auto auto 0.5rem;
-		width: auto;
-		height: auto;
-		background: var(--surface);
-		color: var(--ink);
-		padding: 0.5rem;
-	}
-
-	@media (max-width: 760px) {
-		.product-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	@media (max-width: 520px) {
-		.wrap {
-			width: calc(100% - 1.5rem);
-		}
-		.masthead-inner,
-		.settings {
-			gap: 0.3rem 0.5rem;
-		}
-		.masthead-inner {
-			padding-block: 0.35rem;
-		}
-		.settings :is(button, select) {
-			font-size: var(--small);
-			padding-inline: 0.45rem;
-		}
-		.product-grid {
-			grid-template-columns: minmax(0, 1fr);
-		}
-		.product {
-			grid-template-columns: minmax(5rem, 25%) minmax(0, 1fr);
-			grid-template-rows: auto;
-		}
-		.toolbar {
-			gap: 0.4rem;
-		}
-		.sort {
-			gap: 0.4rem;
-		}
-		.sort select {
-			max-width: 12.25rem;
-		}
-		.store[data-theme='large'] .product {
-			grid-template-columns: minmax(4rem, 20%) minmax(0, 1fr);
-		}
-	}
-
-	.event-demo {
-		/* The sticky filters change height after scrolling. Keep the shelf offset stable. */
-		overflow-anchor: none;
-		--paper: #f5f5f5;
-		--marketplace-orange: #ee4d2d;
-		--accent: #b5321a;
-
-		--seam: #e4e4e4;
-		--radius: 6px;
-		--small: 0.8125rem;
-		--ink: #222;
-		--muted: #585858;
-	}
-	.marketplace-brand {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem 0.2rem;
-		background: var(--marketplace-orange);
-		color: white;
-	}
-	.marketplace-identity {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
-		min-height: 44px;
-		font-size: 1.25rem;
-		font-weight: 750;
-		letter-spacing: -0.035em;
-		text-decoration: none;
-		color: inherit;
-	}
-	.marketplace-identity:focus-visible {
-		outline-color: white;
-	}
-	.event-demo main {
-		padding-top: 0;
-		width: min(100%, 64rem);
-	}
-	.event-demo .search,
-	.event-demo .sort-tabs,
-	.event-demo .categories {
-		background: var(--surface);
-	}
-	.event-demo .search {
-		background: var(--marketplace-orange);
-		position: sticky;
-		top: 0;
-		z-index: 3;
-		margin: 0;
-		padding: 0.375rem 0.5rem;
-		gap: 0.375rem;
-	}
-	.event-demo .search input {
-		border-color: white;
-		background: white;
-		border-radius: 0.375rem;
-		padding-inline-end: 2.75rem;
-	}
-	.event-demo .search-back {
-		flex: 0 0 44px;
-		padding: 0;
-		border: 0;
-		color: var(--accent);
-	}
-	.event-demo .search-icon {
-		flex: none;
-		width: 44px;
-		margin-inline-start: -3.125rem;
-		border: 0;
-		background: transparent;
-		color: var(--ink);
-		z-index: 1;
-	}
-	.event-demo .filter-trigger {
-		background: white;
-		border: 0;
-		color: var(--accent);
-		gap: 0.2rem;
-		padding-inline: 0.4rem;
-	}
-	.sort-tabs {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		border-bottom: 1px solid var(--seam);
-	}
-	.sort-tabs button {
-		border: 0;
-		border-bottom: 2px solid transparent;
-		border-radius: 0;
-		color: var(--muted);
-		padding: 0.25rem;
-		overflow-wrap: anywhere;
-	}
-	.sort-tabs button[aria-pressed='true'],
-	.sort-tabs button.active {
-		color: var(--accent);
-		border-color: var(--accent);
-	}
-	.event-demo .categories {
-		position: sticky;
-		top: calc(var(--tap) + 0.75rem);
-		z-index: 2;
-		overflow-x: auto;
-		flex-wrap: nowrap;
-		scrollbar-width: none;
-		padding: 0.375rem 0.5rem;
-		gap: 0.375rem;
-	}
-	.event-demo .categories button {
-		flex: none;
-		white-space: nowrap;
-		border: 1px solid transparent;
-		border-radius: var(--radius);
-		background: #f5f5f5;
-		font-size: var(--small);
-		padding-inline: 0.5rem;
-	}
-	.event-demo .categories button[aria-pressed='true'] {
-		color: var(--accent);
-		border-color: var(--accent);
-	}
-	.event-demo .results-header {
-		border: 0;
-		margin-bottom: 0;
-		padding: 0.3rem 0.5rem;
-	}
-	.event-demo .results-header h2 {
-		font-size: var(--small);
-		color: var(--muted);
-	}
-	.event-demo .product-grid {
-		gap: 0.5rem;
-		padding-inline: 0.5rem;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
-	.event-demo .product {
-		grid-template-columns: minmax(0, 1fr);
-		grid-template-rows: auto 1fr;
-	}
-	.event-demo .art {
-		position: relative;
-		aspect-ratio: 1;
-	}
-
-	.event-demo .card-body h3 {
-		font-size: max(0.9375rem, var(--small));
-		line-height: 1.35;
-		font-weight: 400;
-	}
-	.event-demo .price :global(strong) {
-		color: var(--accent);
-		font-size: max(1.1rem, var(--size));
-	}
-	.event-demo .price :global(s) {
-		color: var(--muted);
-	}
-
-	.event-demo .chips {
-		margin: 0.375rem;
-	}
-	.event-demo .empty {
-		margin: 0.5rem;
-	}
-	.demo-filter {
-		box-sizing: border-box;
-		margin: 0 0 0 auto;
-		padding: 0;
-		width: min(88%, 24rem);
-		height: 100dvh;
-		max-width: none;
-		max-height: none;
-		border: 0;
-		background: var(--surface);
-		color: var(--ink);
-	}
-	.demo-filter::backdrop {
-		background: rgb(0 0 0 / 48%);
-	}
-	.demo-filter[open] {
-		display: flex;
-		flex-direction: column;
-	}
-	.drawer-heading {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.75rem;
-		background: var(--paper);
-	}
-	.drawer-heading h2 {
-		font-size: 1rem;
-	}
-	.drawer-heading button {
-		border: 0;
-		background: transparent;
-	}
-	.demo-filter .filters {
-		flex: 1;
-		flex-direction: column;
-		align-items: stretch;
-		flex-wrap: nowrap;
-		border: 0;
-		margin: 0;
-	}
-	.demo-filter .filter-actions {
-		margin-top: auto;
-		flex-direction: row-reverse;
-	}
-	.demo-filter .filter-actions button {
-		flex: 1;
-		border-color: var(--accent);
-	}
-	.event-demo footer {
-		padding-inline: 0.5rem;
-	}
-
-	@media (max-width: 710px) {
-		.event-demo .product-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	.assistant-link {
-		margin-inline-start: auto;
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap);
-		font-size: var(--small);
-		color: var(--ink);
-		text-decoration: underline;
-	}
-
-	.event-demo .card-body {
-		gap: 0.25rem;
-		padding: 0.45rem 0.5rem 0.6rem;
-	}
-	.event-demo .card-body h3 {
-		margin: 0;
-		min-height: 2.7em;
-	}
-	.event-demo .price {
-		margin: 0;
-		gap: 0.15rem 0.4rem;
-	}
-	.event-demo .metadata {
-		order: 1;
-		align-items: center;
-		justify-content: start;
-	}
-	.event-demo .metadata > span:first-child {
-		border: 1px solid var(--seam);
-		padding: 0 0.2rem;
-	}
-	.event-demo .shipping {
-		border: 0;
-		margin: 0;
-		order: 2;
-		align-items: center;
-		justify-content: start;
-		padding-block: 0;
-		gap: 0.35rem;
-	}
-	.event-demo .leader {
-		display: none;
-	}
-	.event-demo .card-body :global(.shop) {
-		order: 3;
-	}
-	.inspection-link {
-		display: inline-flex;
-		align-items: center;
-		min-block-size: var(--tap);
-		margin-inline-start: 1rem;
-		color: inherit;
-	}
-	@media (min-width: 1024px) {
-		.store.trace-open #products,
-		.store.trace-open .comparison-area,
-		.store.trace-open .quote {
-			padding-inline-end: calc(320px + 1rem);
-		}
-	}
-	.shipping :global(.shipping-shop) {
-		flex: 1;
-		min-width: 0;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		border-inline-start: 1px solid var(--seam);
-		padding-inline-start: 0.35rem;
-	}
-	@media (max-width: 699px) {
-		.event-demo .cooker-search {
-			display: grid;
-			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
-			padding-inline: 0.125rem;
-			gap: 0.125rem;
-		}
-		.cooker-search .search-back {
-			grid-area: 1 / 1;
-		}
-		.event-demo .cooker-search input {
-			grid-area: 1 / 2;
-			width: 100%;
-			padding-inline: var(--tap) 0.5rem;
-		}
-		.event-demo .cooker-search .search-icon {
-			grid-area: 1 / 2;
-			justify-self: start;
-			width: var(--tap);
-			margin: 0;
-		}
-	}
-</style>

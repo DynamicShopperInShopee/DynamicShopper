@@ -35,7 +35,12 @@
 					</svg>
 					{spec.label}
 				</dt>
-				<dd class="m-0 font-bold font-[family-name:var(--product-figure-font)]" {...spec.attributes}>{spec.text}</dd>
+				<dd
+					class="m-0 font-[family-name:var(--product-figure-font)] font-bold"
+					{...spec.attributes}
+				>
+					{spec.text}
+				</dd>
 			</div>
 		{/each}
 	</dl>

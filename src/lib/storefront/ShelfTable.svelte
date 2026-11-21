@@ -60,33 +60,51 @@
 			<thead>
 				<tr>
 					<th
-						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
-						scope="col">{th ? 'สินค้า' : 'Product'}</th>
+						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-start align-baseline"
+						scope="col"
+					>
+						{th ? 'สินค้า' : 'Product'}
+					</th>
 					{#each columns as column (column.key)}
 						<th
-							class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
-							scope="col">{column.label[locale]}</th>
+							class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end align-baseline whitespace-nowrap"
+							scope="col"
+						>
+							{column.label[locale]}
+						</th>
 					{:else}
 						<th
-							class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
-							scope="col">{th ? 'สเปก' : 'Specifications'}</th>
+							class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-start align-baseline"
+							scope="col"
+						>
+							{th ? 'สเปก' : 'Specifications'}
+						</th>
 					{/each}
 					<th
-						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
-						scope="col">{th ? 'ราคา' : 'Price'}</th>
+						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end align-baseline whitespace-nowrap"
+						scope="col"
+					>
+						{th ? 'ราคา' : 'Price'}
+					</th>
 					<th
-						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
-						scope="col">{th ? 'คะแนน' : 'Rating'}</th>
+						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end align-baseline whitespace-nowrap"
+						scope="col"
+					>
+						{th ? 'คะแนน' : 'Rating'}
+					</th>
 					<th
-						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
-						scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
+						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-start align-baseline"
+						scope="col"
+					>
+						{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}
+					</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each products as product (product.id)}
 					<tr data-product={product.id}>
 						<th
-							class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
+							class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-start align-baseline"
 							scope="row"
 						>
 							<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller's resolved URL preserves the active look and theme. -->
@@ -105,7 +123,7 @@
 						</th>
 						{#each columns as column (column.key)}
 							<td
-								class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+								class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end align-baseline [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] whitespace-nowrap tabular-nums"
 							>
 								<FactValue productId={product.id} field={`spec.${column.key}`} {locale} />
 							</td>
@@ -117,7 +135,7 @@
 											<div class="flex flex-wrap gap-x-[0.4rem] gap-y-0">
 												<dt class="text-[var(--muted)]">{spec.label[locale]}</dt>
 												<dd
-													class="m-0 text-end tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+													class="m-0 text-end [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 												>
 													<FactValue productId={product.id} field={`spec.${spec.key}`} {locale} />
 												</dd>
@@ -128,11 +146,15 @@
 							</td>
 						{/each}
 						<td
-							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
-						><FactValue productId={product.id} field="price" {locale} /></td>
+							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end align-baseline [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] whitespace-nowrap tabular-nums"
+						>
+							<FactValue productId={product.id} field="price" {locale} />
+						</td>
 						<td
-							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
-						><FactValue productId={product.id} field="rating" {locale} /></td>
+							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end align-baseline [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] whitespace-nowrap tabular-nums"
+						>
+							<FactValue productId={product.id} field="rating" {locale} />
+						</td>
 						<td class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] align-baseline">
 							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
 							<button
@@ -151,4 +173,3 @@
 {:else}
 	<p>{th ? 'ไม่พบสินค้าที่ตรงกับการค้นหา' : 'No products match this search.'}</p>
 {/if}
-

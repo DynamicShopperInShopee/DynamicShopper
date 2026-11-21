@@ -19,19 +19,25 @@
 	);
 </script>
 
-<section id="details" aria-labelledby="details-title">
+<section
+	class="scroll-mt-16 border-t-8 border-[var(--seam,#f2f2f2)]"
+	id="details"
+	aria-labelledby="details-title"
+>
 	{#if data.specs.length}
 		<button
 			type="button"
-			class="attributes"
+			class="attributes grid min-h-[var(--tap,44px)] w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-[0.55em] border-b border-[var(--seam,#e9e6dc)] bg-white px-[0.8rem] py-[0.75em] text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
 			aria-label={th ? 'ดูคุณลักษณะสินค้า' : 'View attributes'}
 			aria-controls="product-specifications"
 			aria-haspopup="dialog"
 			disabled={!openSpecifications}
 			onclick={(event) => openSpecifications?.(event.currentTarget)}
 		>
-			<strong>{th ? 'คุณลักษณะ' : 'Attributes'}</strong>
-			<span>{data.specs.map((spec) => spec.label).join(', ')}</span>
+			<strong class="font-semibold">{th ? 'คุณลักษณะ' : 'Attributes'}</strong>
+			<span class="truncate text-right text-[#565656]">
+				{data.specs.map((spec) => spec.label).join(', ')}
+			</span>
 			<svg
 				aria-hidden="true"
 				viewBox="0 0 16 16"
@@ -45,18 +51,33 @@
 			</svg>
 		</button>
 	{/if}
-	<div class="body">
-		<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>
+	<div class="body px-[0.8rem] pt-[0.85rem] pb-[1.6rem] min-[700px]:mx-auto min-[700px]:max-w-4xl">
+		<h2 class="mx-0 mt-0 mb-[0.75em] text-[1em] font-semibold" id="details-title">
+			{th ? 'รายละเอียดสินค้า' : 'Product details'}
+		</h2>
 		{#if data.listingDetails}
 			<DigitalCookerDescription {data} details={data.listingDetails} />
 		{:else if data.id === 'cooker-one-button'}
-			<div class="story">
-				<figure id="cooker-exterior">
-					<figcaption class="intro-caption">
-						<h3 {...data.name.attributes}>{data.name.text}</h3>
-						<p {...data.summary.attributes}>{data.summary.text}</p>
+			<div class="story mx-auto max-w-[38rem]">
+				<figure class="relative m-0 scroll-mt-16 bg-[#efeeed]" id="cooker-exterior">
+					<figcaption
+						class="intro-caption absolute inset-x-[5%] top-[6%] p-0 text-start text-[1.25em] leading-[1.35] font-semibold text-[#444]"
+					>
+						<h3
+							class="m-0 text-[max(1.5rem,var(--action-font-floor,0rem))] leading-[1.35] font-semibold"
+							{...data.name.attributes}
+						>
+							{data.name.text}
+						</h3>
+						<p
+							{...data.summary.attributes}
+							class="mt-[1.2rem] border-t border-[#858172] pt-4 text-[max(1rem,var(--action-font-floor,0rem))] leading-normal font-normal"
+						>
+							{data.summary.text}
+						</p>
 					</figcaption>
 					<img
+						class="block h-auto w-full"
 						src={introCooker}
 						alt={th ? 'หม้อหุงข้าวสีขาวบนเคาน์เตอร์ครัว' : 'White rice cooker on a kitchen counter'}
 						width="700"
@@ -65,13 +86,22 @@
 					/>
 				</figure>
 				<ProductSpecificationTiles specs={data.specs} {th} />
-				<figure id="cooker-capacity">
+				<figure class="relative m-0 scroll-mt-16 bg-[#f6f6f4]" id="cooker-capacity">
 					{#if capacity}
-						<figcaption class="capacity-caption">
-							{capacity.label} <strong {...capacity.attributes}>{capacity.text}</strong>
+						<figcaption
+							class="capacity-caption absolute inset-x-[5%] top-[4%] p-0 text-center text-[1.25em] leading-[1.35] font-semibold text-[#444]"
+						>
+							{capacity.label}
+							<strong
+								class="font-[family-name:var(--product-figure-font)]"
+								{...capacity.attributes}
+							>
+								{capacity.text}
+							</strong>
 						</figcaption>
 					{/if}
 					<img
+						class="block h-auto w-full"
 						src={servingCooker}
 						alt={th
 							? 'คนตักข้าวใส่ถ้วยข้างหม้อหุงข้าวที่เปิดฝา'
@@ -81,9 +111,14 @@
 						loading="lazy"
 					/>
 				</figure>
-				<figure id="cooker-switch">
-					<figcaption>{th ? 'สวิตช์ด้านหน้า' : 'Front switch'}</figcaption>
+				<figure class="m-0 scroll-mt-16 bg-[#efeeed]" id="cooker-switch">
+					<figcaption
+						class="px-[0.9em] pt-[1.8em] pb-[1.25em] text-center text-[1.25em] leading-[1.35] font-semibold text-[#444]"
+					>
+						{th ? 'สวิตช์ด้านหน้า' : 'Front switch'}
+					</figcaption>
 					<img
+						class="block h-auto w-full"
 						src={cookerSwitch}
 						alt={th
 							? 'มือกดสวิตช์ด้านหน้าหม้อหุงข้าว'
@@ -98,24 +133,47 @@
 			<p {...data.summary.attributes}>{data.summary.text}</p>
 		{/if}
 		{#if data.specs.length && !data.listingDetails}
-			<h3>{th ? 'จุดเด่น' : 'Highlights'}</h3>
-			<p class="text-summary" {...data.summary.attributes}>{data.summary.text}</p>
-			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
-			<dl class="information">
-				<div>
+			<h3 class="mx-0 mt-[1.3em] mb-[0.4em] text-[1em] font-semibold">
+				{th ? 'จุดเด่น' : 'Highlights'}
+			</h3>
+			<p class="text-summary mx-0 mt-0 mb-4 leading-[1.6] text-[#555]" {...data.summary.attributes}>
+				{data.summary.text}
+			</p>
+			<h3 class="mx-0 mt-[1.3em] mb-[0.4em] text-[1em] font-semibold">
+				{th ? 'ข้อมูลสินค้า' : 'Product information'}
+			</h3>
+			<dl class="information m-0 text-[#555]">
+				<div class="grid grid-cols-[minmax(6rem,36%)_1fr] gap-[0.7em] py-[0.4em] leading-normal">
 					<dt>{th ? 'สินค้า' : 'Product'}</dt>
-					<dd {...data.name.attributes}>{data.name.text}</dd>
+					<dd
+						class={[
+							'm-0 [font-family:inherit] [&.figure]:font-[family-name:var(--product-figure-font)]'
+						]}
+						{...data.name.attributes}
+					>
+						{data.name.text}
+					</dd>
 				</div>
 				{#if data.shop}
-					<div>
+					<div class="grid grid-cols-[minmax(6rem,36%)_1fr] gap-[0.7em] py-[0.4em] leading-normal">
 						<dt>{th ? 'ร้านค้า' : 'Seller'}</dt>
-						<dd {...data.shop.attributes}>{data.shop.text}</dd>
+						<dd
+							class={[
+								'm-0 [font-family:inherit] [&.figure]:font-[family-name:var(--product-figure-font)]'
+							]}
+							{...data.shop.attributes}
+						>
+							{data.shop.text}
+						</dd>
 					</div>
 				{/if}
 				{#each data.specs as spec (spec.attributes['data-fact'])}
-					<div>
+					<div class="grid grid-cols-[minmax(6rem,36%)_1fr] gap-[0.7em] py-[0.4em] leading-normal">
 						<dt>{spec.label}</dt>
 						<dd
+							class={[
+								'm-0 [font-family:inherit] [&.figure]:font-[family-name:var(--product-figure-font)]'
+							]}
 							class:figure={Number.isFinite(Number(spec.attributes['data-raw']))}
 							{...spec.attributes}
 						>
@@ -127,146 +185,3 @@
 		{/if}
 	</div>
 </section>
-
-<style>
-	section {
-		border-top: 8px solid var(--seam, #f2f2f2);
-		scroll-margin-top: 4rem;
-	}
-	.attributes {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 0.55em;
-		width: 100%;
-		min-height: var(--tap, 44px);
-		padding: 0.75em 0.8rem;
-		border-bottom: 1px solid var(--seam, #e9e6dc);
-		color: inherit;
-		background: #fff;
-		font: inherit;
-		cursor: pointer;
-	}
-	.attributes strong {
-		font-weight: 600;
-	}
-	.attributes span {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		text-align: right;
-		color: #565656;
-	}
-	.attributes:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: -3px;
-	}
-	.body {
-		padding: 0.85rem 0.8rem 1.6rem;
-	}
-	h2,
-	h3 {
-		margin: 0 0 0.75em;
-		font-size: 1em;
-		font-weight: 600;
-	}
-	h3 {
-		margin-block: 1.3em 0.4em;
-	}
-	.story {
-		max-width: 38rem;
-		margin-inline: auto;
-	}
-	figure {
-		scroll-margin-top: 4rem;
-		margin: 0;
-		background: #efeeed;
-	}
-	#cooker-capacity {
-		position: relative;
-		background: #f6f6f4;
-	}
-	.capacity-caption {
-		position: absolute;
-		top: 4%;
-		inset-inline: 5%;
-		padding: 0;
-	}
-	figcaption {
-		padding: 1.8em 0.9em 1.25em;
-		text-align: center;
-		font-size: 1.25em;
-		font-weight: 600;
-		line-height: 1.35;
-		color: #444;
-	}
-	figcaption strong {
-		font-family: var(--product-figure-font);
-	}
-	figure img {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
-	dl {
-		margin: 0;
-	}
-	dl div {
-		display: grid;
-		grid-template-columns: minmax(6rem, 36%) 1fr;
-		gap: 0.7em;
-		padding: 0.4em 0;
-		line-height: 1.5;
-	}
-	dt {
-		color: #555;
-	}
-	dd {
-		margin: 0;
-		font-family: var(--product-figure-font);
-	}
-	@media (min-width: 700px) {
-		.body {
-			max-width: 56rem;
-			margin-inline: auto;
-		}
-	}
-	#cooker-exterior {
-		position: relative;
-	}
-	.intro-caption {
-		position: absolute;
-		top: 6%;
-		inset-inline: 5%;
-		padding: 0;
-		text-align: start;
-	}
-	.intro-caption h3 {
-		margin: 0;
-		font-size: max(1.5rem, var(--action-font-floor, 0rem));
-		font-weight: 600;
-		line-height: 1.35;
-	}
-	.intro-caption p {
-		border-top: 1px solid #858172;
-		padding-top: 1rem;
-		margin-top: 1.2rem;
-		font-size: max(1rem, var(--action-font-floor, 0rem));
-		font-weight: 400;
-		line-height: 1.5;
-	}
-	.information {
-		color: #555;
-	}
-	.information dd {
-		font-family: inherit;
-	}
-	.information dd.figure {
-		font-family: var(--product-figure-font);
-	}
-	.text-summary {
-		margin: 0 0 1rem;
-		color: #555;
-		line-height: 1.6;
-	}
-</style>

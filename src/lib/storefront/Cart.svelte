@@ -76,12 +76,15 @@
 </script>
 
 <button
-	class="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+	class="min-h-[var(--tap,44px)] min-w-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 	type="button"
 	popovertarget={id}
-	lang={locale}>{t.title}</button>
+	lang={locale}
+>
+	{t.title}
+</button>
 <div
-	class="m-0 box-border w-[min(23rem,calc(100%-2rem))] max-h-[calc(100dvh-2rem)] overflow-auto rounded-none border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] p-4 text-[var(--ink,#16161a)] [font:inherit] [inset:1rem_1rem_auto_auto]"
+	class="[inset:1rem_1rem_auto_auto] m-0 box-border max-h-[calc(100dvh-2rem)] w-[min(23rem,calc(100%-2rem))] overflow-auto rounded-none border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] p-4 text-[var(--ink,#16161a)] [font:inherit]"
 	bind:this={panel}
 	{id}
 	popover="auto"
@@ -93,14 +96,14 @@
 	{#if rows.length}
 		<ul class="m-0 list-none p-0">
 			{#each rows as row (row.item.productId)}
-				<li
-					class="m-0 wrap-anywhere border-b border-[var(--seam,#e9e6dc)] py-3"
-				>
+				<li class="m-0 border-b border-[var(--seam,#e9e6dc)] py-3 wrap-anywhere">
 					<p class="m-0"><Fact fact={row.name} /></p>
 					<dl class="m-0">
 						<div class="flex justify-between gap-2">
 							<dt>{t.unitPrice}</dt>
-							<dd class="m-0 [font-family:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)]">
+							<dd
+								class="m-0 [font-family:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)]"
+							>
 								<Fact fact={row.price} />
 							</dd>
 						</div>
@@ -133,11 +136,13 @@
 			class="mt-2 min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 			type="button"
 			disabled={pending || removing}
-			onclick={bestPrice}>{t.best}</button>
+			onclick={bestPrice}
+		>
+			{t.best}
+		</button>
 	{:else}
 		<p class="m-0" role="status">{t.empty}</p>
 	{/if}
 	{#if removing}<p class="m-0" role="status">{t.removing}</p>{/if}
 	{#if removalFailed}<p class="m-0" role="alert">{t.removeFailed}</p>{/if}
 </div>
-

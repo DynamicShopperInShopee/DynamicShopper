@@ -16,9 +16,15 @@
 	);
 </script>
 
-<section aria-labelledby="seller-name">
-	<header>
-		<span class="shop-icon" aria-hidden="true">
+<section
+	class="min-w-0 border-t-8 border-[var(--seam,#f2f2f2)] px-[0.8rem] pb-4"
+	aria-labelledby="seller-name"
+>
+	<header class="flex items-center gap-[0.75em] py-[1em]">
+		<span
+			class="shop-icon grid size-[3em] place-items-center rounded-[50%] border border-[var(--seam,#e9e6dc)]"
+			aria-hidden="true"
+		>
 			<svg
 				width="26"
 				height="26"
@@ -31,14 +37,20 @@
 			</svg>
 		</span>
 		<div>
-			<h2 id="seller-name" {...data.shop?.attributes}>{data.shop?.text}</h2>
-			<p class="shop-rating">
+			<h2 class="m-0 text-[1.125em] font-semibold" id="seller-name" {...data.shop?.attributes}>
+				{data.shop?.text}
+			</h2>
+			<p
+				class={[
+					'shop-rating m-0 text-[max(0.875rem,var(--action-font-floor,0rem))] text-[#555] [&_[data-fact=shopRating]]:font-[family-name:var(--product-figure-font)]'
+				]}
+			>
 				{th ? 'คะแนนร้านค้า' : 'Shop rating'}
 				<FactValue productId={data.id} field="shopRating" locale={data.language} />
 			</p>
 		</div>
 		<button
-			class="view-shop"
+			class="view-shop ms-auto min-h-[var(--tap,44px)] flex-none cursor-pointer rounded border border-[var(--accent,#16161a)] bg-white px-[0.75em] text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
 			type="button"
 			aria-haspopup="dialog"
 			onclick={(event) => {
@@ -51,26 +63,41 @@
 		</button>
 	</header>
 	{#if data.shopProducts.length}
-		<h3>{th ? 'สินค้าขายดีประจำร้าน' : 'Best sellers from this shop'}</h3>
-		<ul>
+		<h3
+			class="m-0 border-t border-[var(--seam,#e9e6dc)] pt-[0.85em] pb-[0.65em] text-[1em] font-semibold"
+		>
+			{th ? 'สินค้าขายดีประจำร้าน' : 'Best sellers from this shop'}
+		</h3>
+		<ul class="m-0 flex snap-x snap-proximity list-none gap-2 overflow-x-auto p-0 pb-[0.3rem]">
 			{#each data.shopProducts as item (item.catalogId)}
-				<li>
-					<a href={resolve(`/product/[id]?${productQuery}`, { id: item.id })}>
+				<li
+					class="flex-[0_0_clamp(7rem,29vw,10rem)] snap-start overflow-hidden rounded border border-[var(--seam,#e9e6dc)]"
+				>
+					<a
+						class="block h-full text-inherit no-underline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
+						href={resolve(`/product/[id]?${productQuery}`, { id: item.id })}
+					>
 						<span
-							class="demo-photo"
+							class="demo-photo block aspect-square"
 							data-category={item.category}
 							data-model={item.id}
 							data-cooker-photo={item.catalogId}
 							aria-hidden="true"
 						></span>
-						<div class="card-copy">
-							<span class="title">
+						<div
+							class={[
+								'card-copy grid gap-[0.35rem] p-[0.45rem] text-[max(0.8125rem,var(--action-font-floor,0rem))] [&_[data-fact=sold]]:font-[family-name:var(--product-figure-font)]'
+							]}
+						>
+							<span class="title truncate">
 								<FactValue productId={item.catalogId} field="name" locale={data.language} />
 							</span>
-							<strong class="price">
+							<strong class="price font-[family-name:var(--product-figure-font)] text-[1.125em]">
 								<FactValue productId={item.catalogId} field="price" locale={data.language} />
 							</strong>
-							<span class="rating">
+							<span
+								class="rating inline-flex items-center gap-[0.2em] [justify-self:start] border border-[var(--seam,#e9e6dc)] px-[0.25em] font-[family-name:var(--product-figure-font)]"
+							>
 								<svg
 									aria-label={th ? 'คะแนน' : 'Rating'}
 									role="img"
@@ -94,25 +121,45 @@
 		</ul>
 	{/if}
 	<dialog
+		class="m-auto max-h-[82dvh] w-[min(100%,32rem)] max-w-full border border-[var(--seam,#e9e6dc)] bg-white p-0 text-inherit backdrop:bg-[rgb(0_0_0/40%)] [@media(max-width:699px)]:mb-0 [@media(max-width:699px)]:rounded-t-[12px] [@media(max-width:699px)]:pb-[env(safe-area-inset-bottom)]"
 		bind:this={inventoryDialog}
 		aria-labelledby="seller-inventory-title"
 		onclose={() => (showInventory = false)}
 	>
-		<header>
-			<h2 id="seller-inventory-title" {...data.shop?.attributes}>{data.shop?.text}</h2>
-			<form method="dialog"><button class="close-shop">{th ? 'ปิด' : 'Close'}</button></form>
+		<header
+			class="sticky top-0 z-1 flex items-center gap-[0.75em] border-b border-[var(--seam,#e9e6dc)] bg-white px-[0.8em] py-[0.5em]"
+		>
+			<h2
+				class="m-0 text-[1.125em] font-semibold"
+				id="seller-inventory-title"
+				{...data.shop?.attributes}
+			>
+				{data.shop?.text}
+			</h2>
+			<form class="ms-auto" method="dialog">
+				<button
+					class="close-shop ms-auto min-h-[var(--tap,44px)] flex-none cursor-pointer rounded border border-[var(--accent,#16161a)] bg-white px-[0.75em] text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
+				>
+					{th ? 'ปิด' : 'Close'}
+				</button>
+			</form>
 		</header>
 		{#if showInventory}
-			<ul class="inventory">
+			<ul
+				class="inventory m-0 block snap-x snap-proximity list-none gap-2 overflow-visible p-0 pb-[0.3rem]"
+			>
 				{#each inventory as item (item.catalogId)}
-					<li>
+					<li
+						class="flex-[0_0_clamp(7rem,29vw,10rem)] snap-start overflow-hidden border-b border-[var(--seam,#e9e6dc)]"
+					>
 						<a
+							class="grid h-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-[0.5em] px-[0.8em] py-[0.5em] text-inherit no-underline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
 							href={resolve(`/product/[id]?${productQuery}`, { id: item.id })}
 							aria-current={item.catalogId === data.id ? 'page' : undefined}
 							onclick={() => inventoryDialog?.close()}
 						>
 							<span
-								class="demo-photo"
+								class="demo-photo block aspect-square"
 								data-category={item.category}
 								data-model={item.id}
 								data-cooker-photo={item.catalogId}
@@ -121,7 +168,7 @@
 							<span>
 								<FactValue productId={item.catalogId} field="name" locale={data.language} />
 							</span>
-							<strong class="price">
+							<strong class="price font-[family-name:var(--product-figure-font)] text-[1.125em]">
 								<FactValue productId={item.catalogId} field="price" locale={data.language} />
 							</strong>
 						</a>
@@ -131,166 +178,3 @@
 		{/if}
 	</dialog>
 </section>
-
-<style>
-	section {
-		border-top: 8px solid var(--seam, #f2f2f2);
-		min-width: 0;
-		padding: 0 0.8rem 1rem;
-	}
-	header {
-		display: flex;
-		align-items: center;
-		gap: 0.75em;
-		padding: 1em 0;
-	}
-	.shop-icon {
-		display: grid;
-		place-items: center;
-		width: 3em;
-		height: 3em;
-		border: 1px solid var(--seam, #e9e6dc);
-		border-radius: 50%;
-	}
-	p {
-		color: #555;
-		font-size: max(0.875rem, var(--action-font-floor, 0rem));
-		margin: 0;
-	}
-	h2,
-	h3 {
-		font-weight: 600;
-		margin: 0;
-	}
-	h2 {
-		font-size: 1.125em;
-	}
-	h3 {
-		font-size: 1em;
-		border-top: 1px solid var(--seam, #e9e6dc);
-		padding: 0.85em 0 0.65em;
-	}
-	ul {
-		display: flex;
-		list-style: none;
-		gap: 0.5rem;
-		overflow-x: auto;
-		margin: 0;
-		padding: 0 0 0.3rem;
-		scroll-snap-type: x proximity;
-	}
-	li {
-		flex: 0 0 clamp(7rem, 29vw, 10rem);
-		border-radius: 4px;
-		border: 1px solid var(--seam, #e9e6dc);
-		overflow: hidden;
-		scroll-snap-align: start;
-	}
-	a {
-		display: block;
-		height: 100%;
-		color: inherit;
-		text-decoration: none;
-	}
-	a:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: -3px;
-	}
-	.demo-photo {
-		display: block;
-		aspect-ratio: 1;
-	}
-	.card-copy {
-		padding: 0.45rem;
-		display: grid;
-		gap: 0.35rem;
-		font-size: max(0.8125rem, var(--action-font-floor, 0rem));
-	}
-	.title {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.price {
-		font-size: 1.125em;
-	}
-	.price,
-	.rating,
-	.card-copy :global([data-fact='sold']) {
-		font-family: var(--product-figure-font);
-	}
-	.rating {
-		display: inline-flex;
-		justify-self: start;
-		align-items: center;
-		gap: 0.2em;
-		padding: 0 0.25em;
-		border: 1px solid var(--seam, #e9e6dc);
-	}
-	.shop-rating :global([data-fact='shopRating']) {
-		font-family: var(--product-figure-font);
-	}
-	.view-shop,
-	.close-shop {
-		flex: none;
-		margin-inline-start: auto;
-		min-height: var(--tap, 44px);
-		border: 1px solid var(--accent, #16161a);
-		border-radius: 4px;
-		padding: 0 0.75em;
-		background: white;
-		color: inherit;
-		font: inherit;
-		cursor: pointer;
-	}
-	button:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	dialog {
-		margin: auto;
-		width: min(100%, 32rem);
-		max-width: 100%;
-		max-height: 82dvh;
-		padding: 0;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: #fff;
-		color: inherit;
-	}
-	dialog::backdrop {
-		background: rgb(0 0 0 / 40%);
-	}
-	dialog header {
-		position: sticky;
-		top: 0;
-		z-index: 1;
-		padding: 0.5em 0.8em;
-		border-bottom: 1px solid var(--seam, #e9e6dc);
-		background: white;
-	}
-	dialog form {
-		margin-inline-start: auto;
-	}
-	.inventory {
-		display: block;
-		overflow: visible;
-	}
-	.inventory li {
-		border-width: 0 0 1px;
-		border-radius: 0;
-	}
-	.inventory a {
-		display: grid;
-		grid-template-columns: 3rem minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 0.5em;
-		padding: 0.5em 0.8em;
-	}
-	@media (max-width: 699px) {
-		dialog {
-			margin: auto auto 0;
-			border-radius: 12px 12px 0 0;
-			padding-bottom: env(safe-area-inset-bottom);
-		}
-	}
-</style>

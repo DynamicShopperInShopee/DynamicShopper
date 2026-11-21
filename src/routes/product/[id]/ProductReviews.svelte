@@ -32,28 +32,50 @@
 	}
 </script>
 
-<section id="reviews" aria-label={th ? 'รีวิวสินค้า' : 'Product reviews'}>
-	<h2 id="reviews-title">
-		<strong {...data.rating.attributes}>{data.rating.text}</strong>
+<section
+	class="scroll-mt-16 border-t-8 border-[var(--seam,#f2f2f2)] px-[0.8rem]"
+	id="reviews"
+	aria-label={th ? 'รีวิวสินค้า' : 'Product reviews'}
+>
+	<h2
+		class="m-0 flex flex-wrap items-center gap-[0.35em] pt-[1em] pb-[0.8em] text-[1em] font-semibold"
+		id="reviews-title"
+	>
+		<strong
+			class="font-[family-name:var(--product-figure-font)] text-[1.45em] leading-[1.1]"
+			{...data.rating.attributes}
+		>
+			{data.rating.text}
+		</strong>
 		<svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
 			<path d="m10 1.8 2.4 5 5.6.8-4 3.9.9 5.5-4.9-2.6-5 2.6 1-5.5-4-3.9 5.5-.8z" />
 		</svg>
 		{th ? 'คะแนนสินค้า' : 'Product rating'}
-		<small>
-			(<span {...data.reviewCount.attributes}>{data.reviewCount.text}</span>
+		<small class="text-[max(0.875rem,var(--action-font-floor,0rem))] font-normal text-[#555]">
+			(<span class="font-[family-name:var(--product-figure-font)]" {...data.reviewCount.attributes}>
+				{data.reviewCount.text}
+			</span>
 			{th ? 'รีวิว' : 'reviews'})
 		</small>
 	</h2>
 	{#if data.listingDetails}
 		<DigitalReviewMedia {data} />
 	{:else if data.id === 'cooker-one-button'}
-		<aside aria-labelledby="listing-photo-label">
-			<h3 id="listing-photo-label">{th ? 'ภาพจากหน้าสินค้า' : 'Photos from the listing'}</h3>
-			<p class="listing-summary" {...data.summary.attributes}>{data.summary.text}</p>
-			<div class="thumbnails">
+		<aside class="mb-[0.75em] rounded bg-[#f6f6f6] p-[0.8em]" aria-labelledby="listing-photo-label">
+			<h3 class="mx-0 mt-0 mb-[0.65em] text-[1em] font-semibold" id="listing-photo-label">
+				{th ? 'ภาพจากหน้าสินค้า' : 'Photos from the listing'}
+			</h3>
+			<p class="listing-summary mx-0 mt-0 mb-[0.75em] leading-[1.55]" {...data.summary.attributes}>
+				{data.summary.text}
+			</p>
+			<div class="thumbnails grid max-w-lg grid-cols-3 gap-[0.45em]">
 				{#each illustrations as item (item.id)}
-					<a href={'#' + item.id}>
+					<a
+						class="group/thumbnail block overflow-hidden rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
+						href={'#' + item.id}
+					>
 						<img
+							class="block aspect-square h-auto w-full object-cover group-[[href='#cooker-capacity']]/thumbnail:object-bottom group-[[href='#cooker-exterior']]/thumbnail:object-bottom"
 							src={item.src}
 							width="160"
 							height="160"
@@ -65,7 +87,9 @@
 			</div>
 		</aside>
 	{/if}
-	<label class="review-search">
+	<label
+		class="review-search flex items-center gap-[0.5em] rounded border border-[#aaa] px-[0.65rem] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--accent,#16161a)] focus-within:outline-solid"
+	>
 		<svg
 			aria-hidden="true"
 			viewBox="0 0 24 24"
@@ -78,6 +102,7 @@
 			<circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" />
 		</svg>
 		<input
+			class="min-h-[var(--tap,44px)] min-w-0 flex-1 bg-transparent text-inherit [font:inherit]"
 			type="search"
 			aria-label={th ? 'ค้นหาในรีวิว' : 'Search product reviews'}
 			placeholder={data.listingDetails
@@ -90,11 +115,14 @@
 			bind:value={search}
 		/>
 	</label>
-	<ul aria-live="polite">
+	<ul class="mx-0 mt-[0.75em] mb-0 list-none p-0" aria-live="polite">
 		{#each matches as review (review.attributes['data-fact'])}
-			<li>
-				<div class="byline">
+			<li class="border-t border-[var(--seam,#e9e6dc)] pt-[0.9em] pb-[1em]">
+				<div
+					class="byline flex items-center gap-[0.5em] text-[max(0.875rem,var(--action-font-floor,0rem))] font-semibold text-[#555]"
+				>
 					<svg
+						class="rounded-[50%] bg-[#f3f3f3]"
 						aria-hidden="true"
 						viewBox="0 0 24 24"
 						width="22"
@@ -113,13 +141,17 @@
 							? 'รีวิวจากผู้ซื้อ'
 							: 'Buyer review'}
 				</div>
-				<blockquote {...review.attributes}>{review.text}</blockquote>
+				<blockquote class="mx-0 mt-[0.5em] mb-0 leading-[1.55]" {...review.attributes}>
+					{review.text}
+				</blockquote>
 				{#if data.listingDetails}
 					<DigitalReviewMedia {data} reviewField={review.attributes['data-fact']} />
 				{/if}
 			</li>
 		{:else}
-			<li>{th ? 'ไม่พบรีวิวที่ตรงกับคำค้น' : 'No reviews match your search.'}</li>
+			<li class="border-t border-[var(--seam,#e9e6dc)] pt-[0.9em] pb-[1em]">
+				{th ? 'ไม่พบรีวิวที่ตรงกับคำค้น' : 'No reviews match your search.'}
+			</li>
 		{/each}
 	</ul>
 </section>
@@ -127,10 +159,16 @@
 {#if data.listingDetails}
 	{#key data.id}<DigitalReviewVideos {data} />{/key}
 {:else if data.id === 'cooker-one-button'}
-	<section class="media" aria-labelledby="listing-video-title">
-		<h3 id="listing-video-title">{th ? 'วิดีโอจากหน้าสินค้า' : 'Video from the listing'}</h3>
+	<section
+		class="media scroll-mt-16 border-t-8 border-[var(--seam,#f2f2f2)] px-[0.8rem] pb-[1em]"
+		aria-labelledby="listing-video-title"
+	>
+		<h3 class="pt-[0.9em] pb-[0.65em] text-[1em] font-semibold" id="listing-video-title">
+			{th ? 'วิดีโอจากหน้าสินค้า' : 'Video from the listing'}
+		</h3>
 		{#if showVideo}
 			<video
+				class="block aspect-square w-[min(100%,25rem)] bg-[#16161a]"
 				src={overview}
 				poster={openCooker}
 				controls
@@ -142,13 +180,23 @@
 			></video>
 		{:else}
 			<button
-				class="video-poster"
+				class="video-poster relative block w-[clamp(7.5rem,31vw,11.25rem)] cursor-pointer overflow-hidden rounded p-0 text-white [border:0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)] focus-visible:outline-solid"
 				type="button"
 				aria-label={th ? 'ดูวิดีโอแนะนำสินค้า' : 'Watch listing video'}
 				onclick={() => (showVideo = true)}
 			>
-				<img src={openCooker} alt="" width="160" height="192" loading="lazy" />
-				<span aria-hidden="true">
+				<img
+					class="aspect-[4/5] h-auto w-full object-cover"
+					src={openCooker}
+					alt=""
+					width="160"
+					height="192"
+					loading="lazy"
+				/>
+				<span
+					class="absolute top-1/2 left-1/2 grid size-[2.25em] [transform:translate(-50%,-50%)] place-items-center rounded-[50%] bg-[rgb(0_0_0/70%)]"
+					aria-hidden="true"
+				>
 					<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
 						<path d="m4 2 12 7-12 7z" />
 					</svg>
@@ -157,166 +205,3 @@
 		{/if}
 	</section>
 {/if}
-
-<style>
-	section {
-		scroll-margin-top: 4rem;
-		border-top: 8px solid var(--seam, #f2f2f2);
-		padding: 0 0.8rem;
-	}
-	h2 {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.35em;
-		margin: 0;
-		padding: 1em 0 0.8em;
-		font-size: 1em;
-		font-weight: 600;
-	}
-	h2 strong {
-		font-size: 1.45em;
-		line-height: 1.1;
-	}
-	h2 strong,
-	small span {
-		font-family: var(--product-figure-font);
-	}
-	small,
-	.byline {
-		font-size: max(0.875rem, var(--action-font-floor, 0rem));
-		color: #555;
-		font-weight: 400;
-	}
-	aside {
-		padding: 0.8em;
-		background: #f6f6f6;
-		border-radius: 4px;
-		margin-bottom: 0.75em;
-	}
-	aside h3 {
-		font-size: 1em;
-		font-weight: 600;
-		margin: 0 0 0.65em;
-	}
-	.listing-summary {
-		margin: 0 0 0.75em;
-		line-height: 1.55;
-	}
-	.media {
-		padding-bottom: 1em;
-	}
-	.media h3 {
-		font-size: 1em;
-		font-weight: 600;
-		padding: 0.9em 0 0.65em;
-	}
-	.video-poster {
-		position: relative;
-		display: block;
-		width: clamp(7.5rem, 31vw, 11.25rem);
-		padding: 0;
-		border: 0;
-		border-radius: 4px;
-		overflow: hidden;
-		color: white;
-		cursor: pointer;
-	}
-	.video-poster img {
-		width: 100%;
-		height: auto;
-		aspect-ratio: 4 / 5;
-		object-fit: cover;
-	}
-	.video-poster span {
-		display: grid;
-		place-items: center;
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
-		width: 2.25em;
-		height: 2.25em;
-		border-radius: 50%;
-		background: rgb(0 0 0 / 70%);
-	}
-	.video-poster:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	.media video {
-		display: block;
-		width: min(100%, 25rem);
-		aspect-ratio: 1;
-		background: #16161a;
-	}
-	.thumbnails {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.45em;
-		max-width: 32rem;
-	}
-	.thumbnails a {
-		display: block;
-		border-radius: 4px;
-		overflow: hidden;
-	}
-	.thumbnails a:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	.thumbnails img {
-		width: 100%;
-		height: auto;
-		aspect-ratio: 1;
-		object-fit: cover;
-		display: block;
-	}
-	.thumbnails a[href='#cooker-exterior'] img,
-	.thumbnails a[href='#cooker-capacity'] img {
-		object-position: center bottom;
-	}
-	.review-search {
-		display: flex;
-		align-items: center;
-		gap: 0.5em;
-		padding-inline: 0.65rem;
-		border: 1px solid #aaa;
-		border-radius: 4px;
-	}
-	input {
-		min-width: 0;
-		min-height: var(--tap, 44px);
-		flex: 1;
-		font: inherit;
-		color: inherit;
-		background: transparent;
-	}
-	.review-search:focus-within {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	ul {
-		list-style: none;
-		padding: 0;
-		margin: 0.75em 0 0;
-	}
-	li {
-		border-top: 1px solid var(--seam, #e9e6dc);
-		padding: 0.9em 0 1em;
-	}
-	.byline {
-		display: flex;
-		align-items: center;
-		gap: 0.5em;
-		font-weight: 600;
-	}
-	.byline svg {
-		border-radius: 50%;
-		background: #f3f3f3;
-	}
-	blockquote {
-		margin: 0.5em 0 0;
-		line-height: 1.55;
-	}
-</style>

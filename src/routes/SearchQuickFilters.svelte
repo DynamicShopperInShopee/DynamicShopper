@@ -58,9 +58,22 @@
 </script>
 
 <svelte:window bind:scrollY />
-<nav class:condensed={scrollY > 180} class:single-row={!cooker} aria-label={label}>
-	<div class="chips" bind:this={strip}>
-		<button type="button" aria-pressed={freeShipping} onclick={toggleShipping}>
+<nav
+	class="group/quick-filters sticky top-[calc(var(--tap)+0.75rem)] z-[2] flex min-w-0 items-start border-y border-[var(--seam)] bg-[var(--surface)]"
+	class:condensed={scrollY > 180}
+	class:single-row={!cooker}
+	aria-label={label}
+>
+	<div
+		class="chips grid min-w-0 flex-1 [scrollbar-width:none] auto-cols-max grid-flow-col grid-rows-[repeat(2,auto)] gap-x-[0.45rem] gap-y-[0.2rem] overflow-x-auto px-2 py-[0.3rem] [overscroll-behavior-inline:contain] group-[.single-row]/quick-filters:grid-rows-[auto] [@media(max-width:699px)]:group-[.condensed]/quick-filters:grid-rows-[auto]"
+		bind:this={strip}
+	>
+		<button
+			class="flex min-h-[var(--tap)] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius)] border border-transparent bg-[var(--paper)] px-[0.65rem] text-[length:var(--small)] whitespace-nowrap text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)] aria-pressed:border-[var(--accent)] aria-pressed:font-semibold aria-pressed:text-[var(--accent)]"
+			type="button"
+			aria-pressed={freeShipping}
+			onclick={toggleShipping}
+		>
 			<svg
 				width="17"
 				height="17"
@@ -78,7 +91,9 @@
 			</svg>
 			{th ? 'ส่งฟรี' : 'Free shipping'}
 		</button>
-		<label class="category">
+		<label
+			class="category relative flex min-h-[var(--tap)] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius)] border border-transparent bg-[var(--paper)] px-[0.65rem] text-[length:var(--small)] whitespace-nowrap text-[var(--ink)] focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-[var(--accent)]"
+		>
 			{th ? 'หมวดหมู่' : 'Categories'}
 			<svg
 				width="14"
@@ -91,6 +106,7 @@
 				<path d="m3 6 5 5 5-5" />
 			</svg>
 			<select
+				class="absolute inset-0 w-full cursor-pointer opacity-0"
 				aria-label={th ? 'หมวดหมู่' : 'Categories'}
 				value={category}
 				onchange={(event) => changeCategory(event.currentTarget.value as Category | 'all')}
@@ -104,6 +120,9 @@
 		{#if cooker}
 			{#each sizes as [volume, id] (volume)}
 				<button
+					class={[
+						"flex min-h-[var(--tap)] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius)] border border-transparent bg-[var(--paper)] px-[0.65rem] text-[length:var(--small)] whitespace-nowrap text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)] aria-pressed:border-[var(--accent)] aria-pressed:font-semibold aria-pressed:text-[var(--accent)] [&_[data-fact]]:[font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+					]}
 					type="button"
 					aria-pressed={capacity === volume}
 					onclick={() => (capacity = capacity === volume ? undefined : volume)}
@@ -113,17 +132,27 @@
 			{/each}
 		{/if}
 		{#if toggleLanguage}
-			<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
+			<button
+				class="flex min-h-[var(--tap)] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius)] border border-transparent bg-[var(--paper)] px-[0.65rem] text-[length:var(--small)] whitespace-nowrap text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)]"
+				type="button"
+				lang={th ? 'en' : 'th'}
+				onclick={toggleLanguage}
+			>
 				{th ? 'English' : 'ไทย'}
 			</button>
 		{/if}
-		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
+		<a
+			class="flex min-h-[var(--tap)] cursor-pointer items-center justify-center gap-[0.35rem] rounded-[var(--radius)] border border-transparent bg-[var(--paper)] px-[0.65rem] text-[length:var(--small)] whitespace-nowrap text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)]"
+			href={resolve('/?view=receipt#assistant')}
+		>
+			{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
+		</a>
 		{@render shoppingTasks?.()}
 		{@render harnessLink?.()}
 	</div>
 	{#if cooker}
 		<button
-			class="filters"
+			class="filters sticky right-0 flex min-h-[var(--tap)] min-w-[var(--tap)] cursor-pointer flex-col items-center justify-center gap-0 self-stretch rounded-none border border-transparent [border-inline-start-color:var(--seam)] bg-[var(--surface)] px-[0.4rem] text-[length:var(--small)] font-semibold whitespace-nowrap text-[var(--ink)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--accent)]"
 			type="button"
 			aria-haspopup="dialog"
 			onclick={(event) => openFilters(event.currentTarget)}
@@ -143,90 +172,3 @@
 		</button>
 	{/if}
 </nav>
-
-<style>
-	nav {
-		position: sticky;
-		top: calc(var(--tap) + 0.75rem);
-		z-index: 2;
-		display: flex;
-		align-items: flex-start;
-		min-width: 0;
-		background: var(--surface);
-		border-block: 1px solid var(--seam);
-	}
-	.chips {
-		flex: 1;
-		min-width: 0;
-		display: grid;
-		grid-auto-flow: column;
-		grid-template-rows: repeat(2, auto);
-		grid-auto-columns: max-content;
-		gap: 0.2rem 0.45rem;
-		overflow-x: auto;
-		overscroll-behavior-inline: contain;
-		scrollbar-width: none;
-		padding: 0.3rem 0.5rem;
-	}
-	button,
-	.category,
-	a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		min-height: var(--tap);
-		padding-inline: 0.65rem;
-		white-space: nowrap;
-		color: var(--ink);
-		background: var(--paper);
-		border-radius: var(--radius);
-		font-size: var(--small);
-		border: 1px solid transparent;
-		cursor: pointer;
-	}
-	button[aria-pressed='true'] {
-		border-color: var(--accent);
-		color: var(--accent);
-		font-weight: 600;
-	}
-	.category {
-		position: relative;
-	}
-	select {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		opacity: 0;
-		cursor: pointer;
-	}
-	.category:focus-within,
-	:is(a, button):focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: -2px;
-	}
-	.filters {
-		position: sticky;
-		right: 0;
-		flex-direction: column;
-		gap: 0;
-		min-width: var(--tap);
-		align-self: stretch;
-		padding-inline: 0.4rem;
-		background: var(--surface);
-		border-radius: 0;
-		border-inline-start-color: var(--seam);
-		font-weight: 600;
-	}
-	button :global([data-fact]) {
-		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
-	}
-	.single-row .chips {
-		grid-template-rows: auto;
-	}
-	@media (max-width: 699px) {
-		.condensed .chips {
-			grid-template-rows: auto;
-		}
-	}
-</style>

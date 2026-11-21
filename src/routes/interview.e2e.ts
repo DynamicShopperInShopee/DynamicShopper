@@ -48,10 +48,10 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	await context.setOffline(true);
 	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();
 	await expect(dialog).toHaveCount(0);
-	await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).not.toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 	await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
 	await expect(page.locator('#products')).toBeFocused();
@@ -80,7 +80,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.locator('#products')).toBeFocused();
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
@@ -98,7 +98,7 @@ test('cancelling a draft is inert; partial answers preserve explicit filters', a
 	await page.getByRole('radio').first().check();
 	await page.keyboard.press('Escape');
 	await expect(page.getByRole('dialog')).toHaveCount(0);
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.locator('.product-grid > li')).toHaveCount(2);
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const dialog = page.getByRole('dialog', { name: 'Make the shop fit you' });
@@ -112,7 +112,7 @@ test('cancelling a draft is inert; partial answers preserve explicit filters', a
 	await expect(page.locator('#products [data-fact="price"]')).toHaveCount(2);
 	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toBeVisible();
 	await page.getByRole('button', { name: 'Reset store', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toHaveCount(0);
 });
 
@@ -126,7 +126,7 @@ test('an empty interview proposal does not consume the next Undo', async ({ page
 			.getByRole('button', { name: 'Skip — keep my current settings', exact: true })
 			.click();
 	await skipped.getByRole('button', { name: 'Apply my view', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
@@ -139,7 +139,7 @@ test('an empty interview proposal does not consume the next Undo', async ({ page
 			.click();
 	await edit.getByRole('button', { name: 'Apply my view', exact: true }).click();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 });
 
@@ -160,5 +160,5 @@ test('direct-only choice survives a no-op Apply without consuming Undo', async (
 	await expect(reopened.getByRole('checkbox', { name: 'Use direct answers only' })).toBeChecked();
 	await page.keyboard.press('Escape');
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 });

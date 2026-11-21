@@ -86,7 +86,11 @@
 	}
 </script>
 
-<div class="listing-chat">
+<div
+	class={[
+		'listing-chat [@media(max-width:699px)]:[&_.trigger]:bottom-[calc(64px+1rem+env(safe-area-inset-bottom))]'
+	]}
+>
 	<ShoppingAssistant
 		{locale}
 		theme={displayTheme}
@@ -103,17 +107,3 @@
 		conversation={session.conversation}
 	/>
 </div>
-
-<style>
-	@media (min-width: 1024px) {
-		:global(main):has(.listing-chat) {
-			--chat-width: clamp(20rem, 28vw, 28rem);
-			margin-inline-end: var(--chat-width);
-		}
-	}
-	@media (max-width: 699px) {
-		.listing-chat :global(.trigger) {
-			bottom: calc(64px + 1rem + env(safe-area-inset-bottom));
-		}
-	}
-</style>

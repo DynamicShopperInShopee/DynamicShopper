@@ -49,8 +49,9 @@
 	}
 </script>
 
-<div class="add-control">
+<div class="add-control flex min-w-0 flex-col items-start">
 	<button
+		class="inline-flex min-h-[var(--tap,44px)] cursor-pointer items-center justify-center rounded-[var(--radius,4px)] border border-[var(--accent,#16161a)] bg-[var(--accent,#16161a)] px-[0.7rem] py-[0.35rem] text-start font-semibold text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
 		type="button"
 		aria-label={name ? `${t.add} ${name}` : t.add}
 		disabled={pending}
@@ -58,52 +59,13 @@
 	>
 		{t.add}
 	</button>
-	<span role="status">
+	<span class="wrap-anywhere text-[var(--muted,#5d5d63)]" role="status">
 		{#if pending}
-			<span>{t.adding}</span>
+			<span class="mt-1 block">{t.adding}</span>
 		{:else if feedback?.productId === productId}
 			{#key feedback}
-				<span>{t[feedback.status]}</span>
+				<span class="mt-1 block">{t[feedback.status]}</span>
 			{/key}
 		{/if}
 	</span>
 </div>
-
-<style>
-	.add-control {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		min-inline-size: 0;
-	}
-	button {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-block-size: var(--tap, 44px);
-		padding: 0.35rem 0.7rem;
-		background: var(--accent, #16161a);
-		color: #fff;
-		border: 1px solid var(--accent, #16161a);
-		border-radius: var(--radius, 4px);
-		font: inherit;
-		font-weight: 600;
-		text-align: start;
-		cursor: pointer;
-	}
-	button:hover {
-		text-decoration: underline;
-	}
-	button:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	[role='status'] {
-		color: var(--muted, #5d5d63);
-		overflow-wrap: anywhere;
-	}
-	[role='status'] > span {
-		display: block;
-		margin-block-start: 0.25rem;
-	}
-</style>

@@ -14,80 +14,28 @@
 	To remove: delete `<DemoLinks />` and its import, then `demo/DemoLinks.svelte`.
 -->
 
-<div class="sv-demo-links">
-	<p>sv addon demos</p>
+<div
+	class="sv-demo-links fixed right-5 bottom-5 z-[9999] max-w-64 min-w-44 -rotate-[1.5deg] bg-[linear-gradient(to_bottom,#fff9b0,#fff176)] px-[1.125rem] pt-4 pb-3.5 text-left text-[#3d3500] shadow-[0_1px_2px_rgb(0_0_0/0.15),0_10px_24px_-6px_rgb(0_0_0/0.35)] [font:14px/1.5_system-ui,sans-serif]"
+>
+	<p class="m-0 font-bold tracking-[0.02em]">sv addon demos</p>
 
-	<ul>
+	<ul class="mx-0 mt-2 mb-0 list-none p-0">
 		{#each demos as demo (demo.href)}
-			<li><a href={demo.href}>{demo.name}</a></li>
+			<li class="px-0 py-0.5">
+				<a
+					class="text-[#1a4fd6] underline underline-offset-2 visited:text-[#6b6420] hover:text-[#0b2f8a]"
+					href={demo.href}
+				>
+					{demo.name}
+				</a>
+			</li>
 		{/each}
 	</ul>
 
-	<a class="home" href={resolve('/')}>home</a>
+	<a
+		class="home mt-2 block border-t border-dashed border-[rgb(61_53_0/0.3)] pt-1.5 text-right text-[12px] text-[#6b6420] underline underline-offset-2 visited:text-[#6b6420] not-visited:hover:text-[#0b2f8a]"
+		href={resolve('/')}
+	>
+		home
+	</a>
 </div>
-
-<style>
-	.sv-demo-links {
-		position: fixed;
-		right: 1.25rem;
-		bottom: 1.25rem;
-		z-index: 9999;
-		min-width: 11rem;
-		max-width: 16rem;
-		padding: 1rem 1.125rem 0.875rem;
-		background: linear-gradient(to bottom, #fff9b0, #fff176);
-		color: #3d3500;
-		font:
-			14px/1.5 system-ui,
-			sans-serif;
-		text-align: left;
-		box-shadow:
-			0 1px 2px rgb(0 0 0 / 0.15),
-			0 10px 24px -6px rgb(0 0 0 / 0.35);
-		transform: rotate(-1.5deg);
-	}
-
-	p {
-		margin: 0;
-		font-weight: 700;
-		letter-spacing: 0.02em;
-	}
-
-	ul {
-		margin: 0.5rem 0 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	li {
-		padding: 0.125rem 0;
-	}
-
-	a {
-		color: #1a4fd6;
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
-
-	a:visited {
-		color: #6b6420;
-	}
-
-	a:hover {
-		color: #0b2f8a;
-	}
-
-	.home {
-		display: block;
-		margin-top: 0.5rem;
-		padding-top: 0.375rem;
-		border-top: 1px dashed rgb(61 53 0 / 0.3);
-		text-align: right;
-		font-size: 12px;
-	}
-
-	.home,
-	.home:visited {
-		color: #6b6420;
-	}
-</style>

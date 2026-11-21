@@ -74,17 +74,21 @@
 	/>
 {/snippet}
 
-<div class="compare" lang={locale}>
+<div class="compare grid min-w-0 gap-4" lang={locale}>
 	<CompareSlip {left} {right} leftLocale={a.locale} rightLocale={b.locale} {locale} {resolve} />
-	<div class="panes">
+	<div class="panes grid grid-cols-2 gap-4 [@media(max-width:640px)]:grid-cols-1">
 		<section
-			class="pane"
+			class="pane min-w-0 border border-[var(--seam,#e9e6dc)] p-4 [--shelf-cell-padding:0.375rem] data-[density=compact]:[--shelf-cell-padding:0.25rem] data-[density=spacious]:[--shelf-cell-padding:0.75rem]"
 			data-storefront-theme={a.theme}
 			data-density={a.density}
 			aria-label={t.left}
 		>
-			<label>
-				{t.left}<select disabled={!interactive} bind:value={leftPreset}>
+			<label class="mb-3 grid gap-1.5">
+				{t.left}<select
+					class="min-h-[var(--tap,44px)] min-w-0 border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+					disabled={!interactive}
+					bind:value={leftPreset}
+				>
 					{@render presetOptions()}
 				</select>
 			</label>
@@ -93,13 +97,17 @@
 			</div>
 		</section>
 		<section
-			class="pane"
+			class="pane min-w-0 border border-[var(--seam,#e9e6dc)] p-4 [--shelf-cell-padding:0.375rem] data-[density=compact]:[--shelf-cell-padding:0.25rem] data-[density=spacious]:[--shelf-cell-padding:0.75rem]"
 			data-storefront-theme={b.theme}
 			data-density={b.density}
 			aria-label={t.right}
 		>
-			<label>
-				{t.right}<select disabled={!interactive} bind:value={rightPreset}>
+			<label class="mb-3 grid gap-1.5">
+				{t.right}<select
+					class="min-h-[var(--tap,44px)] min-w-0 border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+					disabled={!interactive}
+					bind:value={rightPreset}
+				>
 					{@render presetOptions()}
 				</select>
 			</label>
@@ -109,51 +117,3 @@
 		</section>
 	</div>
 </div>
-
-<style>
-	.compare {
-		display: grid;
-		gap: 1rem;
-		min-width: 0;
-	}
-	.panes {
-		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-	.pane {
-		--shelf-cell-padding: 0.375rem;
-		padding: 1rem;
-		min-width: 0;
-		border: 1px solid var(--seam, #e9e6dc);
-	}
-	.pane[data-density='compact'] {
-		--shelf-cell-padding: 0.25rem;
-	}
-	.pane[data-density='spacious'] {
-		--shelf-cell-padding: 0.75rem;
-	}
-	label {
-		display: grid;
-		gap: 0.375rem;
-		margin-bottom: 0.75rem;
-	}
-	select {
-		min-width: 0;
-		min-height: var(--tap, 44px);
-		padding-inline: 0.625rem;
-		font: inherit;
-		color: inherit;
-		background: var(--surface, #fff);
-		border: 1px solid currentColor;
-	}
-	select:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	@media (max-width: 640px) {
-		.panes {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
-</style>

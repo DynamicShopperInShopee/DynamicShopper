@@ -62,15 +62,21 @@
 	}
 </script>
 
-<div class="actions">
+<div class="actions flex flex-wrap items-start gap-2">
 	{@render children?.()}
-	<button type="button" disabled={!ready} onclick={() => priceCurrentBasket(false)}>
+	<button
+		class="min-h-[var(--tap,44px)] cursor-pointer rounded-[var(--radius,4px)] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] px-[0.7rem] py-[0.35rem] text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current hover:enabled:border-current disabled:cursor-not-allowed disabled:opacity-45"
+		type="button"
+		disabled={!ready}
+		onclick={() => priceCurrentBasket(false)}
+	>
 		{assistantCopy[locale].deal}
 	</button>
 </div>
 {#if quote}
-	<section class="quote">
+	<section class="quote my-3">
 		<button
+			class="min-h-[var(--tap,44px)] cursor-pointer rounded-[var(--radius,4px)] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] px-[0.7rem] py-[0.35rem] text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current hover:enabled:border-current disabled:cursor-not-allowed disabled:opacity-45"
 			type="button"
 			bind:this={closeButton}
 			onclick={closeDeal}
@@ -85,36 +91,3 @@
 {:else if activeBasket && session.clock.context}
 	<p role="status">{th ? 'ยังยืนยันราคาไม่ได้' : 'Could not confirm the best price.'}</p>
 {/if}
-
-<style>
-	.actions {
-		display: flex;
-		align-items: flex-start;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	button {
-		min-height: var(--tap, 44px);
-		padding: 0.35rem 0.7rem;
-		color: inherit;
-		font: inherit;
-		background: var(--surface, #fff);
-		border: 1px solid var(--seam, #e9e6dc);
-		border-radius: var(--radius, 4px);
-		cursor: pointer;
-	}
-	button:hover:not(:disabled) {
-		border-color: currentColor;
-	}
-	button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	button:disabled {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
-	.quote {
-		margin-block: 0.75rem;
-	}
-</style>

@@ -140,33 +140,59 @@
 </script>
 
 {#snippet content()}
-	<header>
-		<h2 {id}>{t.title}</h2>
-		{#if mobile}<button type="button" onclick={() => dialog?.close()}>{t.close}</button>{/if}
+	<header class="flex items-center justify-between gap-2">
+		<h2 class="m-0 text-[1.125em]" {id}>{t.title}</h2>
+		{#if mobile}<button
+				class="min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+				type="button"
+				onclick={() => dialog?.close()}
+			>
+				{t.close}
+			</button>{/if}
 	</header>
-	{#if !messages.length}<p>{t.help}</p>{/if}
-	<div class="history" bind:this={history} role="log" aria-label={t.history} aria-live="polite">
+	{#if !messages.length}<p class="m-0">{t.help}</p>{/if}
+	<div
+		class="history grid max-h-[45dvh] min-h-0 gap-3 overflow-y-auto"
+		bind:this={history}
+		role="log"
+		aria-label={t.history}
+		aria-live="polite"
+	>
 		{#each messages as message (message.id)}
 			<article
+				class={[
+					'p-2 wrap-anywhere whitespace-pre-wrap [&.error]:border [&.error]:border-[var(--void,#b01e31)] [&.shopper]:max-w-[85%] [&.shopper]:justify-self-end [&.shopper]:rounded-[var(--radius,4px)] [&.shopper]:bg-[var(--ink,#16161a)] [&.shopper]:text-[var(--surface,#fff)]'
+				]}
 				class:shopper={message.role === 'shopper'}
 				class:error={message.error}
 				role={message.error ? 'alert' : undefined}
 				lang={message.locale ?? locale}
 			>
-				<p>{message.text}</p>
-				{#if message.usedLocalSettings}<p class="offline" lang={locale}>
+				<p class="m-0">{message.text}</p>
+				{#if message.usedLocalSettings}<p
+						class="offline m-0 text-[var(--muted,#5d5d63)]"
+						lang={locale}
+					>
 						{locale === 'th' ? 'ใช้การตั้งค่าในเครื่อง' : 'Used local settings'}
-					</p>{:else if message.offline}<p class="offline" lang={locale}>{t.offline}</p>{/if}
+					</p>{:else if message.offline}<p
+						class="offline m-0 text-[var(--muted,#5d5d63)]"
+						lang={locale}
+					>
+						{t.offline}
+					</p>{/if}
 				{#if message.role === 'assistant' && !message.error}{@render renderReply?.(message)}{/if}
 			</article>
 		{/each}
 	</div>
-	{#if sendFailed}<p class="error" role="alert">{t.failed}</p>{/if}
-	{#if pending}<p role="status">{pendingLabel ?? t.pending}</p>{/if}
+	{#if sendFailed}<p class="error m-0 border border-[var(--void,#b01e31)]" role="alert">
+			{t.failed}
+		</p>{/if}
+	{#if pending}<p class="m-0" role="status">{pendingLabel ?? t.pending}</p>{/if}
 	{#if remaining.length}
-		<div class="suggestions">
+		<div class="suggestions flex flex-wrap gap-1.5">
 			{#each remaining as suggestion (suggestion.text)}
 				<button
+					class="min-h-[var(--tap,44px)] rounded-[999px] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 					type="button"
 					lang={suggestion.locale}
 					disabled={!ready || pending}
@@ -178,13 +204,15 @@
 		</div>
 	{/if}
 	<form
+		class="grid grid-cols-[minmax(0,1fr)_auto] gap-1.5"
 		onsubmit={(event) => {
 			event.preventDefault();
 			void send(draft);
 		}}
 	>
-		<label for={`${id}-message`}>{inputLabel ?? t.message}</label>
+		<label class="col-span-full" for={`${id}-message`}>{inputLabel ?? t.message}</label>
 		<textarea
+			class="box-border min-h-[var(--tap,44px)] w-full resize-y rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] p-2 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 			id={`${id}-message`}
 			bind:this={textbox}
 			bind:value={draft}
@@ -192,144 +220,51 @@
 			disabled={!ready}
 			maxlength="1000"
 			onkeydown={onEnter}></textarea>
-		<button type="submit" disabled={!ready || pending || !draft.trim()}>{t.send}</button>
+		<button
+			class="min-h-[var(--tap,44px)] self-end rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+			type="submit"
+			disabled={!ready || pending || !draft.trim()}
+		>
+			{t.send}
+		</button>
 	</form>
 {/snippet}
 
 {#if mobile}
-	<button class="trigger" type="button" bind:this={trigger} aria-haspopup="dialog" onclick={open}>
+	<button
+		class="trigger min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+		type="button"
+		bind:this={trigger}
+		aria-haspopup="dialog"
+		onclick={open}
+	>
 		{t.title}
 	</button>
 	<dialog
+		class={[
+			'group/chat inset-[auto_0_0] m-0 box-border max-h-[80dvh] w-full max-w-none border-0 border-none p-0 [border-top:2px_solid_var(--ink,#16161a)] backdrop:bg-[rgb(0_0_0/40%)] [&.large]:text-[length:max(1.25rem,20px)]'
+		]}
 		bind:this={dialog}
 		aria-labelledby={id}
 		lang={locale}
 		class:large={largePrint}
 		onclose={() => trigger?.focus()}
 	>
-		<div class="content">{@render content()}</div>
+		<div
+			class="content box-border flex max-h-[80dvh] min-w-0 flex-col gap-3 overflow-auto border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4 text-[var(--ink,#16161a)]"
+		>
+			{@render content()}
+		</div>
 	</dialog>
 {:else}
-	<aside class="content" aria-label={t.title} lang={locale} class:large={largePrint}>
+	<aside
+		class={[
+			'content group/chat flex min-w-0 flex-col gap-3 border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4 text-[var(--ink,#16161a)] [&.large]:text-[length:max(1.25rem,20px)]'
+		]}
+		aria-label={t.title}
+		lang={locale}
+		class:large={largePrint}
+	>
 		{@render content()}
 	</aside>
 {/if}
-
-<style>
-	.content {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		min-width: 0;
-		padding: 1rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-		color: var(--ink, #16161a);
-	}
-	.large {
-		font-size: max(1.25rem, 20px);
-	}
-	header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-	}
-	h2,
-	p {
-		margin: 0;
-	}
-	h2 {
-		font-size: 1.125em;
-	}
-	.history {
-		overflow-y: auto;
-		min-height: 0;
-		max-height: 45dvh;
-		display: grid;
-		gap: 0.75rem;
-	}
-	article {
-		padding: 0.5rem;
-		overflow-wrap: anywhere;
-		white-space: pre-wrap;
-	}
-	.shopper {
-		max-width: 85%;
-		justify-self: end;
-		color: var(--surface, #fff);
-		background: var(--ink, #16161a);
-		border-radius: var(--radius, 4px);
-	}
-	.error {
-		border: 1px solid var(--void, #b01e31);
-	}
-	.offline {
-		color: var(--muted, #5d5d63);
-	}
-	.suggestions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.375rem;
-	}
-	button,
-	textarea {
-		min-height: var(--tap, 44px);
-		font: inherit;
-		border: 1px solid var(--ink, #16161a);
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		color: var(--ink, #16161a);
-	}
-	button {
-		padding: 0.375rem 0.625rem;
-	}
-	.suggestions button {
-		border-radius: 999px;
-	}
-	.large button,
-	.large textarea {
-		min-height: 48px;
-	}
-	button:focus-visible,
-	textarea:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	form {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 0.375rem;
-	}
-	form label {
-		grid-column: 1 / -1;
-	}
-	textarea {
-		box-sizing: border-box;
-		padding: 0.5rem;
-		width: 100%;
-		resize: vertical;
-	}
-	form button {
-		align-self: end;
-	}
-	dialog {
-		box-sizing: border-box;
-		inset: auto 0 0;
-		margin: 0;
-		padding: 0;
-		width: 100%;
-		max-width: none;
-		max-height: 80dvh;
-		border: 0;
-		border-top: 2px solid var(--ink, #16161a);
-	}
-	dialog .content {
-		max-height: 80dvh;
-		box-sizing: border-box;
-		overflow: auto;
-	}
-	dialog::backdrop {
-		background: rgb(0 0 0 / 40%);
-	}
-</style>

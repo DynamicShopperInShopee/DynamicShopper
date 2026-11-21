@@ -50,9 +50,15 @@
 	);
 </script>
 
-<div class="slip" data-proof={status} aria-live="polite">
+<div
+	class="slip group/facts-receipt my-[0.8rem] flex flex-wrap items-baseline gap-x-4 gap-y-[0.45rem] border border-dashed border-[var(--seam,#706f68)] bg-[var(--surface,white)] px-[0.8rem] py-[0.65rem]"
+	data-proof={status}
+	aria-live="polite"
+>
 	{#if status === 'verified'}
-		<strong>
+		<strong
+			class="group-data-[proof=failed]/facts-receipt:text-[#a11725] group-data-[proof=verified]/facts-receipt:text-[#0f7b4a]"
+		>
 			{compare
 				? locale === 'th'
 					? 'ข้อมูลร่วมตรงกัน'
@@ -66,10 +72,12 @@
 			<span data-fact="checkedCount" data-raw={count}>{count}</span>
 		</span>
 	{:else if status === 'failed'}
-		<strong>
+		<strong
+			class="group-data-[proof=failed]/facts-receipt:text-[#a11725] group-data-[proof=verified]/facts-receipt:text-[#0f7b4a]"
+		>
 			{locale === 'th' ? 'พบข้อมูลที่ไม่ตรงกับแค็ตตาล็อก' : 'Displayed facts differ from the catalog'}
 		</strong>
-		<ul>
+		<ul class="m-0 basis-full list-disc ps-[1.25em]">
 			{#each result?.mismatches ?? [] as { reason }, index (index)}
 				<li>{reasons[locale][reason]}</li>
 			{/each}
@@ -88,28 +96,3 @@
 		</span>
 	{/if}
 </div>
-
-<style>
-	.slip {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.45rem 1rem;
-		padding: 0.65rem 0.8rem;
-		margin-block: 0.8rem;
-		background: var(--surface, white);
-		border: 1px dashed var(--seam, #706f68);
-	}
-	[data-proof='verified'] strong {
-		color: #0f7b4a;
-	}
-	[data-proof='failed'] strong {
-		color: #a11725;
-	}
-	ul {
-		flex-basis: 100%;
-		margin: 0;
-		padding-inline-start: 1.25em;
-		list-style: disc;
-	}
-</style>

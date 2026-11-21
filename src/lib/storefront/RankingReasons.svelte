@@ -85,13 +85,12 @@
 </script>
 
 {#if productCount > 1 && !simplified && !comparePane && reasons.length}
-	<details
-		class="border border-dashed border-[var(--ink,#16161a)] px-3"
-		lang={locale}
-	>
+	<details class="border border-dashed border-[var(--ink,#16161a)] px-3" lang={locale}>
 		<summary
 			class="min-h-[var(--tap,44px)] cursor-pointer content-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-		>{t.title}</summary>
+		>
+			{t.title}
+		</summary>
 		<p class="mt-1 mb-2">{t.lead}</p>
 		<ul class="list-none p-0">
 			{#each reasons as reason, index (index)}
@@ -99,7 +98,7 @@
 					<span>{reason.label}</span>
 					<span class="track block" aria-hidden="true">
 						<span
-							class="bar block h-1.5 bg-current data-[width=low]:w-1/4 data-[width=medium]:w-1/2 data-[width=high]:w-3/4 data-[width=full]:w-full"
+							class="bar block h-1.5 bg-current data-[width=full]:w-full data-[width=high]:w-3/4 data-[width=low]:w-1/4 data-[width=medium]:w-1/2"
 							data-width={reason.strength}
 						></span>
 					</span>
@@ -108,4 +107,3 @@
 		</ul>
 	</details>
 {/if}
-

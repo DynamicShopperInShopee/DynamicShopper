@@ -34,7 +34,12 @@
 
 <svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
 
-<main class="group/listing m-auto max-w-6xl bg-white pb-8 font-['IBM_Plex_Sans_Thai',system-ui,sans-serif] text-[#16161a] [--product-figure-font:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',ui-monospace,monospace] data-[theme=large]:text-[1.25rem] data-[theme=large]:[--action-font-floor:1.25rem] data-[theme=large]:[--tap:48px] data-[theme=minimal]:[--seam:#ecebe6] data-[theme=vibrant]:[--accent:#2f3ccf] data-[theme=vibrant]:[--seam:#e3e3ef] [@media(max-width:699px)]:pb-[calc(var(--listing-actions-height,60px)+1rem)] [@media(max-width:699px)]:[--gallery-caption-top:68px] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-ink:#16161a] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-padding:0.125em_0.25em] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-surface:#fff]" lang={data.language} data-product={data.id} data-theme={data.theme}>
+<main
+	class="group/listing m-auto max-w-6xl bg-white pb-8 font-['IBM_Plex_Sans_Thai',system-ui,sans-serif] text-[#16161a] [--product-figure-font:'IBM_Plex_Mono',_'IBM_Plex_Sans_Thai',_ui-monospace,_monospace] data-[theme=large]:text-[1.25rem] data-[theme=large]:[--action-font-floor:1.25rem] data-[theme=large]:[--tap:48px] data-[theme=minimal]:[--seam:#ecebe6] data-[theme=vibrant]:[--accent:#2f3ccf] data-[theme=vibrant]:[--seam:#e3e3ef] min-[1024px]:has-[.listing-chat]:me-[var(--chat-width)] min-[1024px]:has-[.listing-chat]:[--chat-width:clamp(20rem,28vw,28rem)] [@media(max-width:699px)]:pb-[calc(var(--listing-actions-height,60px)+1rem)] [@media(max-width:699px)]:[--gallery-caption-top:68px] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-ink:#16161a] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-padding:0.125em_0.25em] [@media(max-width:699px)]:data-[theme=large]:[--gallery-caption-surface:#fff]"
+	lang={data.language}
+	data-product={data.id}
+	data-theme={data.theme}
+>
 	<ListingHeader
 		{data}
 		backQuery={data.receiptQuery ? session.visit?.search.slice(1) || data.receiptQuery : ''}
@@ -45,7 +50,7 @@
 	<div bind:this={proofRoot}>
 		<div class="listing grid gap-0 min-[700px]:grid-cols-2">
 			<div
-				class="art aspect-square w-full [&:not(.demo-photo)]:bg-[#d0dce6]"
+				class={['art aspect-square w-full [&:not(.demo-photo)]:bg-[#d0dce6]']}
 				class:demo-photo={data.id !== 'cooker-one-button' && data.id !== 'cooker-digital'}
 				bind:this={hero}
 				data-category={data.photoCategory}

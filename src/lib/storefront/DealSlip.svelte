@@ -58,53 +58,83 @@
 	}
 </script>
 
-<div class="receipt" aria-label={t.title} lang={locale}>
-	<h3>{t.title}</h3>
-	<p class="confirmed" data-proof="calculated">{t.verified}</p>
+<div
+	class="receipt my-4 border [border-block-end-style:dashed] border-[var(--seam,#706f68)] bg-[var(--surface,white)] p-[0.85rem]"
+	aria-label={t.title}
+	lang={locale}
+>
+	<h3 class="mx-0 mt-0 mb-[0.55rem]">{t.title}</h3>
+	<p class="confirmed font-semibold text-[#0f7b4a]" data-proof="calculated">{t.verified}</p>
 	{#each receipt.shops as shop (shop.shopId)}
-		<div class="shop">
+		<div class="shop mx-0 mt-0 mb-[0.55rem]">
 			<strong>{getShop(shop.shopId)?.name[locale]}</strong>
 			{#each shop.items as item (item.productId)}
-				<div class="line">
+				<div
+					class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+				>
 					<span>
 						{getProduct(item.productId)?.name[locale]}
-						<span class="number" data-deal-fact="unitPrice" data-raw={item.unitPrice}>
+						<span
+							class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+							data-deal-fact="unitPrice"
+							data-raw={item.unitPrice}
+						>
 							{formatBaht(item.unitPrice, locale)}
 						</span>
 						<span data-deal-fact="quantity" data-raw={item.quantity}>×{item.quantity}</span>
 					</span>
-					<span class="number" data-deal-fact="itemSubtotal" data-raw={item.subtotal}>
+					<span
+						class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+						data-deal-fact="itemSubtotal"
+						data-raw={item.subtotal}
+					>
 						{formatBaht(item.subtotal, locale)}
 					</span>
 				</div>
 			{/each}
 		</div>
 	{/each}
-	<div class="line">
+	<div
+		class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+	>
 		<span>{t.subtotal}</span>
-		<span class="number" data-deal-fact="subtotal" data-raw={receipt.subtotal}>
+		<span
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+			data-deal-fact="subtotal"
+			data-raw={receipt.subtotal}
+		>
 			{formatBaht(receipt.subtotal, locale)}
 		</span>
 	</div>
-	<div class="line">
+	<div
+		class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+	>
 		<span>{t.shipping}</span><span
-			class="number"
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 			data-deal-fact="shipping"
 			data-raw={receipt.shipping}
 		>
 			{formatBaht(receipt.shipping, locale)}
 		</span>
 	</div>
-	<div class="line">
+	<div
+		class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+	>
 		<span>{t.baseline}</span>
-		<span class="number" data-deal-fact="baseline" data-raw={receipt.baseline}>
+		<span
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+			data-deal-fact="baseline"
+			data-raw={receipt.baseline}
+		>
 			{formatBaht(receipt.baseline, locale)}
 		</span>
 	</div>
 	{#each receipt.appliedVouchers as voucher (voucher.code)}
-		<div class="line">
+		<div
+			class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+		>
 			<span>{voucher.code}{voucher.expiresSoon ? ` · ${t.soon}` : ''}</span><span
-				class="number"
+				class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 				data-deal-fact="discount"
 				data-raw={voucher.amount}
 			>
@@ -112,31 +142,47 @@
 			</span>
 		</div>
 	{/each}
-	<div class="line">
-		<span>{t.coins}</span><span class="number" data-deal-fact="coins" data-raw={receipt.coinsUsed}>
+	<div
+		class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+	>
+		<span>{t.coins}</span><span
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+			data-deal-fact="coins"
+			data-raw={receipt.coinsUsed}
+		>
 			−{formatBaht(receipt.coinsUsed, locale)}
 		</span>
 	</div>
-	<div class="line total">
+	<div
+		class="line total mt-[0.45rem] flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)] [border-block-start:2px_solid_currentColor]"
+	>
 		<strong>{t.total}</strong><strong
-			class="number"
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 			data-deal-fact="total"
 			data-raw={receipt.total}
 		>
 			{formatBaht(receipt.total, locale)}
 		</strong>
 	</div>
-	<div class="line saving">
-		<span>{t.saved}</span><span class="number" data-deal-fact="savings" data-raw={receipt.savings}>
+	<div
+		class="line saving mb-2 flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere text-[#0f7b4a] [border-block-end:1px_dotted_var(--seam,#706f68)]"
+	>
+		<span>{t.saved}</span><span
+			class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+			data-deal-fact="savings"
+			data-raw={receipt.savings}
+		>
 			{formatBaht(receipt.savings, locale)}
 		</span>
 	</div>
 	{#if addOns.length}
-		<h4>{t.extra}</h4>
+		<h4 class="mx-0 mt-0 mb-[0.55rem]">{t.extra}</h4>
 		{#each addOns as item (item.productId)}
-			<div class="line">
+			<div
+				class="line flex items-baseline justify-between gap-[0.6rem] py-1 wrap-anywhere [border-block-end:1px_dotted_var(--seam,#706f68)]"
+			>
 				<span>{getProduct(item.productId)?.name[locale]} · {item.voucherCode}</span><span
-					class="number"
+					class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 					data-deal-fact="extraCost"
 					data-raw={item.extraCost}
 				>
@@ -147,13 +193,17 @@
 	{/if}
 	{#if receipt.unusedVouchers.length}
 		<details>
-			<summary>{t.unused}</summary>
+			<summary class="min-h-[var(--tap,44px)] cursor-pointer content-center">{t.unused}</summary>
 			<ul>
 				{#each receipt.unusedVouchers as voucher (voucher.code)}
 					<li>
 						{voucher.code} · {reason(voucher)}
 						{#if voucher.reason === 'minimum-spend'}
-							<span class="number" data-deal-fact="minimumGap" data-raw={voucher.gap}>
+							<span
+								class="number text-end font-[family-name:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
+								data-deal-fact="minimumGap"
+								data-raw={voucher.gap}
+							>
 								{formatBaht(voucher.gap, locale)}
 							</span>
 						{/if}
@@ -163,49 +213,3 @@
 		</details>
 	{/if}
 </div>
-
-<style>
-	.receipt {
-		border: 1px solid var(--seam, #706f68);
-		border-block-end-style: dashed;
-		background: var(--surface, white);
-		padding: 0.85rem;
-		margin-block: 1rem;
-	}
-	h3,
-	h4,
-	.shop {
-		margin: 0 0 0.55rem;
-	}
-	.line {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 0.6rem;
-		padding-block: 0.25rem;
-		border-block-end: 1px dotted var(--seam, #706f68);
-		overflow-wrap: anywhere;
-	}
-	.total {
-		border-block-start: 2px solid currentColor;
-		margin-top: 0.45rem;
-	}
-	.number {
-		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
-		font-variant-numeric: tabular-nums;
-		text-align: end;
-	}
-	.saving {
-		color: #0f7b4a;
-		margin-bottom: 0.5rem;
-	}
-	.confirmed {
-		color: #0f7b4a;
-		font-weight: 600;
-	}
-	summary {
-		min-block-size: var(--tap, 44px);
-		align-content: center;
-		cursor: pointer;
-	}
-</style>
