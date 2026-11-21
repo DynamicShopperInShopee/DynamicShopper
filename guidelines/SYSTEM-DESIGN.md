@@ -111,7 +111,7 @@ When to use tools: for vague or multi-need requests ("something for my mom", "a 
 
 ## Offline parity: the keyword fallback
 
-The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The bounded catalog agent described above is the broader design.
+The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. X-ray identifies the responding model for usable proposals, including when local settings determine every applied change. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The bounded catalog agent described above is the broader design.
 
 The keyword fallback answers whenever the AI cannot: no key, forced offline, an error, a timeout, or unusable output. It produces exactly the same kind of answer as the AI, so everything after "Understand" is identical online and offline.
 

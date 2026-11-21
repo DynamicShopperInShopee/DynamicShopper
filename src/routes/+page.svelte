@@ -14,13 +14,7 @@
 	import '../lib/assets/products/shelf-photos.css';
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
 	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
-	import {
-		formatBaht,
-		getProduct,
-		products as canonical,
-		specs,
-		type Locale
-	} from '../lib/catalog/index.ts';
+	import { formatBaht, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
 	import { findAddOns, optimizeDeal, type BasketItem } from '../lib/pricing/index.ts';
 	import {
 		defaultPlan,
@@ -62,6 +56,7 @@
 	let draftShipping = $state(false);
 	let maxPrice = $state<number>();
 	let freeShipping = $state(false);
+	let capacity = $state<number>();
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
@@ -81,6 +76,7 @@
 			adapted: boolean;
 			sort: Sort;
 			freeShipping: boolean;
+			capacity?: number;
 			locks: (keyof ShopperPlan)[];
 		}[]
 	>([]);
@@ -89,7 +85,7 @@
 	let personaTrigger = $state<HTMLButtonElement>();
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
-	let changes = $state<(keyof ShopperPlan)[]>([]);
+	let changes = $state<(keyof ShopperPlan | 'capacityRemoved')[]>([]);
 	let focusedProduct = $state<string>();
 	let selectedBasket = $state<{ items: readonly BasketItem[]; locale: Locale }>();
 	let closeQuoteButton = $state<HTMLButtonElement>();
@@ -119,14 +115,17 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
-	const ranked = $derived(
-		adapted
-			? rankProducts(
-					freeShipping ? canonical.filter(({ shipping }) => shipping === 0) : canonical,
-					activePlan
+	const capacityMatches = $derived(
+		capacity === undefined
+			? canonical
+			: canonical.filter(
+					(product) => product.category === 'rice-cooker' && product.specs.capacity === capacity
 				)
-			: []
 	);
+	const eligibleProducts = $derived(
+		freeShipping ? capacityMatches.filter(({ shipping }) => shipping === 0) : capacityMatches
+	);
+	const ranked = $derived(adapted ? rankProducts(eligibleProducts, activePlan) : []);
 	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
 	const a = $derived(assistantCopy[language]);
 	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
@@ -154,6 +153,7 @@
 				adapted,
 				sort,
 				freeShipping,
+				capacity,
 				locks: [...locks]
 			}
 		];
@@ -190,6 +190,10 @@
 		if (!changes.length) return;
 		remember();
 		writePlan({ ...previous, ...Object.fromEntries(entries) });
+		if (capacity !== undefined && accepted.category && accepted.category !== 'rice-cooker') {
+			capacity = undefined;
+			changes = [...changes, 'capacityRemoved'];
+		}
 		if (changes.includes('category') && changes.includes('query') && !query) {
 			locks = locks.filter((field) => field !== 'query');
 		}
@@ -200,6 +204,7 @@
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
+		capacity = previous.capacity;
 		writePlan(previous.plan);
 		adapted = previous.adapted;
 		sort = previous.sort;
@@ -215,6 +220,7 @@
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
+		capacity = undefined;
 		changes = [];
 	}
 	function removePreference(key: keyof ShopperPlan) {
@@ -265,7 +271,7 @@
 			.filter(({ contribution }) => contribution > 0)
 			.map(({ key }) => termName(key, productId));
 	}
-	function changeName(key: keyof ShopperPlan) {
+	function changeName(key: keyof ShopperPlan | 'capacityRemoved') {
 		return key in a ? a[key as keyof typeof a] : a.appearance;
 	}
 	function openDeal(productId: string, locale: Locale = language) {
@@ -354,30 +360,24 @@
 	});
 
 	const t = $derived(storefrontCopy[language]);
-	let capacity = $state<number>();
 	const queryMatches = $derived(eventDemo && query ? searchProducts({ query, category }) : []);
 	const cookerSearch = $derived(
 		eventDemo &&
 			(category === 'cooker' ||
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
 	);
-	const selectedCapacityProduct = $derived(
-		cookerSearch && capacity !== undefined
-			? canonical.find(
-					(item) => item.category === 'rice-cooker' && item.specs.capacity === capacity
-				)
-			: undefined
-	);
+	const selectedCapacityProduct = $derived(capacity === undefined ? undefined : capacityMatches[0]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const products = $derived.by(() => {
 		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping });
-		if (cookerSearch && capacity !== undefined) {
-			return matched.filter((item) => getProduct(item.catalogId)?.specs.capacity === capacity);
+		if (!adapted || eventDemo) {
+			return capacity === undefined
+				? matched
+				: matched.filter((item) => capacityMatches.some(({ id }) => id === item.catalogId));
 		}
-		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
-				rankProducts(canonical, { ...activePlan, simplified: false }).map(
+				rankProducts(eligibleProducts, { ...activePlan, simplified: false }).map(
 					({ product }) => product.id
 				)
 			);
@@ -422,6 +422,7 @@
 
 	function clearFilters() {
 		assistant.cancel();
+		if (capacity !== undefined) remember();
 		capacity = undefined;
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
@@ -430,10 +431,25 @@
 		freeShipping = false;
 	}
 
-	function chooseCategory(value: Category | 'all') {
+	function selectCapacity(value: number | undefined) {
+		if (value === capacity) return;
+		remember();
+		assistant.cancel();
+		capacity = value;
+	}
+
+	function chooseCategory(value: Category | 'all', clearSearch = false) {
+		const removeQuery =
+			!!query && (clearSearch || !searchProducts({ category: value, query }).length);
+		const removeCapacity = capacity !== undefined && value !== 'cooker';
+		if (value !== category || removeQuery || removeCapacity) remember();
 		register('category');
 		category = value;
-		capacity = undefined;
+		if (removeCapacity) capacity = undefined;
+		if (removeQuery) {
+			query = draftQuery = '';
+			locks = locks.filter((key) => key !== 'query');
+		}
 	}
 
 	function openFilters(trigger: HTMLButtonElement) {
@@ -444,11 +460,11 @@
 	}
 
 	function reset() {
+		clearFilters();
 		draftQuery = '';
 		query = '';
 		category = 'all';
 		sort = 'default';
-		clearFilters();
 	}
 </script>
 
@@ -632,19 +648,14 @@
 			<CookerQuickFilters
 				{language}
 				{category}
-				bind:capacity
+				bind:capacity={() => capacity, selectCapacity}
 				{freeShipping}
 				{openFilters}
 				toggleShipping={() => {
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value: Category | 'all') => {
-					if (query) {
-						draftQuery = query = '';
-					}
-					chooseCategory(value);
-				}}
+				changeCategory={(value: Category | 'all') => chooseCategory(value, true)}
 				toggleLanguage={() => {
 					register('locale');
 					language = language === 'th' ? 'en' : 'th';
@@ -788,7 +799,7 @@
 		{#if hasFilters}
 			<div class="chips">
 				{#if selectedCapacityProduct}
-					<button type="button" onclick={() => (capacity = undefined)}>
+					<button type="button" onclick={() => selectCapacity(undefined)}>
 						{language === 'th' ? 'ความจุ' : 'Capacity'}
 						<FactValue
 							productId={selectedCapacityProduct.id}
@@ -918,7 +929,11 @@
 				{#if turn}
 					<div class="assistant-reply" aria-live="polite">
 						<span class="mode-label">
-							{assistant.model ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
+							{assistant.model
+								? assistant.model.addedChanges
+									? a.liveModel
+									: a.localSettings
+								: a.offline}
 						</span>
 						<p>{turn.reply}</p>
 						{#if turn.citations.length}
@@ -974,9 +989,7 @@
 				{#if traceOpen}
 					<div class="assistant-reply" aria-label={a.trace}>
 						<p>
-							{assistant.model
-								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${assistant.model}`
-								: a.offline}
+							{assistant.model ? `${a.liveModel} · ${assistant.model.name}` : a.offline}
 						</p>
 						{#if assistant.fallback}<p>
 								{language === 'th'
@@ -1008,7 +1021,7 @@
 				{/if}
 			</section>
 			{#if compareOpen}
-				<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+				<CompareShelves plan={activePlan} locale={language} {eligibleProducts} onDeal={openDeal} />
 			{/if}
 			{#if quote}
 				<section class="quote" lang={quote.locale}>

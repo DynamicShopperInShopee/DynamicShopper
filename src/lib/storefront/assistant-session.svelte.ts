@@ -24,7 +24,7 @@ export function createAssistantSession(
 	let liveEnabled = $state(false);
 	let livePending = $state(false);
 	let liveFallback = $state(false);
-	let liveModel = $state<string>();
+	let liveModel = $state<{ name: string; addedChanges: boolean }>();
 	let liveRequest: AbortController | undefined;
 	let pendingLocalTurn: Turn | undefined;
 	let turn = $state<Turn>();
@@ -114,11 +114,12 @@ export function createAssistantSession(
 					result.rejected && !proposed.dropped.includes('unknown-field')
 						? [...proposed.dropped, 'unknown-field']
 						: proposed.dropped;
-				if (!Object.keys(additions).length) {
+				const addedChanges = Object.keys(additions).length > 0;
+				if (Object.keys(result.patch).length) liveModel = { name: result.model, addedChanges };
+				if (!addedChanges) {
 					applyTurn({ ...local, dropped }, requestedCategory);
 					return;
 				}
-				liveModel = result.model;
 				applyTurn(
 					{ ...proposed, patch: { ...local.patch, ...additions }, dropped },
 					requestedCategory

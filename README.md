@@ -37,7 +37,7 @@ Run `bun run check`, `bunx vitest run`, and `bun run test:e2e` for the type, uni
 
 Put your API key in the ignored `.env` file as `OPENAI_API_KEY`. Keep the tracked example blank. `OPENAI_MODEL` can select a model available to your API project and defaults to `gpt-5-mini`.
 
-Run `bun run dev --host 127.0.0.1` and open `/?view=receipt` on the printed loopback URL. In **X-ray**, choose **Try live model** and send a presentation request such as “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. X-ray identifies live and offline results, and **Force offline** switches subsequent turns back to the fallback. Cloudflare and other production builds use the offline assistant and require no OpenAI key.
+Run `bun run dev --host 127.0.0.1` and open the printed loopback URL. Choose **Shopping assistant**, then **X-ray** → **Try live model**. Send “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย” to try a playful theme, or “Make it minimal with a compact spec table” to compare products. X-ray names the responding model. **Used local settings** means the model responded and the local plan already determined the view. **Undo** restores the previous view. **Force offline** switches subsequent turns to the fallback. A production build runs the storefront offline.
 
 The local model receives a short list of allowlisted presentation hints. Product facts, prices, raw messages, and conversation history stay in the app. The model may propose a theme, layout, density or language. Listing questions and deal math use the existing deterministic paths.
 

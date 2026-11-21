@@ -4,6 +4,8 @@ One walk through the product that touches every idea in these guidelines. It is 
 
 Open **Shopping assistant** from the results heading on `/`, or go directly to `/?view=receipt`. The browser demo uses the offline assistant by default. To rehearse the local live-model proof or development-only poisoned model, use the loopback setup in the [README](../README.md#optional-local-openai-test).
 
+A cooker capacity selected on the public storefront stays active when the shopper opens **Shopping assistant**, restyles the shelf, or opens **Compare views**. Both views use the same capacity and shipping filters. The shopper can remove the capacity chip or reset the store, then use Undo to restore it. Choosing a new category clears the cooker capacity and any incompatible cooker search.
+
 ## The arc
 
 1. **It adapts.** The store reshapes from a Thai sentence, then ranks by what the shopper cares about.
