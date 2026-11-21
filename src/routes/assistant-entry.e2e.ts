@@ -49,6 +49,31 @@ test('a cooker capacity follows the shopper into the offline assistant and is re
 
 const digitalCapacity = formatFact(resolveFact('cooker-digital', 'spec.capacity')!, 'en');
 
+test('Undo in the assistant restores the search and capacity from before a public category switch', async ({
+	page
+}) => {
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	const search = page.getByRole('searchbox');
+	await search.fill('rice cooker');
+	await search.press('Enter');
+	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	await strip.getByRole('button', { name: digitalCapacity, exact: true }).click();
+	const ids = () =>
+		page
+			.locator('#products [data-product]')
+			.evaluateAll((items) => items.map((item) => item.getAttribute('data-product')));
+	const before = await ids();
+	expect(before.length).toBeGreaterThan(0);
+	await strip.getByLabel('Categories').selectOption({ label: 'Earbuds' });
+	await expect(search).toHaveValue('');
+	await page.getByRole('link', { name: 'Shopping assistant' }).click();
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(search).toHaveValue('rice cooker');
+	await expect(page.getByRole('button', { name: `Capacity ${digitalCapacity}` })).toBeVisible();
+	await expect.poll(ids).toEqual(before);
+});
+
 for (const control of ['category tab', 'assistant']) {
 	test(`a new category in the ${control} clears a capacity selected from cooker search results`, async ({
 		page

@@ -1334,6 +1334,7 @@
 				compact={eventDemo}
 				onapply={applyInterviewAnswers}
 				onchat={focusAssistant}
+				onundo={undoStack.length ? undo : undefined}
 			/>
 		{/snippet}
 		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
@@ -1412,12 +1413,7 @@
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value: Category | 'all') => {
-					if (query) {
-						draftQuery = query = '';
-					}
-					chooseCategory(value, true);
-				}}
+				changeCategory={(value) => chooseCategory(value, true)}
 				toggleLanguage={() => {
 					register('locale');
 					language = language === 'th' ? 'en' : 'th';
@@ -1732,7 +1728,9 @@
 						</div>
 					</div>
 					<div class="shopper-actions shelf-utilities">
-						<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{#if !adapted || !interviewAnswers}
+							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{/if}
 						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
 					</div>
 				</div>

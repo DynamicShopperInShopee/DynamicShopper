@@ -65,6 +65,11 @@ for (const viewport of [
 			await expect(page.locator('#products')).toBeFocused();
 			const chat = page.getByRole('button', { name: text.chat });
 			await expect(chat).toBeInViewport({ ratio: 1 });
+			const undo = page.getByRole('button', {
+				name: locale === 'th' ? 'ย้อนกลับ' : 'Undo',
+				exact: true
+			});
+			await expect(undo).toBeInViewport({ ratio: 1 });
 			await chat.press('Enter');
 			await expect(page.getByRole('textbox', { name: text.input })).toBeFocused();
 			expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width);
