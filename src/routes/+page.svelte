@@ -1,86 +1,34 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { dev } from '$app/env';
+	import { onMount, tick } from 'svelte';
+	import { SvelteURL } from 'svelte/reactivity';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
-	import { categories, type Category, type Language } from '../lib/store-catalog';
-	import { formatBaht, formatNumber, searchProducts, type Sort } from '../lib/store-search';
-
-	const copy = {
-		en: {
-			title: 'Browse products',
-			skip: 'Skip to products',
-			search: 'Search products',
-			searchHint: 'Try gaming mouse',
-			submit: 'Search',
-			categories: 'Categories',
-			all: 'All',
-			sort: 'Sort by',
-			default: 'Catalog order',
-			'price-low': 'Price: low to high',
-			'price-high': 'Price: high to low',
-			'top-rated': 'Top rated',
-			'top-sales': 'Top sales',
-			filters: 'Filters',
-			maxPrice: 'Maximum price (฿)',
-			freeOnly: 'Free shipping only',
-			clear: 'Clear filters',
-			apply: 'Apply filters',
-			reset: 'Reset search',
-			products: 'Products',
-			empty: 'No products match',
-			emptyHint: 'Try a different search or clear your filters.',
-			shipping: 'Shipping',
-			free: 'Free',
-			was: 'Was',
-			price: 'Price',
-			sold: 'Sold',
-			rating: 'Rating',
-			theme: 'Theme',
-			standard: 'Standard',
-			minimal: 'Minimal',
-			vibrant: 'Vibrant',
-			large: 'Large print',
-			simulated: 'Simulated catalog'
-		},
-		th: {
-			title: 'เลือกดูสินค้า',
-			skip: 'ข้ามไปที่รายการสินค้า',
-			search: 'ค้นหาสินค้า',
-			searchHint: 'ลองค้นหาเมาส์เกมมิ่ง',
-			submit: 'ค้นหา',
-			categories: 'หมวดหมู่',
-			all: 'ทั้งหมด',
-			sort: 'เรียงตาม',
-			default: 'ลำดับแค็ตตาล็อก',
-			'price-low': 'ราคาต่ำไปสูง',
-			'price-high': 'ราคาสูงไปต่ำ',
-			'top-rated': 'คะแนนสูงสุด',
-			'top-sales': 'ขายดี',
-			filters: 'ตัวกรอง',
-			maxPrice: 'ราคาสูงสุด (฿)',
-			freeOnly: 'เฉพาะสินค้าส่งฟรี',
-			clear: 'ล้างตัวกรอง',
-			apply: 'ใช้ตัวกรอง',
-			reset: 'ล้างการค้นหา',
-			products: 'สินค้า',
-			empty: 'ไม่พบสินค้าที่ตรงกัน',
-			emptyHint: 'ลองเปลี่ยนคำค้นหรือล้างตัวกรอง',
-			shipping: 'ค่าจัดส่ง',
-			free: 'ฟรี',
-			was: 'ราคาเดิม',
-			price: 'ราคา',
-			sold: 'ขายแล้ว',
-			rating: 'คะแนน',
-			theme: 'ธีม',
-			standard: 'มาตรฐาน',
-			minimal: 'เรียบง่าย',
-			vibrant: 'สีสด',
-			large: 'ตัวอักษรใหญ่',
-			simulated: 'แค็ตตาล็อกจำลอง'
-		}
-	} as const;
+	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
+	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
+	import { formatBaht, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
+	import { findAddOns, optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
+	import {
+		defaultPlan,
+		interpretOffline,
+		personaPlan,
+		rankProducts,
+		validateProposal,
+		type ShopperPlan,
+		type Turn
+	} from '../lib/personalization';
+	import FactValue from '../lib/storefront/FactValue.svelte';
+	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
+	import DealSlip from '../lib/storefront/DealSlip.svelte';
+	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
+	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
+	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
+	import { getStoreOpenedAt } from '../lib/storefront/clock';
+	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
+	import { projectLiveHints } from '../lib/personalization/live';
+	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
@@ -104,25 +52,392 @@
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
-	const eventDemo = $derived(page.url.searchParams.get('demo') === 'shopee');
+	const eventDemo = $derived(
+		page.url.searchParams.get('demo') === 'shopee' || page.url.searchParams.get('view') === 'event'
+	);
+	let proofRoot = $state<HTMLElement>();
+	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
+	let adapted = $state(false);
+	let undoStack = $state<
+		{
+			plan: ShopperPlan;
+			adapted: boolean;
+			sort: Sort;
+			freeShipping: boolean;
+			locks: (keyof ShopperPlan)[];
+		}[]
+	>([]);
+	let locks = $state<(keyof ShopperPlan)[]>([]);
+	let compareOpen = $state(false);
+	let traceOpen = $state(false);
+	let poisonArmed = $state(false);
+	let liveEnabled = $state(false);
+	let livePending = $state(false);
+	let liveFallback = $state(false);
+	let liveModel = $state<string>();
+	let liveRequest: AbortController | undefined;
+	let pendingLocalTurn: Turn | undefined;
 
-	const t = $derived(copy[language]);
+	function cancelLive() {
+		liveRequest?.abort();
+		liveRequest = undefined;
+		pendingLocalTurn = undefined;
+		livePending = false;
+	}
+	function toggleLive() {
+		const fallback = pendingLocalTurn;
+		cancelLive();
+		liveEnabled = !liveEnabled;
+		if (fallback) applyTurn(fallback);
+	}
+	let turn = $state<Turn>();
+	let changes = $state<(keyof ShopperPlan)[]>([]);
+	let focusedProduct = $state<string>();
+	let quote = $state<{ receipt: DealReceipt; locale: Locale; addOns: readonly AddOn[] }>();
+	let closeQuoteButton = $state<HTMLButtonElement>();
+	let quoteTrigger: HTMLElement | undefined;
+	let opening = $state<number>();
+	let referenceTime = $state<number>();
+
+	const categoryFromShelf = {
+		mouse: 'mouse',
+		earbuds: 'earbuds',
+		power: 'power-bank',
+		cooker: 'rice-cooker',
+		skin: 'skincare'
+	} as const;
+	const shelfFromCategory = {
+		mouse: 'mouse',
+		earbuds: 'earbuds',
+		'power-bank': 'power',
+		'rice-cooker': 'cooker',
+		skincare: 'skin'
+	} as const;
+	const activePlan = $derived<ShopperPlan>({
+		...plan,
+		query,
+		locale: language,
+		maxPrice: maxPrice ?? null,
+		category: category === 'all' ? null : categoryFromShelf[category],
+		theme: theme === 'large' ? 'large-print' : theme
+	});
+	const ranked = $derived(
+		adapted
+			? rankProducts(
+					freeShipping ? canonical.filter(({ shipping }) => shipping === 0) : canonical,
+					activePlan
+				)
+			: []
+	);
+	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
+	const a = $derived(assistantCopy[language]);
+	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
+	let shareCopied = $state(false);
+
+	function remember() {
+		undoStack = [
+			...undoStack.slice(-19),
+			{
+				plan: structuredClone($state.snapshot(activePlan)),
+				adapted,
+				sort,
+				freeShipping,
+				locks: [...locks]
+			}
+		];
+	}
+	function register(key: keyof ShopperPlan) {
+		cancelLive();
+		if (!locks.includes(key)) locks = [...locks, key];
+	}
+	function writePlan(next: ShopperPlan) {
+		plan = next;
+		language = next.locale;
+		theme = next.theme === 'large-print' ? 'large' : next.theme;
+		query = draftQuery = next.query;
+		category = next.category ? shelfFromCategory[next.category] : 'all';
+		maxPrice = draftPrice = next.maxPrice ?? undefined;
+	}
+	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
+		cancelLive();
+		const previous = $state.snapshot(activePlan);
+		const entries = Object.entries(patch).filter(
+			([key, value]) =>
+				value !== undefined &&
+				!(respectLocks && locks.includes(key as keyof ShopperPlan)) &&
+				JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
+		);
+		changes = entries.map(([key]) => key as keyof ShopperPlan);
+		if (!changes.length) return;
+		remember();
+		writePlan({ ...previous, ...Object.fromEntries(entries) });
+		adapted = true;
+	}
+	function undo() {
+		cancelLive();
+		const previous = undoStack.at(-1);
+		if (!previous) return;
+		undoStack = undoStack.slice(0, -1);
+		writePlan(previous.plan);
+		adapted = previous.adapted;
+		sort = previous.sort;
+		freeShipping = draftShipping = previous.freeShipping;
+		locks = previous.locks;
+		changes = [];
+	}
+	function restoreDefaults() {
+		cancelLive();
+		remember();
+		writePlan(structuredClone(defaultPlan));
+		locks = [];
+		adapted = false;
+		sort = 'default';
+		freeShipping = draftShipping = false;
+		changes = [];
+	}
+	function removePreference(key: keyof ShopperPlan) {
+		const previous = [...locks];
+		changePlan({ [key]: structuredClone(defaultPlan[key]) }, false);
+		locks = previous.filter((item) => item !== key);
+	}
+	function selectPersona(persona: (typeof personas)[number]) {
+		changePlan(
+			{
+				...personaPlan(persona, language),
+				query,
+				category: activePlan.category,
+				maxPrice: activePlan.maxPrice
+			},
+			false
+		);
+		for (const field of [
+			'theme',
+			'layout',
+			'density',
+			'details',
+			'simplified',
+			'sections',
+			'priorities'
+		] as const)
+			register(field);
+		if (persona === 'mom') register('locale');
+	}
+	function termName(key: string, productId?: string) {
+		const plain = key.startsWith('spec.') ? key.slice(5) : key;
+		const product = canonical.find(({ id }) => id === productId);
+		const definitions = product ? specs[product.category] : Object.values(specs).flat();
+		return (
+			definitions.find(({ key: specKey }) => specKey === plain)?.label[language] ??
+			rankingTerms[plain]?.[language === 'th' ? 1 : 0] ??
+			a.priorities
+		);
+	}
+	function changeName(key: keyof ShopperPlan) {
+		return key in a ? a[key as keyof typeof a] : a.appearance;
+	}
+	function openDeal(productId: string, locale: Locale = language) {
+		openBasket([productId], locale);
+	}
+	function openBasket(productIds: readonly string[], locale: Locale = language) {
+		const openedAt = getStoreOpenedAt();
+		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
+		const basket = productIds.map((productId) => ({ productId, quantity: 1 }));
+		const receipt = optimizeDeal(basket, context);
+		if (!receipt) return;
+		quoteTrigger =
+			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
+		focusedProduct = productIds[0];
+		quote = { receipt, locale, addOns: findAddOns(basket, context) };
+		void tick().then(() => closeQuoteButton?.focus());
+	}
+	function closeDeal() {
+		quote = undefined;
+		quoteTrigger?.focus();
+	}
+	function applyTurn(next: Turn) {
+		turn = next;
+		changes = [];
+		switch (next.intent) {
+			case 'change':
+				changePlan(next.patch, true);
+				break;
+			case 'undo':
+				undo();
+				break;
+			case 'reset':
+				restoreDefaults();
+				break;
+			case 'deal':
+				if (next.productIds.length) openBasket(next.productIds);
+				break;
+		}
+	}
+
+	function send(message: string) {
+		cancelLive();
+		liveModel = undefined;
+		liveFallback = false;
+		const focus = products.some((product) => product.catalogId === focusedProduct)
+			? focusedProduct
+			: products[0]?.catalogId;
+		const simulating = dev && poisonArmed;
+		poisonArmed = false;
+		const local = simulating
+			? validateProposal(
+					{
+						intent: 'change',
+						patch: { price: 1, layout: 'foreign', sections: ['unknown'] },
+						reply: '฿1'
+					},
+					activePlan,
+					focus
+				)
+			: interpretOffline(message, activePlan, focus);
+		if (
+			simulating ||
+			!dev ||
+			!liveEnabled ||
+			(local.intent !== 'chat' && local.intent !== 'change')
+		) {
+			applyTurn(local);
+			return;
+		}
+		const hints = projectLiveHints(message);
+		if (!hints.length) {
+			applyTurn(local);
+			return;
+		}
+		const request = new AbortController();
+		liveRequest = request;
+		pendingLocalTurn = local;
+		livePending = true;
+		turn = undefined;
+		changes = [];
+		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
+			(result) => {
+				if (liveRequest !== request) return;
+				liveRequest = undefined;
+				pendingLocalTurn = undefined;
+				livePending = false;
+				if (!result) {
+					liveFallback = true;
+					applyTurn(local);
+					return;
+				}
+				const proposed = validateProposal(
+					{ intent: 'change', patch: result.patch },
+					activePlan,
+					focus
+				);
+				const additions = fillPresentationGaps(local.patch, proposed.patch, activePlan, locks);
+				const dropped = result.rejected
+					? [...new Set([...proposed.dropped, 'unknown-field'])]
+					: proposed.dropped;
+				if (!Object.keys(additions).length) {
+					applyTurn({ ...local, dropped });
+					return;
+				}
+				liveModel = result.model;
+				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
+			}
+		);
+	}
+
+	async function shareLook() {
+		const link = new SvelteURL(page.url.href);
+		link.search = '';
+		link.searchParams.set('look', `${theme}.${adapted ? plan.layout : 'grid'}.${language}`);
+		try {
+			await navigator.clipboard.writeText(link.href);
+			shareCopied = true;
+		} catch {
+			shareCopied = false;
+		}
+	}
+	onMount(() => {
+		opening = getStoreOpenedAt();
+		referenceTime = Math.max(opening, Date.now());
+		const timer = window.setInterval(() => {
+			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
+		}, 60_000);
+		return () => {
+			cancelLive();
+			window.clearInterval(timer);
+		};
+	});
+	onMount(() => {
+		const look = page.url.searchParams.get('look');
+		if (!look || look.length > 40) return;
+		const [nextTheme, nextLayout, nextLocale] = look.split('.');
+		if (
+			look.split('.').length !== 3 ||
+			!themes.includes(nextTheme as Theme) ||
+			!(nextLayout === 'grid' || nextLayout === 'list' || nextLayout === 'table') ||
+			!(nextLocale === 'en' || nextLocale === 'th')
+		)
+			return;
+		changePlan(
+			{
+				theme: nextTheme === 'large' ? 'large-print' : (nextTheme as ShopperPlan['theme']),
+				layout: nextLayout,
+				locale: nextLocale
+			},
+			false
+		);
+	});
+
+	const t = $derived(storefrontCopy[language]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
-	const products = $derived(searchProducts({ query, category, sort, maxPrice, freeShipping }));
+	const products = $derived.by(() => {
+		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping });
+		if (!adapted || eventDemo) return matched;
+		if (sort !== 'default') {
+			const visible = new Set(
+				rankProducts(canonical, { ...activePlan, simplified: false }).map(
+					({ product }) => product.id
+				)
+			);
+			const filtered = matched.filter(({ catalogId }) => visible.has(catalogId));
+			return plan.simplified ? filtered.slice(0, 3) : filtered;
+		}
+		return ranked.flatMap(({ product }) => catalogById.get(product.id) ?? []);
+	});
+	const topDeal = $derived.by(() => {
+		const top = products[0];
+		if (
+			eventDemo ||
+			!adapted ||
+			!plan.sections.includes('best-deal') ||
+			!top ||
+			opening === undefined ||
+			referenceTime === undefined
+		)
+			return null;
+		return optimizeDeal([{ productId: top.catalogId, quantity: 1 }], {
+			openedAt: opening,
+			now: referenceTime
+		});
+	});
 
 	function submitSearch(event: SubmitEvent) {
 		event.preventDefault();
+		remember();
+		register('query');
 		query = draftQuery.trim();
 	}
 
 	function applyFilters(event: SubmitEvent) {
 		event.preventDefault();
+		remember();
+		if (draftPrice !== undefined) register('maxPrice');
 		maxPrice = draftPrice;
 		freeShipping = draftShipping;
 		if (eventDemo) filterDialog?.close();
 	}
 
 	function clearFilters() {
+		cancelLive();
+		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
 		maxPrice = undefined;
 		draftShipping = false;
@@ -146,7 +461,13 @@
 	/>
 </svelte:head>
 
-<div class="store" class:event-demo={eventDemo} data-theme={theme} lang={language}>
+<div
+	class="store"
+	class:event-demo={eventDemo}
+	data-theme={theme}
+	data-density={adapted ? plan.density : 'comfortable'}
+	lang={language}
+>
 	<a class="skip" href="#products">{t.skip}</a>
 	{#if !eventDemo}
 		<header class="masthead">
@@ -166,7 +487,7 @@
 					DynamicShopper
 				</a>
 				<div class="settings">
-					<select aria-label={t.theme} bind:value={theme}>
+					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -175,7 +496,10 @@
 						type="button"
 						lang={language === 'th' ? 'en' : 'th'}
 						disabled={!interactive}
-						onclick={() => (language = language === 'th' ? 'en' : 'th')}
+						onclick={() => {
+							register('locale');
+							language = language === 'th' ? 'en' : 'th';
+						}}
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
 					</button>
@@ -314,9 +638,23 @@
 					{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
 				</button>
 			{/if}
-			<button aria-pressed={category === 'all'} onclick={() => (category = 'all')}>{t.all}</button>
+			<button
+				aria-pressed={category === 'all'}
+				onclick={() => {
+					register('category');
+					category = 'all';
+				}}
+			>
+				{t.all}
+			</button>
 			{#each categoryKeys as key (key)}
-				<button aria-pressed={category === key} onclick={() => (category = key)}>
+				<button
+					aria-pressed={category === key}
+					onclick={() => {
+						register('category');
+						category = key;
+					}}
+				>
 					{categories[key][language]}
 				</button>
 			{/each}
@@ -325,7 +663,10 @@
 					type="button"
 					lang={language === 'th' ? 'en' : 'th'}
 					disabled={!interactive}
-					onclick={() => (language = language === 'th' ? 'en' : 'th')}
+					onclick={() => {
+						register('locale');
+						language = language === 'th' ? 'en' : 'th';
+					}}
 				>
 					{language === 'th' ? 'English' : 'ไทย'}
 				</button>
@@ -464,6 +805,169 @@
 			</div>
 		{/if}
 
+		{#if !eventDemo}
+			<section class="shopper-tools" aria-label={a.persona}>
+				<ShoppingAssistant locale={language} onSend={send} />
+				<div class="shopper-actions">
+					{#each personas as persona (persona)}
+						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
+					{/each}
+					<button
+						type="button"
+						aria-expanded={compareOpen}
+						onclick={() => (compareOpen = !compareOpen)}
+					>
+						{compareOpen ? a.closeCompare : a.compare}
+					</button>
+					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
+					<button
+						type="button"
+						disabled={!interactive}
+						aria-expanded={traceOpen}
+						onclick={() => (traceOpen = !traceOpen)}
+					>
+						{a.trace}
+					</button>
+				</div>
+				{#if livePending}
+					<p class="assistant-reply" role="status">
+						{language === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
+					</p>
+				{/if}
+				{#if turn}
+					<div class="assistant-reply" aria-live="polite">
+						<span class="mode-label">
+							{liveModel ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
+						</span>
+						<p>{turn.reply}</p>
+						{#if turn.citations.length}
+							<strong>{a.fromListing}</strong>
+							<ul>
+								{#each turn.citations as citation (`${citation.productId}:${citation.field}`)}
+									<li>
+										<a
+											href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, {
+												id: citation.productId
+											})}
+										>
+											<FactValue
+												productId={citation.productId}
+												field={citation.field}
+												locale={language}
+											/>
+										</a>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				{/if}
+				{#if changes.length}
+					<div class="assistant-reply" aria-live="polite">
+						<strong>{a.changed}</strong>
+						<div class="shopper-actions">
+							{#each [...new Set(changes.map(changeName))] as label (label)}
+								<span>{label}</span>
+							{/each}
+						</div>
+					</div>
+				{/if}
+				{#if adapted || locks.length}
+					<div class="shopper-actions" aria-label={a.appearance}>
+						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
+							{@const key = value as keyof ShopperPlan}
+							{#if JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])}
+								<button
+									type="button"
+									aria-label={`${a.remove} ${changeName(key)}`}
+									onclick={() => removePreference(key)}
+								>
+									{changeName(key)}{key === 'maxPrice' && maxPrice
+										? ` · ${formatBaht(maxPrice, language)}`
+										: ''} ×
+								</button>
+							{/if}
+						{/each}
+					</div>
+				{/if}
+				{#if traceOpen}
+					<div class="assistant-reply" aria-label={a.trace}>
+						<p>
+							{liveModel
+								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${liveModel}`
+								: a.offline}
+						</p>
+						{#if liveFallback}<p>
+								{language === 'th'
+									? 'ใช้การตอบแบบออฟไลน์แทน'
+									: 'Live model unavailable. Used offline mode.'}
+							</p>{/if}
+						{#if dev}
+							<button type="button" onclick={toggleLive} aria-pressed={liveEnabled}>
+								{liveEnabled
+									? language === 'th'
+										? 'บังคับโหมดออฟไลน์'
+										: 'Force offline'
+									: language === 'th'
+										? 'ลองใช้โมเดลสด'
+										: 'Try live model'}
+							</button>
+						{/if}
+						{#if turn?.guarded}<p>{a.guard}</p>{/if}
+						{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
+						{#if !changes.length}<p>{a.noChange}</p>{/if}
+						{#if dev}<button
+								type="button"
+								disabled={poisonArmed}
+								onclick={() => (poisonArmed = true)}
+							>
+								{poisonArmed ? a.armed : a.poison}
+							</button>{/if}
+					</div>
+				{/if}
+			</section>
+			{#if compareOpen}
+				<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+			{/if}
+			{#if quote}
+				<section class="quote" lang={quote.locale}>
+					<button
+						type="button"
+						bind:this={closeQuoteButton}
+						onclick={closeDeal}
+						onkeydown={(event) => {
+							if (event.key === 'Escape') closeDeal();
+						}}
+					>
+						{assistantCopy[quote.locale].closeDeal}
+					</button>
+					<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
+				</section>
+			{/if}
+			{#if topDeal && !quote}<DealSlip receipt={topDeal} locale={language} />{/if}
+			{#if adapted && plan.sections.includes('what-matters') && products.length}
+				<section class="assistant-reply">
+					<strong>{a.guide}</strong>
+					<p>
+						{[
+							...new Set(
+								[
+									...Object.keys(activePlan.specPreferences),
+									...Object.keys(activePlan.priorities)
+								].map((key) => termName(key, products[0]?.catalogId))
+							)
+						].join(' · ')}
+					</p>
+				</section>
+			{/if}
+			{#if adapted && plan.sections.includes('share')}
+				<div class="shopper-actions">
+					<button type="button" onclick={shareLook}>{a.share}</button>
+					{#if shareCopied}<span role="status">{a.shared}</span>{/if}
+				</div>
+			{/if}
+		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div class="results-header">
 				<h2 id="products-heading">{t.products}</h2>
@@ -474,80 +978,175 @@
 					</span>
 				</p>
 			</div>
-			{#if products.length === 0}
-				<div class="empty">
-					<h3>{t.empty}</h3>
-					<p>{t.emptyHint}</p>
-					<button type="button" class="primary" onclick={reset}>{t.reset}</button>
-				</div>
-			{:else}
-				<ul class="product-grid">
-					{#each products as product (product.id)}
-						<li class="product" data-product={product.id}>
-							{#if eventDemo}
-								<div
-									class="art demo-photo"
-									data-category={product.category}
-									data-model={product.id}
-									aria-hidden="true"
-								></div>
-							{:else}
-								<div class="art"><CategoryGlyph category={product.category} /></div>
-							{/if}
-							<div class="card-body">
-								<h3 data-fact="name" data-raw={product.name[language]}>{product.name[language]}</h3>
-								<div class="price">
-									<span class="visually-hidden">{t.price} </span>
-									<strong class="figure" data-fact="price" data-raw={product.price}>
-										{formatBaht(product.price)}
-									</strong>
-									{#if product.originalPrice !== null}
-										<span class="visually-hidden">{t.was} </span>
-										<s class="figure" data-fact="originalPrice" data-raw={product.originalPrice}>
-											{formatBaht(product.originalPrice)}
-										</s>
+			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
+			<div bind:this={proofRoot}>
+				{#if products.length === 0}
+					<div class="empty">
+						<h3>{t.empty}</h3>
+						<p>{t.emptyHint}</p>
+						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
+					</div>
+				{:else if !eventDemo && adapted && plan.layout === 'table'}
+					<ShelfTable
+						products={products.flatMap(
+							(product) => canonical.find(({ id }) => id === product.catalogId) ?? []
+						)}
+						locale={language}
+						onDeal={openDeal}
+						highlightedSpecs={plan.highlightedSpecs}
+					/>
+				{:else}
+					{#if !eventDemo && adapted && plan.sections.includes('compare')}
+						<ShelfTable
+							products={products
+								.slice(0, 3)
+								.flatMap((product) => canonical.find(({ id }) => id === product.catalogId) ?? [])}
+							locale={language}
+							onDeal={openDeal}
+							highlightedSpecs={plan.highlightedSpecs}
+						/>
+					{/if}
+					<ul
+						class="product-grid"
+						class:list-layout={!eventDemo && adapted && plan.layout === 'list'}
+					>
+						{#each products as product (product.id)}
+							<li class="product" data-product={product.catalogId}>
+								{#if eventDemo}
+									<div
+										class="art demo-photo"
+										data-category={product.category}
+										data-model={product.id}
+										aria-hidden="true"
+									></div>
+								{:else}
+									<div class="art"><CategoryGlyph category={product.category} /></div>
+								{/if}
+								<div class="card-body">
+									<h3>
+										<a
+											class="product-link"
+											href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, {
+												id: product.id
+											})}
+										>
+											<FactValue productId={product.catalogId} field="name" locale={language} />
+										</a>
+									</h3>
+									<div class="price">
+										<span class="visually-hidden">{t.price} </span>
+										<FactValue
+											tag="strong"
+											class="figure"
+											productId={product.catalogId}
+											field="price"
+											locale={language}
+										/>
+										{#if product.originalPrice !== null}
+											<span class="visually-hidden">{t.was} </span>
+											<FactValue
+												tag="s"
+												class="figure"
+												productId={product.catalogId}
+												field="originalPrice"
+												locale={language}
+											/>
+										{/if}
+									</div>
+									<div class="shipping">
+										<span>{t.shipping}</span>
+										<span class="leader" aria-hidden="true"></span>
+										<FactValue
+											class="figure"
+											productId={product.catalogId}
+											field="shipping"
+											locale={language}
+										/>
+									</div>
+									<div class="metadata">
+										<span>
+											<svg
+												viewBox="0 0 20 20"
+												width="15"
+												height="15"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.5"
+												aria-hidden="true"
+											>
+												<path
+													d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+												/>
+											</svg>
+											<span class="visually-hidden">{t.rating} </span>
+											<FactValue
+												class="figure"
+												productId={product.catalogId}
+												field="rating"
+												locale={language}
+											/>
+										</span>
+										<span>
+											{t.sold}
+											<FactValue
+												class="figure"
+												productId={product.catalogId}
+												field="sold"
+												locale={language}
+											/>
+										</span>
+									</div>
+									<FactValue
+										tag="p"
+										class="shop"
+										productId={product.catalogId}
+										field="shop"
+										locale={language}
+									/>
+									{#if !eventDemo}
+										{@const reasons =
+											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
+											[]}
+										{#if adapted && plan.details.includes('summary')}
+											<FactValue
+												tag="p"
+												productId={product.catalogId}
+												field="summary"
+												locale={language}
+											/>
+										{/if}
+										{#if adapted && (plan.sections.includes('reviews') || plan.details.includes('reviews'))}
+											<FactValue
+												tag="p"
+												productId={product.catalogId}
+												field="review.0"
+												locale={language}
+											/>
+										{/if}
+										<button
+											class="best-price"
+											type="button"
+											onclick={() => openDeal(product.catalogId)}
+										>
+											{a.deal}
+										</button>
+										{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
+											<details class="rank">
+												<summary>{a.rank}</summary>
+												<ul>
+													{#each reasons.slice(0, 3) as reason (reason.key)}
+														<li>{termName(reason.key, product.catalogId)}</li>
+													{/each}
+												</ul>
+											</details>
+										{/if}
 									{/if}
 								</div>
-								<div class="shipping">
-									<span>{t.shipping}</span>
-									<span class="leader" aria-hidden="true"></span>
-									<span class="figure" data-fact="shipping" data-raw={product.shipping}>
-										{product.shipping === 0 ? t.free : formatBaht(product.shipping)}
-									</span>
-								</div>
-								<div class="metadata">
-									<span>
-										<svg
-											viewBox="0 0 20 20"
-											width="15"
-											height="15"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.5"
-											aria-hidden="true"
-										>
-											<path
-												d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
-											/>
-										</svg>
-										<span class="visually-hidden">{t.rating} </span>
-										<span class="figure" data-fact="rating" data-raw={product.rating}>
-											{formatNumber(product.rating)}
-										</span>
-									</span>
-									<span>
-										{t.sold}
-										<span class="figure" data-fact="sold" data-raw={product.sold}>
-											{formatNumber(product.sold)}
-										</span>
-									</span>
-								</div>
-								<p class="shop" data-fact="shop" data-raw={product.shop}>{product.shop}</p>
-							</div>
-						</li>
-					{/each}
-				</ul>
-			{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 		</section>
 		<footer>
 			{eventDemo
@@ -785,7 +1384,7 @@
 	footer,
 	.shipping,
 	.metadata,
-	.shop {
+	.card-body :global(.shop) {
 		color: var(--muted);
 		font-size: var(--small);
 	}
@@ -797,7 +1396,64 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.75rem;
 	}
+	.store[data-density='compact'] .card-body {
+		padding: 0.5rem;
+		gap: 0.3rem;
+	}
+	.store[data-density='spacious'] .card-body {
+		padding: 1rem;
+		gap: 0.65rem;
+	}
+	.list-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.shopper-tools,
+	.quote {
+		margin-block: 1rem;
+		border-block: 1px solid var(--seam);
+		padding-block: 0.7rem;
+	}
+	.shopper-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		align-items: center;
+		margin-block: 0.55rem;
+	}
+	.assistant-reply {
+		border: 1px dashed var(--seam);
+		padding: 0.6rem 0.75rem;
+		margin-block: 0.55rem;
+		overflow-wrap: anywhere;
+	}
+	.assistant-reply p {
+		margin-block: 0.25rem;
+	}
+	.mode-label {
+		color: var(--muted);
+	}
+	.best-price,
+	.rank {
+		position: relative;
+		z-index: 1;
+		justify-self: start;
+	}
+	.rank summary {
+		min-block-size: var(--tap);
+		align-content: center;
+		cursor: pointer;
+	}
+	.product-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+	.product:has(.product-link:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
 	.product {
+		position: relative;
 		min-width: 0;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
@@ -827,7 +1483,7 @@
 	.card-body h3 {
 		margin-bottom: 0.45rem;
 	}
-	.figure {
+	.store :global(.figure) {
 		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 		font-variant-numeric: tabular-nums;
 	}
@@ -838,10 +1494,10 @@
 		flex-wrap: wrap;
 		margin-top: auto;
 	}
-	.price strong {
+	.price :global(strong) {
 		font-size: max(1.45rem, var(--size));
 	}
-	.price s {
+	.price :global(s) {
 		color: var(--void);
 		font-size: var(--small);
 	}
@@ -868,7 +1524,7 @@
 		align-items: center;
 		gap: 0.25rem;
 	}
-	.shop {
+	.card-body :global(.shop) {
 		margin-top: 0.2rem;
 	}
 	.empty {
@@ -1058,6 +1714,9 @@
 	.demo-photo:where(.art) {
 		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
 	}
+	.demo-photo[data-model='cooker-1'] {
+		background: #d0dce6 url('../lib/assets/products/cooker-one-button.jpg') center / cover no-repeat;
+	}
 	.demo-photo[data-category='earbuds'] {
 		background-position: 50% 0;
 	}
@@ -1096,11 +1755,11 @@
 		font-size: 0.875rem;
 		font-weight: 400;
 	}
-	.event-demo .price strong {
+	.event-demo .price :global(strong) {
 		color: var(--accent);
 		font-size: 1.1rem;
 	}
-	.event-demo .price s {
+	.event-demo .price :global(s) {
 		color: var(--muted);
 	}
 	.event-demo .shipping {

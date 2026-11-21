@@ -21,7 +21,7 @@ Thai shoppers time purchases around sales because stacked vouchers decide the re
 
 ## Finding the best deal
 
-**Exact search, not a heuristic.** Every legal combination is tried: for each shop, no voucher or one of its eligible vouchers; then no platform voucher or one; then no shipping voucher or one; then the best coin use. The cheapest total wins. Greedy approaches ("best shop voucher first, then platform") miss real optima when a minimum spend interacts with a cap, and the voucher set is small enough to search completely. For pathological sets the search is bounded and keeps only the strongest candidates per slot; the catalog never reaches that bound.
+The optimizer searches the legal combinations for each shop, then the platform and shipping slots, and applies the best coin use. Equivalent offers with identical pricing effects use a stable representative. The cheapest total wins. Taking the largest shop discount first can disqualify a larger platform voucher, so the optimizer considers skipping it. A voucher set above the search bound produces no confirmed receipt. The catalog stays below that bound.
 
 **Ties** go to the combination that uses fewer vouchers, then to a stable order, so the same basket always gives the same answer and a voucher worth nothing (a shipping voucher when shipping is already free) is never "used".
 

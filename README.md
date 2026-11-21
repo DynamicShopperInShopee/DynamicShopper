@@ -6,18 +6,32 @@ In your own checkout, run `git fetch origin` and switch to your existing task br
 
 See the [team setup and security guide](docs/team-setup.md) for required tools, optional Codex skills by role, and repository access rules.
 
-| Owner | Assignment | Branch |
-| --- | --- | --- |
-| 1 | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md) | `feat/catalog-pricing` |
-| 2 | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | Owner’s working branch |
-| 3 | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md) | Owner’s working branch |
-| 4 | [Integration and release](docs/superpowers/plans/04-integration-and-release.md) | Owner’s working branch |
+| Owner | Assignment                                                                          | Branch                 |
+| ----- | ----------------------------------------------------------------------------------- | ---------------------- |
+| 1     | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md)             | `feat/catalog-pricing` |
+| 2     | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | Owner’s working branch |
+| 3     | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md)           | Owner’s working branch |
+| 4     | [Integration and release](docs/superpowers/plans/04-integration-and-release.md)     | Owner’s working branch |
 
 See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.md) for the two-shopper rehearsal and the [contributor rules](AGENTS.md) for review and merge ownership.
 
+## Running the storefront
+
+The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The event-demo layout is available at `/?demo=shopee`.
+
+## Optional local OpenAI test
+
+Put your API key in the ignored `.env` file as `OPENAI_API_KEY`. Keep the tracked example blank. `OPENAI_MODEL` can select a model available to your API project and defaults to `gpt-5-mini`.
+
+Run `bun run dev --host 127.0.0.1` and open the printed loopback URL. In **X-ray**, choose **Try live model** and send a presentation request such as “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. X-ray identifies live and offline results, and **Force offline** switches subsequent turns back to the fallback. A production build runs the storefront offline.
+
+The local model receives a short list of allowlisted presentation hints. Product facts, prices, raw messages, and conversation history stay in the app. The model may propose a theme, layout, density or language. Listing questions and deal math use the existing deterministic paths.
+
+Run `bun run scripts/evaluate-local-assistant.ts` to compare the model and fallback on five fixed synthetic presentation cases. This opt-in command makes billable API requests and prints per-case matches without printing keys or provider payloads. Treat the results as smoke-test evidence.
+
 ## Database configuration
 
-The app uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1.
+The separate authentication demo uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1. Its routes must be configured before use.
 
 ### Local SQLite
 
@@ -39,6 +53,8 @@ bun run db:d1:local
 # For the deployed database:
 bun run db:d1:remote
 ```
+
+In Cloudflare, configure `ORIGIN` as a variable and `BETTER_AUTH_SECRET` as a secret under **Workers & Pages → your Worker → Settings → Variables and Secrets**. Set them for **Production** and separately for **Previews Base**. `DATABASE_URL` is only needed for local SQLite; D1 uses the `DB` binding. These values are read at runtime, so they do not need to be supplied as build variables.
 
 Run the app in the Cloudflare runtime with `bun run dev:d1`. The `DB` binding selects D1 automatically; without it the app uses `DATABASE_URL` and local SQLite. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
 
