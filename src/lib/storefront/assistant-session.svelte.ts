@@ -130,6 +130,11 @@ export function createAssistantSession(
 
 	return {
 		cancel: cancelLive,
+		clearReply: () => {
+			turn = undefined;
+			liveModel = undefined;
+			liveFallback = false;
+		},
 		toggle: toggleLive,
 		armPoison: () => {
 			if (dev) poisonArmed = true;

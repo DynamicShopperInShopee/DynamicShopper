@@ -43,4 +43,4 @@ The product always offers a direct path to the same result:
 | A deal does not appear | Press "Best price" on a card |
 | The compare check says "Nothing to compare yet" | Search "rice cooker" on the compare page |
 | The network or the AI is unavailable | Carry on: the store answers in Offline mode |
-| The store is in a confusing state | Reset |
+| The store is in a confusing state | **Reset store** restores the default shelf and clears the previous reply and deal receipt |

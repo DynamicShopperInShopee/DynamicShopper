@@ -93,6 +93,10 @@ test('preserves explicit sorting and prices each chat-selected product offline',
 	await expect(items.nth(0)).toHaveAttribute('data-raw', '1450');
 	await expect(items.nth(1)).toHaveAttribute('data-raw', '1590');
 	await expect(sort).toHaveValue('price-high');
+	await page.getByRole('button', { name: 'Reset store' }).click();
+	await expect(items).toHaveCount(0);
+	await expect(page.locator('.mode-label')).toHaveCount(0);
+	await expect(sort).toHaveValue('default');
 });
 
 test('adapts and reverses the shelf offline and compares the same cooker deal', async ({

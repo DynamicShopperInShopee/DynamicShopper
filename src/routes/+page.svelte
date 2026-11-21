@@ -212,8 +212,12 @@
 		locks = previous.locks;
 		changes = [];
 	}
-	function restoreDefaults() {
+	function restoreDefaults(keepReply = false) {
 		assistant.cancel();
+		if (!keepReply) assistant.clearReply();
+		selectedBasket = undefined;
+		quoteTrigger = undefined;
+		focusedProduct = undefined;
 		remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
@@ -309,7 +313,7 @@
 				undo();
 				break;
 			case 'reset':
-				restoreDefaults();
+				restoreDefaults(true);
 				break;
 			case 'deal':
 				if (next.productIds.length) openBasket(next.productIds);
@@ -910,7 +914,7 @@
 					</div>
 					<div class="shopper-actions shelf-utilities">
 						<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-						<button type="button" onclick={restoreDefaults}>{a.reset}</button>
+						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
 						<button
 							type="button"
 							disabled={!interactive}
