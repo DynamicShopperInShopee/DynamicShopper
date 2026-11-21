@@ -48,7 +48,9 @@
 
 <dialog bind:this={sheet} aria-labelledby="specs-title">
 	<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
-	<SpecificationRows {specs} {th} />
+	<div class="sheet-content">
+		<SpecificationRows {specs} {th} />
+	</div>
 	<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
 </dialog>
 
@@ -104,8 +106,25 @@
 		margin: auto auto 0;
 		border: 1px solid #e9e6dc;
 		border-radius: 12px 12px 0 0;
-		padding: 1rem;
+		padding: 0;
 		color: #16161a;
+	}
+	dialog[open] {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+	.sheet-content {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: auto;
+		overscroll-behavior: contain;
+		padding-inline: 1.25rem;
+	}
+	dialog form {
+		flex: none;
+		border-top: 1px solid #e9e6dc;
+		padding: 0.5rem 0.5rem max(0.5rem, env(safe-area-inset-bottom, 0px));
 	}
 	dialog::backdrop {
 		background: rgb(0 0 0 / 40%);
@@ -113,10 +132,14 @@
 	h2 {
 		text-align: center;
 		margin: 0;
-		padding-bottom: 0.75rem;
+		padding: 0.85rem 1rem;
+		font-size: 1.125rem;
 		border-bottom: 1px solid #e9e6dc;
 	}
 	@media (max-width: 699px) {
+		dialog {
+			height: 84dvh;
+		}
 		.actions {
 			position: fixed;
 			inset-inline: 0;

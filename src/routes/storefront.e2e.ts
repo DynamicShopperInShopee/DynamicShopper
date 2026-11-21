@@ -116,6 +116,10 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await page.getByRole('button', { name: 'Specifications' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Specifications' });
 	await expect(sheet).toBeVisible();
+	const sheetBox = await sheet.boundingBox();
+	expect(sheetBox?.height ?? 0).toBeGreaterThan(844 * 0.8);
+	expect((sheetBox?.y ?? 0) + (sheetBox?.height ?? 0)).toBe(844);
+	await expect(sheet.getByRole('button', { name: 'Done' })).toBeInViewport();
 	await expect(sheet.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
 	await sheet.getByRole('button', { name: 'Done' }).click();
 	await expect(sheet).toBeHidden();
