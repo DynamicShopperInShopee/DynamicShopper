@@ -4,6 +4,8 @@
 
 In your own checkout, run `git fetch origin` and `git switch <your-branch>`. Open one assignment in a fresh Sol session and use its start prompt. Owner 4 coordinates the first contract PR while Owners 1–3 provide examples and begin independent checks. Each teammate commits and pushes to their own branch.
 
+See the [team setup and security guide](docs/team-setup.md) for required tools, optional Codex skills by role, and repository access rules.
+
 | Owner | Assignment | Branch |
 | --- | --- | --- |
 | 1 | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md) | `feat/catalog-pricing` |
