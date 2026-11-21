@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
@@ -952,6 +953,7 @@
 										class="art demo-photo"
 										data-category={product.category}
 										data-model={product.id}
+									data-cooker-photo={product.catalogId}
 										aria-hidden="true"
 									></div>
 								{:else}
@@ -1656,8 +1658,10 @@
 	.demo-photo[data-category='power'] {
 		background-position: 100% 0;
 	}
-	.demo-photo[data-category='cooker'] {
-		background-position: 0 100%;
+	.demo-photo[data-category='cooker']:not([data-model='cooker-1']) {
+		background-image: var(--cooker-image, url('../lib/assets/products/demo-categories.jpg'));
+		background-position: var(--cooker-position, 0 100%);
+		background-size: var(--cooker-size, 300% 200%);
 	}
 	.demo-photo[data-category='skin'] {
 		background-position: 50% 100%;

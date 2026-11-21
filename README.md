@@ -56,6 +56,8 @@ bun run db:d1:local
 bun run db:d1:remote
 ```
 
+In Cloudflare, configure `ORIGIN` as a variable and `BETTER_AUTH_SECRET` as a secret under **Workers & Pages → your Worker → Settings → Variables and Secrets**. Set them for **Production** and separately for **Previews Base**. `DATABASE_URL` is only needed for local SQLite; D1 uses the `DB` binding. These values are read at runtime, so they do not need to be supplied as build variables.
+
 Run the app in the Cloudflare runtime with `bun run dev:d1`. The `DB` binding selects D1 automatically; without it the app uses `DATABASE_URL` and local SQLite. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).

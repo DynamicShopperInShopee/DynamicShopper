@@ -12,5 +12,14 @@
                         "database_id": "0098249a-09f0-405d-ab80-0a970d478011",
                         "migrations_dir": "drizzle"
                 }
-        ]
+	],
+	"previews": {
+		"d1_databases": [
+			{
+				"binding": "DB",
+				"database_name": "dynamic-shopper",
+				"database_id": "7958193c-8039-4b5c-b123-583117748b2a"
+			}
+		]
+	}
 }

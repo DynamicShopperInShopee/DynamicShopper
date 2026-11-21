@@ -1,0 +1,19 @@
+[data-cooker-photo='cooker-digital'],
+[data-cooker-photo='cooker-family'],
+[data-cooker-photo='cooker-mini'],
+[data-cooker-photo='cooker-steamer'] {
+	--cooker-image: url('./cooker-variants.jpg');
+	--cooker-size: 200% 200%;
+}
+[data-cooker-photo='cooker-digital'] {
+	--cooker-position: 0 0;
+}
+[data-cooker-photo='cooker-family'] {
+	--cooker-position: 100% 0;
+}
+[data-cooker-photo='cooker-mini'] {
+	--cooker-position: 100% 100%;
+}
+[data-cooker-photo='cooker-steamer'] {
+	--cooker-position: 0 100%;
+}
