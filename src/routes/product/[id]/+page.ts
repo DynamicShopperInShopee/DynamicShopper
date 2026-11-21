@@ -31,7 +31,16 @@ export const load: PageLoad = ({ params, url }) => {
 	const fact = (field: string) => presentFact(resolveFact(product.id, field)!, language);
 	const originalPrice = resolveFact(product.id, 'originalPrice');
 	const shop = resolveFact(product.id, 'shop');
+	const look = url.searchParams.get('look') ?? '';
+	const receiptQuery =
+		url.searchParams.get('view') === 'receipt'
+			? 'view=receipt' +
+				(/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(look)
+					? '&look=' + look
+					: '')
+			: '';
 	return {
+		receiptQuery,
 		id: product.id,
 		pathId: params.id,
 		category: product.category,
