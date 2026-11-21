@@ -42,6 +42,7 @@ for (const viewport of [
 			await page.goto('/');
 			const language = page.getByRole('button', { name: 'ไทย', exact: true });
 			await expect(language).toBeEnabled();
+			await expect(language).toBeInViewport({ ratio: 1 });
 			if (locale === 'th') await language.click();
 			const start = page.getByRole('button', { name: text.start });
 			await start.press('Enter');

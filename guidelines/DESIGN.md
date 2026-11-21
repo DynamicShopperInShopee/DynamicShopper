@@ -256,6 +256,8 @@ The specification sheet includes the catalog product name, seller, category spec
 
 Search cards group the delivery amount and seller on one metadata row. The matching-shop panel uses shorter vertical spacing so the first row of square product photos begins higher in the viewport.
 
+The storefront header includes the language switch on phones and laptops. Shoppers can choose Thai or English before searching or starting the interview.
+
 Skincare results lead with the shop panel, sort tabs and a single row of working quick controls, beginning with Free shipping. The result heading and count remain available to assistive technology without adding another visible row. Cooker searches place the submit icon inside the leading edge of the input on phones, with full-size tap targets.
 
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
