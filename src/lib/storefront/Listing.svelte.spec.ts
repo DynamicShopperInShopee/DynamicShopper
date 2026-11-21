@@ -1,7 +1,8 @@
 import { render } from 'vitest-browser-svelte';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import CitationSlip from './CitationSlip.svelte';
 import DealSlip from './DealSlip.svelte';
+import ProductListing from './ProductListing.svelte';
 import type { FactLocale, ResolvePrintedFact } from './verifyFacts';
 
 const productId = 'cooker-one-button';
@@ -78,4 +79,53 @@ it('renders the supplied optimizer result consistently from any entry point', as
 	expect(first.container.textContent).toContain('Minimum spend not met');
 	await second.rerender({ receipt: undefined });
 	expect(second.container.querySelector('[data-proof="calculated"]')).toBeNull();
+});
+
+it('shows a catalog-backed listing in the requested detail order and delegates shopper actions', async () => {
+	const onAdd = vi.fn();
+	const onBestPrice = vi.fn();
+	const records: Record<string, string | number> = {
+		name: 'หม้อหุงข้าวปุ่มเดียว',
+		price: 690,
+		summary: 'ทำข้าวด้วยปุ่มเดียว',
+		'review.0': 'ปุ่มใช้งานง่าย'
+	};
+	const listingResolver: ResolvePrintedFact = (id, field, locale) => {
+		const spec = resolve(id, field, locale);
+		if (spec) return spec;
+		if (id !== productId || !Object.hasOwn(records, field)) return;
+		const raw = records[field];
+		return {
+			productId: id,
+			field,
+			source: 'catalog',
+			raw,
+			text: field === 'price' ? '690 บาท' : String(raw)
+		};
+	};
+	const screen = await render(ProductListing, {
+		productId,
+		locale: 'th',
+		resolve: listingResolver,
+		storeHref: '/',
+		specs: [{ field: 'spec.capacity', label: { en: 'Capacity', th: 'ความจุ' } }],
+		order: ['specs', 'summary', 'reviews'],
+		onAdd,
+		onBestPrice
+	});
+	const headings = [...screen.container.querySelectorAll('[data-listing-section] h2')];
+	expect(headings.map((heading) => heading.textContent)).toEqual(['สเปกสำคัญ', 'สรุปสินค้า', 'รีวิว']);
+	await expect.element(screen.getByText('690 บาท')).toHaveAttribute('data-raw', '690');
+	await expect.element(screen.getByText('1.8 ลิตร')).toHaveAttribute('data-raw', '1.8');
+	await expect.element(screen.getByText('5 รายการที่ตรวจตรงกับแค็ตตาล็อก')).toBeVisible();
+	await screen.getByRole('button', { name: 'เพิ่มในตะกร้า' }).click();
+	await screen.getByRole('button', { name: 'ดูราคาที่ดีที่สุด' }).click();
+	expect(onAdd).toHaveBeenCalledExactlyOnceWith(productId);
+	expect(onBestPrice).toHaveBeenCalledExactlyOnceWith(productId);
+	await screen.rerender({ productId: 'unknown' });
+	await expect.element(screen.getByRole('heading', { name: 'ไม่พบสินค้า' })).toBeVisible();
+	await expect
+		.element(screen.getByRole('link', { name: 'กลับหน้าร้าน' }))
+		.toHaveAttribute('href', '/');
+	expect(screen.container.querySelector('button')).toBeNull();
 });
