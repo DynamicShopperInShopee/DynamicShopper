@@ -17,7 +17,7 @@ type AssistantContext = {
 
 export function createAssistantSession(
 	read: () => AssistantContext,
-	apply: (turn: Turn) => void,
+	apply: (turn: Turn, requestedCategory?: ShopperPlan['category']) => void,
 	startPending: () => void
 ) {
 	let poisonArmed = $state(false);
@@ -29,9 +29,9 @@ export function createAssistantSession(
 	let pendingLocalTurn: Turn | undefined;
 	let turn = $state<Turn>();
 
-	function applyTurn(next: Turn) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
 		turn = next;
-		apply(next);
+		apply(next, requestedCategory);
 	}
 	function cancelLive() {
 		liveRequest?.abort();
@@ -44,7 +44,7 @@ export function createAssistantSession(
 		const fallback = pendingLocalTurn;
 		cancelLive();
 		liveEnabled = !liveEnabled;
-		if (fallback) applyTurn(fallback);
+		if (fallback) applyTurn(fallback, fallback.patch.category);
 	}
 
 	function send(message: string) {
@@ -65,18 +65,20 @@ export function createAssistantSession(
 					focus
 				)
 			: interpretOffline(message, plan, focus);
+		// Only the offline parser reads product categories from the shopper's message.
+		const requestedCategory = simulating ? undefined : local.patch.category;
 		if (
 			simulating ||
 			!dev ||
 			!liveEnabled ||
 			(local.intent !== 'chat' && local.intent !== 'change')
 		) {
-			applyTurn(local);
+			applyTurn(local, requestedCategory);
 			return;
 		}
 		const hints = projectLiveHints(message);
 		if (!hints.length) {
-			applyTurn(local);
+			applyTurn(local, requestedCategory);
 			return;
 		}
 		const request = new AbortController();
@@ -93,7 +95,7 @@ export function createAssistantSession(
 				livePending = false;
 				if (!result) {
 					liveFallback = true;
-					applyTurn(local);
+					applyTurn(local, requestedCategory);
 					return;
 				}
 				const current = read();
@@ -108,15 +110,19 @@ export function createAssistantSession(
 					current.plan,
 					current.locks
 				);
-				const dropped = result.rejected
-					? [...new Set([...proposed.dropped, 'unknown-field'])]
-					: proposed.dropped;
+				const dropped =
+					result.rejected && !proposed.dropped.includes('unknown-field')
+						? [...proposed.dropped, 'unknown-field']
+						: proposed.dropped;
 				if (!Object.keys(additions).length) {
-					applyTurn({ ...local, dropped });
+					applyTurn({ ...local, dropped }, requestedCategory);
 					return;
 				}
 				liveModel = result.model;
-				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
+				applyTurn(
+					{ ...proposed, patch: { ...local.patch, ...additions }, dropped },
+					requestedCategory
+				);
 			}
 		);
 	}
@@ -124,7 +130,7 @@ export function createAssistantSession(
 	return {
 		cancel: cancelLive,
 		toggle: toggleLive,
-		armPoison() {
+		armPoison: () => {
 			if (dev) poisonArmed = true;
 		},
 		send,

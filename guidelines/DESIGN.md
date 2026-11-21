@@ -183,6 +183,8 @@ Semibold, slightly larger than body, underlined by a 2px ink rule, like a receip
 
 Assistant messages sit on the paper as plain text and slips. The shopper's message is a right-aligned accent bubble at most 85% wide. The waiting line pulses only when motion is allowed. Error messages have a red border.
 
+Keep **Compare views** visible beside the **Shopper views** disclosure. Collapsing the presets keeps the product shelf closer to the top on phones. When the presets are open, the next tab reaches the first preset. Escape closes the disclosure and returns focus to its trigger. Undo, Reset, and X-ray use quieter buttons with the same target sizes. The public storefront link scrolls to and focuses the assistant section. Voucher expiry updates an open receipt in place and announces the changed content politely.
+
 ## Motion
 
 - **Receipt print:** 260ms, exponential ease-out (clip reveal plus a 0.5rem drop). Once, on appearance.

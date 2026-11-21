@@ -89,7 +89,7 @@ export const assistantCopy = {
 		rejected: 'Invalid proposal fields dropped',
 		poison: 'Simulate poisoned model',
 		armed: 'Poisoned model armed',
-		persona: 'Shopper view',
+		persona: 'Shopper views',
 		tech: 'Tech minimal',
 		visual: 'Visual vibrant',
 		mom: 'Mom mode',

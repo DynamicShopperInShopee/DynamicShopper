@@ -75,6 +75,8 @@
 		}[]
 	>([]);
 	let locks = $state<(keyof ShopperPlan)[]>([]);
+	let personasOpen = $state(false);
+	let personaTrigger = $state<HTMLButtonElement>();
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
 	let changes = $state<(keyof ShopperPlan)[]>([]);
@@ -158,10 +160,19 @@
 		category = next.category ? shelfFromCategory[next.category] : 'all';
 		maxPrice = draftPrice = next.maxPrice ?? undefined;
 	}
-	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
+	function changePlan(
+		patch: Partial<ShopperPlan>,
+		respectLocks: boolean,
+		requestedCategory?: ShopperPlan['category']
+	) {
 		assistant.cancel();
 		const previous = $state.snapshot(activePlan);
-		const accepted = reconcilePlanPatch(previous, patch, respectLocks ? locks : []);
+		const accepted = reconcilePlanPatch(
+			previous,
+			patch,
+			respectLocks ? locks : [],
+			requestedCategory
+		);
 		const entries = Object.entries(accepted).filter(
 			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
 		);
@@ -223,6 +234,11 @@
 			register(field);
 		if (persona === 'mom') register('locale');
 	}
+	function closePersonasOnEscape(event: KeyboardEvent) {
+		if (event.key !== 'Escape' || !personasOpen) return;
+		personasOpen = false;
+		personaTrigger?.focus();
+	}
 	function termName(key: string, productId?: string) {
 		const plain = key.startsWith('spec.') ? key.slice(5) : key;
 		const product = canonical.find(({ id }) => id === productId);
@@ -267,11 +283,11 @@
 		const receipt = optimizeDeal(items, context);
 		return receipt ? { receipt, locale, addOns: findAddOns(items, context) } : undefined;
 	});
-	function applyTurn(next: Turn) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
 		changes = [];
 		switch (next.intent) {
 			case 'change':
-				changePlan(next.patch, true);
+				changePlan(next.patch, true, requestedCategory);
 				break;
 			case 'undo':
 				undo();
@@ -747,29 +763,58 @@
 		{/if}
 
 		{#if !eventDemo}
-			<section class="shopper-tools" aria-label={a.persona}>
+			<section id="shopper-assistant" class="shopper-tools" aria-label={a.persona} tabindex="-1">
 				<ShoppingAssistant locale={language} onSend={assistant.send} />
-				<div class="shopper-actions">
-					{#each personas as persona (persona)}
-						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
-					{/each}
-					<button
-						type="button"
-						aria-expanded={compareOpen}
-						onclick={() => (compareOpen = !compareOpen)}
-					>
-						{compareOpen ? a.closeCompare : a.compare}
-					</button>
-					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
-					<button
-						type="button"
-						disabled={!interactive}
-						aria-expanded={traceOpen}
-						onclick={() => (traceOpen = !traceOpen)}
-					>
-						{a.trace}
-					</button>
+				<div class="shopper-toolbar">
+					<div class="shopper-actions shopper-views">
+						<button
+							type="button"
+							aria-expanded={compareOpen}
+							onclick={() => (compareOpen = !compareOpen)}
+						>
+							{compareOpen ? a.closeCompare : a.compare}
+						</button>
+						<button
+							type="button"
+							aria-expanded={personasOpen}
+							aria-controls="shopper-presets"
+							bind:this={personaTrigger}
+							onclick={() => (personasOpen = !personasOpen)}
+							onkeydown={closePersonasOnEscape}
+						>
+							{a.persona}
+							<svg class="disclosure" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+								<path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+							</svg>
+						</button>
+						<div
+							id="shopper-presets"
+							class="shopper-actions shopper-presets"
+							hidden={!personasOpen}
+						>
+							{#each personas as persona (persona)}
+								<button
+									type="button"
+									onclick={() => selectPersona(persona)}
+									onkeydown={closePersonasOnEscape}
+								>
+									{a[persona]}
+								</button>
+							{/each}
+						</div>
+					</div>
+					<div class="shopper-actions shelf-utilities">
+						<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						<button type="button" onclick={restoreDefaults}>{a.reset}</button>
+						<button
+							type="button"
+							disabled={!interactive}
+							aria-expanded={traceOpen}
+							onclick={() => (traceOpen = !traceOpen)}
+						>
+							{a.trace}
+						</button>
+					</div>
 				</div>
 				{#if assistant.pending}
 					<p class="assistant-reply" role="status">
@@ -883,7 +928,9 @@
 					>
 						{assistantCopy[quote.locale].closeDeal}
 					</button>
-					<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
+					<div aria-live="polite">
+						<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
+					</div>
 				</section>
 			{/if}
 			{#if topDeal && !quote}<DealSlip receipt={topDeal} locale={language} />{/if}
@@ -916,7 +963,7 @@
 			<div class="results-header">
 				<h2 id="products-heading">{t.products}</h2>
 				{#if eventDemo}
-					<a class="assistant-link" href={resolve('/?view=receipt')}>
+					<a class="assistant-link" href={resolve('/?view=receipt#shopper-assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
 				{/if}
@@ -1369,6 +1416,53 @@
 		gap: 0.4rem;
 		align-items: center;
 		margin-block: 0.55rem;
+	}
+	.shopper-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		column-gap: 1rem;
+		row-gap: 0.15rem;
+		margin-block-start: 0.65rem;
+	}
+	.shopper-toolbar .shopper-actions {
+		margin-block: 0;
+	}
+	.shopper-views,
+	.shelf-utilities {
+		min-inline-size: 0;
+		align-content: start;
+	}
+	.shopper-toolbar button[aria-expanded='true'] {
+		border-color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.disclosure {
+		margin-inline-start: 0.25rem;
+		vertical-align: middle;
+	}
+	button[aria-expanded='true'] .disclosure {
+		rotate: 180deg;
+	}
+	.shelf-utilities button {
+		border-color: transparent;
+		background: transparent;
+	}
+	.shelf-utilities button:not(:disabled):hover {
+		border-color: var(--seam);
+	}
+	.shelf-utilities button:disabled {
+		color: var(--muted);
+		cursor: not-allowed;
+	}
+	.shopper-presets:not([hidden]) {
+		flex-basis: 100%;
+		padding-block-start: 0.55rem;
+		border-block-start: 1px dashed var(--seam);
+	}
+	.shopper-presets[hidden] {
+		display: none;
 	}
 	.assistant-reply {
 		border: 1px dashed var(--seam);

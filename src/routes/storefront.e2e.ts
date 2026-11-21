@@ -6,7 +6,7 @@ test('moves from an explicit mouse search to Mom mode without losing the undo st
 	page,
 	context
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await context.setOffline(true);
 	await page.getByRole('searchbox').fill('gaming mouse');
@@ -30,7 +30,7 @@ test('refreshes an open shelf quote when a voucher expires offline', async ({ pa
 	const after = optimizeDeal(basket, { openedAt, now: openedAt + expiry })!;
 	await page.clock.install({ time: openedAt - 1000 });
 	await page.clock.pauseAt(openedAt);
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await context.setOffline(true);
 	await page.clock.fastForward(expiry - 1);
@@ -103,6 +103,23 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'Compare views' })).toBeEnabled();
 	await context.setOffline(true);
+	const views = page.getByRole('button', { name: 'Shopper views' });
+	const tech = page.getByRole('button', { name: 'Tech minimal' });
+	await expect(tech).toBeHidden();
+	await views.press('Space');
+	await expect(views).toHaveAttribute('aria-expanded', 'true');
+	await page.keyboard.press('Tab');
+	await expect(page.locator('#shopper-presets button').first()).toBeFocused();
+	await page.keyboard.press('Escape');
+	await expect(tech).toBeHidden();
+	await expect(views).toBeFocused();
+	await views.press('Enter');
+	await tech.click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+	await page.getByRole('button', { name: 'Undo' }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
+	await views.click();
+	await expect(tech).toBeHidden();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
@@ -278,6 +295,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await shops.getByRole('link').first().click();
 	await expect(page).toHaveURL(/\/product\/cooker-/);
 	await page.getByRole('link', { name: 'Back to store' }).click();
-	await page.getByRole('link', { name: 'Shopping assistant' }).click();
+	await page.getByRole('link', { name: 'Shopping assistant' }).press('Enter');
+	await expect(page.locator('#shopper-assistant')).toBeFocused();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });

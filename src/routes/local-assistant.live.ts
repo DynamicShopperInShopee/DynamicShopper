@@ -41,7 +41,7 @@ test('blocks untrusted requests and never uses a developer key in the test serve
 test('applies finite model hints without sharing the budget or overriding explicit choices', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await page.getByRole('button', { name: 'Try live model' }).click();
 
@@ -87,7 +87,7 @@ test('applies finite model hints without sharing the budget or overriding explic
 test('applies the local result when the shopper switches offline during a pending model request', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await page.getByRole('button', { name: 'Try live model' }).click();
 
@@ -122,7 +122,7 @@ test('applies the local result when the shopper switches offline during a pendin
 });
 
 test('shows a rejection in X-ray when every model field is unusable', async ({ page }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await page.getByRole('button', { name: 'Try live model' }).click();
 	await page.route(`**${endpoint}`, (route) =>

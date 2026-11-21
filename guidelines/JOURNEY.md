@@ -2,6 +2,8 @@
 
 One walk through the product that touches every idea in these guidelines. It is the reference experience: every part of the product should make this journey work, with or without the network.
 
+Open **Shopping assistant** from the results heading on `/`, or go directly to `/?view=receipt`. The browser demo uses the offline assistant by default. To rehearse the local live-model proof or development-only poisoned model, use the loopback setup in the [README](../README.md#optional-local-openai-test).
+
 ## The arc
 
 1. **It adapts.** The store reshapes from a Thai sentence, then ranks by what the shopper cares about.
@@ -34,7 +36,7 @@ The product always offers a direct path to the same result:
 | If | The shopper can |
 | --- | --- |
 | A reply does not reshape as expected | Use the matching suggestion chip, or Reset and send again |
-| Mom mode does not trigger | Pick "Mom mode" in the persona picker, then search "หม้อหุงข้าว" |
+| Mom mode does not trigger | Open **Shopper views**, pick **Mom mode**, then search "หม้อหุงข้าว" |
 | The answer is "I can't confirm that from the listing" | Ask about something the listing covers, such as weight; the refusal is the honest answer |
 | A deal does not appear | Press "Best price" on a card |
 | The compare check says "Nothing to compare yet" | Search "rice cooker" on the compare page |

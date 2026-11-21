@@ -5,7 +5,8 @@ import { matchesQuery } from './ranking';
 export function reconcilePlanPatch(
 	current: ShopperPlan,
 	patch: Partial<ShopperPlan>,
-	locks: readonly (keyof ShopperPlan)[]
+	locks: readonly (keyof ShopperPlan)[],
+	requestedCategory?: ShopperPlan['category']
 ): Partial<ShopperPlan> {
 	const accepted: Partial<ShopperPlan> = Object.fromEntries(
 		Object.entries(patch).filter(
@@ -22,7 +23,8 @@ export function reconcilePlanPatch(
 			(product) => product.category === category && matchesQuery(product, current.query)
 		)
 	) {
-		accepted.query = '';
+		if (category === requestedCategory) accepted.query = '';
+		else delete accepted.category;
 	}
 	return accepted;
 }

@@ -37,6 +37,7 @@ Everyone who shapes DynamicShopper, human or AI, should keep these rules. They p
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
 - **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
+- **Check both storefront entry points.** Verify the public `/` route, its **Shopping assistant** link, and the adaptive `/?view=receipt` route. Keep provider credentials out of production and run the local assistant browser suite with credentials cleared.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
 - **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).

@@ -9,7 +9,7 @@ describe('reconcilePlanPatch', () => {
 	it('keeps the Thai rice-cooker shortlist reachable after an explicit gaming-mouse search', () => {
 		const current: ShopperPlan = { ...defaultPlan, category: 'mouse', query: 'gaming mouse' };
 		const turn = interpretOffline('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ', current);
-		const patch = reconcilePlanPatch(current, turn.patch, ['query']);
+		const patch = reconcilePlanPatch(current, turn.patch, ['query'], turn.patch.category);
 		const next = { ...current, ...patch };
 		expect(next).toMatchObject({
 			category: 'rice-cooker',
@@ -25,8 +25,19 @@ describe('reconcilePlanPatch', () => {
 	it('clears an incompatible locked search without installing an inferred search', () => {
 		const current = { ...defaultPlan, query: 'gaming mouse' };
 		expect(
-			reconcilePlanPatch(current, { category: 'rice-cooker', query: 'rice cooker' }, ['query'])
+			reconcilePlanPatch(
+				current,
+				{ category: 'rice-cooker', query: 'rice cooker' },
+				['query'],
+				'rice-cooker'
+			)
 		).toEqual({ category: 'rice-cooker', query: '' });
+	});
+
+	it('preserves the searched products when a proposal alone changes the category', () => {
+		const current = { ...defaultPlan, query: 'gaming mouse' };
+		const proposed = { category: 'rice-cooker', query: '', theme: 'minimal' } as const;
+		expect(reconcilePlanPatch(current, proposed, ['query'])).toEqual({ theme: 'minimal' });
 	});
 
 	it('preserves a locked search that matches the newly selected category', () => {

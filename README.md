@@ -1,5 +1,13 @@
 # DynamicShopper
 
+DynamicShopper is a bilingual shopping prototype for the hackathon. Shoppers can ask for a different layout, a spec-first comparison, or a simpler Thai view for a family member. They can also select a preset, change their preferences, and undo changes directly. The same catalog supplies the product facts across all views, and the same optimizer calculates the voucher and coin total.
+
+- **Demo on `/`.** Browse the mobile storefront and open **Shopping assistant** from the results heading.
+- **Try two views.** In `/?view=receipt`, search for rice cookers and open **Compare views** to check shared product facts across different layouts. Open **Best price** to see the pricing calculation.
+- **Test the model locally.** The deployed storefront works offline. Local development can optionally use OpenAI to propose presentation changes from a limited set of hints.
+
+See the [demo journey](guidelines/JOURNEY.md), [product brief](guidelines/PRODUCT.md), and [system design](guidelines/SYSTEM-DESIGN.md).
+
 ## Choose your team assignment
 
 In your own checkout, run `git fetch origin` and switch to your existing task branch. If you need a branch, run `git switch -c <your-branch> origin/main` with your chosen name. Open one assignment in a fresh Sol session and use its start prompt. Owner 4 coordinates the first contract PR while Owners 1–3 provide examples and begin independent checks. Each teammate commits and pushes to their own branch.
@@ -17,13 +25,17 @@ See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.m
 
 ## Running the storefront
 
-The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The mobile storefront is the default at `/`. Its shopping assistant link opens the adaptive receipt view at `/?view=receipt`.
+The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open `/`. **Shopping assistant** in the results heading opens the adaptive receipt view and takes you to the message field area. To enter the receipt view directly, open `/?view=receipt`.
+
+Use **Shopper views** to try the four presets, **Compare views** to check shared facts side by side, and **Best price** to open an optimizer receipt. **Undo** restores the previous store state. The assistant, comparison, and receipts work offline.
+
+Run `bun run check`, `bun run test:unit -- --run`, and `bun run test:e2e` for the type, unit, and production browser checks. The production suite builds and serves the app locally.
 
 ## Optional local OpenAI test
 
 Put your API key in the ignored `.env` file as `OPENAI_API_KEY`. Keep the tracked example blank. `OPENAI_MODEL` can select a model available to your API project and defaults to `gpt-5-mini`.
 
-Run `bun run dev --host 127.0.0.1` and open the printed loopback URL. In **X-ray**, choose **Try live model** and send a presentation request such as “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. X-ray identifies live and offline results, and **Force offline** switches subsequent turns back to the fallback. A production build runs the storefront offline.
+Run `bun run dev --host 127.0.0.1` and open `/?view=receipt` on the printed loopback URL. In **X-ray**, choose **Try live model** and send a presentation request such as “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. X-ray identifies live and offline results, and **Force offline** switches subsequent turns back to the fallback. Cloudflare and other production builds use the offline assistant and require no OpenAI key.
 
 The local model receives a short list of allowlisted presentation hints. Product facts, prices, raw messages, and conversation history stay in the app. The model may propose a theme, layout, density or language. Listing questions and deal math use the existing deterministic paths.
 
@@ -59,6 +71,8 @@ bun run db:d1:remote
 In Cloudflare, configure `ORIGIN` as a variable and `BETTER_AUTH_SECRET` as a secret under **Workers & Pages → your Worker → Settings → Variables and Secrets**. Set them for **Production** and separately for **Previews Base**. `DATABASE_URL` is only needed for local SQLite; D1 uses the `DB` binding. These values are read at runtime, so they do not need to be supplied as build variables.
 
 Run the app in the Cloudflare runtime with `bun run dev:d1`. The `DB` binding selects D1 automatically; without it the app uses `DATABASE_URL` and local SQLite. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
+
+For local release verification, run `bun run build:d1` followed by `bunx wrangler deploy --dry-run`. Use the Cloudflare deployment record to verify which commit is serving production.
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
