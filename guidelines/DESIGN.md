@@ -175,6 +175,15 @@ Plain, heavy and printed; they press rather than glow.
 
 Pill, white, seam border, small text, tap height. Removable chips end in a drawn × in faded ink. Hover turns the border ink. Suggestions in chat use the same pill and wrap.
 
+### Marketplace quick filters
+
+Home categories and search-result category, shipping and capacity chips use the
+same small text, theme radius, tap height and horizontal padding. Unselected
+labels use muted ink; selected toggles use bold accent ink and an accent border.
+The search strip keeps the home row's column gap, with the existing compact phone
+row spacing and shelf-preserving collapse. Its pinned Filters action stays a
+separate white control. These rules also apply to the skincare single-row strip.
+
 ### Category tabs
 
 Toggle buttons with faded text and a transparent 3px bottom border; hover inks the text; the pressed tab is semibold ink with an accent underline.
