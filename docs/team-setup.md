@@ -54,6 +54,8 @@ For a UI review, capture one before-and-after shopper task on mobile and desktop
 
 ## Branch and security checks
 
+The [hourly storefront branch sync](storefront-branch-sync.md) documents how to inspect the Mac tracker, pause it, and test its local integration candidate.
+
 - Fetch the project's configured `origin`. Switch to your own feature branch and merge `origin/main` there. Sync again before review. Push scoped commits to your own branch and use a reviewed PR for integration.
 - Keep Codex scoped to this repo. Use the existing local Git workflow and approve only specific actions needed for a check or push. Keep secrets, personal files and unrelated repositories outside the agent workspace. Keep unrelated connectors disabled for this task.
 - After a PR merges, fetch origin and merge `origin/main` into your working branch. Check `git diff --stat origin/main...HEAD` before starting another task, and open a separate PR for that task.
