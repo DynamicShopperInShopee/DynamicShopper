@@ -12,14 +12,14 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Interview transition
 
-The default marketplace has a plain optional needs interview. Its modal shows four
-questions with labeled radio choices, Back, Next and Skip. Finishing or skipping the
-last question automatically applies one validated proposal, closes the modal and
-focuses the change receipt. Drafts and cancellation leave the store unchanged. Undo
-restores the plan and answers; chat refines the same view. There is no separate preview
-or Apply screen and no preset, persona or theme chooser in the main shopping flow.
-Desktop centers the dialog; phones use a bottom sheet. Large print keeps 20px text
-and 48px targets, with no motion when reduced motion is requested.
+The default marketplace has a plain optional needs interview. OpenAI asks a natural
+sequence of follow-up questions in a chat-style sheet, one at a time. On completion,
+the fixed validator applies one proposal, closes the sheet and focuses the change
+receipt. Drafts and cancellation leave the store unchanged. Undo restores the plan
+and answers; chat refines the same view. There is no separate preview or Apply screen
+and no preset, persona or theme chooser in the main shopping flow. Desktop centers
+the dialog; phones use a bottom sheet. Large print keeps 20px text and 48px targets,
+with no motion when reduced motion is requested.
 
 ## Preset inspection library
 

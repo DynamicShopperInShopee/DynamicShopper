@@ -55,11 +55,14 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 ## Explicit interview entry
 
 The root storefront can also obtain a presentation proposal from the optional
-four-question interview. The browser model receives answer IDs only and feeds
-the same proposal validator. Draft answers are isolated; finishing the last question passes the
-validated patch to the existing root change function and undo stack. Catalog
-facts, deterministic ranking and the optimizer stay on their existing paths.
-Model failure falls back to direct answers. See
+OpenAI-led interview. The server receives only the shopper's interview dialogue
+and a locale, and returns one follow-up at a time plus answers restricted to the
+fixed interview vocabulary. The endpoint sends no catalog or pricing context.
+Draft answers are isolated; the validated proposal is reviewed before applying,
+and the existing root change function owns the undo step. Invalid answer fields
+are discarded, replies containing digits or currency marks are replaced, and the
+local keyword/chat path remains available when the interview service is absent.
+Catalog facts, deterministic ranking and the optimizer stay on their existing paths. See
 [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline

@@ -1,0 +1,3 @@
+# Experiment only: actual Conv1d layers, autograd, optimizer, and reproducible weights.
+# Not a storefront dependency; no model or shopper data is downloaded.
+torch==2.15.0

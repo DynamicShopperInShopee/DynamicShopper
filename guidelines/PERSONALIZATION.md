@@ -1,21 +1,40 @@
 # Personalization
 
-## Interview before chat
+## Accepted interview completion flow
 
-Accepted: the default marketplace offers an optional short interview, followed by
-chat refinement. Every question is optional; drafts never alter the shelf. Apply
-uses the existing validated plan and records one undo step, including the prior
-interview answers and locks. Undo also restores the saved presentation. Applying
-equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
-remain intact. Reset removes the interview and restores the default view.
+The sourced shop starts with the ordinary marketplace. Its optional four-question
+interview gathers shopping needs; the system chooses the presentation. Completing
+the last step validates and applies one proposal immediately, closes the sheet,
+and focuses the change receipt with Undo and chat refinement. Drafts remain inert
+until completion; Back retains answers, Skip preserves skipped settings, and
+Close/Escape cancels an unfinished draft. No separate preview/Apply screen,
+manual UI chooser or production inference toggle is required.
 
-The local synthetic-trained CNN chooses allowlisted layout, information and section
-recipes and may suggest an unlocked theme. Reading density, an explicit large-text
-choice and ranking priorities follow the answers directly. Theme-picker selections
-remain protected. Later chat requests can refine CNN-suggested fields through the
-existing interpretation and validation pipeline. Answer-sourced fields retain
-the shopper’s explicit choice until edited or removed. Missing answers or failed model
-inference use direct mappings. No real shopper preference accuracy is claimed.
+Full answers use the exported browser CNN; skipped/partial answers and inference
+failure use deterministic mappings. Each predicted head is allowlisted and an
+invalid part falls back independently. The model receives answer IDs, never
+prices or product facts. Synthetic training accuracy does not establish real
+shopper preference accuracy. Missing scores, reviews or specifications cannot
+be invented to satisfy an answer.
+
+Completion records the prior interview answers and explicit locks with the plan.
+Undo also restores the saved presentation; equivalent settings create no new
+lock or Undo step. Search, category, budget and explicit sorting remain intact;
+the fixture storefront also retains its cooker-capacity filter. Reset removes
+the interview and restores the default view.
+
+The local synthetic-trained CNN chooses allowlisted layout, information and
+section recipes and may suggest an unlocked theme. Reading density, explicit
+large text and ranking priorities follow answers directly. Existing explicit
+theme choices remain protected. Later chat requests can refine CNN-suggested
+fields through the existing interpretation and validation pipeline. Answer-sourced
+fields retain the shopper's explicit choice until edited or removed.
+
+Three example views remain an editable inspection demo. They share the sourced
+catalog and shelf renderer but cannot apply a view to the shop. Existing
+explicit locks, filters and saved products remain intact during ordinary
+interview personalization. Personas below describe fixed plan recipes; they do
+not require a manual picker in the accepted sourced-shop flow.
 
 Proposed: evaluate interview completion, corrections and task success with shoppers
 before treating learned suggestions as an improvement over direct controls.

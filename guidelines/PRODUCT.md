@@ -1,5 +1,27 @@
 # Product
 
+## Accepted sourced catalog and interview completion
+
+The shopper browses the ordinary marketplace first, then optionally describes
+their needs in a four-step interview. Finishing automatically applies one
+validated presentation proposal and returns to a change receipt, Undo and chat
+refinement. Draft answers leave the shop unchanged; cancelling before completion
+discards them. The main flow does not ask the shopper to choose a UI preset or
+theme, review a proposed view or confirm a separate Apply. Three example views
+remain an inspection demo and cannot change the live shop.
+
+The accepted backend stores 1,500 unique Shopee Thailand listing observations
+in local SQLite and Cloudflare D1, with original photographs and per-listing
+provenance. The separate catalog Worker serves the same UI and read-only API;
+it does not publish the authentication scaffold. Prices were observed on
+2026-11-21, 14:22–14:32 Asia/Bangkok. They are dated listing prices, subject to
+variant and buyer conditions, not guaranteed checkout totals or continuous
+synchronization. Missing stock, shipping, ratings and reviews remain unknown.
+A validated browser snapshot supports offline browsing and local CNN changes.
+Seven earlier records are a clearly labeled fallback if neither API nor saved
+catalog is available. See [the dataset](../catalogs/shopee-2026-11-21/README.md)
+and [cloud delivery](../deploy/catalog/README.md).
+
 ## One line
 
 > The right products, the right information and the right interface for each shopper, with the facts locked.
@@ -57,8 +79,8 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ### What it deliberately does not do
 
-- No real marketplace data, accounts, checkout or payment. The agent never adds to the cart and never buys.
-- No database or cross-device sync. The shopper's store lives in their browser.
+- No real accounts, checkout or payment. Marketplace data is limited to the explicitly accepted sourced observations above. The agent never adds to the cart and never buys.
+- The database persists sourced catalog observations only. Shopper presentation, interview answers and Undo remain in the browser, with no cross-device sync.
 - No AI-written markup, copy blocks or images. The page is built only from fixed, fact-locked parts.
 - No seller analytics, photo search, voice input or long-term behaviour tracking.
 - No public deployment of the AI endpoint. It runs locally.
@@ -75,7 +97,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. At the user's explicit request, the default storefront uses an orange marketplace shopping header and photo grid; personalized receipt themes retain the neutral system. This presentation exception does not permit invented promotions or product facts.
+- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. The accepted Shopee-inspired baseline keeps its orange shopping header and search action across every theme under DynamicShopper's identity; personalized receipt themes retain the neutral proof system. Disclose simulation for fixtures and dated observations for the sourced catalog. The presentation exception does not permit invented promotions or product facts.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like
@@ -97,7 +119,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Honesty
 
-- Products, shops and vouchers are simulated. Product images are simple drawn category glyphs, not photos.
+- Core fixture products, shops and vouchers remain simulated. The accepted sourced shop uses dated listing observations and original photography, with provenance kept separate from the fixtures.
 - There are no real users, testimonials or metrics, and none may be invented.
 
 ## Ideas for later
