@@ -103,7 +103,6 @@
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
 	let interviewAnswers = $state<Answers | null>(null);
-	let interviewDirectOnly = $state(false);
 	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
@@ -251,8 +250,7 @@
 			freeShipping,
 			capacity,
 			locks: [...locks],
-			interviewAnswers: $state.snapshot(interviewAnswers),
-			interviewDirectOnly
+			interviewAnswers: $state.snapshot(interviewAnswers)
 		};
 	}
 	function remember() {
@@ -331,7 +329,6 @@
 		capacity = previous.capacity;
 		locks = previous.locks;
 		interviewAnswers = previous.interviewAnswers;
-		interviewDirectOnly = previous.interviewDirectOnly;
 	}
 	function restoreDefaults(keepReply = false) {
 		session.conversation.clear();
@@ -351,18 +348,14 @@
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		interviewAnswers = null;
-		interviewDirectOnly = false;
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
 		capacity = undefined;
 		changes = [];
 	}
-	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
-		const result = interviewProposal(answers, activePlan, {
-			directOnly,
-			lockedFields: locks
-		});
+	async function applyInterviewAnswers(answers: Answers) {
+		const result = interviewProposal(answers, activePlan);
 		const previous = $state.snapshot(activePlan);
 		const fields = Object.entries(result.patch).filter(
 			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
@@ -372,7 +365,6 @@
 			if (interviewAnswers !== null || Object.keys(result.answers).length) {
 				interviewAnswers = result.answers;
 			}
-			interviewDirectOnly = directOnly;
 			return;
 		}
 		cancelPending();
@@ -380,12 +372,11 @@
 		storeReady = true;
 		remember();
 		for (const field of Object.keys(result.patch) as (keyof ShopperPlan)[]) {
-			if (result.sources[field] === 'answer') register(field);
+			register(field);
 		}
 		writePlan({ ...previous, ...result.patch });
 		changes = fields.map(([key]) => key as keyof ShopperPlan);
 		interviewAnswers = result.answers;
-		interviewDirectOnly = directOnly;
 		adapted = true;
 		turn = undefined;
 		await tick();
@@ -515,7 +506,7 @@
 		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
-	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category'], respectLocks = true) {
 		const previous = $state.snapshot(activePlan);
 		turn = next;
 		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
@@ -523,7 +514,7 @@
 		changes = [];
 		switch (next.intent) {
 			case 'change':
-				changePlan(next.patch, true, requestedCategory);
+				changePlan(next.patch, respectLocks, requestedCategory);
 				break;
 			case 'undo':
 				undo();
@@ -579,6 +570,20 @@
 					focus
 				)
 			: interpretOffline(message, activePlan, focus);
+		if (
+			!simulating &&
+			interviewAnswers &&
+			local.intent === 'change' &&
+			local.patch.layout &&
+			/^(?:(?:list|grid|table) view|show as a (?:list|grid|table)|แบบรายการ|แบบตารางการ์ด|แบบตาราง)$/iu.test(
+				message.trim()
+			)
+		) {
+			// A direct layout command changes just that setting. Keep the shopper's other choices.
+			applyTurn({ ...local, patch: { layout: local.patch.layout } }, undefined, false);
+			return;
+		}
+
 		if (
 			simulating ||
 			!dev ||
@@ -649,7 +654,6 @@
 				locks,
 				undoStack,
 				interviewAnswers,
-				interviewDirectOnly,
 				turn,
 				liveModel,
 				liveFallback,
@@ -1331,9 +1335,7 @@
 		{#snippet interviewEntry()}
 			<InterviewEntry
 				plan={activePlan}
-				lockedFields={locks}
 				answers={interviewAnswers}
-				directOnly={interviewDirectOnly}
 				applied={interviewAnswers !== null && adapted}
 				disabled={!interactive}
 				compact={eventDemo}
