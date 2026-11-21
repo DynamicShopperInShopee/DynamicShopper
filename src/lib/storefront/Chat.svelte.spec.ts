@@ -159,3 +159,18 @@ it('opens the requested phone conversation once and leaves it closed after Escap
 		.element(screen.getByRole('button', { name: 'Chat with the assistant' }))
 		.toHaveFocus();
 });
+
+it('keeps a draft when the listing handoff fails asynchronously', async () => {
+	await page.viewport(1440, 900);
+	const screen = await render(Chat, {
+		locale: 'en',
+		messages: [],
+		pending: false,
+		onSend: () => Promise.resolve(false)
+	});
+	const field = screen.getByRole('textbox');
+	await field.fill('Change the layout');
+	await screen.getByRole('button', { name: 'Send' }).click();
+	await expect.element(screen.getByRole('alert')).toBeVisible();
+	await expect.element(field).toHaveValue('Change the layout');
+});

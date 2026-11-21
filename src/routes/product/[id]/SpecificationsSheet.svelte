@@ -1,8 +1,13 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 
 	let { specs, th }: { specs: PageData['specs']; th: boolean } = $props();
 	let sheet = $state<HTMLDialogElement>();
+	let ready = $state(false);
+	onMount(() => {
+		ready = true;
+	});
 </script>
 
 <nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>
@@ -38,6 +43,7 @@
 	{#if specs.length}
 		<button
 			type="button"
+			disabled={!ready}
 			aria-controls="product-specifications"
 			aria-haspopup="dialog"
 			onclick={(event) => {

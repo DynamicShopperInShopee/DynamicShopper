@@ -35,8 +35,9 @@ function matchesValue(actual: unknown, expected: FactValue): boolean {
 	return Object.keys(value).length === 2 && value.en === expected.en && value.th === expected.th;
 }
 
-function matchesRaw(serialized: string | null, expected: FactValue): boolean {
+function matchesRaw(serialized: string | null, expected: FactValue, legacy: boolean): boolean {
 	if (serialized === null) return false;
+	if (legacy && typeof expected === 'string') return serialized === expected;
 	try {
 		const actual: unknown = JSON.parse(serialized);
 		return matchesValue(actual, expected);
@@ -46,13 +47,20 @@ function matchesRaw(serialized: string | null, expected: FactValue): boolean {
 }
 
 function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: FactLocale) {
-	const nodes = root.querySelectorAll<HTMLElement>('[data-fact], .catalog-fact');
+	const nodes = root.querySelectorAll<HTMLElement>(
+		'.catalog-fact, [data-source="catalog"], [data-fact=""], [data-fact-node], [data-product-id]'
+	);
 	const result: FactCheck = { checked: 0, mismatches: [] };
 	const identities = new Map<string, PrintedFact>();
 
 	for (const node of nodes) {
 		if (!node.getClientRects().length || getComputedStyle(node).visibility !== 'visible') continue;
-		const { product = '', field = '', source } = node.dataset;
+		const legacy = node.hasAttribute('data-fact-node') || node.hasAttribute('data-product-id');
+		const product = (legacy ? node.dataset.productId : node.dataset.product) ?? '';
+		const field = (legacy ? node.dataset.fact : node.dataset.field) ?? '';
+		const markerPresent = legacy
+			? node.hasAttribute('data-fact-node')
+			: node.getAttribute('data-fact') === '';
 
 		const fact = product && field ? resolve(product, field, locale) : undefined;
 		const report = (reason: FactMismatch['reason']) =>
@@ -64,9 +72,9 @@ function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: Fac
 
 		result.checked++;
 		const previousMismatchCount = result.mismatches.length;
-		if (!node.hasAttribute('data-fact')) report('identity');
-		if (source !== fact.source) report('source');
-		if (!matchesRaw(node.getAttribute('data-raw'), fact.raw)) report('raw');
+		if (!markerPresent) report('identity');
+		if (node.dataset.source !== fact.source) report('source');
+		if (!matchesRaw(node.getAttribute('data-raw'), fact.raw, legacy)) report('raw');
 		if (node.innerText !== fact.text) report('text');
 		if (result.mismatches.length === previousMismatchCount) {
 			identities.set(JSON.stringify([product, field]), fact);

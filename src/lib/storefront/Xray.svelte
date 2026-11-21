@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { assistantCopy } from './copy';
 	import type { FactLocale } from './verifyFacts';
 
 	let {
@@ -9,7 +11,8 @@
 		modelName,
 		accuracy,
 		poisonArmed = false,
-		onPoison
+		onPoison,
+		children
 	}: {
 		locale: FactLocale;
 		forceOffline: boolean;
@@ -19,14 +22,15 @@
 		accuracy?: unknown;
 		poisonArmed?: boolean;
 		onPoison?: () => void;
+		children?: Snippet;
 	} = $props();
 
 	const copy = {
 		en: {
-			title: 'X-ray',
+			title: assistantCopy.en.trace,
 			force: 'Force offline',
-			poison: 'Simulate poisoned model',
-			armed: 'Poison armed',
+			poison: assistantCopy.en.poison,
+			armed: assistantCopy.en.armed,
 			empty: 'No turn to inspect yet',
 			offline: 'Offline',
 			model: 'Model',
@@ -56,10 +60,10 @@
 			modelUnavailable: 'Model accuracy unavailable'
 		},
 		th: {
-			title: 'เอ็กซ์เรย์',
+			title: assistantCopy.th.trace,
 			force: 'บังคับโหมดออฟไลน์',
-			poison: 'จำลองโมเดลส่งข้อมูลผิด',
-			armed: 'พร้อมจำลองโมเดล',
+			poison: assistantCopy.th.poison,
+			armed: assistantCopy.th.armed,
 			empty: 'ยังไม่มีรอบให้ตรวจ',
 			offline: 'ออฟไลน์',
 			model: 'โมเดล',
@@ -162,6 +166,7 @@
 
 <section lang={locale} aria-label={t.title}>
 	<h2>{t.title}</h2>
+	{@render children?.()}
 	<label>
 		<input
 			type="checkbox"
@@ -186,7 +191,7 @@
 	{/if}
 	{#if steps.length}
 		<ul>
-			{#each steps as step}
+			{#each steps as step, index (index)}
 				<li>
 					<span>{t[step.kind]}</span>
 					<span data-source="trace" data-field="tool.count" data-raw={step.read}>{step.read}</span>
@@ -202,7 +207,7 @@
 	{#if dropped.length}
 		<h3>{t.dropped}</h3>
 		<ul>
-			{#each dropped as drop}<li>{t[drop.field]} · {t[drop.reason]}</li>{/each}
+			{#each dropped as drop, index (index)}<li>{t[drop.field]} · {t[drop.reason]}</li>{/each}
 		</ul>
 	{/if}
 	<h3>{t.accuracy}</h3>
@@ -246,8 +251,13 @@
 		min-height: var(--tap, 3rem);
 	}
 	button {
+		min-width: var(--tap, 3rem);
 		min-height: var(--tap, 3rem);
 		font: inherit;
+	}
+	:focus-visible {
+		outline: 2px solid var(--accent, #16161a);
+		outline-offset: 2px;
 	}
 	[data-raw] {
 		font-family: var(--mono, 'IBM Plex Mono', monospace);

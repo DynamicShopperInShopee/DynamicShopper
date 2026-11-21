@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
+	import ProductChat from '#lib/storefront/ProductChat.svelte';
 	import { getStoreSession } from '#lib/storefront/store.svelte.ts';
 	import ListingHeader from './ListingHeader.svelte';
 	import '../../../lib/assets/fonts/plex.css';
@@ -19,6 +21,7 @@
 	let proofRoot = $state<HTMLElement>();
 	let productDeal = $state<{ showBasket: (basket: readonly CartItem[]) => void }>();
 	const th = $derived(data.language === 'th');
+	afterNavigate(() => session.listing.record(data.id));
 </script>
 
 <svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
@@ -75,12 +78,7 @@
 					</div>
 				</dl>
 				{#key data.id}
-					<ProductDeal
-						bind:this={productDeal}
-						productId={data.id}
-						locale={data.language}
-						quantity={session.cart.find(({ productId }) => productId === data.id)?.quantity}
-					>
+					<ProductDeal bind:this={productDeal} productId={data.id} locale={data.language}>
 						<AddToCart
 							productId={data.id}
 							locale={data.language}
@@ -94,6 +92,11 @@
 		<SpecificationsSheet specs={data.specs} {th} />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />
+	{#if data.receiptQuery}<ProductChat
+			productId={data.id}
+			locale={data.language}
+			theme={data.theme}
+		/>{/if}
 </main>
 
 <style>

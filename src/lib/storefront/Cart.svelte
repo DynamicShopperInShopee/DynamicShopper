@@ -14,18 +14,22 @@
 		items: readonly CartItem[];
 		locale: FactLocale;
 		resolve: ResolvePrintedFact;
-		onRemove: (productId: string) => void;
+		onRemove: (productId: string) => void | Promise<void>;
 		onBestPrice: (basket: readonly CartItem[]) => void;
 		pending?: boolean;
 	} = $props();
 
 	const id = $props.id();
 	let panel = $state<HTMLDivElement>();
+	let removing = $state(false);
+	let removalFailed = $state(false);
 	const copy = {
 		en: {
 			title: 'Cart',
 			empty: 'Your cart is empty',
 			remove: 'Remove',
+			removing: 'Removing item…',
+			removeFailed: 'Could not remove this item',
 			quantity: 'Quantity',
 			best: 'Best price for my cart',
 			unitPrice: 'Unit price'
@@ -34,6 +38,8 @@
 			title: 'ตะกร้า',
 			empty: 'ยังไม่มีสินค้าในตะกร้า',
 			remove: 'นำออก',
+			removing: 'กำลังนำสินค้าออก…',
+			removeFailed: 'นำสินค้าออกไม่ได้',
 			quantity: 'จำนวน',
 			best: 'ดูราคาที่ดีที่สุดสำหรับตะกร้า',
 			unitPrice: 'ราคาต่อชิ้น'
@@ -50,9 +56,22 @@
 	);
 
 	function bestPrice() {
-		if (pending || !rows.length) return;
+		if (pending || removing || !rows.length) return;
 		panel?.hidePopover();
 		onBestPrice(rows.map(({ item }) => item));
+	}
+
+	async function remove(productId: string) {
+		if (removing) return;
+		removing = true;
+		removalFailed = false;
+		try {
+			await onRemove(productId);
+		} catch {
+			removalFailed = true;
+		} finally {
+			removing = false;
+		}
 	}
 </script>
 
@@ -91,17 +110,20 @@
 					<button
 						type="button"
 						aria-label={`${t.remove} ${row.name.text}`}
-						onclick={() => onRemove(row.item.productId)}
+						disabled={removing}
+						onclick={() => remove(row.item.productId)}
 					>
 						{t.remove}
 					</button>
 				</li>
 			{/each}
 		</ul>
-		<button type="button" disabled={pending} onclick={bestPrice}>{t.best}</button>
+		<button type="button" disabled={pending || removing} onclick={bestPrice}>{t.best}</button>
 	{:else}
 		<p role="status">{t.empty}</p>
 	{/if}
+	{#if removing}<p role="status">{t.removing}</p>{/if}
+	{#if removalFailed}<p role="alert">{t.removeFailed}</p>{/if}
 </div>
 
 <style>

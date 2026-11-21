@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { addCartItem } from './cart';
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
 	import AddToCart from './AddToCart.svelte';
@@ -14,7 +15,10 @@
 		products: readonly Product[];
 		locale: Locale;
 		onDeal: (productId: string, locale: Locale) => void;
-		onAdd?: (productId: string) => 'added' | 'full' | 'invalid';
+		onAdd?: (
+			id: string
+		) =>
+			ReturnType<typeof addCartItem>['status'] | Promise<ReturnType<typeof addCartItem>['status']>;
 		highlightedSpecs?: readonly SpecKey[];
 	} = $props();
 

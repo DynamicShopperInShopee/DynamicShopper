@@ -1,6 +1,8 @@
 import { render } from 'vitest-browser-svelte';
 import { describe, expect, it } from 'vitest';
 import Fact from './Fact.svelte';
+import FactValue from './FactValue.svelte';
+import FactsReceipt from './FactsReceipt.svelte';
 import FactsSlip from './FactsSlip.svelte';
 import { verifyFacts } from './verifyFacts';
 
@@ -94,5 +96,62 @@ describe('mounted catalog facts', () => {
 			wrapper.before(shelf.container);
 			wrapper.remove();
 		}
+	});
+
+	it('verifies both mounted fact shapes and catches a tampered duplicate independently', async () => {
+		const legacy = await render(FactValue, { productId, field: 'price', locale: 'en' });
+		const legacyFact = legacy.getByText('฿690').element();
+		const current = await render(Fact, { fact });
+		const currentFact = current.container
+			.querySelector<HTMLElement>('[data-field="price"]')!
+			.cloneNode(true) as HTMLElement;
+		legacy.container.append(currentFact);
+		const receipt = await render(FactsReceipt, { root: legacy.container, locale: 'en' });
+		const verified = receipt.getByText('Facts verified');
+		const failed = receipt.getByText('Displayed facts differ from the catalog');
+		await expect.element(verified).toBeVisible();
+		expect(
+			receipt.container.querySelector('[data-fact="checkedCount"]')?.getAttribute('data-raw')
+		).toBe('2');
+		await expect.element(legacyFact).toHaveAttribute('data-source', 'catalog');
+
+		currentFact.removeAttribute('data-fact');
+		currentFact.textContent = '฿1';
+		await expect.element(failed).toBeVisible();
+		await expect.element(verified).not.toBeInTheDocument();
+
+		currentFact.remove();
+		await expect.element(verified).toBeVisible();
+		legacyFact.removeAttribute('data-fact-node');
+		await expect.element(failed).toBeVisible();
+	});
+
+	it('requires source on old listing facts and ignores unrelated numeric metadata', async () => {
+		const legacy = await render(FactValue, { productId, field: 'price', locale: 'th' });
+		const listing = document.createElement('dd');
+		Object.assign(listing.dataset, {
+			factNode: '',
+			productId,
+			fact: 'spec.capacity',
+			raw: '1.8',
+			source: 'catalog'
+		});
+		listing.textContent = '1.8 ลิตร';
+		const total = document.createElement('span');
+		Object.assign(total.dataset, {
+			source: 'cart',
+			product: productId,
+			field: 'quantity',
+			raw: '2'
+		});
+		total.textContent = '2';
+		legacy.container.append(listing, total);
+		const receipt = await render(FactsReceipt, { root: legacy.container, locale: 'th' });
+		await expect.element(receipt.getByText('ตรวจสอบข้อมูลแล้ว')).toBeVisible();
+		expect(
+			receipt.container.querySelector('[data-fact="checkedCount"]')?.getAttribute('data-raw')
+		).toBe('2');
+		listing.removeAttribute('data-source');
+		await expect.element(receipt.getByText('พบข้อมูลที่ไม่ตรงกับแค็ตตาล็อก')).toBeVisible();
 	});
 });

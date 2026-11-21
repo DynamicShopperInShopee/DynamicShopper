@@ -25,6 +25,7 @@
 		data-fact-node
 		data-product-id={productId}
 		data-fact={field}
+		data-source="catalog"
 		data-raw={rawAttribute(fact.raw)}
 	>
 		{formatFact(fact, locale)}

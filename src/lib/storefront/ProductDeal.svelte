@@ -1,36 +1,42 @@
 <script lang="ts">
 	import { onMount, tick, type Snippet } from 'svelte';
 	import type { Locale } from '../catalog/index.ts';
-	import { findAddOns, optimizeDeal, type AddOn, type DealReceipt } from '../pricing';
+	import type { AddOn, DealReceipt } from '../pricing';
 	import type { CartItem } from './cart';
-	import { getStoreOpenedAt } from './clock';
+	import { quoteBasket } from './quoteBasket';
+	import { getStoreSession } from './store.svelte';
 	import { assistantCopy } from './copy';
 	import DealSlip from './DealSlip.svelte';
 
-	let {
-		productId,
-		locale,
-		quantity = 1,
-		children
-	}: { productId: string; locale: Locale; quantity?: number; children?: Snippet } = $props();
+	let { productId, locale, children }: { productId: string; locale: Locale; children?: Snippet } =
+		$props();
 
-	let openedAt = $state<number>();
+	const session = getStoreSession();
+	let ready = $state(false);
 	let quote = $state<{ receipt: DealReceipt; addOns: readonly AddOn[] } | null>();
 	let closeButton = $state<HTMLButtonElement>();
 	let trigger: HTMLElement | undefined;
 	const th = $derived(locale === 'th');
 
 	onMount(() => {
-		openedAt = getStoreOpenedAt();
+		ready = true;
+		return () => {
+			ready = false;
+		};
 	});
 
 	export function showBasket(basket: readonly CartItem[], withAddOns = true) {
-		if (openedAt === undefined) return;
-		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
-		const receipt = optimizeDeal(basket, context);
+		if (!ready) return;
 		trigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		quote = receipt ? { receipt, addOns: withAddOns ? findAddOns(basket, context) : [] } : null;
-		if (receipt) void tick().then(() => closeButton?.focus());
+		quote = quoteBasket(basket, locale, withAddOns) ?? null;
+		if (quote) void tick().then(() => closeButton?.focus());
+	}
+
+	async function showProduct() {
+		await session.cartSettled();
+		if (!ready) return;
+		const quantity = session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
+		showBasket([{ productId, quantity }], false);
 	}
 
 	function closeDeal() {
@@ -41,11 +47,7 @@
 
 <div class="actions">
 	{@render children?.()}
-	<button
-		type="button"
-		disabled={openedAt === undefined}
-		onclick={() => showBasket([{ productId, quantity }], false)}
-	>
+	<button type="button" disabled={!ready} onclick={showProduct}>
 		{assistantCopy[locale].deal}
 	</button>
 </div>

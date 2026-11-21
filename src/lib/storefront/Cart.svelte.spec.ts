@@ -59,3 +59,25 @@ it('keeps the priceable portion of saved items and rejects additions outside the
 	expect(addCartItem(cart!, 'cooker', known, mayPrice)).toEqual({ status: 'invalid', cart });
 	expect(addCartItem(cart!, 'mouse', known, mayPrice)).toEqual({ status: 'invalid', cart });
 });
+
+it('blocks a cart quote while a removal is waiting for storage', async () => {
+	const deferred = Promise.withResolvers<void>();
+	const onRemove = vi.fn(() => deferred.promise);
+	const screen = await render(Cart, {
+		items: [{ productId, quantity: 1 }],
+		locale: 'en',
+		resolve,
+		onRemove,
+		onBestPrice: vi.fn()
+	});
+	await screen.getByRole('button', { name: 'Cart', exact: true }).click();
+	await screen.getByRole('button', { name: /^Remove/ }).click();
+	await expect
+		.element(screen.getByRole('button', { name: 'Best price for my cart' }))
+		.toBeDisabled();
+	await expect.element(screen.getByText('One-button rice cooker')).toBeVisible();
+	deferred.resolve();
+	await expect
+		.element(screen.getByRole('button', { name: 'Best price for my cart' }))
+		.toBeEnabled();
+});

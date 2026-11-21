@@ -19,6 +19,7 @@ test('quotes the same cooker from its listing and restored cart, then removes it
 	await expect(receipt).toHaveAttribute('data-raw', '585');
 	const itemLines = await receiptLines(page.locator('main'));
 	await page.getByRole('button', { name: /^Add to cart/ }).click();
+	await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
 	await page.getByRole('link', { name: 'Back to store', exact: true }).click();
 	await page.reload();
 	await page.getByRole('button', { name: 'Cart', exact: true }).click();

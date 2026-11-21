@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 test('keeps the desktop chat beside the shelf while a shopper reads an offline reply', async ({
 	page,
@@ -68,4 +68,59 @@ test('a copied Thai citation opens the matching listing and returns to the recei
 	await page.getByRole('link', { name: 'กลับหน้าร้าน' }).click();
 	await expect(page).toHaveURL(/\?view=receipt$/);
 	await expect(page.getByRole('complementary')).toBeVisible();
+});
+
+async function holdCartWrite(page: Page) {
+	await page.evaluate(
+		() =>
+			new Promise<void>((held) => {
+				void navigator.locks.request(
+					'dynamicshopper.store.v1',
+					() =>
+						new Promise<void>((release) => {
+							window.addEventListener('release-cart-write', () => release(), { once: true });
+							held();
+						})
+				);
+			})
+	);
+	const add = page.getByRole('button', { name: /^Add to cart/ }).first();
+	await add.click();
+	await expect(add).toBeDisabled();
+}
+
+test('a direct filter supersedes a chat waiting for the cart', async ({ page }) => {
+	await page.goto('/?view=receipt');
+	const input = page.getByRole('textbox', { name: 'Ask the store' });
+	await expect(input).toBeEnabled();
+	await holdCartWrite(page);
+	await input.fill('minimal and compact');
+	await input.press('Enter');
+	await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
+	await input.press('Enter');
+	await page.getByRole('button', { name: 'Filters', exact: true }).click();
+	await page.getByRole('checkbox', { name: 'Free shipping only' }).check();
+	await page.getByRole('button', { name: 'Apply filters' }).click();
+	await page.evaluate(() => window.dispatchEvent(new Event('release-cart-write')));
+	await page.evaluate(() => navigator.locks.request('dynamicshopper.store.v1', () => undefined));
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
+	await expect(input).toHaveValue('minimal and compact');
+	await expect(page.getByRole('log').getByText('minimal and compact', { exact: true })).toHaveCount(
+		0
+	);
+});
+
+test('a card quote waiting for the cart cannot follow the shopper back from the event page', async ({
+	page
+}) => {
+	await page.goto('/?view=receipt');
+	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeEnabled();
+	await holdCartWrite(page);
+	await page.getByRole('button', { name: 'Best price', exact: true }).first().click();
+	await page.getByRole('link', { name: 'DynamicShopper', exact: true }).click();
+	await expect(page.locator('.event-demo')).toBeVisible();
+	await page.evaluate(() => window.dispatchEvent(new Event('release-cart-write')));
+	await page.getByRole('link', { name: 'Shopping assistant', exact: true }).click();
+	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeEnabled();
+	await expect(page.locator('.quote')).toHaveCount(0);
 });

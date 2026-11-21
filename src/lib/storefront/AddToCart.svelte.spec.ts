@@ -32,3 +32,16 @@ it('distinguishes a full cart from an unavailable quantity in Thai', async () =>
 	await expect.element(screen.getByRole('status')).toHaveTextContent('เพิ่มสินค้าไม่ได้');
 	expect(onAdd).toHaveBeenCalledTimes(2);
 });
+
+it('waits for the locked cart result before announcing an addition', async () => {
+	const deferred = Promise.withResolvers<'added' | 'full'>();
+	const onAdd = vi.fn(() => deferred.promise);
+	const screen = await render(AddToCart, { productId: 'cooker-one-button', locale: 'en', onAdd });
+	const add = screen.getByRole('button', { name: /^Add to cart/ });
+	await add.click();
+	await expect.element(add).toBeDisabled();
+	await expect.element(screen.getByRole('status')).toHaveTextContent('Adding to cart…');
+	deferred.resolve('full');
+	await expect.element(add).toBeEnabled();
+	await expect.element(screen.getByRole('status')).toHaveTextContent('Your cart is full');
+});

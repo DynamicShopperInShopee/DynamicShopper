@@ -12,6 +12,7 @@ function presentFact(fact: Fact, locale: Locale) {
 			'data-fact-node': '',
 			'data-product-id': fact.productId,
 			'data-fact': fact.field,
+			'data-source': 'catalog',
 			'data-raw': rawAttribute(fact.raw)
 		}
 	};

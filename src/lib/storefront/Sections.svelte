@@ -8,7 +8,7 @@
 	import type { FactLocale, LocalizedText, ResolvePrintedFact } from './verifyFacts';
 
 	type Section = 'picks' | 'compare' | 'matters' | 'reviews' | 'deal' | 'share' | 'products';
-	type Layout = 'grid' | 'table' | 'large-print';
+	type Layout = 'grid' | 'list' | 'table' | 'large-print';
 	const planSections = {
 		'top-picks': 'picks',
 		'what-matters': 'matters',
@@ -16,6 +16,8 @@
 	} as const;
 
 	let {
+		renderShelf,
+		productTarget = true,
 		sections,
 		productIds,
 		layout,
@@ -34,6 +36,8 @@
 		onClear,
 		comparePane = false
 	}: {
+		renderShelf?: Snippet<[readonly string[], Layout]>;
+		productTarget?: boolean;
 		sections: readonly string[];
 		productIds: readonly string[];
 		layout: Layout;
@@ -132,7 +136,7 @@
 
 {#if !eligible.length}
 	<section
-		id={comparePane ? undefined : 'products'}
+		id={comparePane || !productTarget ? undefined : 'products'}
 		tabindex="-1"
 		class="empty"
 		aria-label={t.empty}
@@ -141,7 +145,7 @@
 		<h2>{t.empty}</h2>
 		{#if activeFilters.length}
 			<ul>
-				{#each activeFilters as filter}<li>{filter}</li>{/each}
+				{#each activeFilters as filter, index (index)}<li>{filter}</li>{/each}
 			</ul>
 		{/if}
 		{#if onClear}<button type="button" onclick={onClear}>{t.clear}</button>{/if}
@@ -151,48 +155,53 @@
 		{#each ordered.sections as section (section)}
 			{#if section === 'products' && ordered.remaining.length}
 				<section
-					id={!comparePane && firstShelf === section ? 'products' : undefined}
+					id={!comparePane && productTarget && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t.products}
 				>
 					{#if ordered.sections.length > 1}<h2>{t.products}</h2>{/if}
-					<ProductShelf
-						productIds={ordered.remaining}
-						{layout}
-						{locale}
-						{columns}
-						{resolve}
-						{listingHref}
-						{categoryFor}
-						{details}
-						{vouchersFor}
-					/>
+					{#if renderShelf}{@render renderShelf(ordered.remaining, layout)}{:else}
+						<ProductShelf
+							productIds={ordered.remaining}
+							{layout}
+							{locale}
+							{columns}
+							{resolve}
+							{listingHref}
+							{categoryFor}
+							{details}
+							{vouchersFor}
+						/>{/if}
 				</section>
 			{:else if section === 'picks' || section === 'compare'}
 				<section
-					id={!comparePane && firstShelf === section ? 'products' : undefined}
+					id={!comparePane && productTarget && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t[section]}
 				>
 					<h2>{t[section]}</h2>
-					<ProductShelf
-						productIds={top}
-						layout={section === 'compare' ? 'table' : layout === 'large-print' ? layout : 'grid'}
-						{locale}
-						{columns}
-						{resolve}
-						{listingHref}
-						{categoryFor}
-						{details}
-						{vouchersFor}
-						extras={section === 'picks' ? reasons : undefined}
-					/>
+					{#if renderShelf}{@render renderShelf(
+							top,
+							section === 'compare' ? 'table' : layout
+						)}{:else}
+						<ProductShelf
+							productIds={top}
+							layout={section === 'compare' ? 'table' : layout === 'large-print' ? layout : 'grid'}
+							{locale}
+							{columns}
+							{resolve}
+							{listingHref}
+							{categoryFor}
+							{details}
+							{vouchersFor}
+							extras={section === 'picks' ? reasons : undefined}
+						/>{/if}
 				</section>
 			{:else if section === 'matters'}
 				<section aria-label={t.matters}>
 					<h2>{t.matters}</h2>
 					<ul>
-						{#each priorities as priority}<li>{priority[locale]}</li>{/each}
+						{#each priorities as priority, index (index)}<li>{priority[locale]}</li>{/each}
 					</ul>
 				</section>
 			{:else if section === 'reviews'}

@@ -2,7 +2,7 @@
 	import { onMount, tick, type Snippet } from 'svelte';
 	import type { FactLocale } from './verifyFacts';
 
-	import type { ChatMessage } from './conversation.svelte';
+	import type { ChatMessage, ChatSendResult } from './conversation.svelte';
 	let {
 		locale,
 		messages,
@@ -18,7 +18,7 @@
 		locale: FactLocale;
 		messages: readonly ChatMessage[];
 		pending: boolean;
-		onSend: (message: string) => boolean | void;
+		onSend: (message: string) => ChatSendResult | Promise<ChatSendResult>;
 		renderReply?: Snippet<[ChatMessage]>;
 		largePrint?: boolean;
 		openOnMount?: boolean;
@@ -59,6 +59,7 @@
 	const t = $derived(copy[locale]);
 
 	const id = $props.id();
+	let ready = $state(false);
 	let mobile = $state(false);
 	let draft = $state('');
 	let sendFailed = $state(false);
@@ -76,6 +77,7 @@
 	);
 
 	onMount(() => {
+		ready = true;
 		const breakpoint = window.matchMedia('(width < 1024px)');
 		const update = () => {
 			mobile = breakpoint.matches;
@@ -106,21 +108,24 @@
 		}
 	}
 
-	function send(text: string) {
+	async function send(text: string) {
 		const message = text.trim();
 		if (pending || !message || message.length > 1000) return;
+		const originalDraft = draft;
 		try {
-			sendFailed = onSend(message) === false;
+			const result = await onSend(message);
+			if (result === 'superseded') return;
+			sendFailed = result === false;
 		} catch {
 			sendFailed = true;
 		}
-		draft = sendFailed ? message : '';
+		if (draft === originalDraft) draft = sendFailed ? message : '';
 	}
 
 	function onEnter(event: KeyboardEvent) {
 		if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
 		event.preventDefault();
-		send(draft);
+		void send(draft);
 	}
 
 	function open() {
@@ -158,7 +163,7 @@
 				<button
 					type="button"
 					lang={suggestion.locale}
-					disabled={pending}
+					disabled={!ready || pending}
 					onclick={() => send(suggestion.text)}
 				>
 					{suggestion.text}
@@ -169,7 +174,7 @@
 	<form
 		onsubmit={(event) => {
 			event.preventDefault();
-			send(draft);
+			void send(draft);
 		}}
 	>
 		<label for={`${id}-message`}>{inputLabel ?? t.message}</label>
@@ -178,9 +183,10 @@
 			bind:this={textbox}
 			bind:value={draft}
 			rows="2"
+			disabled={!ready}
 			maxlength="1000"
 			onkeydown={onEnter}></textarea>
-		<button type="submit" disabled={pending || !draft.trim()}>{t.send}</button>
+		<button type="submit" disabled={!ready || pending || !draft.trim()}>{t.send}</button>
 	</form>
 {/snippet}
 

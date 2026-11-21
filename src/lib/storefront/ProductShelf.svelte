@@ -38,7 +38,7 @@
 		extras
 	}: {
 		productIds: readonly string[];
-		layout: 'table' | 'grid' | 'large-print';
+		layout: 'table' | 'grid' | 'list' | 'large-print';
 		locale: FactLocale;
 		columns: readonly SpecColumn[];
 		resolve?: ResolvePrintedFact;
@@ -109,6 +109,7 @@
 </script>
 
 {#snippet listing(id: string, name: PrintedFact)}
+	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The route supplies its resolved listing URL through listingHref. -->
 	<a href={listingHref(id)}><Fact fact={name} /></a>
 {/snippet}
 
@@ -178,7 +179,7 @@
 			</table>
 		</div>
 	{:else}
-		<ul class="cards" class:grid={layout === 'grid'}>
+		<ul class="cards" class:grid={layout === 'grid'} class:list={layout === 'list'}>
 			{#each rows as row (row.id)}
 				<li>
 					{#if row.category}
@@ -355,6 +356,7 @@
 		display: grid;
 		grid-template-columns: minmax(3rem, 25%) minmax(0, 1fr);
 	}
+	.cards.list .art,
 	.large .art {
 		min-height: auto;
 		border-start-end-radius: 0;

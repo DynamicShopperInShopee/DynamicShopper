@@ -14,12 +14,17 @@
 	} = $props();
 
 	const session = getStoreSession();
+
+	async function bestPrice() {
+		await session.cartSettled();
+		if (session.cart.length) onBestPrice(session.cart);
+	}
 </script>
 
 <Cart
 	items={session.cart}
 	{locale}
 	resolve={resolveCatalogFact}
-	onRemove={(productId) => session.removeProduct(productId)}
-	{onBestPrice}
+	onRemove={session.removeProduct}
+	onBestPrice={bestPrice}
 />

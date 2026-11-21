@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import type { Locale } from '#lib/contracts.ts';
 	import Chat from './Chat.svelte';
-	import type { Conversation, ChatMessage } from './conversation.svelte';
+	import type { Conversation, ChatMessage, ChatSendResult } from './conversation.svelte';
 	import CitationSlip from './CitationSlip.svelte';
 	import DealSlip from './DealSlip.svelte';
 	import { resolveCatalogFact } from './catalogFact';
@@ -15,14 +15,16 @@
 		pending = false,
 		largePrint = false,
 		openOnMount = false,
+		pendingLabel,
 		theme = 'standard'
 	}: {
 		locale: Locale;
-		onSend: (message: string) => void;
+		onSend: (message: string) => ChatSendResult | Promise<ChatSendResult>;
 		conversation: Conversation;
 		pending?: boolean;
 		largePrint?: boolean;
 		openOnMount?: boolean;
+		pendingLabel?: string;
 		theme?: 'standard' | 'minimal' | 'vibrant' | 'large';
 	} = $props();
 
@@ -41,7 +43,7 @@
 		messages={conversation.messages}
 		showingDeal={Boolean(conversation.messages.at(-1)?.deal)}
 		inputLabel={locale === 'th' ? 'ถามหน้าร้าน' : 'Ask the store'}
-		pendingLabel={locale === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
+		pendingLabel={pendingLabel ?? (locale === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model')}
 	>
 		{#snippet renderReply(message: ChatMessage)}
 			{@const lang = message.locale ?? locale}

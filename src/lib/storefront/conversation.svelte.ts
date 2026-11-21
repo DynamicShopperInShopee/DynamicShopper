@@ -2,6 +2,8 @@ import { SvelteSet } from 'svelte/reactivity';
 import type { AddOn, DealReceipt, Locale } from '#lib/contracts.ts';
 import type { Turn } from '../personalization';
 
+export type ChatSendResult = boolean | void | 'superseded';
+
 export interface ChatDeal {
 	receipt: DealReceipt;
 	addOns: readonly AddOn[];

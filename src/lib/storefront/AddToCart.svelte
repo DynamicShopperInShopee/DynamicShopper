@@ -10,18 +10,20 @@
 	}: {
 		productId: string;
 		locale: Locale;
-		onAdd: (productId: string) => Status;
+		onAdd: (productId: string) => Status | Promise<Status>;
 	} = $props();
 
 	const copy = {
 		en: {
 			add: 'Add to cart',
+			adding: 'Adding to cart…',
 			added: 'Added to cart',
 			full: 'Your cart is full',
 			invalid: 'Could not add this item'
 		},
 		th: {
 			add: 'เพิ่มลงตะกร้า',
+			adding: 'กำลังเพิ่มลงตะกร้า…',
 			added: 'เพิ่มลงตะกร้าแล้ว',
 			full: 'ตะกร้าเต็ม',
 			invalid: 'เพิ่มสินค้าไม่ได้'
@@ -29,20 +31,37 @@
 	} as const;
 
 	let feedback = $state<{ productId: string; status: Status }>();
+	let pending = $state(false);
 	const t = $derived(copy[locale]);
 	const name = $derived(resolveCatalogFact(productId, 'name', locale)?.text);
+
+	async function add() {
+		if (pending) return;
+		const id = productId;
+		pending = true;
+		try {
+			feedback = { productId: id, status: await onAdd(id) };
+		} catch {
+			feedback = { productId: id, status: 'invalid' };
+		} finally {
+			pending = false;
+		}
+	}
 </script>
 
 <div class="add-control">
 	<button
 		type="button"
 		aria-label={name ? `${t.add} ${name}` : t.add}
-		onclick={() => (feedback = { productId, status: onAdd(productId) })}
+		disabled={pending}
+		onclick={add}
 	>
 		{t.add}
 	</button>
 	<span role="status">
-		{#if feedback?.productId === productId}
+		{#if pending}
+			<span>{t.adding}</span>
+		{:else if feedback?.productId === productId}
 			{#key feedback}
 				<span>{t[feedback.status]}</span>
 			{/key}
