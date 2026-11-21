@@ -103,3 +103,22 @@ test('a missing Thai listing keeps its requested theme and links to the receipt 
 	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await expect(page.getByRole('button', { name: 'Mom mode', exact: true })).toBeVisible();
 });
+
+test('keyboard removal keeps focus in the cart through the last item', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/?view=receipt');
+	const addButtons = page.locator('#products').getByRole('button', { name: /^Add to cart / });
+	await addButtons.nth(0).click();
+	await addButtons.nth(1).click();
+	await page.getByRole('button', { name: 'Cart', exact: true }).click();
+	const cart = page.getByRole('region', { name: 'Cart', exact: true });
+	await expect(cart.getByRole('button', { name: 'Close cart' })).toBeFocused();
+	const removeButtons = cart.getByRole('button', { name: /^Remove / });
+	await expect(removeButtons).toHaveCount(2);
+	await removeButtons.first().press('Enter');
+	await expect(removeButtons).toHaveCount(1);
+	await expect(removeButtons.first()).toBeFocused();
+	await removeButtons.first().press('Enter');
+	await expect(cart.getByText('Your cart is empty')).toBeVisible();
+	await expect(cart.getByRole('button', { name: 'Close cart' })).toBeFocused();
+});

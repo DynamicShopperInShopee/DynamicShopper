@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import Fact from './Fact.svelte';
 	import { cartPanelId, type CartItem } from './cart';
 	import type { FactLocale, ResolvePrintedFact } from './verifyFacts';
@@ -65,8 +66,10 @@
 		onBestPrice(rows.map(({ item }) => item));
 	}
 
-	async function remove(productId: string) {
+	async function remove(productId: string, trigger: HTMLButtonElement) {
 		if (removing) return;
+		const hadFocus = document.activeElement === trigger;
+		const index = rows.findIndex(({ item }) => item.productId === productId);
 		removing = true;
 		removalFailed = false;
 		try {
@@ -75,6 +78,11 @@
 			removalFailed = true;
 		} finally {
 			removing = false;
+		}
+		await tick();
+		if (hadFocus && document.activeElement === document.body && panel?.matches(':popover-open')) {
+			const actions = panel.querySelectorAll<HTMLButtonElement>('[data-remove-item]');
+			(actions[Math.min(index, actions.length - 1)] ?? closeButton).focus();
 		}
 	}
 </script>
@@ -96,7 +104,8 @@
 	aria-labelledby={`${cartPanelId}-title`}
 	lang={locale}
 	ontoggle={(event) => {
-		if (event.newState === 'open') closeButton.focus({ preventScroll: true });
+		if (event.newState === 'open' && !panel?.contains(document.activeElement))
+			closeButton.focus({ preventScroll: true });
 	}}
 >
 	<header
@@ -144,8 +153,9 @@
 						class="mt-2 min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 						type="button"
 						aria-label={`${t.remove} ${row.name.text}`}
+						data-remove-item
 						disabled={removing}
-						onclick={() => remove(row.item.productId)}
+						onclick={(event) => remove(row.item.productId, event.currentTarget)}
 					>
 						{t.remove}
 					</button>

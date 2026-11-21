@@ -24,17 +24,25 @@
 				item.imageSource === product.imageSource
 		)
 	);
-	const src = $derived(bundled?.image ?? product.image);
-	let failed = $state<string | null>(null);
+	const sources = $derived(
+		[bundled?.image, product.image].filter((url): url is string => Boolean(url))
+	);
+	let failed = $state<string[]>([]);
+	const src = $derived(sources.find((url) => !failed.includes(url)));
+
+	function imageFailed(event: Event & { currentTarget: Element }) {
+		const url = event.currentTarget.getAttribute('src');
+		failed = sources.filter((candidate) => candidate === url || failed.includes(candidate));
+	}
 </script>
 
-{#if src && src !== failed}
+{#if src}
 	<img
 		class={className}
 		{src}
 		alt={decorative ? '' : product.name[lang]}
 		{loading}
-		onerror={(event) => (failed = event.currentTarget.getAttribute('src'))}
+		onerror={imageFailed}
 	/>
 {:else if !decorative}
 	<span class="unavailable">

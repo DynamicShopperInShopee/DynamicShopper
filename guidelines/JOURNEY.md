@@ -10,7 +10,7 @@ Changing the category under **Shopping criteria → Requirements** keeps a match
 
 After applying an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
 
-After **Add to cart**, the confirmation offers **View cart** beside the same product. The cart shows each saved item's name, quantity and unit price. Choose **Best price for my cart** to see the voucher and coin calculation, or **Close cart** to continue browsing. The cart is also available from the marketplace, the adaptive store and product listings.
+After **Add to cart**, the confirmation offers **View cart** beside the same product. The cart shows each saved item's name, quantity and unit price. Choose **Best price for my cart** to see the voucher and coin calculation, or **Close cart** to continue browsing. Removing a focused item moves keyboard focus to the adjacent Remove button, or to Close cart when empty. The cart is also available from the marketplace, the adaptive store and product listings.
 
 ## The arc
 

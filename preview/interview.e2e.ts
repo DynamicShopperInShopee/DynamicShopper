@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
 
 async function start(page: Page, english = true) {
 	await page.goto('/');
@@ -347,6 +348,22 @@ test('only a matching reviewed original can replace an unavailable catalog image
 	await expect
 		.poll(() => picture.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth))
 		.toBeGreaterThan(0);
+	// Losing the checked-in copy still leaves the validated same-listing API image.
+	await page.route('**/*.jpg', (route) =>
+		route.request().resourceType() === 'image' ? route.abort() : route.fallback()
+	);
+	const original = fileURLToPath(new URL('../src/lib/assets/shop/breeze.jpg', import.meta.url));
+	await page.route('**/api/catalog/images/**', (route) =>
+		route.fulfill({ path: original, contentType: 'image/jpeg' })
+	);
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('Catalog loaded');
+	await expect(picture.locator('img')).toHaveAttribute('src', listing.image);
+	await expect
+		.poll(() => picture.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth))
+		.toBeGreaterThan(0);
+	await page.route('**/api/catalog/images/**', (route) => route.abort());
+
 	listing.imageSource = 'https://down-th.img.susercontent.com/file/changed-original';
 	await start(page);
 	await expect(page.locator('.catalog-status')).toContainText('Catalog loaded');
