@@ -92,7 +92,11 @@ export function inferInterview(raw: unknown): Prediction {
 export function interviewProposal(
 	raw: unknown,
 	plan: ShopperPlan,
-	options: { directOnly?: boolean; themeLocked?: boolean; infer?: typeof inferInterview } = {}
+	options: {
+		directOnly?: boolean;
+		lockedFields?: readonly (keyof ShopperPlan)[];
+		infer?: typeof inferInterview;
+	} = {}
 ) {
 	const answers = sanitizeAnswers(raw);
 	const patch: Record<string, unknown> = {};
@@ -127,6 +131,7 @@ export function interviewProposal(
 			// Decode independent classification heads into fixed presentation recipes.
 			// A rejected head keeps its direct-answer fallback; other heads still apply.
 			for (const head of ['layout', 'details', 'sections'] as const) {
+				if (options.lockedFields?.includes(head)) continue;
 				const label = prediction.labels[head];
 				if (!(artifact.heads[head] as readonly string[]).includes(label)) {
 					rejected.push(head);
@@ -141,7 +146,7 @@ export function interviewProposal(
 				sources[head] = 'cnn';
 			}
 			if (
-				!options.themeLocked &&
+				!options.lockedFields?.includes('theme') &&
 				!patch.theme &&
 				prediction.themeScore >= 0.8 &&
 				prediction.labels.theme !== 'large-print'

@@ -13,7 +13,9 @@ declare global {
 
 		// interface Error {}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			storeSearch?: import('./routes/search-navigation').SearchSelection | string;
+		}
 		interface Platform {
 			env: {
 				DB?: import('@cloudflare/workers-types').D1Database;

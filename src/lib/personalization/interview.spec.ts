@@ -50,10 +50,26 @@ describe('storefront interview proposal', () => {
 		expect(result.dropped).toEqual(['layout', 'sections']);
 		expect(result.patch).not.toHaveProperty('price');
 	});
+	it('keeps direct interview choices when inference conflicts with previously set controls', () => {
+		const prediction = inferInterview(answers);
+		const result = interviewProposal(answers, defaultPlan, {
+			lockedFields: ['layout', 'details', 'sections'],
+			infer: () => ({
+				...prediction,
+				labels: { ...prediction.labels, layout: 'grid', details: 'photos', sections: 'browse' }
+			})
+		});
+		expect(result.patch.layout).toBe('table');
+		expect(result.patch.details).toContain('specs');
+		expect(result.patch.sections).toEqual(['what-matters', 'products']);
+		expect(result.sources.layout).toBe('answer');
+	});
 	it('preserves explicit themes and keeps partial or failed inference usable', () => {
 		const plan = { ...structuredClone(defaultPlan), theme: 'minimal' as const };
 		const full = { goal: 'browse', evidence: 'photos', priority: 'value', reading: 'spacious' };
-		expect(interviewProposal(full, plan, { themeLocked: true }).patch).not.toHaveProperty('theme');
+		expect(interviewProposal(full, plan, { lockedFields: ['theme'] }).patch).not.toHaveProperty(
+			'theme'
+		);
 		const partial = interviewProposal({ goal: 'compare', evidence: '<script>' }, plan);
 		expect(partial.backend).toBe('incomplete');
 		expect(partial.patch.layout).toBe('table');

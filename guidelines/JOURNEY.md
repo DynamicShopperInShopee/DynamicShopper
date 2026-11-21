@@ -2,6 +2,8 @@
 
 One walk through the product that touches every idea in these guidelines. It is the reference experience: every part of the product should make this journey work, with or without the network.
 
+After applying an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
+
 ## The arc
 
 1. **It adapts.** The store reshapes from a Thai sentence, then ranks by what the shopper cares about.

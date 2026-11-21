@@ -1,22 +1,29 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
+	import ProductEvidence from './ProductEvidence.svelte';
+	import type { ShopperPlan } from '../personalization';
 	import FactValue from './FactValue.svelte';
 
 	let {
 		products,
 		locale,
 		onDeal,
-		highlightedSpecs = []
+		highlightedSpecs = [],
+		interviewDetails = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
 		onDeal: (productId: string, locale: Locale) => void;
 		highlightedSpecs?: readonly SpecKey[];
+		interviewDetails?: ShopperPlan['details'];
 	} = $props();
 
 	const th = $derived(locale === 'th');
 	const category = $derived(products[0]?.category);
+	const writtenEvidence = $derived(
+		interviewDetails.filter((field) => field === 'summary' || field === 'reviews')
+	);
 	const columns = $derived.by(() => {
 		if (!category || !products.every((product) => product.category === category)) return [];
 		const definitions = specs[category].filter(({ key }) =>
@@ -58,6 +65,9 @@
 							<a href={resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
+							{#if writtenEvidence.length}
+								<ProductEvidence productId={product.id} {locale} details={writtenEvidence} />
+							{/if}
 						</th>
 						{#each columns as column (column.key)}
 							<td class="figure">

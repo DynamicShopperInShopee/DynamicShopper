@@ -2,7 +2,7 @@
 	import type { ShopperPlan } from '../personalization/plan';
 	type InterviewView = {
 		plan: ShopperPlan;
-		themeLocked: boolean;
+		lockedFields: (keyof ShopperPlan)[];
 		interview: { answers: Answers } | null;
 	};
 	import { tick, untrack } from 'svelte';
@@ -33,10 +33,11 @@
 	const lang = $derived(view.plan.locale);
 	const t = (en: string, th: string) => (lang === 'th' ? th : en);
 	const stepNames = [
-		['Shopping', 'การเลือกซื้อ'],
-		['Information', 'ข้อมูล'],
-		['Priorities', 'สิ่งสำคัญ'],
-		['Reading', 'การอ่าน']
+		['Goal', 'เป้าหมาย'],
+		['Details', 'ข้อมูล'],
+		['Priority', 'สิ่งสำคัญ'],
+		['Reading', 'การอ่าน'],
+		['Review', 'ทบทวน']
 	];
 	async function move(next: number) {
 		step = Math.max(0, Math.min(interview.questions.length, next));
@@ -51,7 +52,7 @@
 		void move(step + 1);
 	}
 	const result = $derived(
-		interviewProposal(answers, view.plan, { directOnly, themeLocked: view.themeLocked })
+		interviewProposal(answers, view.plan, { directOnly, lockedFields: view.lockedFields })
 	);
 	const changes = $derived(
 		describePatch(
@@ -73,103 +74,107 @@
 		else if (question && answers[question.id as Question]) void move(step + 1);
 	}}
 >
-	<ol class="progress" aria-label={t('Interview progress', 'ขั้นตอนการปรับมุมมอง')}>
-		{#each stepNames as name, index (name[0])}
-			<li
-				class:current={step === index}
-				class:complete={step > index}
-				aria-current={step === index ? 'step' : undefined}
-			>
-				<span>{name[lang === 'th' ? 1 : 0]}</span>
-			</li>
-		{/each}
-	</ol>
-	<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
-		{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
-	</h3>
-	{#if question}
-		<p class="intro">
-			{t('Choose what feels right. You can skip any question.', 'เลือกแบบที่ชอบ ข้ามข้อที่ยังไม่แน่ใจได้')}
-		</p>
-		<fieldset aria-labelledby="interview-step-title">
-			<div class="answers">
-				{#each question.options as option (option.id)}
-					<label class:selected={answers[question.id as Question] === option.id}>
-						<input
-							type="radio"
-							name={question.id}
-							value={option.id}
-							checked={answers[question.id as Question] === option.id}
-							onchange={() => (answers = { ...answers, [question.id]: option.id })}
-						/>
-						<span>{option[lang]}</span>
-					</label>
-				{/each}
-			</div>
-		</fieldset>
-		<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
-	{:else}
-		<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
-			{#if changes.length}
-				<dl>
-					{#each changes as item (item.field)}<div>
-							<dt>{item.label}</dt>
-							<dd>{item.text}</dd>
-						</div>{/each}
-				</dl>
-			{:else}<p>
-					{t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')}
-				</p>{/if}
-			<p>
-				{t(
-					'Your product information stays the same. You can fine-tune this view in chat.',
-					'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
-				)}
-			</p>
-		</section>
-		<details>
-			<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
-			<p>
-				{t(
-					'The CNN runs on this device. It learned from example preferences, not real shopper outcomes. It chooses layout, sections, information and theme; your reading controls stay protected.',
-					'CNN ทำงานบนอุปกรณ์นี้ เรียนรู้จากตัวอย่างความชอบ ไม่ใช่ผลการใช้งานของผู้ซื้อจริง เลือกรูปแบบ ส่วนต่าง ๆ ข้อมูล และธีม โดยรักษาการตั้งค่าการอ่านของคุณ'
-				)}
-			</p>
-			<label class="direct">
-				<input type="checkbox" bind:checked={directOnly} />
-				<span>{t('Use direct answers only', 'ใช้เฉพาะคำตอบที่เลือก')}</span>
-			</label>
-			<p data-testid="interview-backend">
-				{result.backend === 'cnn'
-					? t(
-							'CNN evaluated locally; reading settings protected.',
-							'ประเมินด้วย CNN ในเครื่อง โดยรักษาการตั้งค่าการอ่าน'
-						)
-					: result.backend === 'incomplete'
-						? t('Direct answers until the interview is complete.', 'ใช้คำตอบโดยตรงจนกว่าจะตอบครบ')
-						: result.backend === 'unavailable'
-							? t('CNN unavailable. Direct answers still work.', 'CNN ใช้งานไม่ได้ ยังใช้คำตอบโดยตรงได้')
-							: t('Direct answers; CNN bypassed.', 'ใช้คำตอบโดยตรง โดยไม่ผ่าน CNN')}
-			</p>
-			{#if result.prediction && result.backend === 'cnn'}
-				<p>
-					{t('CNN theme suggestion', 'ธีมที่ CNN เสนอ')}: {preferenceName(
-						result.prediction.labels.theme,
-						lang
-					)}.
-					{view.themeLocked
-						? t('Your existing theme is protected.', 'รักษาธีมที่คุณเลือกไว้แล้ว')
-						: t('You can change or remove it after applying.', 'เปลี่ยนหรือลบได้หลังปรับมุมมอง')}
-				</p>
-				<dl>
-					{#each describePatch(result.patch, lang).filter((item) => result.sources[item.field] === 'cnn') as item (item.field)}
-						<dt>{item.label} · CNN</dt>
-						<dd>{item.text}</dd>
+	<div class="step-content">
+		<ol class="progress" aria-label={t('Interview progress', 'ขั้นตอนการปรับมุมมอง')}>
+			{#each stepNames as name, index (name[0])}
+				<li
+					class:current={step === index}
+					class:complete={step > index}
+					aria-current={step === index ? 'step' : undefined}
+				>
+					<span>{name[lang === 'th' ? 1 : 0]}</span>
+				</li>
+			{/each}
+		</ol>
+		<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
+			{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
+		</h3>
+		{#if question}
+			<fieldset aria-labelledby="interview-step-title">
+				<div class="answers">
+					{#each question.options as option (option.id)}
+						<label class:selected={answers[question.id as Question] === option.id}>
+							<input
+								type="radio"
+								name={question.id}
+								value={option.id}
+								checked={answers[question.id as Question] === option.id}
+								onchange={() => (answers = { ...answers, [question.id]: option.id })}
+							/>
+							<span>{option[lang]}</span>
+						</label>
 					{/each}
-				</dl>
-			{/if}
-		</details>
-	{/if}
+				</div>
+			</fieldset>
+			<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
+		{:else}
+			<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
+				{#if changes.length}
+					<dl>
+						{#each changes as item (item.field)}<div>
+								<dt>{item.label}</dt>
+								<dd>{item.text}</dd>
+							</div>{/each}
+					</dl>
+				{:else}<p>
+						{Object.keys(answers).length
+							? t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')
+							: t(
+									'You skipped every question. Your view will stay the same.',
+									'คุณข้ามทุกข้อ มุมมองจึงคงเดิม'
+								)}
+					</p>{/if}
+				<p>
+					{t(
+						'Your product information stays the same. You can fine-tune this view in chat.',
+						'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
+					)}
+				</p>
+			</section>
+			<details>
+				<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
+				<p>
+					{t(
+						'A model on this device suggests a view from example preferences. Your reading settings take priority.',
+						'โมเดลในอุปกรณ์นี้เสนอรูปแบบจากตัวอย่างความชอบ โดยยึดการตั้งค่าการอ่านของคุณเป็นหลัก'
+					)}
+				</p>
+				<label class="direct">
+					<input type="checkbox" bind:checked={directOnly} />
+					<span>{t('Use direct answers only', 'ใช้เฉพาะคำตอบที่เลือก')}</span>
+				</label>
+				<p data-testid="interview-backend">
+					{result.backend === 'cnn'
+						? t('The CNN evaluated your answers on this device.', 'CNN ประเมินคำตอบในอุปกรณ์นี้')
+						: result.backend === 'incomplete'
+							? t('Direct answers until the interview is complete.', 'ใช้คำตอบโดยตรงจนกว่าจะตอบครบ')
+							: result.backend === 'unavailable'
+								? t(
+										'CNN unavailable. Direct answers still work.',
+										'CNN ใช้งานไม่ได้ ยังใช้คำตอบโดยตรงได้'
+									)
+								: t('Using only the answers you chose.', 'ใช้คำตอบโดยตรง โดยไม่ผ่าน CNN')}
+				</p>
+				{#if result.prediction && result.backend === 'cnn'}
+					<p>
+						{t('CNN theme suggestion', 'ธีมที่ CNN เสนอ')}: {preferenceName(
+							result.prediction.labels.theme,
+							lang
+						)}.
+						{view.lockedFields.includes('theme')
+							? t('Your existing theme is protected.', 'รักษาธีมที่คุณเลือกไว้แล้ว')
+							: t('You can change or remove it after applying.', 'เปลี่ยนหรือลบได้หลังปรับมุมมอง')}
+					</p>
+					<dl>
+						{#each describePatch(result.patch, lang).filter((item) => result.sources[item.field] === 'cnn') as item (item.field)}
+							<dt>{item.label} · CNN</dt>
+							<dd>{item.text}</dd>
+						{/each}
+					</dl>
+				{/if}
+			</details>
+		{/if}
+	</div>
 	<div class="apply">
 		{#if step > 0}
 			<button class="back" type="button" onclick={() => move(step - 1)}>
@@ -187,66 +192,44 @@
 </form>
 
 <style>
-	:is(button, input, summary):focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	button {
-		font: inherit;
-		min-height: var(--tap, 44px);
-		padding: 10px 16px;
-		border: 1px solid var(--seam);
-		color: var(--ink);
-		background: var(--surface);
-		cursor: pointer;
-	}
-	button:disabled {
-		opacity: 0.45;
-		cursor: not-allowed;
-	}
-	.primary {
-		background: var(--accent);
-		color: white;
-		border-color: var(--accent);
-	}
 	form {
+		margin: 0;
+	}
+	.step-content {
 		display: grid;
-		min-width: 0;
-		margin: 0 !important;
-		gap: 16px !important;
+		gap: 1rem;
+		padding: 1.125rem;
 	}
 	.progress {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 8px;
+		display: flex;
+		gap: 0.375rem;
 		list-style: none;
-		margin: 0 0 8px;
+		margin: 0;
 		padding: 0;
 		color: var(--muted);
-		font-size: 13px;
+		font-size: var(--small);
+		line-height: 1.4;
 	}
 	.progress li {
-		padding-top: 10px;
-		border-top: 3px solid var(--seam);
-		overflow-wrap: anywhere;
+		flex: 1;
+		min-width: 0;
+		padding-top: 0.375rem;
+		border-top: 2px solid var(--seam);
 	}
-	.progress .current,
 	.progress .complete {
-		border-color: var(--accent);
+		border-color: var(--muted);
 	}
 	.progress .current {
 		color: var(--ink);
-		font-weight: 600;
+		border-color: var(--accent);
+		font-weight: 650;
 	}
-	#interview-step-title {
-		font-size: 1.25em;
-		line-height: 1.5;
-		margin: 0;
-		scroll-margin-top: 100px;
-	}
-	.intro {
-		margin: 0;
-		color: var(--muted);
+	h3 {
+		font-size: 1.4em;
+		line-height: 1.35;
+		font-weight: 650;
+		margin: 0.25rem 0 0;
+		text-wrap: balance;
 	}
 	fieldset {
 		min-width: 0;
@@ -256,62 +239,90 @@
 	}
 	.answers {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem;
 	}
 	.answers label {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 16px 12px;
-		min-height: 60px;
-		border: 1px solid var(--muted);
-		border-radius: 4px;
-		cursor: pointer;
+		gap: 0.55rem;
+		padding: 0.75rem;
+		min-height: max(var(--tap), 3.25rem);
+		border: 1px solid var(--seam);
+		border-radius: var(--radius);
 		background: var(--surface);
+		cursor: pointer;
 	}
-	.answers .selected {
+	.answers label:hover,
+	.answers label:focus-within {
+		border-color: var(--ink);
+	}
+	.answers label:has(input:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.answers label.selected {
 		border-color: var(--accent);
-		background: var(--paper);
 		outline: 1px solid var(--accent);
+		font-weight: 600;
 	}
 	input {
+		appearance: auto;
 		accent-color: var(--accent);
-		flex-shrink: 0;
-		width: 18px;
-		height: 18px;
+		width: 1.125rem;
+		height: 1.125rem;
+		flex: none;
+	}
+	button {
+		font: inherit;
+		font-weight: 600;
+		min-height: var(--tap);
+		padding-inline: 1rem;
+		border: 1px solid var(--seam);
+		border-radius: var(--radius);
+		color: var(--ink);
+		background: var(--surface);
+		cursor: pointer;
+	}
+	button:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+	:is(button, summary, .direct input):focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.primary {
+		background: var(--accent);
+		color: white;
+		border-color: var(--accent);
 	}
 	.skip {
-		min-height: 48px;
-		margin: 0;
-		text-align: left;
+		justify-self: start;
+		padding-inline: 0;
+		text-align: start;
 		text-decoration: underline;
-		border: 0 !important;
-		background: transparent !important;
-		padding-left: 0 !important;
+		text-underline-offset: 0.2em;
+		border: 0;
+		background: transparent;
+		font-weight: 400;
 	}
 	.preview {
-		padding: 16px;
-		border-block: 1px dashed var(--muted);
 		background: var(--surface);
-	}
-	h3 {
-		font-size: 1em;
-		margin: 0 0 12px;
-	}
-	p {
-		font-size: 1em;
+		border-block: 1px dashed var(--muted);
+		padding: 0.6rem 0.875rem;
 	}
 	dl {
 		margin: 0;
 	}
 	dl div {
-		display: flex;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: 8px;
-		padding: 8px 0;
+		padding: 0.4rem 0;
 		border-bottom: 1px dotted var(--seam);
+	}
+	.preview dl div {
+		display: grid;
+		grid-template-columns: minmax(5rem, 1fr) minmax(0, 2fr);
+		gap: 0.75rem;
 	}
 	dt {
 		color: var(--muted);
@@ -320,46 +331,59 @@
 		margin: 0;
 		font-weight: 600;
 	}
+	p {
+		margin: 0.6rem 0;
+		line-height: 1.55;
+	}
+	.preview p {
+		color: var(--muted);
+	}
 	summary {
 		cursor: pointer;
-		min-height: 48px;
-		padding: 12px 0;
+		min-height: var(--tap);
+		padding-block: 0.65rem;
+		font-weight: 600;
 	}
 	.direct {
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		min-height: 48px;
+		gap: 0.6rem;
+		min-height: var(--tap);
+		cursor: pointer;
 	}
 	.apply {
 		position: sticky;
-		bottom: -28px;
+		bottom: 0;
 		display: flex;
-		gap: 12px;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		padding: 0.65rem 1.125rem max(0.65rem, env(safe-area-inset-bottom));
 		background: var(--paper);
-		padding: 12px 0;
 		border-top: 1px solid var(--seam);
 	}
-	.apply button {
-		min-height: 48px;
-		justify-content: center !important;
-	}
 	.apply .primary {
-		flex: 1;
+		min-width: 8rem;
 	}
 	.apply .back {
-		background: var(--surface);
-		border: 1px solid var(--seam);
-		padding: 12px 20px;
-		color: var(--ink);
-	}
-	:global([data-theme='large']) form {
-		font-size: 20px;
-	}
-	:global([data-theme='large']) .progress {
-		font-size: 20px;
+		margin-inline-end: auto;
 	}
 	:global([data-theme='large']) .answers {
 		grid-template-columns: 1fr;
+	}
+	@media (max-width: 520px) {
+		.apply .primary {
+			flex: 1;
+		}
+		:global([data-theme='large']) .progress li:not(.current) span {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+		}
+		:global([data-theme='large']) .progress .current {
+			flex: 3;
+		}
 	}
 </style>
