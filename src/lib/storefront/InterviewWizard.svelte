@@ -6,7 +6,14 @@
 		interview: { answers: Answers } | null;
 	};
 	import { tick, untrack } from 'svelte';
-	import { interview, type Answers, type Question } from '../personalization/interview';
+	import {
+		interview,
+		interviewProposal,
+		describePatch,
+		preferenceName,
+		type Answers,
+		type Question
+	} from '../personalization/interview';
 	let {
 		view,
 		onapply,
@@ -20,45 +27,51 @@
 	let answers = $state<Answers>(untrack(() => ({ ...view.interview?.answers })));
 	let directOnly = $state(untrack(() => initialDirectOnly));
 	let step = $state(0);
-	let completed = $state(false);
 	let stepHeading = $state<HTMLHeadingElement>();
 	const question = $derived(interview.questions[step]);
+	const reviewing = $derived(step === interview.questions.length);
 	const lang = $derived(view.plan.locale);
 	const t = (en: string, th: string) => (lang === 'th' ? th : en);
 	const stepNames = [
 		['Goal', 'เป้าหมาย'],
 		['Details', 'ข้อมูล'],
 		['Priority', 'สิ่งสำคัญ'],
-		['Reading', 'การอ่าน']
+		['Reading', 'การอ่าน'],
+		['Review', 'ทบทวน']
 	];
 	async function move(next: number) {
-		step = Math.max(0, Math.min(interview.questions.length - 1, next));
+		step = Math.max(0, Math.min(interview.questions.length, next));
 		await tick();
 		stepHeading?.focus();
 	}
-	function advance() {
-		if (completed) return;
-		if (step < interview.questions.length - 1) {
-			void move(step + 1);
-			return;
-		}
-		// The existing store callback validates and records one atomic change.
-		completed = true;
-		onapply({ ...answers }, directOnly);
-	}
 	function skip() {
-		if (completed) return;
+		if (!question) return;
 		const next = { ...answers };
 		delete next[question.id as Question];
 		answers = next;
-		advance();
+		void move(step + 1);
 	}
+	const result = $derived(
+		interviewProposal(answers, view.plan, { directOnly, lockedFields: view.lockedFields })
+	);
+	const changes = $derived(
+		describePatch(
+			Object.fromEntries(
+				Object.entries(result.patch).filter(
+					([key, value]) =>
+						JSON.stringify(view.plan[key as keyof ShopperPlan]) !== JSON.stringify(value)
+				)
+			),
+			lang
+		)
+	);
 </script>
 
 <form
 	onsubmit={(event) => {
 		event.preventDefault();
-		if (answers[question.id as Question]) advance();
+		if (reviewing) onapply(answers, directOnly);
+		else if (question && answers[question.id as Question]) void move(step + 1);
 	}}
 >
 	<div class="step-content">
@@ -73,66 +86,107 @@
 				</li>
 			{/each}
 		</ol>
-		<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">{question[lang]}</h3>
-		<fieldset aria-labelledby="interview-step-title">
-			<div class="answers">
-				{#each question.options as option (option.id)}
-					<label class:selected={answers[question.id as Question] === option.id}>
-						<input
-							type="radio"
-							name={question.id}
-							value={option.id}
-							checked={answers[question.id as Question] === option.id}
-							onchange={() => (answers = { ...answers, [question.id]: option.id })}
-						/>
-						<span>{option[lang]}</span>
-					</label>
-				{/each}
-			</div>
-		</fieldset>
-		<button class="skip" type="button" disabled={completed} onclick={skip}>
-			{interview.skip[lang]}
-		</button>
-		{#if step === interview.questions.length - 1}
-			<p>
-				{t(
-					'When you finish or skip this last question, the shop adjusts to your answers. You can undo the change or refine it in chat.',
-					'เมื่อตอบเสร็จหรือข้ามข้อสุดท้าย ร้านจะปรับตามคำตอบ คุณย้อนกลับหรือแชตปรับต่อได้'
-				)}
-			</p>
-		{/if}
-		<details>
-			<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
-			<p>
-				{t(
-					'A model on this device suggests a view when you finish. Your reading settings take priority. If the model is unavailable or you skip questions, direct answers still work.',
-					'โมเดลในอุปกรณ์นี้เสนอรูปแบบเมื่อตอบเสร็จ โดยยึดการตั้งค่าการอ่านของคุณเป็นหลัก หากโมเดลใช้งานไม่ได้หรือข้ามคำถาม ยังใช้คำตอบโดยตรงได้'
-				)}
-			</p>
-			<label class="direct">
-				<input type="checkbox" bind:checked={directOnly} />
-				<span>{t('Use direct answers only', 'ใช้เฉพาะคำตอบที่เลือก')}</span>
-			</label>
-			{#if view.lockedFields.length}
+		<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
+			{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
+		</h3>
+		{#if question}
+			<fieldset aria-labelledby="interview-step-title">
+				<div class="answers">
+					{#each question.options as option (option.id)}
+						<label class:selected={answers[question.id as Question] === option.id}>
+							<input
+								type="radio"
+								name={question.id}
+								value={option.id}
+								checked={answers[question.id as Question] === option.id}
+								onchange={() => (answers = { ...answers, [question.id]: option.id })}
+							/>
+							<span>{option[lang]}</span>
+						</label>
+					{/each}
+				</div>
+			</fieldset>
+			<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
+		{:else}
+			<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
+				{#if changes.length}
+					<dl>
+						{#each changes as item (item.field)}<div>
+								<dt>{item.label}</dt>
+								<dd>{item.text}</dd>
+							</div>{/each}
+					</dl>
+				{:else}<p>
+						{Object.keys(answers).length
+							? t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')
+							: t(
+									'You skipped every question. Your view will stay the same.',
+									'คุณข้ามทุกข้อ มุมมองจึงคงเดิม'
+								)}
+					</p>{/if}
 				<p>
 					{t(
-						'Your explicit preferences take priority over model suggestions.',
-						'ระบบให้ความสำคัญกับสิ่งที่คุณเลือกเองก่อนข้อเสนอของโมเดล'
+						'Your product information stays the same. You can fine-tune this view in chat.',
+						'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
 					)}
 				</p>
-			{/if}
-		</details>
+			</section>
+			<details>
+				<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
+				<p>
+					{t(
+						'A model on this device suggests a view from example preferences. Your reading settings take priority.',
+						'โมเดลในอุปกรณ์นี้เสนอรูปแบบจากตัวอย่างความชอบ โดยยึดการตั้งค่าการอ่านของคุณเป็นหลัก'
+					)}
+				</p>
+				<label class="direct">
+					<input type="checkbox" bind:checked={directOnly} />
+					<span>{t('Use direct answers only', 'ใช้เฉพาะคำตอบที่เลือก')}</span>
+				</label>
+				<p data-testid="interview-backend">
+					{result.backend === 'cnn'
+						? t('The CNN evaluated your answers on this device.', 'CNN ประเมินคำตอบในอุปกรณ์นี้')
+						: result.backend === 'incomplete'
+							? t('Direct answers until the interview is complete.', 'ใช้คำตอบโดยตรงจนกว่าจะตอบครบ')
+							: result.backend === 'unavailable'
+								? t(
+										'CNN unavailable. Direct answers still work.',
+										'CNN ใช้งานไม่ได้ ยังใช้คำตอบโดยตรงได้'
+									)
+								: t('Using only the answers you chose.', 'ใช้คำตอบโดยตรง โดยไม่ผ่าน CNN')}
+				</p>
+				{#if result.prediction && result.backend === 'cnn'}
+					<p>
+						{t('CNN theme suggestion', 'ธีมที่ CNN เสนอ')}: {preferenceName(
+							result.prediction.labels.theme,
+							lang
+						)}.
+						{view.lockedFields.includes('theme')
+							? t('Your existing theme is protected.', 'รักษาธีมที่คุณเลือกไว้แล้ว')
+							: t('You can change or remove it after applying.', 'เปลี่ยนหรือลบได้หลังปรับมุมมอง')}
+					</p>
+					<dl>
+						{#each describePatch(result.patch, lang).filter((item) => result.sources[item.field] === 'cnn') as item (item.field)}
+							<dt>{item.label} · CNN</dt>
+							<dd>{item.text}</dd>
+						{/each}
+					</dl>
+				{/if}
+			</details>
+		{/if}
 	</div>
-	<div class="actions">
+	<div class="apply">
 		{#if step > 0}
-			<button class="back" type="button" disabled={completed} onclick={() => move(step - 1)}>
+			<button class="back" type="button" onclick={() => move(step - 1)}>
 				{t('Back', 'ย้อนกลับ')}
 			</button>
 		{/if}
-		<button class="primary" disabled={completed || !answers[question.id as Question]}>
-			{step === interview.questions.length - 1
-				? t('Finish interview', 'ตอบเสร็จแล้ว')
-				: t('Next', 'ถัดไป')}
+		<button class="primary" disabled={!reviewing && !answers[question.id as Question]}>
+			{reviewing
+				? t('Apply my view', 'ใช้มุมมองนี้')
+				: step === interview.questions.length - 1
+					? t('Preview my view', 'ดูมุมมองที่เสนอ')
+					: t('Next', 'ถัดไป')}
 		</button>
 	</div>
 </form>
@@ -253,9 +307,36 @@
 		background: transparent;
 		font-weight: 400;
 	}
+	.preview {
+		background: var(--surface);
+		border-block: 1px dashed var(--muted);
+		padding: 0.6rem 0.875rem;
+	}
+	dl {
+		margin: 0;
+	}
+	dl div {
+		padding: 0.4rem 0;
+		border-bottom: 1px dotted var(--seam);
+	}
+	.preview dl div {
+		display: grid;
+		grid-template-columns: minmax(5rem, 1fr) minmax(0, 2fr);
+		gap: 0.75rem;
+	}
+	dt {
+		color: var(--muted);
+	}
+	dd {
+		margin: 0;
+		font-weight: 600;
+	}
 	p {
 		margin: 0.6rem 0;
 		line-height: 1.55;
+	}
+	.preview p {
+		color: var(--muted);
 	}
 	summary {
 		cursor: pointer;
@@ -270,7 +351,7 @@
 		min-height: var(--tap);
 		cursor: pointer;
 	}
-	.actions {
+	.apply {
 		position: sticky;
 		bottom: 0;
 		display: flex;
@@ -281,17 +362,17 @@
 		background: var(--paper);
 		border-top: 1px solid var(--seam);
 	}
-	.actions .primary {
+	.apply .primary {
 		min-width: 8rem;
 	}
-	.actions .back {
+	.apply .back {
 		margin-inline-end: auto;
 	}
 	:global([data-theme='large']) .answers {
 		grid-template-columns: 1fr;
 	}
 	@media (max-width: 520px) {
-		.actions .primary {
+		.apply .primary {
 			flex: 1;
 		}
 		:global([data-theme='large']) .progress li:not(.current) span {

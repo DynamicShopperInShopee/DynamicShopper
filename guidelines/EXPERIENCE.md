@@ -122,3 +122,5 @@ A drawer for anyone who wants to see how an answer was made (see [TRUST-AND-PROO
 | Offline | Same experience, "Offline mode" badge on replies |
 | Nothing matches | Empty state with active filters and "Clear filters" |
 | Error | Red-bordered message announced as an alert; the store is untouched |
+
+The optional interview, product comparison and deal check sit beside direct search. Requirements, Preferences and View use separate disclosures. Each group shows its current selections when closed. A shopper can correct eligibility or ranking directly and change language, layout or reading settings independently.

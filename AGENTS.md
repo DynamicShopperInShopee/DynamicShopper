@@ -2,19 +2,6 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted shopping flow
-
-Accepted on 2026-11-21 at the user's explicit request: keep the familiar orange
-marketplace baseline with DynamicShopper identity and no Shopee marks. The store
-opens first, followed by an optional four-question needs interview. Finishing or
-skipping its last question automatically applies one validated, undoable proposal.
-Draft answers never restyle the shop. Explain the change, provide Undo and chat
-refinement. There is no separate preview/Apply gate or manual preset, persona or
-theme chooser in the main shopping flow. Comparison examples and `/presets` are
-inspection-only and cannot apply a view to the shop. This flow supersedes earlier
-preview-and-Apply guidance. Sourced catalog publication remains the data owner's
-explicit action; no automatic refresh, agent write access or checkout claim is added.
-
 ## Product rules
 
 1. **Facts come only from the catalog and the pricing logic.** Price, original price, rating, review count, units sold, shipping, specs, voucher terms and deal amounts are never computed, rounded, restated or invented anywhere else.
@@ -51,6 +38,7 @@ explicit action; no automatic refresh, agent write access or checkout claim is a
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
 - **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
+- **Check both storefront entry points.** Verify the public `/` route, its **Shopping assistant** link, and the adaptive `/?view=receipt` route. Keep provider credentials out of production and run the local assistant browser suite with credentials cleared.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
 - **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).
@@ -59,6 +47,7 @@ explicit action; no automatic refresh, agent write access or checkout claim is a
 
 ## Team workflow
 
+- Follow the [team development checklist](docs/team-setup.md#from-assignment-to-main) for branch sync, verification, review and release handoffs.
 - Pick one [team assignment](README.md#choose-your-team-assignment) per coding session. Work in this repository on your own task branch. Start from the team's agreed baseline. Commit and push small, reviewable increments to that branch.
 - Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
 - The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.

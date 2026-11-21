@@ -128,15 +128,14 @@
 		void send(draft);
 	}
 
-	export function focus() {
-		if (mobile) open();
-		else textbox?.focus();
-	}
-
 	function open() {
 		dialog?.showModal();
 		textbox?.focus({ preventScroll: true });
 		if (history) scrollToLatest(history);
+	}
+	export function focus() {
+		if (mobile) open();
+		else textbox?.focus();
 	}
 </script>
 
@@ -155,7 +154,9 @@
 				lang={message.locale ?? locale}
 			>
 				<p>{message.text}</p>
-				{#if message.offline}<p class="offline" lang={locale}>{t.offline}</p>{/if}
+				{#if message.usedLocalSettings}<p class="offline" lang={locale}>
+						{locale === 'th' ? 'ใช้การตั้งค่าในเครื่อง' : 'Used local settings'}
+					</p>{:else if message.offline}<p class="offline" lang={locale}>{t.offline}</p>{/if}
 				{#if message.role === 'assistant' && !message.error}{@render renderReply?.(message)}{/if}
 			</article>
 		{/each}

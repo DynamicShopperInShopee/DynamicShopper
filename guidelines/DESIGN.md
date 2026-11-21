@@ -12,26 +12,12 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Interview transition
 
-The default marketplace has a plain optional needs interview. Its modal shows four
-questions with labeled radio choices, Back, Next and Skip. Finishing or skipping the
-last question automatically applies one validated proposal, closes the modal and
-focuses the change receipt. Drafts and cancellation leave the store unchanged. Undo
-restores the plan and answers; chat refines the same view. There is no separate preview
-or Apply screen and no preset, persona or theme chooser in the main shopping flow.
-Desktop centers the dialog; phones use a bottom sheet. Large print keeps 20px text
-and 48px targets, with no motion when reduced motion is requested.
-
-## Preset inspection library
-
-`/presets` is a separate design-review surface containing the reference's exact 177
-modules across twelve parts and twenty authored presentation examples. Each module
-shows its need, trigger, information order, dependency and default/empty/loading/error
-states. Missing services show neutral unavailable anatomy. No example can apply to
-the store. Existing catalog fixtures and the optimizer support inspection until the
-updated sourced catalog arrives; original photographs are explicitly pending rather
-than substituted with category illustrations. This surface keeps the orange shopping
-identity, DynamicShopper wordmark, receipt proof surfaces and all four accessible
-themes. See [the module inventory](../docs/PRESETS.md).
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip, then a proposed
+view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+the visible chat-refinement button focuses the existing assistant. No animation is
+required. Large print keeps single-column answers, 20px text and 48px targets.
 
 ## North star
 
@@ -220,6 +206,8 @@ Semibold, slightly larger than body, underlined by a 2px ink rule, like a receip
 
 Assistant messages sit on the paper as plain text and slips. The shopper's message is a right-aligned accent bubble at most 85% wide. The waiting line pulses only when motion is allowed. Error messages have a red border.
 
+Keep **Compare views** visible beside the **Shopper views** disclosure. Collapsing the presets keeps the product shelf closer to the top on phones. When the presets are open, the next tab reaches the first preset. Escape closes the disclosure and returns focus to its trigger. Undo, Reset, and X-ray use quieter buttons with the same target sizes. The public storefront link scrolls to and focuses the assistant section. Voucher expiry updates an open receipt in place and announces the changed content politely.
+
 ## Motion
 
 - **Receipt print:** 260ms, exponential ease-out (clip reveal plus a 0.5rem drop). Once, on appearance.
@@ -268,11 +256,19 @@ The specification sheet includes the catalog product name, seller, category spec
 
 Search cards group the delivery amount and seller on one metadata row. The matching-shop panel uses shorter vertical spacing so the first row of square product photos begins higher in the viewport.
 
+The storefront header includes the language switch on phones and laptops. Shoppers can choose Thai or English before searching or starting the interview.
+
 Skincare results lead with the shop panel, sort tabs and a single row of working quick controls, beginning with Free shipping. The result heading and count remain available to assistive technology without adding another visible row. Cooker searches place the submit icon inside the leading edge of the input on phones, with full-size tap targets.
 
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
+
+The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf receives focus. Chat, Edit my answers and Undo sit beside the updated products and remain visible at that handoff. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.
+
+The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+Shopping criteria use three compact disclosures listing active settings. Product comparison and deal calculation open on demand and return focus to their respective buttons. The comparison fits the phone viewport, labels missing catalog facts and lets shoppers choose which fields to inspect.
 
 The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
 
