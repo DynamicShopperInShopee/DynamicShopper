@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
+	import AddToCart from './AddToCart.svelte';
 	import FactValue from './FactValue.svelte';
 
 	let {
 		products,
 		locale,
 		onDeal,
+		onAdd,
 		highlightedSpecs = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
 		onDeal: (productId: string, locale: Locale) => void;
+		onAdd?: (productId: string) => 'added' | 'full' | 'invalid';
 		highlightedSpecs?: readonly SpecKey[];
 	} = $props();
 
@@ -48,7 +51,7 @@
 					{/each}
 					<th scope="col" class="figure">{th ? 'ราคา' : 'Price'}</th>
 					<th scope="col" class="figure">{th ? 'คะแนน' : 'Rating'}</th>
-					<th scope="col">{th ? 'ดีล' : 'Deal'}</th>
+					<th scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -82,6 +85,7 @@
 						<td class="figure"><FactValue productId={product.id} field="price" {locale} /></td>
 						<td class="figure"><FactValue productId={product.id} field="rating" {locale} /></td>
 						<td>
+							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
 							<button type="button" onclick={() => onDeal(product.id, locale)}>
 								{th ? 'ราคาดีที่สุด' : 'Best price'}
 							</button>

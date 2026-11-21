@@ -3,7 +3,9 @@
 	import { resolve } from '$app/paths';
 	import '../../../lib/assets/fonts/plex.css';
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
-	import ProductDeal from './ProductDeal.svelte';
+	import CartControls from '../../../lib/storefront/CartControls.svelte';
+	import AddToCart from '../../../lib/storefront/AddToCart.svelte';
+	import ProductDeal from '../../../lib/storefront/ProductDeal.svelte';
 	import ProductGallery from './ProductGallery.svelte';
 	import '../../../lib/assets/products/cooker-photos.css';
 	import ProductDescription from './ProductDescription.svelte';
@@ -13,6 +15,7 @@
 	const session = getStoreSession();
 	let { data }: PageProps = $props();
 	let proofRoot = $state<HTMLElement>();
+	let productDeal = $state<ReturnType<typeof ProductDeal>>();
 	const th = $derived(data.language === 'th');
 </script>
 
@@ -61,6 +64,10 @@
 		>
 			{th ? 'English' : 'ไทย'}
 		</a>
+		<CartControls
+			locale={data.language}
+			onBestPrice={(basket) => productDeal?.showBasket(basket)}
+		/>
 	</header>
 	<div bind:this={proofRoot}>
 		<div class="listing">
@@ -103,7 +110,18 @@
 					</div>
 				</dl>
 				{#key data.id}
-					<ProductDeal productId={data.id} locale={data.language} />
+					<ProductDeal
+						bind:this={productDeal}
+						productId={data.id}
+						locale={data.language}
+						quantity={session.cart.find(({ productId }) => productId === data.id)?.quantity}
+					>
+						<AddToCart
+							productId={data.id}
+							locale={data.language}
+							onAdd={(id) => session.addProduct(id)}
+						/>
+					</ProductDeal>
 				{/key}
 			</section>
 		</div>

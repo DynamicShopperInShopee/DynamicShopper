@@ -1,12 +1,13 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { beforeNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
-	import { onMount, tick } from 'svelte';
-	import { SvelteURL } from 'svelte/reactivity';
+	import { onMount, tick, untrack } from 'svelte';
+	import ShareLook from '#lib/storefront/ShareLook.svelte';
+	import { parseSharedLook } from '#lib/storefront/browserState.ts';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
@@ -22,6 +23,9 @@
 		type ShopperPlan,
 		type Turn
 	} from '../lib/personalization';
+	import CartControls from '../lib/storefront/CartControls.svelte';
+	import AddToCart from '../lib/storefront/AddToCart.svelte';
+	import type { CartItem } from '../lib/storefront/cart';
 	import FactValue from '../lib/storefront/FactValue.svelte';
 	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
@@ -133,9 +137,25 @@
 			: []
 	);
 	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
+
+	function quantityInCart(productId: string) {
+		return session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
+	}
 	const a = $derived(assistantCopy[language]);
 	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
-	let shareCopied = $state(false);
+	const lookFields = [
+		'theme',
+		'layout',
+		'density',
+		'locale',
+		'details',
+		'sections',
+		'simplified'
+	] as const;
+	let restoredFields = $state<(keyof ShopperPlan)[]>([]);
+	let cartRestored = $state(false);
+	let sharedLookOpened = $state(false);
+	let storeReady = $state(false);
 
 	function shelfState(): ShelfState {
 		return { plan: $state.snapshot(activePlan), adapted, sort, freeShipping, locks: [...locks] };
@@ -249,17 +269,30 @@
 	function openDeal(productId: string, locale: Locale = language) {
 		openBasket([productId], locale);
 	}
+	function basketForProducts(productIds: readonly string[]): CartItem[] {
+		return productIds.map((productId) => ({
+			productId,
+			quantity: quantityInCart(productId)
+		}));
+	}
 	function openBasket(productIds: readonly string[], locale: Locale = language) {
+		if (showBasketDeal(basketForProducts(productIds), locale)) focusedProduct = productIds[0];
+	}
+	function calculateQuote(basket: readonly CartItem[], locale: Locale) {
 		const openedAt = getStoreOpenedAt();
 		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
-		const basket = productIds.map((productId) => ({ productId, quantity: 1 }));
 		const receipt = optimizeDeal(basket, context);
 		if (!receipt) return;
+		return { receipt, locale, addOns: findAddOns(basket, context) };
+	}
+	function showBasketDeal(basket: readonly CartItem[], locale: Locale = language) {
+		const calculated = calculateQuote(basket, locale);
+		if (!calculated) return false;
 		quoteTrigger =
 			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		focusedProduct = productIds[0];
-		quote = { receipt, locale, addOns: findAddOns(basket, context) };
+		quote = calculated;
 		void tick().then(() => closeQuoteButton?.focus());
+		return true;
 	}
 	function closeDeal() {
 		quote = undefined;
@@ -267,6 +300,8 @@
 	}
 	function applyTurn(next: Turn) {
 		turn = next;
+		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
+		let deal: ReturnType<typeof calculateQuote>;
 		changes = [];
 		switch (next.intent) {
 			case 'change':
@@ -279,12 +314,23 @@
 				restoreDefaults();
 				break;
 			case 'deal':
-				if (next.productIds.length) openBasket(next.productIds);
+				if (next.productIds.length) {
+					deal = calculateQuote(basketForProducts(next.productIds), replyLocale);
+					if (deal) focusedProduct = next.productIds[0];
+				}
 				break;
 		}
+		session.conversation.reply(next, {
+			locale: replyLocale,
+			offline: !liveModel,
+			changes: changes.map(changeName),
+			deal
+		});
 	}
 
 	function send(message: string) {
+		if (livePending || !message.trim()) return;
+		session.conversation.shopper(message, /\p{Script=Thai}/u.test(message) ? 'th' : language);
 		cancelLive();
 		liveModel = undefined;
 		liveFallback = false;
@@ -354,17 +400,6 @@
 		);
 	}
 
-	async function shareLook() {
-		const link = new SvelteURL(page.url.href);
-		link.search = '';
-		link.searchParams.set('look', `${theme}.${adapted ? plan.layout : 'grid'}.${language}`);
-		try {
-			await navigator.clipboard.writeText(link.href);
-			shareCopied = true;
-		} catch {
-			shareCopied = false;
-		}
-	}
 	onMount(() => {
 		opening = getStoreOpenedAt();
 		referenceTime = Math.max(opening, Date.now());
@@ -377,6 +412,9 @@
 		};
 	});
 	onMount(() => {
+		if (eventDemo) return;
+		session.restoreBrowser();
+		storeReady = true;
 		const saved = session.visit;
 		if (saved && saved.search === page.url.search) {
 			writePlan(saved.plan);
@@ -396,8 +434,51 @@
 			draftShipping = freeShipping;
 			return;
 		}
+		const persisted = session.savedPlan;
+		if (persisted) {
+			restoredFields = (Object.keys(defaultPlan) as (keyof ShopperPlan)[]).filter(
+				(key) => JSON.stringify(persisted[key]) !== JSON.stringify(defaultPlan[key])
+			);
+			if (restoredFields.length) {
+				writePlan(persisted);
+				adapted = restoredFields.some(
+					(key) => !['query', 'category', 'maxPrice', 'locale', 'theme'].includes(key)
+				);
+			}
+		}
+		cartRestored = session.cart.length > 0;
+		openSharedLook();
+	});
+	afterNavigate(({ from, to }) => {
+		if (
+			storeReady &&
+			from?.route.id === '/' &&
+			to?.route.id === '/' &&
+			from.url.search !== to.url.search
+		)
+			openSharedLook();
+	});
+	$effect(() => {
+		if (!storeReady || eventDemo) return;
+		const current = $state.snapshot(activePlan);
+		untrack(() => session.savePlan(current));
+	});
+	function openSharedLook() {
+		sharedLookOpened = false;
 		const look = page.url.searchParams.get('look');
-		if (!look || look.length > 40) return;
+		if (!look) return;
+		const patch = parseSharedLook(look, lookFields, (input) => {
+			const proposal = validateProposal({ intent: 'change', patch: input }, activePlan);
+			return proposal.dropped.length || !Object.keys(proposal.patch).length
+				? undefined
+				: proposal.patch;
+		});
+		if (patch) {
+			changePlan(patch, false);
+			sharedLookOpened = changes.length > 0;
+			return;
+		}
+		if (look.length > 40) return;
 		const [nextTheme, nextLayout, nextLocale] = look.split('.');
 		if (
 			look.split('.').length !== 3 ||
@@ -414,7 +495,8 @@
 			},
 			false
 		);
-	});
+		sharedLookOpened = changes.length > 0;
+	}
 
 	const t = $derived(storefrontCopy[language]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
@@ -443,7 +525,7 @@
 			referenceTime === undefined
 		)
 			return null;
-		return optimizeDeal([{ productId: top.catalogId, quantity: 1 }], {
+		return optimizeDeal([{ productId: top.catalogId, quantity: quantityInCart(top.catalogId) }], {
 			openedAt: opening,
 			now: referenceTime
 		});
@@ -542,6 +624,7 @@
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
 					</button>
+					<CartControls locale={language} onBestPrice={showBasketDeal} />
 				</div>
 			</div>
 		</header>
@@ -855,7 +938,30 @@
 
 		{#if !eventDemo}
 			<section class="shopper-tools" aria-label={a.persona}>
-				<ShoppingAssistant locale={language} onSend={send} />
+				{#if restoredFields.length || cartRestored}
+					<div class="assistant-reply" role="status">
+						<strong>
+							{language === 'th' ? 'กู้คืนหน้าร้านที่บันทึกไว้แล้ว' : 'Restored your saved store'}
+						</strong>
+						<p>
+							{[
+								...new Set(restoredFields.map(changeName)),
+								...(cartRestored ? [language === 'th' ? 'ตะกร้า' : 'Cart'] : [])
+							].join(' · ')}
+						</p>
+					</div>
+				{/if}
+				{#if sharedLookOpened}<p role="status">
+						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
+					</p>{/if}
+				<ShoppingAssistant
+					locale={language}
+					onSend={send}
+					conversation={session.conversation}
+					pending={livePending}
+					largePrint={theme === 'large'}
+					{theme}
+				/>
 				<div class="shopper-actions">
 					{#each personas as persona (persona)}
 						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
@@ -878,49 +984,6 @@
 						{a.trace}
 					</button>
 				</div>
-				{#if livePending}
-					<p class="assistant-reply" role="status">
-						{language === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
-					</p>
-				{/if}
-				{#if turn}
-					<div class="assistant-reply" aria-live="polite">
-						<span class="mode-label">
-							{liveModel ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
-						</span>
-						<p>{turn.reply}</p>
-						{#if turn.citations.length}
-							<strong>{a.fromListing}</strong>
-							<ul>
-								{#each turn.citations as citation (`${citation.productId}:${citation.field}`)}
-									<li>
-										<a
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, {
-												id: citation.productId
-											})}
-										>
-											<FactValue
-												productId={citation.productId}
-												field={citation.field}
-												locale={language}
-											/>
-										</a>
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				{/if}
-				{#if changes.length}
-					<div class="assistant-reply" aria-live="polite">
-						<strong>{a.changed}</strong>
-						<div class="shopper-actions">
-							{#each [...new Set(changes.map(changeName))] as label (label)}
-								<span>{label}</span>
-							{/each}
-						</div>
-					</div>
-				{/if}
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
 						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
@@ -1010,10 +1073,12 @@
 				</section>
 			{/if}
 			{#if adapted && plan.sections.includes('share')}
-				<div class="shopper-actions">
-					<button type="button" onclick={shareLook}>{a.share}</button>
-					{#if shareCopied}<span role="status">{a.shared}</span>{/if}
-				</div>
+				<ShareLook
+					locale={language}
+					storefrontUrl={page.url.href}
+					plan={activePlan}
+					presentationFields={lookFields}
+				/>
 			{/if}
 		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
@@ -1041,6 +1106,7 @@
 						)}
 						locale={language}
 						onDeal={openDeal}
+						onAdd={session.addProduct}
 						highlightedSpecs={plan.highlightedSpecs}
 					/>
 				{:else}
@@ -1065,7 +1131,7 @@
 										class="art demo-photo"
 										data-category={product.category}
 										data-model={product.id}
-									data-cooker-photo={product.catalogId}
+										data-cooker-photo={product.catalogId}
 										aria-hidden="true"
 									></div>
 								{:else}
@@ -1172,13 +1238,20 @@
 												locale={language}
 											/>
 										{/if}
-										<button
-											class="best-price"
-											type="button"
-											onclick={() => openDeal(product.catalogId)}
-										>
-											{a.deal}
-										</button>
+										<div class="card-actions">
+											<AddToCart
+												productId={product.catalogId}
+												locale={language}
+												onAdd={session.addProduct}
+											/>
+											<button
+												class="best-price"
+												type="button"
+												onclick={() => openDeal(product.catalogId)}
+											>
+												{a.deal}
+											</button>
+										</div>
 										{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
 											<details class="rank">
 												<summary>{a.rank}</summary>
@@ -1485,8 +1558,13 @@
 	.assistant-reply p {
 		margin-block: 0.25rem;
 	}
-	.mode-label {
-		color: var(--muted);
+
+	.card-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: flex-start;
+		margin-block-start: 0.65rem;
 	}
 	.best-price,
 	.rank {

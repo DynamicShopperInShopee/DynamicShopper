@@ -2,15 +2,7 @@
 	import { onMount, tick, type Snippet } from 'svelte';
 	import type { FactLocale } from './verifyFacts';
 
-	type Message = {
-		id: string;
-		text: string;
-		role: 'shopper' | 'assistant';
-		offline?: boolean;
-		error?: boolean;
-		locale?: FactLocale;
-	};
-
+	import type { ChatMessage } from './conversation.svelte';
 	let {
 		locale,
 		messages,
@@ -18,15 +10,19 @@
 		onSend,
 		renderReply,
 		largePrint = false,
-		showingDeal = false
+		showingDeal = false,
+		inputLabel,
+		pendingLabel
 	}: {
 		locale: FactLocale;
-		messages: readonly Message[];
+		messages: readonly ChatMessage[];
 		pending: boolean;
 		onSend: (message: string) => boolean | void;
-		renderReply?: Snippet<[Message]>;
+		renderReply?: Snippet<[ChatMessage]>;
 		largePrint?: boolean;
 		showingDeal?: boolean;
+		inputLabel?: string;
+		pendingLabel?: string;
 	} = $props();
 
 	const copy = {
@@ -38,6 +34,7 @@
 			help: 'Tell me what you’re looking for or how you’d like the store to look.',
 			pending: 'Reading your request…',
 			offline: 'Offline mode',
+			failed: 'Message could not be sent. You can try again.',
 			history: 'Conversation'
 		},
 		th: {
@@ -48,6 +45,7 @@
 			help: 'บอกได้เลยว่ากำลังหาสินค้าอะไร หรืออยากให้หน้าร้านแสดงแบบไหน',
 			pending: 'กำลังอ่านข้อความ…',
 			offline: 'โหมดออฟไลน์',
+			failed: 'ส่งข้อความไม่สำเร็จ ลองส่งอีกครั้งได้',
 			history: 'บทสนทนา'
 		}
 	};
@@ -61,6 +59,7 @@
 	const id = $props.id();
 	let mobile = $state(false);
 	let draft = $state('');
+	let sendFailed = $state(false);
 	let textbox = $state<HTMLTextAreaElement>();
 	let trigger = $state<HTMLButtonElement>();
 	let dialog = $state<HTMLDialogElement>();
@@ -103,7 +102,12 @@
 	function send(text: string) {
 		const message = text.trim();
 		if (pending || !message || message.length > 1000) return;
-		if (onSend(message) !== false) draft = '';
+		try {
+			sendFailed = onSend(message) === false;
+		} catch {
+			sendFailed = true;
+		}
+		draft = sendFailed ? message : '';
 	}
 
 	function onEnter(event: KeyboardEvent) {
@@ -139,7 +143,8 @@
 			</article>
 		{/each}
 	</div>
-	{#if pending}<p role="status">{t.pending}</p>{/if}
+	{#if sendFailed}<p class="error" role="alert">{t.failed}</p>{/if}
+	{#if pending}<p role="status">{pendingLabel ?? t.pending}</p>{/if}
 	{#if remaining.length}
 		<div class="suggestions">
 			{#each remaining as suggestion (suggestion.text)}
@@ -160,7 +165,7 @@
 			send(draft);
 		}}
 	>
-		<label for={`${id}-message`}>{t.message}</label>
+		<label for={`${id}-message`}>{inputLabel ?? t.message}</label>
 		<textarea
 			id={`${id}-message`}
 			bind:this={textbox}
@@ -237,7 +242,7 @@
 		background: var(--ink, #16161a);
 		border-radius: var(--radius, 4px);
 	}
-	article.error {
+	.error {
 		border: 1px solid var(--void, #b01e31);
 	}
 	.offline {

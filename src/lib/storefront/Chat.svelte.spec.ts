@@ -2,6 +2,9 @@ import { render } from 'vitest-browser-svelte';
 import { page, userEvent } from 'vitest/browser';
 import { afterEach, expect, it, vi } from 'vitest';
 import Chat from './Chat.svelte';
+import ShoppingAssistant from './ShoppingAssistant.svelte';
+import { Conversation } from './conversation.svelte';
+import { defaultPlan, interpretOffline } from '../personalization';
 
 afterEach(async () => {
 	await page.viewport(1440, 900);
@@ -78,4 +81,65 @@ it('scrolls to a reply received while the phone sheet was closed', async () => {
 	expect(reply.getBoundingClientRect().bottom).toBeLessThanOrEqual(
 		history.getBoundingClientRect().bottom
 	);
+});
+
+it('uses the responsive conversation composer at the storefront entry point', async () => {
+	await page.viewport(1440, 900);
+	const onSend = vi.fn();
+	const screen = await render(ShoppingAssistant, {
+		locale: 'en',
+		onSend,
+		conversation: new Conversation()
+	});
+	await expect
+		.element(screen.getByRole('complementary', { name: 'Chat with the assistant' }))
+		.toBeVisible();
+	const field = screen.getByRole('textbox', { name: 'Ask the store' });
+	expect(field.element().tagName).toBe('TEXTAREA');
+	await screen.getByRole('button', { name: 'ขอแบบเรียบๆ ดูสเปกก่อน' }).click();
+	expect(onSend).toHaveBeenCalledWith('ขอแบบเรียบๆ ดูสเปกก่อน');
+	await page.viewport(390, 844);
+	await screen.getByRole('button', { name: 'Chat with the assistant' }).click();
+	await expect
+		.element(screen.getByRole('dialog').getByRole('textbox', { name: 'Ask the store' }))
+		.toHaveFocus();
+});
+
+it('keeps the cited value in the reply language when the shopper switches the interface', async () => {
+	const conversation = new Conversation();
+	const question = 'หม้อหุงข้าวความจุเท่าไหร่';
+	conversation.shopper(question, 'th');
+	conversation.reply(interpretOffline(question, defaultPlan, 'cooker-one-button'), {
+		locale: 'th',
+		offline: true,
+		changes: []
+	});
+	await page.viewport(1440, 900);
+	const screen = await render(ShoppingAssistant, {
+		locale: 'en',
+		conversation,
+		theme: 'large',
+		onSend: vi.fn()
+	});
+	const cited = screen.getByRole('log').getByRole('link', { name: '1.8 ลิตร' });
+	await expect
+		.element(cited)
+		.toHaveAttribute('href', '/product/cooker-one-button?lang=th&theme=large');
+	await expect.element(cited.getByText('1.8 ลิตร')).toHaveAttribute('data-source', 'catalog');
+	await expect.element(cited.getByText('1.8 ลิตร')).toHaveAttribute('data-raw', '1.8');
+});
+
+it('keeps a failed draft available to retry and announces a local error', async () => {
+	await page.viewport(1440, 900);
+	const send = vi.fn<() => boolean>().mockReturnValueOnce(false).mockReturnValueOnce(true);
+	const screen = await render(Chat, { locale: 'th', messages: [], pending: false, onSend: send });
+	const input = screen.getByRole('textbox', { name: 'ข้อความ' });
+	await input.fill('ดูสเปกก่อน');
+	await screen.getByRole('button', { name: 'ส่ง' }).click();
+	await expect.element(screen.getByRole('alert')).toHaveTextContent('ส่งข้อความไม่สำเร็จ ลองส่งอีกครั้งได้');
+	await expect.element(input).toHaveValue('ดูสเปกก่อน');
+	await screen.getByRole('button', { name: 'ส่ง' }).click();
+	await expect.element(input).toHaveValue('');
+	expect(screen.container.querySelector('[role="alert"]')).toBeNull();
+	expect(send).toHaveBeenCalledTimes(2);
 });

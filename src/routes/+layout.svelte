@@ -1,12 +1,14 @@
 <script lang="ts">
 	import './layout.css';
-	import { setStoreSession, type StoreSession } from '#lib/storefront/store.svelte.ts';
+	import { setStoreSession, createStoreSession } from '#lib/storefront/store.svelte.ts';
+	import { onMount } from 'svelte';
 	import { afterNavigate, preloadCode } from '$app/navigation';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
-	const session = $state<StoreSession>({ offlineReady: false });
+	const session = createStoreSession();
+	onMount(() => session.restoreBrowser());
 	setStoreSession(session);
 	afterNavigate(({ to }) => {
 		const route = to?.route.id;
