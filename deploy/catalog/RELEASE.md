@@ -1,6 +1,7 @@
 # Catalog cloud release — 2026-11-21
 
-The user authorized publishing the 1,500-product catalog to the cloud. The
+This historical record describes the 2026-11-21 publication of the
+1,500-product catalog to the cloud. The
 configured target is the existing `dynamic-shopper` D1 database, bound to a new
 `dynamic-shopper-catalog` Worker. This package serves the storefront, API and
 1,500 original product images. It does not replace the existing main Worker.
@@ -38,9 +39,8 @@ Browser checks against that public release confirmed:
 
 - All 1,500 records load; the first page contains 24 products.
 - Completing the four-step interview automatically changes the grid to the
-  validated CNN comparison layout, with no preview/Apply gate.
-- The explanation identifies on-device CNN inference and its rule-derived
-  training limitation; Undo restores the original grid in one step.
+  validated comparison layout.
+- The explanation identifies presentation changes. Undo restored the original grid in one step.
 - All 48 rendered fact bindings (24 prices and source labels) remain identical
   before and after the interview, including raw values and visible text.
 - The three inspection examples use grid, table and list layouts and expose no
@@ -51,8 +51,7 @@ Browser checks against that public release confirmed:
 The isolated PR passed Svelte/typecheck with zero errors or warnings, 32 focused
 server tests, four Worker tests, Worker typecheck and the standalone production
 build. Fresh-clone development against the cloud API also returned the exact
-versioned snapshot and original image bytes. See `preview/evidence` for browser
-captures. The browser checks above are manual; authored Playwright scenarios
+historical snapshot and original image bytes. The browser checks above were manual; authored Playwright scenarios
 were not executed in this verification run.
 
 ## Publish and verify
@@ -70,7 +69,7 @@ were not executed in this verification run.
 
 Do not publish if the remote count, checksum or source facts differ. An import
 failure leaves the previous database snapshot in place. If the API is unavailable,
-the storefront identifies the bundled release catalog and displays its observation date.
+the current standalone preview identifies its checksum-verified offline catalog or its seven bundled observations and displays the observation date.
 
 If a previously deployed Worker version exists and the release causes API
 errors, roll back that Worker version. Restore catalog data only from its
@@ -90,13 +89,11 @@ ratio of 5.18:1. Body layouts, density and details still adapt.
 
 Browser verification on localhost checked standard, minimal, vibrant and large
 print: the computed header and search backgrounds stayed `rgb(196, 62, 28)`.
-On the published cloud release, completing the CNN interview changed the grid
-to a minimal comparison table and preserved the same orange branding. See
-`preview/evidence/cloud-orange-brand.jpg`. The cloud catalog still exposes
-1,500 products. Localhost on port 5176 now uses the cloud catalog through the
-development proxy.
+On the published cloud release, completing the interview changed the grid
+to a minimal comparison table and preserved the same orange branding. The
+cloud catalog exposed 1,500 products at verification. Use the explicit
+`dev:shopping:cloud` script to select that catalog in the preview.
 
-The PR includes the latest main storefront/listing integration and adapts its
-standalone interview to the shared `lockedFields` API. Both explicit-theme
+The PR includes the latest main storefront/listing integration and its standalone shopping preview. Both explicit-theme
 regressions, all 32 focused tests, Svelte/typecheck, targeted ESLint and the
 standalone production build passed after integration.

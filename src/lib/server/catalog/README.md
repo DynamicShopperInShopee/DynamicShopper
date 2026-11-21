@@ -7,7 +7,7 @@ was added. A separate Cloudflare Worker implements the same read-only API over
 D1 and packaged original images. Its catalog tables share the existing D1 database
 without changing unrelated authentication tables.
 
-Import a normalized `CatalogSnapshot` produced by the collection pipeline:
+To import a separately staged, normalized `CatalogSnapshot`, run:
 
 ```sh
 node scripts/catalog-server.ts --import data/shopee/catalog.json
@@ -34,8 +34,7 @@ Only these read operations are exposed:
   The default page size is 24; the maximum is 100. The response includes the
   full-result count, current page, source snapshot, and category registry.
 - `GET /api/catalog/snapshot`: the complete validated snapshot. The shop uses
-  the bundled release catalog when this endpoint is unavailable; listing facts
-  are never restored from browser storage.
+  the seven bundled observations when the endpoint is unavailable, unless a previously saved full release passes the manifest checksum again.
 - `GET /api/catalog/:id`: a listing identified by `shopId.itemId`.
 - `GET /api/catalog/images/:id`: original locally cached JPEG, PNG, or WebP
   bytes from `data/shopee/images/:id.jpg`; missing images return 404. The
@@ -75,16 +74,13 @@ scheduling, or a public write API.
 
 The 2026-11-21 import contains 1,500 unique listings across 122 source query
 groups, observed at 14:22–14:32 Asia/Bangkok. `data/catalog.sqlite` is the durable
-database, not browser state. Its data survives a server restart. The normalized
-working source is `data/shopee/catalog.json`; the same normalized metadata is
-versioned at `catalogs/shopee-2026-11-21/catalog.json`, with hashes and source
-dates in its manifest. Original images and collection evidence are staged in
-`data/shopee/images` and `data/shopee/provenance` respectively.
+database, not browser state. Its data survives a server restart. A full local import needs an operator-supplied snapshot at
+`data/shopee/catalog.json`. The [dataset guide](../../../../catalogs/shopee-2026-11-21/README.md)
+identifies the original file and validated record checksums. Keep original
+images in `data/shopee/images` and collection evidence under
+`data/shopee/provenance`. The data directory, database and image cache are
+ignored. A fresh preview can browse the seven bundled records without them.
 
-The working data directory, database, raw observations and expanded image cache
-are excluded from Git; pushing code does not copy them to another machine.
-The versioned metadata and [dataset guide](../../../../catalogs/shopee-2026-11-21/README.md)
-support reproducing the selected catalog without committing its image cache.
 To reuse the complete locally cached package,
 retain the complete `data/shopee` directory and run `npm run catalog:import`,
 then `npm run dev:catalog` and `npm run dev:shopping`. Reimporting the same

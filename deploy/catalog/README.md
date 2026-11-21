@@ -4,7 +4,7 @@ Published storefront: https://dynamic-shopper-catalog.nattawin-ya.workers.dev
 
 Reusable API: https://dynamic-shopper-catalog.nattawin-ya.workers.dev/api/catalog
 
-Remote verification confirms exactly 1,500 source records across 63 pages and
+The 2026-11-21 release record reports 1,500 source records across 63 pages and
 122 groups, matching the complete imported snapshot and original JPEG/PNG bytes.
 
 This separate `dynamic-shopper-catalog` Worker serves the shopping preview,
@@ -16,17 +16,16 @@ there is no Node compatibility flag, filesystem access, or SQLite native module.
 The public API preserves the Node backend contract: `/api/catalog`,
 `/api/catalog/snapshot`, `/api/catalog/:id`, and `/api/catalog/images/:id`.
 Query validation is shared with the local backend. D1 batches metadata, counts
-and item reads together. Missing catalogs return 503 so the validated browser
-cache can be used; unknown API paths return JSON 404, never the app shell.
+and item reads together. Missing catalogs return 503 so the preview can use a checksum-verified offline release or its seven-record starter catalog; unknown API paths return JSON 404, never the app shell.
 No public endpoint imports data or changes a product fact.
 
 To try the sourced storefront from a fresh clone, use `npm run dev:shopping:cloud`
 and open `http://127.0.0.1:5176`. This development proxy uses the published API
-and images; it does not require the ignored local `data` directory. Versioned
-metadata and the manual image-staging requirements for a complete rebuild are
+and images; it does not require the ignored local `data` directory. Manifest checksums and the manual catalog and image-staging requirements for a complete rebuild are
 documented in [the dataset guide](../../catalogs/shopee-2026-11-21/README.md).
 
-From the repository root, prepare a deployment locally:
+After staging the reviewed full snapshot and its original images, the following
+commands prepare a local package from the repository root:
 
 ```sh
 npm run build:catalog:cloud

@@ -22,7 +22,7 @@ before treating learned suggestions as an improvement over direct controls.
 
 ## Standalone sourced interview
 
-The optional sourced preview uses the same local CNN and proposal validator. Finish applies once, and the preview offers Undo and chat refinement. The three editable example views demonstrate presentation changes independently of the shop. Skipping a question preserves its existing settings, and closing the draft cancels it.
+The optional sourced preview uses the same fixed answer mappings and proposal validator as the storefront. Finish applies once, and the preview offers Undo and chat refinement. The three editable example views demonstrate presentation changes independently of the shop. Skipping a question preserves its existing settings, and closing the draft cancels it.
 
 ## The plan
 

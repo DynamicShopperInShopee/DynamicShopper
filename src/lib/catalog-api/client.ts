@@ -1,6 +1,8 @@
+import manifest from '../../../catalogs/shopee-2026-11-21/manifest.json' with { type: 'json' };
 import type { CatalogCategory, CatalogSnapshot, LocalizedText, ShopListing } from './types';
 
 import { isImageSource, isListingSource, isShopSource, isSnapshotSource } from './provenance.ts';
+const CACHE_KEY = 'dynamicshopper.catalog.v1';
 const MAX_ITEMS = 10_000;
 const MAX_PAYLOAD = 12_000_000;
 const listingIdPattern = /^\d{1,20}\.\d{1,20}$/;
@@ -128,9 +130,45 @@ export function decodeCatalogSnapshot(raw: unknown): CatalogSnapshot | null {
 	};
 }
 
+async function matchesRelease(serialized: string): Promise<boolean> {
+	if (!serialized || serialized.length > MAX_PAYLOAD) return false;
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(serialized));
+	return (
+		Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('') ===
+		manifest.validatedSnapshotChecksum
+	);
+}
+
+export async function readCatalogCache(
+	storage?: Pick<Storage, 'getItem'>
+): Promise<CatalogSnapshot | null> {
+	try {
+		const saved = (storage ?? window.localStorage).getItem(CACHE_KEY);
+		return saved && (await matchesRelease(saved)) ? decodeCatalogSnapshot(JSON.parse(saved)) : null;
+	} catch {
+		return null;
+	}
+}
+
+export async function writeCatalogCache(snapshot: CatalogSnapshot): Promise<void> {
+	// Only the exact published release may supply facts on a later offline visit.
+	if (
+		snapshot.snapshot.id !== manifest.snapshotId ||
+		snapshot.items.length !== manifest.recordCount
+	)
+		return;
+	try {
+		const saved = JSON.stringify(snapshot);
+		if (await matchesRelease(saved)) window.localStorage.setItem(CACHE_KEY, saved);
+	} catch {
+		// Storage and Web Crypto are optional. The loaded catalog remains usable.
+	}
+}
+
 export async function fetchCatalogSnapshot(signal: AbortSignal, transport: typeof fetch = fetch) {
 	const response = await transport('/api/catalog/snapshot', {
 		signal,
+		redirect: 'error',
 		headers: { Accept: 'application/json' }
 	});
 	if (!response.ok) throw new Error('Catalog unavailable');

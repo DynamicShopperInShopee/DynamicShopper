@@ -1,9 +1,8 @@
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import manifest from '../../../catalogs/shopee-2026-11-21/manifest.json';
+import { reviewedCatalog } from './reviewed-catalog';
+import { listings } from '../mobile/shop-data';
 import { render } from 'svelte/server';
-import { decodeCatalogSnapshot, pageListings } from './client';
+import { decodeCatalogSnapshot, pageListings, readCatalogCache } from './client';
 import type { CatalogSnapshot } from './types';
 import { validateCatalogSnapshot } from '../server/catalog/validate';
 import { initialView, visibleListings, applyInterview } from '../mobile/engine';
@@ -41,14 +40,15 @@ function fixture(count = 1): CatalogSnapshot {
 }
 
 describe('catalog validation and display', () => {
-	it('ships the exact reviewed snapshot and preserves its source facts on import and display', () => {
-		const asset = new URL('../../../catalogs/shopee-2026-11-21/catalog.json', import.meta.url);
-		const bytes = readFileSync(asset);
-		expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.catalogFileSha256);
-		const original = JSON.parse(bytes.toString('utf8')) as CatalogSnapshot;
-		expect(original.items.length).toBe(manifest.recordCount);
-		expect(decodeCatalogSnapshot(original)).toEqual(original);
-		expect(validateCatalogSnapshot(original)).toEqual(original);
+	it('starts offline with the seven original listings, source links and their available images', () => {
+		expect(reviewedCatalog.items).toEqual(listings);
+		expect(reviewedCatalog.snapshot.total).toBe(7);
+		for (const group of reviewedCatalog.categories)
+			expect(group.count).toBe(listings.filter((item) => item.category === group.id).length);
+	});
+	it('rejects a structurally valid but unverified saved catalog', async () => {
+		const saved = JSON.stringify(fixture());
+		expect(await readCatalogCache({ getItem: () => saved })).toBeNull();
 	});
 	it('revalidates a complete snapshot without changing its source facts', () => {
 		const input = fixture(1500);

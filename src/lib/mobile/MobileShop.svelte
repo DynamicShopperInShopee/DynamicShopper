@@ -12,7 +12,7 @@
 	import { tick, onMount } from 'svelte';
 	import { describePatch, type Answers } from '../personalization/interview';
 	import type { ShopListing, CatalogSnapshot } from '../catalog-api/types';
-	import { fetchCatalogSnapshot } from '../catalog-api/client';
+	import { fetchCatalogSnapshot, readCatalogCache, writeCatalogCache } from '../catalog-api/client';
 	import { reviewedCatalog } from '../catalog-api/reviewed-catalog';
 	import {
 		initialView,
@@ -31,7 +31,7 @@
 	let tab = $state('shop');
 	let sheet = $state<'assistant' | 'product' | 'interview' | 'filters' | null>(null);
 	let catalog = $state.raw<CatalogSnapshot>(reviewedCatalog);
-	let catalogStatus = $state<'loading' | 'backend' | 'bundled'>('loading');
+	let catalogStatus = $state<'loading' | 'backend' | 'cached' | 'starter'>('loading');
 	let focus = $state<ShopListing>(reviewedCatalog.items[0]);
 	let message = $state('');
 	let budget = $state<number | undefined>();
@@ -54,9 +54,13 @@
 				if (!active) return;
 				catalog = next;
 				catalogStatus = 'backend';
+				void writeCatalogCache(next);
 			})
-			.catch(() => {
-				if (active) catalogStatus = 'bundled';
+			.catch(async () => {
+				const saved = await readCatalogCache();
+				if (!active) return;
+				if (saved) catalog = saved;
+				catalogStatus = saved ? 'cached' : 'starter';
 			})
 			.finally(() => clearTimeout(timeout));
 		return () => {
@@ -97,7 +101,9 @@
 			? t('Catalog loaded', 'โหลดข้อมูลสินค้าแล้ว')
 			: catalogStatus === 'loading'
 				? t('Checking the catalog service…', 'กำลังตรวจสอบข้อมูลจากบริการแค็ตตาล็อก…')
-				: t('Bundled catalog', 'แค็ตตาล็อกที่มาพร้อมแอป')
+				: catalogStatus === 'cached'
+					? t('Verified offline catalog', 'แค็ตตาล็อกออฟไลน์ที่ตรวจสอบแล้ว')
+					: t('Offline starter catalog', 'แค็ตตาล็อกเริ่มต้นสำหรับใช้ออฟไลน์')
 	);
 	const interviewChanges = $derived(
 		describePatch(
@@ -433,30 +439,14 @@
 						{#if !interviewChanges.length}<p>
 								{t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')}
 							</p>{/if}
-						<details class="inference-note">
+						<details class="interview-note">
 							<summary>
 								{t('How the interview adapted this shop', 'interview ปรับร้านนี้อย่างไร')}
 							</summary>
-							<p data-testid="interview-backend">
-								{view.interview.backend === 'cnn'
-									? t(
-											'CNN evaluated your answers on this device. Its presentation proposal passed validation before the shop changed.',
-											'CNN ประเมินคำตอบบนอุปกรณ์นี้ และตรวจสอบข้อเสนอการแสดงผลก่อนปรับหน้าร้าน'
-										)
-									: view.interview.backend === 'incomplete'
-										? t(
-												'Skipped questions keep their settings. The answered preferences used the direct fallback.',
-												'ข้อที่ข้ามคงการตั้งค่าเดิม ใช้คำตอบที่มีผ่านกฎสำรอง'
-											)
-										: t(
-												'CNN was unavailable. Your answers still adapted the shop using the direct fallback.',
-												'CNN ใช้งานไม่ได้ จึงปรับร้านตามคำตอบผ่านกฎสำรอง'
-											)}
-							</p>
 							<p>
 								{t(
-									'The CNN learned from example rules, not measured shopper outcomes. Product facts stay unchanged.',
-									'CNN เรียนรู้จากกฎตัวอย่าง ไม่ใช่ผลการใช้งานของผู้ซื้อจริง ข้อมูลสินค้าคงเดิม'
+									'Your answers set this view. Skipped questions keep their current settings.',
+									'หน้าร้านใช้ตัวเลือกที่คุณตอบ ส่วนข้อที่ข้ามจะคงการตั้งค่าเดิม'
 								)}
 							</p>
 						</details>

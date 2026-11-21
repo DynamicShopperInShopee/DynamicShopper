@@ -1,7 +1,7 @@
 # Sourced marketplace shopping prototype
 
 Run `npm run dev:shopping` and open http://127.0.0.1:5176 for the standalone
-preview. Without a catalog service, it uses the reviewed catalog bundled with the app. For the
+preview. The first offline visit shows seven sourced listings and their photos. For the
 local SQLite catalog and original images, follow the
 [dataset guide](../../../catalogs/shopee-2026-11-21/README.md), start
 `npm run dev:catalog` in another terminal, and reload the preview. The
@@ -47,11 +47,8 @@ For an immediate visual comparison, open
 **เทียบตัวอย่างคำตอบ**. The default examples show an image grid, a compact spec
 table, and a spacious large-print list. They use the same `ShopShelf.svelte` as
 the live shop. Above 1000px they appear side by side; smaller windows stack them.
-Expand **Edit answers** in any pane to update it immediately. **Show what controls
-each part** identifies the CNN-selected layout, information, sections and theme,
-separately from direct reading settings and unsupported ranking requests. The
-direct-only switch uses the authored baseline; its layout can match the CNN
-because those rules supplied the synthetic training targets.
+Expand **Edit answers** to update a pane. **Show what controls each part**
+identifies explicit answers and the default theme.
 
 Previewing and editing example answers never change the shop. This is an
 inspection demo with no **Use this view** action or callback to store state.
@@ -63,24 +60,17 @@ Example answer sequences for the interview or comparison workspace:
 
 - Compare → Specs → Durability → Large text: spacious large-print comparison,
   with sourced size information leading and image tiles removed.
-- Browse → Pictures → Value → More space: picture grid with a CNN-suggested
-  carbon-blue theme, unless an explicit theme is already locked.
+- Browse → Pictures → Value → More space: picture grid with more space between products. The current theme stays selected.
 - Buyer reviews: an honest unavailable-data note, not invented reviews.
 
 Use the receipt's **Edit answers**, removable chips, **Undo**, or **Reset view**.
 Reset keeps the current language. Close/Escape cancels an unfinished draft.
-The shopper flow has no inference toggle. Four complete answers use the local
-CNN; with skipped or incomplete answers, the model is bypassed and the existing
-deterministic fallback changes only answered fields.
-
-The browser runs the actual exported Conv1d weights, not cached answer lookups.
-`personalization/interview.ts` implements inference with no new web dependency;
-`experiments/interview-cnn/export_browser.py` exports weights and PyTorch parity
-fixtures. Network loss after initial loading does not interrupt interview use.
-No Python server, external inference API, API key, or shopper tracking is needed.
-The CNN was trained on synthetic design rules. Its layout, details, sections
-and unlocked theme heads now select the actual presentation. Reading settings
-and symbolic priorities remain direct choices. This snapshot
+Complete and partial interviews use the same fixed mapping in
+`src/lib/personalization/interview.ts`. The goal sets the layout and sections,
+the evidence answer selects card details, the priority answer records the
+shopper’s priority, and the reading answer sets spacing. Choosing large text
+also selects the large-print theme. Skipped questions retain current settings.
+Once the app has loaded, these choices work offline. This snapshot
 has no verified value/performance/durability/rating scores, so choosing those
 priorities cannot legitimately rank these listings. Unsupported review and
 recommendation sections stay absent; the product shelf remains available.
@@ -91,7 +81,7 @@ with facts, and comparison tables change image rows and fact order by recipe.
 Verification commands:
 
 ```sh
-npx vitest run --project server src/lib/catalog-api/client.spec.ts src/lib/mobile/engine.spec.ts src/lib/mobile/interview.spec.ts src/lib/personalization/interview-cnn.spec.ts
+npx vitest run --project server src/lib/catalog-api/client.spec.ts src/lib/mobile/engine.spec.ts src/lib/mobile/interview.spec.ts src/lib/personalization/interview.spec.ts
 npx playwright test -c preview/playwright.config.ts
 ```
 
@@ -116,15 +106,14 @@ references from the synthetic catalog into the real shop UI.
 
 ## Backend catalog and offline use
 
-The shop loads `GET /api/catalog/snapshot` once. The backend catalog is the
-source of facts: local SQLite or cloud D1 behind the same read-only API. The
-browser starts from the reviewed release catalog bundled with the app. Main shop,
-interview comparisons and parts previews share the same snapshot. If the API is
-unavailable, the full bundled catalog supports search and local CNN presentation
-changes, including on the first visit to a locally served shop. The current API
-response is validated for shop/item IDs, source URLs, original image provenance,
-prices, dates and group counts. Listing facts are never restored from browser
-storage.
+The shop starts with seven sourced listings and their photos, then requests
+`GET /api/catalog/snapshot` from the same origin. A response must pass the
+catalog checks for shop and item IDs, source URLs, image provenance, prices,
+dates and group counts before any layout uses it. A complete release whose
+canonical JSON matches the SHA-256 checksum in the release manifest can be saved
+for a later offline visit. The shop checks the checksum again before using that
+copy. If verification or browser storage is unavailable, the starter listings
+remain usable. All shop, interview and comparison views share the active catalog.
 
 Search, group filters and budget filters operate on the complete loaded snapshot.
 Grid, list and comparison table then render the same page of up to 24 products.
@@ -140,15 +129,15 @@ Each listing’s group label carries its raw group ID and the catalog’s displa
 name for the active language.
 
 The page reports the actual catalog count, observation date and whether it loaded
-from the API or the bundled release. This is an observation
+from the API, a verified offline release or the starter catalog. This is an observation
 snapshot, not a promise of current checkout prices, stock, ratings or shipping.
 Original names and photos are retained; an untranslated source name is not
 replaced with an invented English name. Cloud publication uses the same dated
-observations and does not enable automatic ingestion or price refresh. The CNN
-and keyword refinement remain local browser operations; cloud delivery does not
+observations and does not enable automatic ingestion or price refresh. Interview mapping
+and keyword refinement run in the browser; cloud delivery does not
 complete the separate production-agent or checkout integration.
 
-## Earlier starter source observations
+## Starter source observations
 
 Retrieved through cached public Shopee pages on 2026-11-21, not a live API.
 All seven listings belong to [unilever_householdcare](https://shopee.co.th/shop/58418206).
@@ -207,41 +196,17 @@ UI and do not verify the new Finish interview interaction:
 - English carbon-blue, large-print and minimal/table views fit a 390px phone.
   The checked large-print prices render at 20px.
 - An earlier browser-storage implementation retained 1,500 records across a
-  reload with the local server stopped. The current release uses the bundled
-  observations for this path.
+  reload with the local server stopped. The current implementation requires
+  the saved content to match the published release checksum.
 
-These are focused checks, not an exhaustive accessibility or network-off audit.
-Offline photographs require an existing browser HTTP cache; the browser does
-not preload all 1,500 photographs. Evidence is saved as
-`preview/evidence/backend-catalog-*.jpg`.
+These historical checks covered the catalog and page layouts. The preview ships
+the starter photographs. Images for API-supplied listings require the image
+service or a previously loaded copy in the browser's HTTP cache.
 
 Targeted catalog-client tests cover a synthetic 1,500-record boundary fixture,
 full-snapshot search, all-page traversal, source link validation,
 unknown prices and identical raw prices in the three 24-item shelf layouts.
 These synthetic fixtures are test-only and never enter the storefront catalog.
-Engine, interview and CNN checks remain separate from imported-record validation.
-The standalone production build and Svelte check passed before the completion
-flow changed. These earlier checks cover boundary behavior, model fallback and
-unchanged source records; they do not verify the current interaction or claim
-completed production-agent, optimizer or full journey integration.
-
-Earlier seven-item browser checks on 2026-11-21 verified the marketplace at 1440×900 and 390×844,
-the Thai interview → Apply → English chat refinement → Undo path, and exact
-equality of the seven listings' rendered fact keys, raw values and text before
-and after personalization. Direct-only mode also survives reopening after an
-identical-plan Apply, with no extra Undo step. English minimal, vibrant and large-print views had
-no page-level horizontal overflow; large-print controls met the 48px target
-floor. Closing an unapplied mobile interview returned to the unchanged store.
-Screenshots are saved in `preview/evidence`. They predate the backend catalog
-expansion and do not verify the new catalog UI. These are focused browser checks,
-not an exhaustive accessibility audit or a browser test with networking disabled.
-
-Earlier cases in `preview/interview.e2e.ts` covered the separate-Apply wizard,
-cancellation, partial answers, fact equality, themes and comparisons. The
-recorded focused browser checks above were performed separately from that
-Playwright suite. Earlier reports of seventeen unit tests and eight browser
-journeys also applied to preceding UIs and are not current acceptance evidence.
-
 ## Automatic interview completion: verification status
 
 The accepted current journey is store → interview → Finish interview → changed
@@ -267,7 +232,7 @@ Apply-flow screenshots and tests cannot establish that the revised flow passes.
   and applying a comparison example; the shopper describes needs through the
   interview and the system selects presentation.
 - Deferred: full shared Owner 2 contract integration in this local adapter.
-- Accepted: persisted backend observations with a reviewed release snapshot bundled for offline use.
+- Accepted: sourced starter listings and checksum-verified offline reuse of the full release.
 - Accepted: a separate cloud catalog Worker, D1 persistence and original image
   assets serving the same UI/API contract; no public product-write endpoint.
 - Deferred: continuous ingestion, checkout calculation and production agent integration.
