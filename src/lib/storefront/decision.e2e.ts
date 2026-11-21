@@ -76,7 +76,11 @@ for (const width of [390, 1440]) {
 			);
 			await panel.getByRole('button', { name: accept ? /Add to cart/ : 'No thanks' }).click();
 			await expect(panel).toHaveCount(0);
-			await page.getByRole('button', { name: 'Cart', exact: true }).click();
+			const cartButton = page.getByRole('button', {
+				name: accept ? 'View cart' : 'Cart',
+				exact: true
+			});
+			await cartButton.click();
 			const cart = page.getByRole('region', { name: 'Cart', exact: true });
 			await expect(cart.getByRole('button', { name: /Remove Ceramide/ })).toHaveCount(
 				accept ? 1 : 0

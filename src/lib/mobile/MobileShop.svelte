@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ListingPhoto from './ListingPhoto.svelte';
 	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- All links are external source URLs; this component also runs without SvelteKit in the standalone preview. */
 	import '../assets/fonts/plex.css';
@@ -384,9 +385,9 @@
 					aria-label={t('Browse product groups', 'เลือกตามกลุ่มสินค้า')}
 				>
 					{#each catalog.categories.slice(0, 8) as category (category.id)}
-						{@const photo = catalog.items.find(
+						{@const sample = catalog.items.find(
 							(product) => product.category === category.id && product.image
-						)?.image}
+						)}
 						<button onclick={() => setCategory(category.id)}>
 							<span>
 								<small>{t('PRODUCT GROUPS', 'เลือกตามกลุ่มสินค้า')}</small><strong
@@ -398,7 +399,7 @@
 									<Icon name="arrow" size={18} />
 								</span>
 							</span>
-							{#if photo}<img src={photo} alt="" loading="lazy" />{/if}
+							{#if sample}<ListingPhoto product={sample} {lang} decorative />{/if}
 						</button>
 					{/each}
 				</section>
@@ -785,11 +786,9 @@
 				title={t('Product details', 'รายละเอียดสินค้า')}
 				onclose={() => (sheet = null)}
 			>
-				{#if focus.image}<img
-						class="detail-photo"
-						src={focus.image}
-						alt={focus.name[lang]}
-					/>{/if}<span class="overline">
+				<ListingPhoto class="detail-photo" product={focus} {lang} loading="eager" /><span
+					class="overline"
+				>
 					{focus.sellerName ?? t('Seller not recorded', 'ไม่ได้บันทึกชื่อร้านค้า')}
 				</span>
 				<h2 {...catalogNameAttributes(focus, lang)}>{focus.name[lang]}</h2>

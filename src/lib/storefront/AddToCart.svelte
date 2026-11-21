@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { Locale } from '../catalog/index.ts';
 	import { resolveCatalogFact } from './catalogFact';
+	import CartFeedback from './CartFeedback.svelte';
 
 	type Status = 'added' | 'full' | 'invalid';
 	let {
@@ -14,30 +15,13 @@
 		onAdd: (productId: string) => Status | Promise<Status>;
 	} = $props();
 
-	const copy = {
-		en: {
-			add: 'Add to cart',
-			adding: 'Adding to cart…',
-			added: 'Added to cart',
-			full: 'Your cart is full',
-			invalid: 'Could not add this item'
-		},
-		th: {
-			add: 'เพิ่มลงตะกร้า',
-			adding: 'กำลังเพิ่มลงตะกร้า…',
-			added: 'เพิ่มลงตะกร้าแล้ว',
-			full: 'ตะกร้าเต็ม',
-			invalid: 'เพิ่มสินค้าไม่ได้'
-		}
-	} as const;
-
 	let feedback = $state<{ productId: string; status: Status }>();
 	let pending = $state(false);
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
 	});
-	const t = $derived(copy[locale]);
+	const label = $derived(locale === 'th' ? 'เพิ่มลงตะกร้า' : 'Add to cart');
 	const name = $derived(resolveCatalogFact(productId, 'name', locale)?.text);
 
 	async function add() {
@@ -58,19 +42,14 @@
 	<button
 		class="inline-flex min-h-[var(--tap,44px)] cursor-pointer items-center justify-center rounded-[var(--radius,4px)] border border-[var(--accent,#16161a)] bg-[var(--accent,#16161a)] px-[0.7rem] py-[0.35rem] text-start font-semibold text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
 		type="button"
-		aria-label={name ? `${t.add} ${name}` : t.add}
+		aria-label={name ? `${label} ${name}` : label}
 		disabled={!ready || pending}
 		onclick={add}
 	>
-		{t.add}
+		{label}
 	</button>
-	<span class="wrap-anywhere text-[var(--muted,#5d5d63)]" role="status">
-		{#if pending}
-			<span class="mt-1 block">{t.adding}</span>
-		{:else if feedback?.productId === productId}
-			{#key feedback}
-				<span class="mt-1 block">{t[feedback.status]}</span>
-			{/key}
-		{/if}
-	</span>
+	<CartFeedback
+		{locale}
+		status={pending ? 'adding' : feedback?.productId === productId ? feedback.status : undefined}
+	/>
 </div>

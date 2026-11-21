@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ListingPhoto from './ListingPhoto.svelte';
 	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- Sourced external listing links. */
 	import type { CatalogSnapshot } from '../catalog-api/types';
@@ -72,7 +73,7 @@
 			{:else if block === 'photos'}
 				<div class="sample-photos">
 					{#each shown as p (p.id)}<figure>
-							{#if p.image}<img src={p.image} alt={p.name[lang]} loading="lazy" />{/if}
+							<ListingPhoto product={p} {lang} />
 							<figcaption {...catalogNameAttributes(p, lang)}>{p.name[lang]}</figcaption>
 						</figure>{/each}
 				</div>
@@ -387,7 +388,7 @@
 		margin: 0;
 		min-width: 0;
 	}
-	.sample-photos img {
+	.sample-photos :global(img) {
 		width: 100%;
 		height: 160px;
 		object-fit: contain;
@@ -540,7 +541,7 @@
 	.focus .preview-block:not(:first-child) {
 		border-top: 0;
 	}
-	.focus .sample-photos img {
+	.focus .sample-photos :global(img) {
 		height: 220px;
 	}
 	.readable {
@@ -585,7 +586,7 @@
 		.split .sample-photos {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
-		.sample-photos img {
+		.sample-photos :global(img) {
 			height: 120px;
 		}
 		.rail .sample-products {

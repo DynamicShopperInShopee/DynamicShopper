@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ListingPhoto from './ListingPhoto.svelte';
 	import { catalogNameAttributes } from './name-attributes';
 	import { tick } from 'svelte';
 	import ListingCard from './ListingCard.svelte';
@@ -109,11 +110,7 @@
 											</small>
 										</th>
 										{#if plan.details.includes('image')}<td class="photo-cell">
-												{#if product.image}<img
-														src={product.image}
-														alt={product.name[lang]}
-														loading="lazy"
-													/>{:else}{t('Image unavailable', 'ยังไม่มีภาพ')}{/if}
+												<ListingPhoto {product} {lang} />
 											</td>{/if}
 										{#each factOrder as fact (fact)}<td class:price-cell={fact === 'price'}>
 												{#if fact === 'size'}
@@ -332,7 +329,7 @@
 		color: var(--muted);
 		font-size: 13px;
 	}
-	.photo-cell img {
+	.photo-cell :global(img) {
 		width: 100%;
 		height: 100px;
 		object-fit: contain;

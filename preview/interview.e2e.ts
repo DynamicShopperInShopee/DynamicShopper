@@ -294,3 +294,62 @@ test('uses validated same-origin listings while online and returns to starter fa
 	await expect(page.locator('.catalog-status')).toContainText('7 products');
 	await expect(page.locator('.catalog-status')).toContainText('Offline starter catalog');
 });
+
+test('an unavailable original has a readable photo status on its card and open listing', async ({
+	page
+}) => {
+	await page.route('**/api/catalog/**', (route) => route.abort());
+	await page.route('**/*', (route) =>
+		route.request().resourceType() === 'image' ? route.abort() : route.fallback()
+	);
+	await start(page);
+	const first = page.locator('.products .picture').first();
+	await expect(first).toContainText('Verified image unavailable');
+	await first.click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog).toContainText('Verified image unavailable');
+	await expect(dialog.locator('img')).toHaveCount(0);
+	await expect(dialog.getByRole('heading', { name: 'Breeze Matic detergent' })).toBeVisible();
+});
+
+test('only a matching reviewed original can replace an unavailable catalog image', async ({
+	page
+}) => {
+	const id = '58418206.41776476003';
+	const name = { en: 'Fixture listing', th: 'รายการทดสอบ' };
+	const listing = {
+		id,
+		name,
+		category: 'test',
+		price: null,
+		currency: 'THB',
+		image: `/api/catalog/images/${id}`,
+		source: 'https://shopee.co.th/product/58418206/41776476003',
+		imageSource: 'https://down-th.img.susercontent.com/file/th-11134207-81zto-mh6rw0c4qej18b',
+		size: null
+	};
+	const response = {
+		items: [listing],
+		categories: [{ id: 'test', name, count: 1 }],
+		snapshot: {
+			id: 'fixture',
+			source: 'https://shopee.co.th/',
+			observedAt: null,
+			importedAt: '2026-11-21',
+			total: 1
+		}
+	};
+	await page.route('**/api/catalog/snapshot', (route) => route.fulfill({ json: response }));
+	await page.route('**/api/catalog/images/**', (route) => route.abort());
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('Catalog loaded');
+	const picture = page.locator('.products .picture');
+	await expect
+		.poll(() => picture.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth))
+		.toBeGreaterThan(0);
+	listing.imageSource = 'https://down-th.img.susercontent.com/file/changed-original';
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('Catalog loaded');
+	await expect(picture).toContainText('Verified image unavailable');
+	await expect(picture.locator('img')).toHaveCount(0);
+});

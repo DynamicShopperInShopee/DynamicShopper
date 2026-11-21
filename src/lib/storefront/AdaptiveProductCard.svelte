@@ -4,15 +4,14 @@
 	import type { ShopperPlan } from '../personalization/plan';
 	import type { AppliedVoucher } from '../pricing';
 	import type { catalog } from '../store-catalog';
-	import CategoryGlyph from '../CategoryGlyph.svelte';
-	import CookerPhotoCaption from './CookerPhotoCaption.svelte';
+	import ShelfArtwork from './ShelfArtwork.svelte';
 	import FactValue from './FactValue.svelte';
 	import { storefrontCopy } from './copy';
 
 	let {
 		product,
 		plan,
-		photos,
+		caption,
 		columns,
 		vouchers,
 		href,
@@ -20,7 +19,7 @@
 	}: {
 		product: (typeof catalog)[number];
 		plan: ShopperPlan;
-		photos: boolean;
+		caption: boolean;
 		columns: readonly SpecDefinition[];
 		vouchers: readonly AppliedVoucher[];
 		href: string;
@@ -49,26 +48,12 @@
 	</h3>
 	{#each plan.details as field (field)}
 		{#if field === 'image'}
-			{#if photos}
-				<div
-					class="art demo-photo grid min-h-[7.5rem] place-items-center text-[var(--accent)]"
-					data-card-field={field}
-					data-category={product.category}
-					data-model={product.id}
-					data-cooker-photo={id}
-					aria-hidden={product.id === 'cooker-1' ? undefined : true}
-				>
-					{#if product.id === 'cooker-1'}<CookerPhotoCaption {locale} compact />{/if}
-				</div>
-			{:else}
-				<div
-					class="art glyph grid min-h-[7.5rem] place-items-center bg-[#e9e6dc] text-[var(--accent)]"
-					data-card-field={field}
-					aria-hidden="true"
-				>
-					<CategoryGlyph category={product.category} />
-				</div>
-			{/if}
+			<div
+				class="art grid min-h-[7.5rem] place-items-center bg-[var(--tile,#e9e6dc)] text-[var(--accent)]"
+				data-card-field={field}
+			>
+				<ShelfArtwork {id} category={product.category} {locale} {caption} />
+			</div>
 		{:else if field === 'price'}
 			<div
 				class={[

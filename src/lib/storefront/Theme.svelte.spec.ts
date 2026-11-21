@@ -66,9 +66,9 @@ it.each(matrix)('$theme $locale at $width × $height keeps a legible shelf', asy
 	}
 	expect(contrast(color('--accent'), color('--tile'))).toBeGreaterThanOrEqual(3);
 	if (large) expect(contrast(color('--seam'), color('--paper'))).toBeGreaterThanOrEqual(3);
-	const glyph = view.container.querySelector('svg[aria-hidden="true"]');
-	expect(glyph).not.toBeNull();
-	expect(glyph?.getBoundingClientRect().width).toBeGreaterThan(0);
+	const photo = view.container.querySelector('.art .demo-photo');
+	expect(photo).not.toBeNull();
+	expect(photo?.getBoundingClientRect().width).toBeGreaterThan(0);
 	expect(await document.fonts.load('400 16px "IBM Plex Sans Thai"', name[locale])).not.toHaveLength(
 		0
 	);

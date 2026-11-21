@@ -1,5 +1,34 @@
 import { expect, test, type Locator } from '@playwright/test';
 
+for (const locale of ['en', 'th'] as const) {
+	test(`continues from adding a product to its cart and receipt in ${locale}`, async ({ page }) => {
+		const th = locale === 'th';
+		await page.setViewportSize(th ? { width: 390, height: 844 } : { width: 1440, height: 900 });
+		await page.goto('/');
+		if (th) await page.getByRole('button', { name: 'ไทย', exact: true }).click();
+		await page.locator('#products [data-product-card] a').first().click();
+		await page.getByRole('button', { name: th ? /^เพิ่มลงตะกร้า/ : /^Add to cart/ }).click();
+		const view = page.getByRole('button', { name: th ? 'ดูตะกร้า' : 'View cart', exact: true });
+		await view.click();
+		const title = th ? 'ตะกร้า' : 'Cart';
+		const cart = page.getByRole('region', { name: title, exact: true });
+		await expect(cart.locator('[data-field="quantity"]')).toHaveAttribute('data-raw', '1');
+		await cart.getByRole('button', { name: th ? 'ปิดตะกร้า' : 'Close cart' }).click();
+		await expect(cart).toBeHidden();
+		await page.getByRole('link', { name: th ? 'กลับหน้าร้าน' : 'Back to store', exact: true }).click();
+		await expect(page).toHaveURL((url) => url.pathname === '/');
+		await page.reload();
+		const homeCart = page.getByRole('button', { name: /^(Cart|ตะกร้า)$/ });
+		await homeCart.click();
+		const restored = page.getByRole('region', { name: /^(Cart|ตะกร้า)$/ });
+		await expect(restored.locator('[data-field="quantity"]')).toHaveAttribute('data-raw', '1');
+		await restored
+			.getByRole('button', { name: /Best price for my cart|ดูราคาที่ดีที่สุดสำหรับตะกร้า/ })
+			.click();
+		await expect(page.locator('.quote [data-deal-fact="total"]')).toBeVisible();
+	});
+}
+
 function receiptLines(root: Locator) {
 	return root.locator('[data-deal-fact]').evaluateAll((lines) =>
 		lines.map((line) => ({
@@ -21,6 +50,9 @@ test('quotes the same cooker from its listing and restored cart, then removes it
 	await page.getByRole('button', { name: /^Add to cart/ }).click();
 	await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
 	await page.getByRole('link', { name: 'Back to store', exact: true }).click();
+	await expect(page).toHaveURL(
+		(url) => url.pathname === '/' && url.searchParams.get('view') === 'receipt'
+	);
 	await page.reload();
 	await page.getByRole('button', { name: 'Cart', exact: true }).click();
 	let cart = page.getByRole('region', { name: 'Cart', exact: true });

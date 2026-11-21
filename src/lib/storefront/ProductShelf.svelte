@@ -7,7 +7,7 @@
 <script lang="ts">
 	import { resolveCatalogFact } from './catalogFact';
 	import type { Snippet } from 'svelte';
-	import CategoryGlyph from '#lib/CategoryGlyph.svelte';
+	import ShelfArtwork from './ShelfArtwork.svelte';
 	import type { Category } from '#lib/store-catalog.js';
 	import type { ShopperPlan } from '#lib/personalization/index.ts';
 	import Fact from './Fact.svelte';
@@ -185,7 +185,7 @@
 			{#each rows as row (row.id)}
 				<li>
 					{#if row.category}
-						<div class="art"><CategoryGlyph category={row.category} /></div>
+						<div class="art"><ShelfArtwork id={row.id} category={row.category} {locale} /></div>
 					{/if}
 					<div class="card-content">
 						<h3>{@render listing(row.id, row.name)}</h3>

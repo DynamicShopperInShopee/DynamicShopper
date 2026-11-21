@@ -6,17 +6,20 @@
 	import CatalogPicker from './CatalogPicker.svelte';
 	import FactValue from './FactValue.svelte';
 	import DealSlip from './DealSlip.svelte';
+	import CartControls from './CartControls.svelte';
 
 	let {
 		locale,
 		ids,
 		disabled,
 		publicEntry = false,
+		onCartPrice,
 		strip = false
 	}: {
 		locale: Locale;
 		ids: string[];
 		publicEntry?: boolean;
+		onCartPrice?: () => void;
 		strip?: boolean;
 		disabled: boolean;
 	} = $props();
@@ -72,6 +75,7 @@
 	role="group"
 	aria-label={th ? 'เครื่องมือเลือกซื้อ' : 'Shopping tasks'}
 >
+	{#if onCartPrice}<CartControls {locale} onBestPrice={onCartPrice} />{/if}
 	<button
 		class="min-h-[max(44px,2.5em)] cursor-pointer border border-[var(--seam,currentColor)] bg-[var(--paper,white)] px-[0.8em] py-[0.45em] text-inherit"
 		type="button"
