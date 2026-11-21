@@ -87,7 +87,8 @@
 	</div>
 	<FactsReceipt
 		root={proofRoot}
-		additionalRoots={[cartProofRoot, assistantProofRoot]}
+		additionalRoots={[cartProofRoot]}
+		localizedRoot={assistantProofRoot}
 		locale={data.language}
 	/>
 	{#if data.receiptQuery}<ProductChat

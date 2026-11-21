@@ -7,11 +7,13 @@
 	let {
 		root,
 		additionalRoots = [],
+		localizedRoot,
 		locale,
 		compare
 	}: {
 		root?: HTMLElement;
 		additionalRoots?: readonly (HTMLElement | undefined)[];
+		localizedRoot?: HTMLElement;
 		locale: Locale;
 		compare?: true;
 	} = $props();
@@ -35,7 +37,8 @@
 		const target = root;
 		const activeLocale = locale;
 		const comparePanes = compare;
-		const scopes = new Set([target, ...additionalRoots]);
+		const localized = localizedRoot;
+		const scopes = new Set([target, ...additionalRoots, localized]);
 		return observeMountedFacts<FactCheck>(
 			[...scopes],
 			() => {
@@ -43,7 +46,12 @@
 					const combined: FactCheck = { checked: 0, mismatches: [] };
 					for (const scope of scopes) {
 						if (!scope) continue;
-						const result = verifyFacts(scope, resolveCatalogFact, activeLocale);
+						const result = verifyFacts(
+							scope,
+							resolveCatalogFact,
+							activeLocale,
+							scope === localized
+						);
 						combined.checked += result.checked;
 						combined.mismatches.push(...result.mismatches);
 					}

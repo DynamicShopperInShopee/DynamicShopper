@@ -229,6 +229,7 @@
 	});
 	const canReset = $derived(
 		adapted ||
+			locks.length > 0 ||
 			sort !== 'default' ||
 			freeShipping ||
 			capacity !== undefined ||
@@ -1755,7 +1756,8 @@
 			{#if !eventDemo}
 				<FactsReceipt
 					root={proofRoot}
-					additionalRoots={[cartProofRoot, assistantProofRoot, filterProofRoot]}
+					additionalRoots={[cartProofRoot, filterProofRoot]}
+					localizedRoot={assistantProofRoot}
 					locale={language}
 				/>
 			{/if}

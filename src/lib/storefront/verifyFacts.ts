@@ -46,7 +46,12 @@ function matchesRaw(serialized: string | null, expected: FactValue, legacy: bool
 	}
 }
 
-function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: FactLocale) {
+function inspectFacts(
+	root: ParentNode,
+	resolve: ResolvePrintedFact,
+	locale: FactLocale,
+	useNodeLanguage = false
+) {
 	const nodes = root.querySelectorAll<HTMLElement>(
 		'.catalog-fact, [data-source="catalog"], [data-fact=""], [data-fact-node], [data-product-id]'
 	);
@@ -62,7 +67,7 @@ function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: Fac
 			? node.hasAttribute('data-fact-node')
 			: node.getAttribute('data-fact') === '';
 
-		const localized = node.closest<HTMLElement>('[lang]');
+		const localized = useNodeLanguage ? node.closest<HTMLElement>('[lang]') : null;
 		const lang = localized && root.contains(localized) ? localized.lang : locale;
 		const fact =
 			product && field
@@ -92,9 +97,10 @@ function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: Fac
 export function verifyFacts(
 	root: ParentNode,
 	resolve: ResolvePrintedFact,
-	locale: FactLocale = 'en'
+	locale: FactLocale = 'en',
+	useNodeLanguage = false
 ): FactCheck {
-	return inspectFacts(root, resolve, locale).result;
+	return inspectFacts(root, resolve, locale, useNodeLanguage).result;
 }
 
 interface View {
