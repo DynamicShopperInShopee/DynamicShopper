@@ -13,6 +13,8 @@ import type { Sort } from '../store-search';
 
 export type ShelfChange = keyof ShopperPlan | 'capacityRemoved';
 
+export type CookerDecision = 'easy' | 'compare';
+
 export interface ShelfState {
 	interviewAnswers: Answers | null;
 	plan: ShopperPlan;
@@ -65,6 +67,7 @@ export class StoreSession {
 	readonly listing = new ListingSession(this.conversation);
 	visit = $state<StoreVisit>();
 	offlineReady = $state(false);
+	cookerDecisions = $state<CookerDecision[]>([]);
 	compareCandidates = $state({ first: '', second: '' });
 	cart = $state.raw<readonly CartItem[]>([]);
 	savedPlan?: ShopperPlan;

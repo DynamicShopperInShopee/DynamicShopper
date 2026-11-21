@@ -1,13 +1,6 @@
 <script lang="ts">
 	import DecisionShelf from '../lib/storefront/DecisionShelf.svelte';
 	import SmartBasket from '../lib/storefront/SmartBasket.svelte';
-	let decisionMode = $state('');
-	let decisionHistory = $state<string[]>([]);
-	function chooseDecision(mode: string) {
-		if (mode === decisionMode) return;
-		decisionHistory = [...decisionHistory, decisionMode];
-		decisionMode = mode;
-	}
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
 	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
@@ -110,6 +103,12 @@
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	const session = getStoreSession();
+	const decisionMode = $derived(session.cookerDecisions.at(-1));
+	function chooseDecision(mode: 'easy' | 'compare') {
+		if (mode !== decisionMode)
+			session.cookerDecisions = [...session.cookerDecisions.slice(-19), mode];
+	}
+
 	let undoStack = $state<ShelfState[]>([]);
 	let interviewAnswers = $state<Answers | null>(null);
 	let assistant = $state<{ focus: () => void }>();
@@ -340,6 +339,7 @@
 		interviewAnswers = previous.interviewAnswers;
 	}
 	function restoreDefaults(keepReply = false) {
+		session.cookerDecisions = [];
 		session.conversation.clear();
 		usedLocalSettings = false;
 		quoteInput = undefined;
@@ -793,6 +793,7 @@
 					maxPrice,
 					freeShipping,
 					capacity,
+					cookerDecisions: [...session.cookerDecisions],
 					scrollY: Math.max(0, Math.round(window.scrollY))
 				}
 			: undefined;
@@ -808,6 +809,7 @@
 			changes = visit.changes;
 			draftQuery = visit.draftQuery;
 		} else if (eventDemo && selection) {
+			session.cookerDecisions = selection.cookerDecisions ?? [];
 			({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } =
 				selection);
 			draftPrice = maxPrice;
@@ -946,6 +948,7 @@
 	}
 
 	function reset() {
+		session.cookerDecisions = [];
 		draftQuery = '';
 		query = '';
 		category = 'all';
@@ -1835,17 +1838,19 @@
 					{language === 'th' ? 'เทียบก่อนซื้อ' : 'Compare before buying'}
 				</button>
 				<button
-					disabled={!decisionHistory.length}
-					onclick={() => {
-						decisionMode = decisionHistory.at(-1) ?? '';
-						decisionHistory = decisionHistory.slice(0, -1);
-					}}
+					disabled={!session.cookerDecisions.length}
+					onclick={() => (session.cookerDecisions = session.cookerDecisions.slice(0, -1))}
 				>
 					{language === 'th' ? 'ย้อนกลับการช่วยเลือก' : 'Undo decision view'}
 				</button>
 			</div>{/if}
 		{#if cookerSearch && decisionMode === 'easy'}
-			<DecisionShelf ids={products.map((product) => product.catalogId)} locale={language} mode="easy" {listingHref} />
+			<DecisionShelf
+				ids={products.map((product) => product.catalogId)}
+				locale={language}
+				mode="easy"
+				{listingHref}
+			/>
 		{/if}
 		<SmartBasket locale={language} />
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
@@ -2531,6 +2536,11 @@
 		color: var(--ink);
 		z-index: 1;
 	}
+	.event-demo:not(.category-search) .search-icon {
+		background: var(--accent);
+		color: #fff;
+	}
+
 	.event-demo .filter-trigger {
 		background: white;
 		border: 0;

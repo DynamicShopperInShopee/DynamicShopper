@@ -30,7 +30,10 @@
 	]);
 	function choose(id: string) {
 		dataState = 'ready';
-		void goto(resolve(`/presets?module=${encodeURIComponent(id)}`), { replace: true, reset: false });
+		void goto(resolve(`/presets?module=${encodeURIComponent(id)}`), {
+			replace: true,
+			reset: false
+		});
 	}
 </script>
 

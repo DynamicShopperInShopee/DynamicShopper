@@ -24,15 +24,17 @@ for (const width of [390, 1440])
 			if (width === 390) await page.keyboard.press('Escape');
 			const surface = page.locator('.masthead');
 			await expect(surface.getByRole('link', { name: /DynamicShopper/ })).toBeVisible();
-			expect(await surface.evaluate((el) => {
-				const style = getComputedStyle(el);
-				const swatch = document.createElement('span');
-				el.append(swatch);
-				swatch.style.color = 'var(--surface)';
-				const color = getComputedStyle(swatch).color;
-				swatch.remove();
-				return style.backgroundColor === color;
-			})).toBe(true);
+			expect(
+				await surface.evaluate((el) => {
+					const style = getComputedStyle(el);
+					const swatch = document.createElement('span');
+					el.append(swatch);
+					swatch.style.color = 'var(--surface)';
+					const color = getComputedStyle(swatch).color;
+					swatch.remove();
+					return style.backgroundColor === color;
+				})
+			).toBe(true);
 			await expect(page.locator('#products')).toBeVisible();
 			expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
 		});

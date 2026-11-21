@@ -165,3 +165,21 @@ test('an unchanged completed interview preserves the answers and takes one Undo 
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 });
+
+test('the reviewed reading choice matches the applied shelf without a predicted theme', async ({
+	page,
+	context
+}) => {
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Start a quick interview' }).click();
+	await context.setOffline(true);
+	const dialog = await answerInterview(page, ['Browse', 'Pictures', 'Value', 'More space']);
+	const preview = dialog.getByRole('region', { name: 'Proposed view' });
+	await expect(preview).toContainText('More space');
+	await expect(preview).not.toContainText('Carbon blue');
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
+	await dialog.getByRole('button', { name: 'Apply my view' }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
+	await expect(page.locator('.store')).toHaveAttribute('data-density', 'spacious');
+	await expect(page.locator('#products .product-grid')).toBeVisible();
+});

@@ -119,9 +119,7 @@ test('easy-use suggestions preserve the shopper’s explicit price order and Tha
 	const search = page.getByRole('searchbox');
 	await search.fill('rice cooker');
 	await search.press('Enter');
-	await page
-		.getByRole('combobox', { name: 'Sort by', exact: true })
-		.selectOption('price-high');
+	await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('price-high');
 	const ids = () =>
 		page
 			.locator('#products .product-grid [data-product]')

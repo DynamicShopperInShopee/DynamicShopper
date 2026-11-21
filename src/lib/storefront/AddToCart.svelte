@@ -34,7 +34,9 @@
 	let feedback = $state<{ productId: string; status: Status }>();
 	let pending = $state(false);
 	let ready = $state(false);
-	onMount(() => { ready = true; });
+	onMount(() => {
+		ready = true;
+	});
 	const t = $derived(copy[locale]);
 	const name = $derived(resolveCatalogFact(productId, 'name', locale)?.text);
 
