@@ -6,29 +6,36 @@
 	import { tick } from 'svelte';
 	let {
 		plan,
-		lockedFields,
 		answers,
-		directOnly,
 		applied,
 		disabled,
 		compact = false,
+		triggerOnly = false,
 		onapply,
 		onchat,
 		onundo
 	}: {
 		plan: ShopperPlan;
-		lockedFields: (keyof ShopperPlan)[];
 		answers: Answers | null;
-		directOnly: boolean;
 		applied: boolean;
 		disabled: boolean;
 		compact?: boolean;
-		onapply: (answers: Answers, directOnly: boolean) => void;
+		triggerOnly?: boolean;
+		onapply: (answers: Answers) => void;
 		onchat: () => void;
 		onundo?: () => void;
 	} = $props();
 	let open = $state(false);
 	const th = $derived(plan.locale === 'th');
+	const entryLabel = $derived(
+		answers
+			? th
+				? 'แก้คำตอบของฉัน'
+				: 'Edit my answers'
+			: th
+				? 'เริ่มตอบคำถามสั้น ๆ'
+				: 'Start a quick interview'
+	);
 
 	async function undoFromShelf(event: MouseEvent & { currentTarget: HTMLButtonElement }) {
 		const button = event.currentTarget;
@@ -39,58 +46,61 @@
 	}
 </script>
 
-<section
-	class="interview-entry"
-	class:compact
-	aria-label={th ? 'เลือกวิธีดูสินค้า' : 'Make the store fit you'}
->
-	<div class="copy">
-		<h2>
-			{applied
-				? th
-					? 'ปรับมุมมองตามคำตอบแล้ว'
-					: 'Your preferences are applied'
-				: th
-					? 'เลือกรูปแบบและขนาดตัวอักษร'
-					: 'Choose your layout and text size'}
-		</h2>
-		{#if !compact && !applied}
-			<p>
-				{th
-					? 'เลือกข้อมูลที่อยากเห็นก่อน แล้วดูตัวอย่างก่อนใช้'
-					: 'Choose which details come first and preview the result.'}
-			</p>
-		{/if}
-	</div>
-	<div class="actions">
-		{#if applied}<button class="primary" type="button" onclick={onchat}>
-				{th ? 'แชตปรับมุมมองต่อ' : 'Refine this view in chat'}
-			</button>{/if}
-		<button
-			class:primary={!applied}
-			type="button"
-			{disabled}
-			aria-haspopup="dialog"
-			onclick={(event) => {
-				event.currentTarget.focus({ preventScroll: true });
-				open = true;
-			}}
-		>
-			{answers
-				? th
-					? 'แก้คำตอบของฉัน'
-					: 'Edit my answers'
-				: th
-					? 'เริ่มตอบคำถามสั้น ๆ'
-					: 'Start a quick interview'}
-		</button>
-		{#if applied}
-			<button type="button" disabled={!onundo} onclick={undoFromShelf}>
-				{th ? 'ย้อนกลับ' : 'Undo'}
-			</button>
-		{/if}
-	</div>
-</section>
+{#snippet entryButton()}
+	<button
+		class:primary={!applied && !triggerOnly}
+		class:trigger-only={triggerOnly}
+		type="button"
+		{disabled}
+		aria-haspopup="dialog"
+		onclick={(event) => {
+			event.currentTarget.focus({ preventScroll: true });
+			open = true;
+		}}
+	>
+		{entryLabel}
+	</button>
+{/snippet}
+
+{#if triggerOnly}
+	{@render entryButton()}
+{:else}
+	<section
+		class="interview-entry"
+		class:compact
+		aria-label={th ? 'เลือกวิธีดูสินค้า' : 'Make the store fit you'}
+	>
+		<div class="copy">
+			<h2>
+				{applied
+					? th
+						? 'ปรับมุมมองตามคำตอบแล้ว'
+						: 'Your preferences are applied'
+					: th
+						? 'เลือกรูปแบบและขนาดตัวอักษร'
+						: 'Choose your layout and text size'}
+			</h2>
+			{#if !compact && !applied}
+				<p>
+					{th
+						? 'เลือกข้อมูลที่อยากเห็นก่อน แล้วดูตัวอย่างก่อนใช้'
+						: 'Choose which details come first and preview the result.'}
+				</p>
+			{/if}
+		</div>
+		<div class="actions">
+			{#if applied}<button class="primary" type="button" onclick={onchat}>
+					{th ? 'แชตปรับมุมมองต่อ' : 'Refine this view in chat'}
+				</button>{/if}
+			{@render entryButton()}
+			{#if applied}
+				<button type="button" disabled={!onundo} onclick={undoFromShelf}>
+					{th ? 'ย้อนกลับ' : 'Undo'}
+				</button>
+			{/if}
+		</div>
+	</section>
+{/if}
 
 {#if open}
 	<InterviewSheet
@@ -99,11 +109,10 @@
 		onclose={() => (open = false)}
 	>
 		<InterviewWizard
-			view={{ plan, lockedFields, interview: answers ? { answers } : null }}
-			initialDirectOnly={directOnly}
-			onapply={(next: Answers, direct: boolean) => {
+			view={{ plan, interview: answers ? { answers } : null }}
+			onapply={(next: Answers) => {
 				open = false;
-				onapply(next, direct);
+				onapply(next);
 			}}
 		/>
 	</InterviewSheet>
@@ -165,6 +174,17 @@
 	button:disabled {
 		opacity: 0.45;
 		cursor: not-allowed;
+	}
+	.trigger-only {
+		min-inline-size: var(--tap);
+		padding-inline: 0.65rem;
+		background: var(--paper);
+		border-color: transparent;
+		font-size: var(--small);
+		white-space: nowrap;
+	}
+	.trigger-only:focus-visible {
+		outline-offset: -2px;
 	}
 	.compact {
 		display: grid;

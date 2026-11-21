@@ -15,7 +15,6 @@ export type ShelfChange = keyof ShopperPlan | 'capacityRemoved';
 
 export interface ShelfState {
 	interviewAnswers: Answers | null;
-	interviewDirectOnly: boolean;
 	plan: ShopperPlan;
 	adapted: boolean;
 	sort: Sort;

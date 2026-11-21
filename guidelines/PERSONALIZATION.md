@@ -9,16 +9,9 @@ interview answers and locks. Undo also restores the saved presentation. Applying
 equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
 remain intact. Reset removes the interview and restores the default view.
 
-The local synthetic-trained CNN chooses allowlisted layout, information and section
-recipes and may suggest an unlocked theme. Reading density, an explicit large-text
-choice and ranking priorities follow the answers directly. Theme-picker selections
-remain protected. Later chat requests can refine CNN-suggested fields through the
-existing interpretation and validation pipeline. Answer-sourced fields retain
-the shopper’s explicit choice until edited or removed. Missing answers or failed model
-inference use direct mappings. No real shopper preference accuracy is claimed.
+Each answer maps to named layout, detail, priority or reading settings. Skipping a question preserves its settings. Large text uses spacious spacing. Chat can adjust other settings, and an explicit layout command can replace the interview layout. Undo restores the preceding view.
 
-Proposed: evaluate interview completion, corrections and task success with shoppers
-before treating learned suggestions as an improvement over direct controls.
+Proposed: measure interview completion, corrections and task success with shoppers.
 
 ## Standalone sourced interview
 

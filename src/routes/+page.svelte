@@ -103,7 +103,6 @@
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
 	let interviewAnswers = $state<Answers | null>(null);
-	let interviewDirectOnly = $state(false);
 	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
@@ -251,8 +250,7 @@
 			freeShipping,
 			capacity,
 			locks: [...locks],
-			interviewAnswers: $state.snapshot(interviewAnswers),
-			interviewDirectOnly
+			interviewAnswers: $state.snapshot(interviewAnswers)
 		};
 	}
 	function remember() {
@@ -331,7 +329,6 @@
 		capacity = previous.capacity;
 		locks = previous.locks;
 		interviewAnswers = previous.interviewAnswers;
-		interviewDirectOnly = previous.interviewDirectOnly;
 	}
 	function restoreDefaults(keepReply = false) {
 		session.conversation.clear();
@@ -351,18 +348,14 @@
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		interviewAnswers = null;
-		interviewDirectOnly = false;
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
 		capacity = undefined;
 		changes = [];
 	}
-	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
-		const result = interviewProposal(answers, activePlan, {
-			directOnly,
-			lockedFields: locks
-		});
+	async function applyInterviewAnswers(answers: Answers) {
+		const result = interviewProposal(answers, activePlan);
 		const previous = $state.snapshot(activePlan);
 		const fields = Object.entries(result.patch).filter(
 			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
@@ -372,7 +365,6 @@
 			if (interviewAnswers !== null || Object.keys(result.answers).length) {
 				interviewAnswers = result.answers;
 			}
-			interviewDirectOnly = directOnly;
 			return;
 		}
 		cancelPending();
@@ -380,12 +372,11 @@
 		storeReady = true;
 		remember();
 		for (const field of Object.keys(result.patch) as (keyof ShopperPlan)[]) {
-			if (result.sources[field] === 'answer') register(field);
+			register(field);
 		}
 		writePlan({ ...previous, ...result.patch });
 		changes = fields.map(([key]) => key as keyof ShopperPlan);
 		interviewAnswers = result.answers;
-		interviewDirectOnly = directOnly;
 		adapted = true;
 		turn = undefined;
 		await tick();
@@ -515,7 +506,7 @@
 		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
-	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category'], respectLocks = true) {
 		const previous = $state.snapshot(activePlan);
 		turn = next;
 		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
@@ -523,7 +514,7 @@
 		changes = [];
 		switch (next.intent) {
 			case 'change':
-				changePlan(next.patch, true, requestedCategory);
+				changePlan(next.patch, respectLocks, requestedCategory);
 				break;
 			case 'undo':
 				undo();
@@ -579,6 +570,20 @@
 					focus
 				)
 			: interpretOffline(message, activePlan, focus);
+		if (
+			!simulating &&
+			interviewAnswers &&
+			local.intent === 'change' &&
+			local.patch.layout &&
+			/^(?:(?:list|grid|table) view|show as a (?:list|grid|table)|แบบรายการ|แบบตารางการ์ด|แบบตาราง)$/iu.test(
+				message.trim()
+			)
+		) {
+			// A direct layout command changes just that setting. Keep the shopper's other choices.
+			applyTurn({ ...local, patch: { layout: local.patch.layout } }, undefined, false);
+			return;
+		}
+
 		if (
 			simulating ||
 			!dev ||
@@ -649,7 +654,6 @@
 				locks,
 				undoStack,
 				interviewAnswers,
-				interviewDirectOnly,
 				turn,
 				liveModel,
 				liveFallback,
@@ -941,8 +945,9 @@
 	}
 </script>
 
-{#snippet languageSwitch()}
+{#snippet languageSwitch(inSearch = false)}
 	<button
+		class:search-language={inSearch}
 		type="button"
 		lang={language === 'th' ? 'en' : 'th'}
 		disabled={!interactive}
@@ -1181,6 +1186,7 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:category-search={cookerSearch || skinSearch}
 	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
@@ -1257,7 +1263,13 @@
 			</header>
 		{/if}
 
-		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
+		<form
+			class="search"
+			class:cooker-search={cookerSearch}
+			class:skin-search={skinSearch}
+			role="search"
+			onsubmit={submitSearch}
+		>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
 					<svg
@@ -1323,26 +1335,28 @@
 						{t.filters}
 					</button>
 				{/if}
+				{#if cookerSearch || skinSearch}{@render languageSwitch(true)}{/if}
 			{:else}
 				<button class="primary" type="submit">{t.submit}</button>
 			{/if}
 		</form>
 
-		{#snippet interviewEntry()}
+		{#snippet interviewEntry(triggerOnly: boolean)}
 			<InterviewEntry
 				plan={activePlan}
-				lockedFields={locks}
 				answers={interviewAnswers}
-				directOnly={interviewDirectOnly}
 				applied={interviewAnswers !== null && adapted}
 				disabled={!interactive}
 				compact={eventDemo}
+				{triggerOnly}
 				onapply={applyInterviewAnswers}
 				onchat={focusAssistant}
 				onundo={undoStack.length ? undo : undefined}
 			/>
 		{/snippet}
-		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
+		{#if (!adapted || !interviewAnswers) && !cookerSearch && !skinSearch}
+			{@render interviewEntry(false)}
+		{/if}
 		{#snippet shoppingTasks()}
 			<ShoppingTasks
 				locale={language}
@@ -1418,8 +1432,12 @@
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value) => chooseCategory(value, true)}
-			/>
+				changeCategory={(value: Category | 'all') => chooseCategory(value, true)}
+			>
+				{#snippet interviewControl()}
+					{@render interviewEntry(true)}
+				{/snippet}
+			</SearchQuickFilters>
 		{:else}
 			<nav class="categories" aria-label={t.categories}>
 				{#if eventDemo}
@@ -1819,7 +1837,7 @@
 					</span>
 				</p>
 			</div>
-			{#if adapted && interviewAnswers}{@render interviewEntry()}{/if}
+			{#if adapted && interviewAnswers}{@render interviewEntry(false)}{/if}
 			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
 			<div bind:this={proofRoot}>
 				{#if products.length === 0}
@@ -2680,26 +2698,84 @@
 		border-inline-start: 1px solid var(--seam);
 		padding-inline-start: 0.35rem;
 	}
+	.search-language {
+		display: none;
+	}
 	@media (max-width: 699px) {
-		.event-demo .cooker-search {
+		.event-demo.category-search .marketplace-brand {
+			display: none;
+		}
+		.event-demo.category-search .search {
 			display: grid;
-			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap) max-content;
 			padding-inline: 0.125rem;
 			gap: 0.125rem;
+			background: var(--surface);
 		}
-		.cooker-search .search-back {
+		.event-demo.category-search .skin-search {
+			grid-template-columns: var(--tap) minmax(0, 1fr) max-content max-content;
+		}
+		.category-search .search-back {
 			grid-area: 1 / 1;
+			background: transparent;
 		}
-		.event-demo .cooker-search input {
+		.category-search .search-language {
+			display: block;
+			grid-area: 1 / 4;
+			min-inline-size: var(--tap);
+			padding-inline: 0.4rem;
+			border-color: transparent;
+			color: var(--accent);
+			font-size: var(--small);
+			white-space: nowrap;
+		}
+		.event-demo.category-search .search input {
 			grid-area: 1 / 2;
 			width: 100%;
+			border-color: var(--accent);
+		}
+		.event-demo.category-search .cooker-search input {
 			padding-inline: var(--tap) 0.5rem;
 		}
-		.event-demo .cooker-search .search-icon {
+		.event-demo.category-search .skin-search input {
+			padding-inline-end: var(--tap);
+		}
+		.event-demo.category-search .search-icon {
 			grid-area: 1 / 2;
-			justify-self: start;
 			width: var(--tap);
 			margin: 0;
+		}
+		.category-search .cooker-search .search-icon {
+			justify-self: start;
+		}
+		.category-search .skin-search .search-icon {
+			justify-self: end;
+		}
+		.category-search .skin-search .filter-trigger {
+			grid-area: 1 / 3;
+			min-inline-size: 4.75rem;
+			font-size: var(--small);
+		}
+		.event-demo.category-search .card-body h3 {
+			font-size: max(0.875rem, var(--small));
+		}
+		.event-demo.category-search:not([data-theme='large'])
+			.product-link
+			:global([data-fact='name']) {
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			line-clamp: 2;
+			-webkit-line-clamp: 2;
+			overflow: hidden;
+		}
+		.event-demo.category-search .price {
+			column-gap: 0.25rem;
+		}
+		.event-demo.category-search .price :global(strong) {
+			font-size: var(--size);
+		}
+		.event-demo.category-search:not([data-theme='large']) .price :global(s) {
+			font-size: 0.75rem;
 		}
 	}
 </style>

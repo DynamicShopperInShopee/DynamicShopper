@@ -2,12 +2,7 @@
 
 ## Browser interview integration
 
-The optional storefront interview runs exported Conv1d and dense weights locally.
-Only allowlisted answer IDs enter inference; product facts never enter the network.
-Independent categorical heads expand to fixed layout, details and section recipes;
-invalid heads retain their direct-answer fallback independently. The existing
-proposal validator checks the final patch. A complete interview may also suggest
-an unlocked theme; explicit reading settings and priorities remain deterministic.
+The storefront interview maps recognized answer IDs to fixed presentation settings, validates the patch, and previews it for the shopper. Each question is optional. Only choosing large text changes the theme.
 
 Apply preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
@@ -59,13 +54,7 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 
 ## Explicit interview entry
 
-The root storefront can also obtain a presentation proposal from the optional
-four-question interview. The browser model receives answer IDs only and feeds
-the same proposal validator. Draft answers are isolated; one Apply passes the
-validated patch to the existing root change function and undo stack. Catalog
-facts, deterministic ranking and the optimizer stay on their existing paths.
-Model failure falls back to direct answers. See
-[the integration contract](../docs/INTERVIEW-INTEGRATION.md).
+Draft answers stay inside the four-question dialog. Apply passes the validated patch to the root store and its Undo history. The catalog, ranker and optimizer supply the displayed facts and order. See [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline
 

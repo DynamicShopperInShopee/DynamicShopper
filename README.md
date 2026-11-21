@@ -41,7 +41,7 @@ Run `npm run dev:shopping` and open `http://127.0.0.1:5176` to try the standalon
 | [Catalog](src/lib/catalog) | Product, shop, voucher and bilingual specification data. The fact resolver supplies both the raw value and its formatted display. |
 | [Pricing](src/lib/pricing) | Basket quantities, shipping, voucher eligibility and the simulated coin balance feed one optimizer. The returned receipt drives the listing, cart and shelf. |
 | [Personalization](src/lib/personalization) | A bounded store plan, deterministic ranking and explanations, the keyword fallback, and part-by-part validation of proposed changes. Listing answers cite a known fact or decline. |
-| [Interview](src/lib/personalization/interview.ts) | A small, locally executed CNN proposes allowlisted presentation choices from four answer IDs. Partial answers, the direct-only switch and inference failure use direct mappings. Its training used synthetic examples. Shopper preference accuracy is unmeasured. |
+| [Interview](src/lib/personalization/interview.ts) | Four optional questions map directly to settings for layout, information, priorities and reading. Review the changes before applying them. Skipped answers preserve existing settings. |
 | [Storefront](src/lib/storefront) and [routes](src/routes) | Fixed rendering components, bilingual copy, product details, cart, change explanations, Undo and Reset. The fact checker compares rendered text and raw fact attributes with their source before showing proof. |
 | [Standalone harness](src/lib/harness), [UI adapter](src/lib/harness-ui), and [bounded agent](src/lib/server/agent) | A separate route exercises validated card order, read-only catalog tools, guarded replies, visible traces and offline fallback. |
 | [Local model handler](src/lib/server/live-assistant) | Optional loopback development endpoint for allowlisted presentation hints. The server validates the response before the shelf can use it. |
@@ -128,7 +128,7 @@ bun run db:d1:remote
 
 In Cloudflare, configure `ORIGIN` as a variable and `BETTER_AUTH_SECRET` as a secret under **Workers & Pages → your Worker → Settings → Variables and Secrets**. Set them for **Production** and separately for **Previews Base**. `DATABASE_URL` is only needed for local SQLite; D1 uses the `DB` binding. These values are read at runtime, so they do not need to be supplied as build variables.
 
-Run the app in the Cloudflare runtime with `bun run dev:d1`. The `DB` binding selects D1 automatically; without it the app uses `DATABASE_URL` and local SQLite. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
+Run the app in the Cloudflare runtime with `bun run dev:d1`. The Worker reads the D1 binding from Cloudflare at request time. Node development uses the local SQLite database configured by `DATABASE_URL`. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
 
 For local release verification, run `bun run build:d1` followed by `bunx wrangler deploy --dry-run`. The build checks both SvelteKit output and the assembled Worker for local environment files. Supply authentication bindings at runtime. Use the Cloudflare deployment record to verify which commit is serving production.
 

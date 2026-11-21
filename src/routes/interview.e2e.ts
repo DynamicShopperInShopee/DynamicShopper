@@ -19,8 +19,6 @@ test('the shortlist and specification choices appear on the applied shelf', asyn
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const dialog = await answerInterview(page, ['Help me choose', 'Specs', 'Durability', 'Balanced']);
-	await dialog.getByText('How this view is chosen', { exact: true }).click();
-	await dialog.getByRole('checkbox', { name: 'Use direct answers only' }).check();
 	await dialog.getByRole('button', { name: 'Apply my view' }).click();
 	await expect(page.getByRole('region', { name: 'Top picks' }).getByRole('link')).toHaveCount(3);
 	await expect(
@@ -143,22 +141,27 @@ test('an empty interview proposal does not consume the next Undo', async ({ page
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 });
 
-test('direct-only choice survives a no-op Apply without consuming Undo', async ({ page }) => {
+test('an unchanged completed interview preserves the answers and takes one Undo to restore', async ({
+	page
+}) => {
 	await page.goto('/');
-	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
-	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();
+	const answers = ['Compare', 'Specs', 'Durability', 'Large text'];
+	const dialog = await answerInterview(page, answers);
+	await dialog.getByRole('button', { name: 'Apply my view' }).click();
 	await page.getByRole('button', { name: 'Edit my answers' }).click();
-	const edit = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await edit.getByText('How this view is chosen', { exact: true }).click();
-	await edit.getByRole('checkbox', { name: 'Use direct answers only' }).check();
-	await edit.getByRole('button', { name: 'Apply my view', exact: true }).click();
-	await page.getByRole('button', { name: 'Edit my answers' }).click();
-	const reopened = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await reopened.getByText('How this view is chosen', { exact: true }).click();
-	await expect(reopened.getByRole('checkbox', { name: 'Use direct answers only' })).toBeChecked();
-	await page.keyboard.press('Escape');
+	const edit = page.getByRole('dialog');
+	for (const [index, answer] of answers.entries()) {
+		await expect(edit.getByRole('radio', { name: answer, exact: true })).toBeChecked();
+		await edit
+			.getByRole('button', {
+				name: index === answers.length - 1 ? 'Preview my view' : 'Next',
+				exact: true
+			})
+			.click();
+	}
+	await expect(edit.getByText('Your current view already matches these answers.')).toBeVisible();
+	await edit.getByRole('button', { name: 'Apply my view' }).click();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 });

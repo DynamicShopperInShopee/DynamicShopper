@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-async function interview(page: Page, thai = false, directOnly = true, editing = false) {
+async function interview(page: Page, thai = false, editing = false) {
 	await page
 		.getByRole('button', {
 			name: editing ? 'Edit my answers' : thai ? 'เริ่มตอบคำถามสั้น ๆ' : 'Start a quick interview',
@@ -32,14 +32,6 @@ async function interview(page: Page, thai = false, directOnly = true, editing = 
 			.click();
 	}
 	await dialog
-		.getByText(thai ? 'มุมมองนี้เลือกมาอย่างไร' : 'How this view is chosen', { exact: true })
-		.click();
-	if (directOnly)
-		await dialog
-			.getByRole('checkbox', { name: thai ? 'ใช้เฉพาะคำตอบที่เลือก' : 'Use direct answers only' })
-			.check();
-	else await expect(dialog.getByTestId('interview-backend')).toContainText('CNN');
-	await dialog
 		.getByRole('button', { name: thai ? 'ใช้มุมมองนี้' : 'Apply my view', exact: true })
 		.click();
 }
@@ -65,7 +57,7 @@ for (const width of [390, 1440]) {
 			'data-raw',
 			'1.8'
 		);
-		await interview(page, false, true, true);
+		await interview(page, false, true);
 		if (width === 390) await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 		await page.getByRole('textbox', { name: 'Ask the store' }).fill('visual style');
 		await page.getByRole('button', { name: 'Send', exact: true }).click();
@@ -94,7 +86,7 @@ for (const width of [390, 1440]) {
 	});
 }
 
-test('interview drafts leave the store alone and Thai CNN Apply retains the project identity', async ({
+test('interview drafts leave the store alone and Thai Apply retains the project identity', async ({
 	page
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
@@ -104,7 +96,7 @@ test('interview drafts leave the store alone and Thai CNN Apply retains the proj
 	await page.keyboard.press('Escape');
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
 	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
-	await interview(page, true, false);
+	await interview(page, true);
 	await expect(page.getByRole('link', { name: 'DynamicShopper', exact: true })).toBeVisible();
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'th');
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

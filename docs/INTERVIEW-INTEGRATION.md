@@ -10,24 +10,9 @@ keeps draft answers, supports skipping each question and previews the actual
 plan changes. Closing the dialog returns focus to the opener. Apply focuses
 the shelf and exposes chat for further changes.
 
-The bundled Conv1d model receives four allowlisted answer IDs. It can suggest
-presentation fields from the fixed library. Prior explicit settings protect
-their fields from inference. Missing answers and model failure use direct
-mappings. The direct-only switch bypasses inference. The synthetic training
-labels have not been evaluated against real shopper preferences.
+Each recognized answer maps directly to an authored setting. The shopper can choose a goal, evidence, priority and reading style independently. Only large text changes the theme. Skipped or unknown answers preserve the corresponding settings.
 
-An effective Apply records one Undo step, including previous answers and locks.
-Answer-sourced fields remain protected from later inference. CNN-suggested
-fields can be refined in chat. Applying equivalent settings preserves the
-direct-only choice without creating locks or consuming Undo. Undo restores
-the earlier presentation in browser preferences. Reset restores the store
-defaults. Returning from a listing restores the interview and its Undo history
-through an opaque tab-local key.
-
-The regression suite exercises every complete or skipped answer combination,
-independent rejection of invalid model output, unchanged catalog facts, locale,
-focus, cart controls, capacity, navigation, chat, and Undo.
-
+Apply records one Undo step when the view changes. Returning from a listing restores the accepted view and its history through an opaque tab-local key. The tests cover every complete or skipped combination, product facts, locale, keyboard focus, cart, capacity, navigation, chat refinement and Undo.
 
 ## Integration validation against current main
 
@@ -46,6 +31,4 @@ flow. This extends the branch's earlier harness sync at `0202ca4`.
   configs and build artifacts are excluded from the commit.
 
 Status: accepted UI decision — the user selected PR #14's DynamicShopper design.
-Its orange DynamicShopper header and interview flow replace the earlier
-`codex/cnn-interview-main` branded interface. The integration checks above apply
-to the approved design.
+Its orange DynamicShopper header and interview flow are the starting experience.

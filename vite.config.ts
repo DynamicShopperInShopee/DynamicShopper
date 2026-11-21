@@ -9,6 +9,7 @@ const workerBuild = process.env.DEPLOY_TARGET === 'cloudflare';
 const adapter = workerBuild ? cloudflare() : node();
 
 export default defineConfig({
+	define: { 'import.meta.env.D1_WORKER': JSON.stringify(workerBuild) },
 	plugins: [
 		tailwindcss(),
 		workerBuild && {
