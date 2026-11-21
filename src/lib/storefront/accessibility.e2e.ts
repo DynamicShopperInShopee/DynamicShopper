@@ -304,7 +304,7 @@ test('X-ray ignores typed or modified x and restores focus on close', async ({ p
 	await page.goto('/?view=receipt');
 	const search = page.getByRole('searchbox');
 	const trigger = page.getByRole('button', { name: 'X-ray', exact: true });
-	const panel = page.getByRole('region', { name: 'X-ray', exact: true });
+	const panel = page.locator('#store-xray');
 	await expect(search).toBeEnabled();
 	await search.press('x');
 	await expect(search).toHaveValue('x');
@@ -332,7 +332,7 @@ test('X-ray shows explicit offline control and leaves unavailable measurements u
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray', exact: true }).click();
-	const panel = page.getByRole('region', { name: 'X-ray', exact: true });
+	const panel = page.locator('#store-xray');
 	await expect(panel.getByText('Offline accuracy unavailable', { exact: true })).toBeVisible();
 	await expect(panel.getByText('Model accuracy unavailable', { exact: true })).toBeVisible();
 	await panel.getByRole('checkbox', { name: 'Force offline', exact: true }).check();
@@ -356,7 +356,7 @@ test('development X-ray guards a poisoned model without changing product facts',
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray', exact: true }).click();
-	const panel = page.getByRole('region', { name: 'X-ray', exact: true });
+	const panel = page.locator('#store-xray');
 	const poison = panel.getByRole('button', { name: 'Simulate poisoned model', exact: true });
 	test.skip((await poison.count()) === 0, 'The poisoned model is available in development only.');
 	const price = page.locator('#products [data-fact="price"]').first();

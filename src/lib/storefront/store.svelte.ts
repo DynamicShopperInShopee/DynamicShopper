@@ -6,7 +6,7 @@ import { validateTurn } from '../personalization/turn';
 import { getProduct } from '../catalog/index.ts';
 import { optimizeDeal } from '../pricing/index.ts';
 import { addCartItem, restoreCart, type CartItem } from './cart';
-import { getStoreOpenedAt } from './clock';
+import { PricingClock } from './clock.svelte';
 import { readSavedStore, writeSavedStore } from './browserState';
 import type { Sort } from '../store-search';
 
@@ -55,13 +55,8 @@ function savedPlan(value: unknown): ShopperPlan | undefined {
 }
 
 const knownProduct = (id: string) => getProduct(id) !== undefined;
-function mayPrice(items: readonly CartItem[]) {
-	const openedAt = getStoreOpenedAt();
-	return optimizeDeal(items, { openedAt, now: Math.max(openedAt, Date.now()) }) !== null;
-}
-const savedCart = (value: unknown) => restoreCart(value, knownProduct, mayPrice);
-
 export class StoreSession {
+	readonly clock = new PricingClock();
 	readonly conversation = new Conversation();
 	readonly listing = new ListingSession(this.conversation);
 	visit = $state<StoreVisit>();
@@ -72,6 +67,13 @@ export class StoreSession {
 	#lock?: StorageLock;
 	#restored = false;
 	#cartWrites = Promise.resolve();
+
+	#mayPrice = (items: readonly CartItem[]) => {
+		// Restoring saved quantities can precede mounting. This validation does not display a quote.
+		const context = this.clock.context ?? { openedAt: 0, now: 0 };
+		return optimizeDeal(items, context) !== null;
+	};
+	#savedCart = (value: unknown) => restoreCart(value, knownProduct, this.#mayPrice);
 
 	restore(storage?: StoreStorage, lock?: StorageLock) {
 		if (this.#restored) return;
@@ -114,7 +116,7 @@ export class StoreSession {
 	addProduct = (id: string) =>
 		this.#changeCart(() => {
 			const saved = this.#read();
-			const next = addCartItem(saved.cart ?? this.cart, id, knownProduct, mayPrice);
+			const next = addCartItem(saved.cart ?? this.cart, id, knownProduct, this.#mayPrice);
 			if (next.status === 'added') this.#save(saved.plan, next.cart);
 			this.cart = next.cart;
 			return next.status;
@@ -150,11 +152,14 @@ export class StoreSession {
 	}
 
 	#read() {
-		return this.#storage ? readSavedStore(this.#storage, savedPlan, savedCart) : {};
+		return this.#storage ? readSavedStore(this.#storage, savedPlan, this.#savedCart) : {};
 	}
 
 	#save(plan: ShopperPlan | undefined, cart: readonly CartItem[]) {
-		if (this.#storage && !writeSavedStore(this.#storage, { plan, cart }, savedPlan, savedCart))
+		if (
+			this.#storage &&
+			!writeSavedStore(this.#storage, { plan, cart }, savedPlan, this.#savedCart)
+		)
 			this.#storage = undefined;
 	}
 }

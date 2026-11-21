@@ -15,7 +15,11 @@
 
 	let { children }: LayoutProps = $props();
 	const session = createStoreSession();
-	onMount(() => session.restoreBrowser());
+	onMount(() => {
+		const stopClock = session.clock.start();
+		session.restoreBrowser();
+		return stopClock;
+	});
 	setStoreSession(session);
 	const missingListing = $derived(
 		page.status === 404 && /\/product\/[^/]+\/?$/.test(page.url.pathname)

@@ -27,7 +27,7 @@
 		type Locale
 	} from '../lib/catalog/index.ts';
 	import { quoteBasket } from '#lib/storefront/quoteBasket.ts';
-	import { optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
+	import { optimizeDeal, type DealReceipt } from '../lib/pricing/index.ts';
 	import {
 		defaultPlan,
 		interpretOffline,
@@ -47,11 +47,11 @@
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
-	import { getStoreOpenedAt } from '../lib/storefront/clock';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 	import Xray from '../lib/storefront/Xray.svelte';
+	import XrayDrawer from '../lib/storefront/XrayDrawer.svelte';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
@@ -95,7 +95,6 @@
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
 	let traceTrigger = $state<HTMLButtonElement>();
-	let traceClose = $state<HTMLButtonElement>();
 	let traceMerge = $state<'applied' | 'unchanged'>();
 	let poisonArmed = $state(false);
 	let forceOffline = $state(false);
@@ -131,25 +130,13 @@
 	}
 	function closeTrace() {
 		traceOpen = false;
-		traceTrigger?.focus();
 	}
 	function toggleTrace() {
-		if (traceOpen) {
-			closeTrace();
-			return;
-		}
-		traceOpen = true;
-		void tick().then(() => {
-			if (traceOpen) traceClose?.focus();
-		});
+		traceOpen = !traceOpen;
 	}
 	function handleTraceKey(event: KeyboardEvent) {
-		if (
-			eventDemo ||
-			event.defaultPrevented ||
-			document.querySelector('dialog[open], :popover-open')
-		)
-			return;
+		const modal = document.querySelector('dialog[open], :popover-open');
+		if (eventDemo || event.defaultPrevented || (modal && modal.id !== 'store-xray')) return;
 		if (event.key === 'Escape' && traceOpen) {
 			event.preventDefault();
 			closeTrace();
@@ -186,11 +173,14 @@
 	);
 	let changes = $state<(keyof ShopperPlan)[]>([]);
 	let focusedProduct = $state<string>();
-	let quote = $state<{ receipt: DealReceipt; locale: Locale; addOns: readonly AddOn[] }>();
+	let quoteInput = $state<{ basket: readonly CartItem[]; locale: Locale }>();
+	const quote = $derived(
+		quoteInput
+			? quoteBasket(quoteInput.basket, quoteInput.locale, session.clock.context)
+			: undefined
+	);
 	let closeQuoteButton = $state<HTMLButtonElement>();
 	let quoteTrigger: HTMLElement | undefined;
-	let opening = $state<number>();
-	let referenceTime = $state<number>();
 
 	const categoryFromShelf = {
 		mouse: 'mouse',
@@ -318,7 +308,11 @@
 	}
 	function restoreDefaults() {
 		cancelPending();
-		remember();
+		const hasPlanChanges = (Object.keys(defaultPlan) as (keyof ShopperPlan)[]).some(
+			(key) => JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])
+		);
+		if (hasPlanChanges || adapted || sort !== 'default' || freeShipping || capacity !== undefined)
+			remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		adapted = false;
@@ -419,21 +413,25 @@
 		if (basket.length && showBasketDeal(basket, locale) && productIds)
 			focusedProduct = productIds[0];
 	}
-	const calculateQuote = quoteBasket;
+	const calculateQuote = (basket: readonly CartItem[], locale: Locale) =>
+		quoteBasket(basket, locale, session.clock.context);
 	function showBasketDeal(basket: readonly CartItem[], locale: Locale = language) {
 		if (!interactive || eventDemo) return false;
 		cancelPending();
-		const calculated = calculateQuote(basket, locale);
-		if (!calculated) return false;
+		const previous = quoteInput;
+		quoteInput = { basket: basket.map((item) => ({ ...item })), locale };
+		if (!quote) {
+			quoteInput = previous;
+			return false;
+		}
 		quoteTrigger =
 			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		quote = calculated;
 		void tick().then(() => closeQuoteButton?.focus());
 		return true;
 	}
 	function closeDeal() {
 		cancelPending();
-		quote = undefined;
+		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
 	function applyTurn(next: Turn) {
@@ -547,17 +545,7 @@
 		);
 	}
 
-	onMount(() => {
-		opening = getStoreOpenedAt();
-		referenceTime = Math.max(opening, Date.now());
-		const timer = window.setInterval(() => {
-			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
-		}, 60_000);
-		return () => {
-			cancelPending();
-			window.clearInterval(timer);
-		};
-	});
+	onMount(() => () => cancelPending());
 	function restoreStore() {
 		session.restoreBrowser();
 		storeReady = true;
@@ -598,6 +586,7 @@
 	}
 	afterNavigate(({ from, to }) => {
 		if (eventDemo) return;
+		if (page.url.hash === '#xray') traceOpen = true;
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
 		const hasCurrentControls =
@@ -693,29 +682,18 @@
 	});
 	const topDeal = $derived.by(() => {
 		const top = products[0];
-		if (
-			eventDemo ||
-			!adapted ||
-			!plan.sections.includes('best-deal') ||
-			!top ||
-			opening === undefined ||
-			referenceTime === undefined
-		)
+		const context = session.clock.context;
+		if (eventDemo || !adapted || !plan.sections.includes('best-deal') || !top || !context)
 			return null;
-		return optimizeDeal([{ productId: top.catalogId, quantity: quantityInCart(top.catalogId) }], {
-			openedAt: opening,
-			now: referenceTime
-		});
+		return optimizeDeal(
+			[{ productId: top.catalogId, quantity: quantityInCart(top.catalogId) }],
+			context
+		);
 	});
 	const cardVouchers = $derived.by(() => {
-		if (
-			eventDemo ||
-			!activePlan.details.includes('vouchers') ||
-			opening === undefined ||
-			referenceTime === undefined
-		)
+		const context = session.clock.context;
+		if (eventDemo || !activePlan.details.includes('vouchers') || !context)
 			return new Map<string, DealReceipt['appliedVouchers']>();
-		const context = { openedAt: opening, now: referenceTime };
 		return new Map(
 			products.map((product) => [
 				product.catalogId,
@@ -729,9 +707,10 @@
 
 	function submitSearch(event: SubmitEvent) {
 		event.preventDefault();
-		remember();
+		const nextQuery = draftQuery.trim();
+		if (nextQuery !== query || capacity !== undefined) remember();
 		register('query');
-		query = draftQuery.trim();
+		query = nextQuery;
 		capacity = undefined;
 	}
 
@@ -794,6 +773,29 @@
 		presentationFields={lookFields}
 	/>
 {/snippet}
+{#snippet rankingExplanation(productId: string)}
+	{@const reasons = ranked.find(({ product }) => product.id === productId)?.terms ?? []}
+	{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
+		<details class="rank">
+			<summary>{a.rank}</summary>
+			<ul>
+				{#each reasons.slice(0, 3) as reason (reason.key)}
+					<li>
+						<span>{termName(reason.key, productId)}</span><span
+							class="rank-track"
+							aria-hidden="true"
+						>
+							<span
+								data-rank-bar
+								style:width={`${reasons[0].contribution > 0 ? (reason.contribution / reasons[0].contribution) * 100 : 0}%`}
+							></span>
+						</span>
+					</li>
+				{/each}
+			</ul>
+		</details>
+	{/if}
+{/snippet}
 {#snippet shelf(ids: readonly string[], shelfLayout: 'grid' | 'list' | 'table' | 'large-print')}
 	{@const shelfProducts = ids.flatMap(
 		(id) => products.find((product) => product.catalogId === id) ?? []
@@ -806,6 +808,8 @@
 			locale={language}
 			onDeal={openDeal}
 			onAdd={session.addProduct}
+			{listingHref}
+			reasons={rankingExplanation}
 			highlightedSpecs={plan.highlightedSpecs}
 		/>
 	{:else}
@@ -912,8 +916,6 @@
 								locale={language}
 							/>{/if}
 						{#if !eventDemo}
-							{@const reasons =
-								ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ?? []}
 							{#if adapted && plan.details.includes('summary')}
 								<FactValue
 									tag="p"
@@ -984,26 +986,7 @@
 									{a.deal}
 								</button>
 							</div>
-							{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
-								<details class="rank">
-									<summary>{a.rank}</summary>
-									<ul>
-										{#each reasons.slice(0, 3) as reason (reason.key)}
-											<li>
-												<span>{termName(reason.key, product.catalogId)}</span><span
-													class="rank-track"
-													aria-hidden="true"
-												>
-													<span
-														data-rank-bar
-														style:width={`${reasons[0].contribution > 0 ? (reason.contribution / reasons[0].contribution) * 100 : 0}%`}
-													></span>
-												</span>
-											</li>
-										{/each}
-									</ul>
-								</details>
-							{/if}
+							{@render rankingExplanation(product.catalogId)}
 						{/if}
 					</div>
 				</li>
@@ -1024,6 +1007,7 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
@@ -1071,6 +1055,17 @@
 						{language === 'th' ? 'English' : 'ไทย'}
 					</button>
 					<CartControls locale={language} onBestPrice={() => openBasket()} />
+					<button
+						type="button"
+						bind:this={traceTrigger}
+						disabled={!interactive}
+						aria-expanded={traceOpen}
+						aria-controls={traceOpen ? 'store-xray' : undefined}
+						aria-keyshortcuts="X"
+						onclick={toggleTrace}
+					>
+						{a.trace}
+					</button>
 				</div>
 			</div>
 		</header>
@@ -1481,17 +1476,6 @@
 					</button>
 					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
 					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
-					<button
-						type="button"
-						bind:this={traceTrigger}
-						disabled={!interactive}
-						aria-expanded={traceOpen}
-						aria-controls={traceOpen ? 'store-xray' : undefined}
-						aria-keyshortcuts="X"
-						onclick={toggleTrace}
-					>
-						{a.trace}
-					</button>
 				</div>
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
@@ -1511,44 +1495,41 @@
 						{/each}
 					</div>
 				{/if}
-				{#if traceOpen}
-					<div id="store-xray">
-						<Xray
-							locale={language}
-							{trace}
-							{forceOffline}
-							onForceOffline={setForceOffline}
-							modelName={liveModel}
-							{poisonArmed}
-							onPoison={dev ? () => (poisonArmed = true) : undefined}
-						>
-							<button type="button" bind:this={traceClose} onclick={closeTrace}>
-								{language === 'th' ? 'ปิดการดูขั้นตอน' : 'Close X-ray'}
-							</button>
-							{#if dev}
-								<button
-									type="button"
-									disabled={forceOffline}
-									onclick={toggleLive}
-									aria-pressed={liveEnabled}
-								>
-									{language === 'th' ? 'ลองใช้โมเดลสด' : 'Try live model'}
-								</button>
-							{/if}
-							{#if liveFallback}
-								<p>
-									{language === 'th'
-										? 'ใช้การตอบแบบออฟไลน์แทน'
-										: 'Live model unavailable. Used offline mode.'}
-								</p>
-							{/if}
-							{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
-						</Xray>
-					</div>
-				{/if}
 			</section>
+			<XrayDrawer locale={language} bind:open={traceOpen} returnFocus={traceTrigger}>
+				<Xray
+					locale={language}
+					{trace}
+					{forceOffline}
+					onForceOffline={setForceOffline}
+					modelName={liveModel}
+					{poisonArmed}
+					onPoison={dev ? () => (poisonArmed = true) : undefined}
+				>
+					{#if dev}
+						<button
+							type="button"
+							disabled={forceOffline}
+							onclick={toggleLive}
+							aria-pressed={liveEnabled}
+						>
+							{language === 'th' ? 'ลองใช้โมเดลสด' : 'Try live model'}
+						</button>
+					{/if}
+					{#if liveFallback}
+						<p>
+							{language === 'th'
+								? 'ใช้การตอบแบบออฟไลน์แทน'
+								: 'Live model unavailable. Used offline mode.'}
+						</p>
+					{/if}
+					{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
+				</Xray>
+			</XrayDrawer>
 			{#if compareOpen}
-				<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+				<div class="comparison-area">
+					<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+				</div>
 			{/if}
 			{#if quote}
 				<section class="quote" lang={quote.locale}>
@@ -1620,6 +1601,9 @@
 					? 'DynamicShopper · ภาพประกอบสินค้าจำลอง'
 					: 'DynamicShopper · Illustrative product images'
 				: t.simulated}
+			{#if !eventDemo}<a class="inspection-link" href="#xray" onclick={() => (traceOpen = true)}>
+					{language === 'th' ? 'ตรวจสอบหน้าร้านนี้' : 'Inspect this store'}
+				</a>{/if}
 		</footer>
 	</main>
 </div>
@@ -2353,5 +2337,19 @@
 	}
 	.event-demo .card-body :global(.shop) {
 		order: 3;
+	}
+	.inspection-link {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: var(--tap);
+		margin-inline-start: 1rem;
+		color: inherit;
+	}
+	@media (min-width: 1024px) {
+		.store.trace-open #products,
+		.store.trace-open .comparison-area,
+		.store.trace-open .quote {
+			padding-inline-end: calc(320px + 1rem);
+		}
 	}
 </style>

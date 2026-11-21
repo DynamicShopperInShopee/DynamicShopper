@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import type { addCartItem } from './cart';
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
@@ -10,10 +11,14 @@
 		locale,
 		onDeal,
 		onAdd,
+		listingHref,
+		reasons,
 		highlightedSpecs = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
+		listingHref?: (productId: string) => string;
+		reasons?: Snippet<[string]>;
 		onDeal: (productId: string, locale: Locale) => void;
 		onAdd?: (
 			id: string
@@ -62,9 +67,15 @@
 				{#each products as product (product.id)}
 					<tr data-product={product.id}>
 						<th scope="row">
-							<a href={resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}>
+							<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller's resolved URL preserves the active look and theme. -->
+							<a
+								href={listingHref?.(product.id) ??
+									resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}
+							>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
+							{@render reasons?.(product.id)}
 						</th>
 						{#each columns as column (column.key)}
 							<td class="figure">

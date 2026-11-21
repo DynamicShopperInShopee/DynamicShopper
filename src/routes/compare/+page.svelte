@@ -6,24 +6,18 @@
 	import { categories, products, specs, type Category, type Locale } from '#lib/catalog/index.ts';
 	import { rankProducts, type ShopperPlan } from '#lib/personalization/index.ts';
 	import { matchesQuery } from '#lib/personalization/ranking.ts';
-	import { optimizeDeal, type PricingContext } from '#lib/pricing/index.ts';
+	import { optimizeDeal } from '#lib/pricing/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
 	import { comparePresets, type ComparePreset } from '#lib/storefront/compare.ts';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
-	import { getStoreOpenedAt } from '#lib/storefront/clock.ts';
 
 	let interactive = $state(false);
-	let pricingContext = $state<PricingContext>();
 	onMount(() => {
 		interactive = true;
-		const openedAt = getStoreOpenedAt();
-		const refreshClock = () => (pricingContext = { openedAt, now: Math.max(openedAt, Date.now()) });
-		refreshClock();
-		const timer = window.setInterval(refreshClock, 60_000);
-		return () => window.clearInterval(timer);
 	});
 	const session = getStoreSession();
+	const pricingContext = $derived(session.clock.context);
 	const locale = $derived(page.url.searchParams.get('lang') === 'th' ? 'th' : 'en');
 	const options = Object.keys(categories) as Category[];
 	const glyphs = new Map(catalog.map((item) => [item.catalogId, item.category]));

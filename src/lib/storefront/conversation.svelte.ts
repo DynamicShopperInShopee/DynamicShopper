@@ -5,6 +5,7 @@ import type { Turn } from '../personalization';
 export type ChatSendResult = boolean | void | 'superseded';
 
 export interface ChatDeal {
+	quotedAt: number;
 	receipt: DealReceipt;
 	addOns: readonly AddOn[];
 	locale: Locale;

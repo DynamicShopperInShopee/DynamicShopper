@@ -75,7 +75,7 @@
 					productId: id,
 					quantity: session.cart.find((item) => item.productId === id)?.quantity ?? 1
 				}));
-				deal = quoteBasket(basket, language);
+				deal = quoteBasket(basket, language, session.clock.context);
 			} finally {
 				if (request === generation) pending = undefined;
 			}

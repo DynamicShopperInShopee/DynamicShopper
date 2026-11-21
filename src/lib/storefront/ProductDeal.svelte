@@ -2,7 +2,6 @@
 	import { beforeNavigate } from '$app/navigation';
 	import { onMount, tick, type Snippet } from 'svelte';
 	import type { Locale } from '../catalog/index.ts';
-	import type { AddOn, DealReceipt } from '../pricing';
 	import type { CartItem } from './cart';
 	import { quoteBasket } from './quoteBasket';
 	import { getStoreSession } from './store.svelte';
@@ -18,7 +17,10 @@
 	beforeNavigate(() => {
 		request += 1;
 	});
-	let quote = $state<{ receipt: DealReceipt; addOns: readonly AddOn[] } | null>();
+	let activeBasket = $state.raw<readonly CartItem[]>();
+	const quote = $derived(
+		activeBasket ? quoteBasket(activeBasket, locale, session.clock.context) : undefined
+	);
 	let closeButton = $state<HTMLButtonElement>();
 	let trigger: HTMLElement | undefined;
 	const th = $derived(locale === 'th');
@@ -33,7 +35,7 @@
 	function showBasket(basket: readonly CartItem[]) {
 		if (!ready) return;
 		trigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		quote = quoteBasket(basket, locale) ?? null;
+		activeBasket = basket;
 		if (quote) void tick().then(() => closeButton?.focus());
 	}
 
@@ -55,7 +57,7 @@
 
 	function closeDeal() {
 		request += 1;
-		quote = undefined;
+		activeBasket = undefined;
 		trigger?.focus();
 	}
 </script>
@@ -80,7 +82,7 @@
 		</button>
 		<DealSlip receipt={quote.receipt} {locale} addOns={quote.addOns} />
 	</section>
-{:else if quote === null}
+{:else if activeBasket && session.clock.context}
 	<p role="status">{th ? 'ยังยืนยันราคาไม่ได้' : 'Could not confirm the best price.'}</p>
 {/if}
 
