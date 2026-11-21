@@ -82,63 +82,45 @@
 
 <div lang={locale}>
 	{#if shareUrl && lineUrl}
-		<p>{t.note}</p>
-		<div class="actions">
-			<button type="button" onclick={() => copyLink(shareUrl)}>{t.copy}</button>
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The destination is LINE's external share service. -->
-			<a href={lineUrl} target="_blank" rel="noopener noreferrer">{t.line}</a>
+		<p class="mx-0 mt-0 mb-2">
+			{t.note}
+		</p>
+		<div class="actions flex flex-wrap gap-2">
+			<button
+				class="box-border inline-grid min-h-[var(--tap,44px)] cursor-pointer place-items-center border border-[var(--seam,currentColor)] bg-[var(--paper,#fff)] px-3 py-1 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+				type="button"
+				onclick={() => copyLink(shareUrl)}
+			>
+				{t.copy}
+			</button>
+			<!-- eslint-disable svelte/no-navigation-without-resolve -- The destination is LINE's external share service. -->
+			<a
+				class="box-border inline-grid min-h-[var(--tap,44px)] cursor-pointer place-items-center border border-[var(--seam,currentColor)] bg-[var(--paper,#fff)] px-3 py-1 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+				href={lineUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				{t.line}
+			</a>
+			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		</div>
-		<div role="status">{status ? t[status] : ''}</div>
+		<div class={['[&:not(:empty)]:my-2']} role="status">
+			{status ? t[status] : ''}
+		</div>
 		{#if status === 'manual'}
-			<label>
+			<label class="grid gap-1">
 				{t.field}
-				<input bind:this={manualLink} value={shareUrl} readonly />
+				<input
+					class="box-border min-h-[var(--tap,44px)] w-full min-w-0 border border-[var(--seam,currentColor)] bg-[var(--paper,#fff)] px-3 py-1 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+					bind:this={manualLink}
+					value={shareUrl}
+					readonly
+				/>
 			</label>
 		{/if}
 	{:else}
-		<p>{t.unavailable}</p>
+		<p class="mx-0 mt-0 mb-2">
+			{t.unavailable}
+		</p>
 	{/if}
 </div>
-
-<style>
-	p {
-		margin: 0 0 0.5rem;
-	}
-	.actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	button,
-	a,
-	input {
-		box-sizing: border-box;
-		min-height: var(--tap, 44px);
-		border: 1px solid var(--seam, currentColor);
-		padding: 0.25rem 0.75rem;
-		background: var(--paper, #fff);
-		color: inherit;
-		font: inherit;
-	}
-	button,
-	a {
-		display: inline-grid;
-		place-items: center;
-		cursor: pointer;
-	}
-	:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	[role='status']:not(:empty) {
-		margin-block: 0.5rem;
-	}
-	label {
-		display: grid;
-		gap: 0.25rem;
-	}
-	input {
-		width: 100%;
-		min-width: 0;
-	}
-</style>

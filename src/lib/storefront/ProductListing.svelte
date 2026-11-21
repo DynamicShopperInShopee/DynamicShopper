@@ -99,57 +99,103 @@
 	);
 </script>
 
-<div class="listing" lang={locale}>
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The caller supplies the resolved storefront URL. -->
-	<a class="back" href={storeHref}>{t.back}</a>
+<div class="listing min-w-0 text-[var(--ink,#16161a)]" lang={locale}>
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller supplies the resolved storefront URL. -->
+	<a
+		class="back inline-flex min-h-[var(--tap,44px)] items-center text-inherit underline-offset-[0.15em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+		href={storeHref}
+	>
+		{t.back}
+	</a>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	{#if name && price}
 		<div bind:this={shelf}>
-			<header>
+			<header class="mb-3 border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4">
 				{@render media?.()}
-				<h1><Fact fact={name} /></h1>
-				<dl>
+				<h1 class="m-0"><Fact fact={name} /></h1>
+				<dl class="m-0 my-2">
 					{#each headlineFields as field (field)}
 						{@const fact = resolve(productId, field, locale)}
 						{#if fact}
-							<div class="row" class:price={field === 'price'}>
+							<div
+								class="row group/product-listing grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-1 [border-bottom:1px_dotted_var(--seam,#e9e6dc)]"
+								class:price={field === 'price'}
+							>
 								<dt>{t[field]}</dt>
-								<dd><Fact {fact} /></dd>
+								<dd
+									class="m-0 text-end font-[family-name:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)] tabular-nums group-[.price]/product-listing:text-[1.5em] group-[.price]/product-listing:font-bold"
+								>
+									<Fact {fact} />
+								</dd>
 							</div>
 						{/if}
 					{/each}
 				</dl>
-				<div class="actions">
-					<button type="button" disabled={!canAdd} onclick={() => onAdd(productId)}>{t.add}</button>
-					<button type="button" disabled={pending} onclick={() => onBestPrice(productId)}>
+				<div class="actions flex flex-wrap gap-2">
+					<button
+						class="inline-flex min-h-[var(--tap,44px)] items-center rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-3 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+						type="button"
+						disabled={!canAdd}
+						onclick={() => onAdd(productId)}
+					>
+						{t.add}
+					</button>
+					<button
+						class="inline-flex min-h-[var(--tap,44px)] items-center rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-3 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+						type="button"
+						disabled={pending}
+						onclick={() => onBestPrice(productId)}
+					>
 						{t.best}
 					</button>
 				</div>
-				{#if !canAdd}<p role="status">{t.full}</p>{/if}
+				{#if !canAdd}<p class="m-0" role="status">{t.full}</p>{/if}
 			</header>
 
 			{#each details as detail (detail)}
 				{#if detail === 'summary' && summary}
-					<section data-listing-section={detail}>
-						<h2>{t.summary}</h2>
-						<p><Fact fact={summary} /></p>
+					<section
+						class="mb-3 border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+						data-listing-section={detail}
+					>
+						<h2 class="m-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+							{t.summary}
+						</h2>
+						<p class="m-0"><Fact fact={summary} /></p>
 					</section>
 				{:else if detail === 'specs' && specsFound.length}
-					<section data-listing-section={detail}>
-						<h2>{t.specs}</h2>
-						<dl>
+					<section
+						class="mb-3 border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+						data-listing-section={detail}
+					>
+						<h2 class="m-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+							{t.specs}
+						</h2>
+						<dl class="m-0">
 							{#each specsFound as row (row.fact.field)}
-								<div class="row">
+								<div
+									class="row grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-1 [border-bottom:1px_dotted_var(--seam,#e9e6dc)]"
+								>
 									<dt>{row.label}</dt>
-									<dd><Fact fact={row.fact} /></dd>
+									<dd
+										class="m-0 text-end font-[family-name:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)] tabular-nums"
+									>
+										<Fact fact={row.fact} />
+									</dd>
 								</div>
 							{/each}
 						</dl>
 					</section>
 				{:else if detail === 'reviews' && reviews.length}
-					<section data-listing-section={detail}>
-						<h2>{t.reviews}</h2>
+					<section
+						class="mb-3 border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+						data-listing-section={detail}
+					>
+						<h2 class="m-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+							{t.reviews}
+						</h2>
 						{#each reviews as review (review.field)}
-							<blockquote><Fact fact={review} /></blockquote>
+							<blockquote class="m-0 py-1"><Fact fact={review} /></blockquote>
 						{/each}
 					</section>
 				{/if}
@@ -158,86 +204,10 @@
 		<FactsSlip scope={shelf} {resolve} {locale} />
 		{@render deal?.()}
 	{:else}
-		<section class="missing"><h1>{t.missing}</h1></section>
+		<section
+			class="missing mb-3 border border-dashed border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+		>
+			<h1 class="m-0">{t.missing}</h1>
+		</section>
 	{/if}
 </div>
-
-<style>
-	.listing {
-		color: var(--ink, #16161a);
-		min-width: 0;
-	}
-	.back,
-	button {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap, 44px);
-		color: inherit;
-	}
-	.back {
-		text-underline-offset: 0.15em;
-	}
-	h1,
-	h2,
-	dl,
-	dd,
-	p,
-	blockquote {
-		margin: 0;
-	}
-	h2 {
-		font-size: 1.125em;
-		border-bottom: 2px solid currentColor;
-		margin-bottom: 0.5rem;
-	}
-	header,
-	section {
-		padding: 1rem;
-		margin-bottom: 0.75rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-	}
-	header dl {
-		margin-block: 0.5rem;
-	}
-	.row {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		align-items: baseline;
-		gap: 0.75rem;
-		padding-block: 0.25rem;
-		border-bottom: 1px dotted var(--seam, #e9e6dc);
-	}
-	.row dd {
-		text-align: end;
-		font-family: var(--mono, 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace);
-		font-variant-numeric: tabular-nums;
-	}
-	.price dd {
-		font-size: 1.5em;
-		font-weight: 700;
-	}
-	.actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	button {
-		padding-inline: 0.75rem;
-		border: 1px solid currentColor;
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		font: inherit;
-	}
-	a:focus-visible,
-	button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	blockquote {
-		padding-block: 0.25rem;
-	}
-	.missing {
-		border-style: dashed;
-	}
-</style>

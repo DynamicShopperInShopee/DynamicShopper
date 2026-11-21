@@ -64,8 +64,16 @@
 	}
 </script>
 
-<div class="actions" class:strip role="group" aria-label={th ? 'เครื่องมือเลือกซื้อ' : 'Shopping tasks'}>
+<div
+	class={[
+		'actions mt-[0.4rem] mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 [&.strip]:m-0 [&.strip]:flex-nowrap [&.strip]:whitespace-nowrap'
+	]}
+	class:strip
+	role="group"
+	aria-label={th ? 'เครื่องมือเลือกซื้อ' : 'Shopping tasks'}
+>
 	<button
+		class="min-h-[max(44px,2.5em)] cursor-pointer border border-[var(--seam,currentColor)] bg-[var(--paper,white)] px-[0.8em] py-[0.45em] text-inherit"
 		type="button"
 		{disabled}
 		aria-haspopup="dialog"
@@ -74,6 +82,7 @@
 		{th ? 'เปรียบเทียบสินค้า' : 'Compare products'}
 	</button>
 	<button
+		class="min-h-[max(44px,2.5em)] cursor-pointer border border-[var(--seam,currentColor)] bg-[var(--paper,white)] px-[0.8em] py-[0.45em] text-inherit"
 		type="button"
 		{disabled}
 		aria-haspopup="dialog"
@@ -81,13 +90,23 @@
 	>
 		{th ? 'คำนวณดีล' : 'Calculate a deal'}
 	</button>
-	{#if publicEntry}<a href={resolve('/?view=receipt#criteria-overview')}>
+	{#if publicEntry}<a
+			class="inline-flex min-h-[max(44px,2.5em)] items-center text-inherit underline-offset-[0.18em]"
+			href={resolve('/?view=receipt#criteria-overview')}
+		>
 			{th ? 'แก้ไขเกณฑ์' : 'Edit criteria'}
 		</a>{/if}
 </div>
-<dialog bind:this={dialog} onclose={() => (showing = false)} aria-labelledby="shopping-task-title">
-	<header>
-		<h2 id="shopping-task-title">
+<dialog
+	class="max-h-[85dvh] w-[min(44rem,calc(100%-1.5rem))] overflow-auto border border-current bg-[var(--paper,white)] p-4 text-[var(--ink,#17201f)] backdrop:bg-[rgb(20_22_24/55%)]"
+	bind:this={dialog}
+	onclose={() => (showing = false)}
+	aria-labelledby="shopping-task-title"
+>
+	<header
+		class="mb-[0.8rem] flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-[0.55rem] [border-bottom:1px_solid_currentColor]"
+	>
+		<h2 class="m-0 text-[1.2em]" id="shopping-task-title">
 			{mode === 'deal'
 				? th
 					? 'คำนวณดีล'
@@ -96,7 +115,13 @@
 					? 'เปรียบเทียบสินค้า'
 					: 'Compare products'}
 		</h2>
-		<button type="button" onclick={() => dialog.close()}>{th ? 'ปิด' : 'Close'}</button>
+		<button
+			class="min-h-[max(44px,2.5em)] cursor-pointer border border-[var(--seam,currentColor)] bg-[var(--paper,white)] px-[0.8em] py-[0.45em] text-inherit"
+			type="button"
+			onclick={() => dialog.close()}
+		>
+			{th ? 'ปิด' : 'Close'}
+		</button>
 	</header>
 	{#if showing}
 		{#if mode === 'deal'}
@@ -108,7 +133,7 @@
 			/>
 			{#if deal}<DealSlip {...deal} />{/if}
 		{:else}
-			<div class="pickers">
+			<div class="pickers grid grid-cols-2 gap-[0.65rem] [@media(max-width:40rem)]:grid-cols-[1fr]">
 				<div>
 					<CatalogPicker
 						{ids}
@@ -129,10 +154,12 @@
 				</div>
 			</div>
 			{#if firstProduct && secondProduct}
-				<fieldset>
+				<fieldset
+					class="mx-0 my-[0.8rem] flex flex-wrap items-center gap-x-4 gap-y-2 border-0 border-none px-0 py-[0.3rem] [border-top:1px_solid_var(--seam)]"
+				>
 					<legend>{th ? 'ข้อมูลที่ต้องการเทียบ' : 'Fields to compare'}</legend>
 					{#each fields as field (field.key)}
-						<label>
+						<label class="inline-flex min-h-[max(44px,2.5em)] items-center gap-[0.25em]">
 							<input
 								type="checkbox"
 								checked={!hiddenFields.includes(field.key)}
@@ -145,11 +172,19 @@
 						</label>
 					{/each}
 				</fieldset>
-				<table>
-					<caption>{th ? 'สินค้าที่เลือก' : 'Selected products'}</caption>
+				<table class="w-full table-fixed border-collapse">
+					<caption class="text-start font-semibold">
+						{th ? 'สินค้าที่เลือก' : 'Selected products'}
+					</caption>
 					<thead>
 						<tr>
-							<th scope="col">{th ? 'ข้อมูล' : 'Field'}</th>{#each [first, second] as id (id)}<th
+							<th
+								class="px-[0.2rem] py-[0.45rem] text-start align-top wrap-anywhere [border-bottom:1px_solid_var(--seam)]"
+								scope="col"
+							>
+								{th ? 'ข้อมูล' : 'Field'}
+							</th>{#each [first, second] as id (id)}<th
+									class="px-[0.2rem] py-[0.45rem] text-start align-top wrap-anywhere [border-bottom:1px_solid_var(--seam)]"
 									scope="col"
 								>
 									<FactValue productId={id} field="name" {locale} />
@@ -159,7 +194,14 @@
 					<tbody>
 						{#each fields.filter((field) => !hiddenFields.includes(field.key)) as field (field.key)}
 							<tr>
-								<th scope="row">{field.label}</th>{#each [first, second] as id (id)}<td>
+								<th
+									class="px-[0.2rem] py-[0.45rem] text-start align-top wrap-anywhere [border-bottom:1px_solid_var(--seam)]"
+									scope="row"
+								>
+									{field.label}
+								</th>{#each [first, second] as id (id)}<td
+										class="px-[0.2rem] py-[0.45rem] text-start align-top wrap-anywhere [border-bottom:1px_solid_var(--seam)]"
+									>
 										{#if resolveFact(id, field.key)}<FactValue
 												productId={id}
 												field={field.key}
@@ -179,99 +221,3 @@
 			</p>{/if}
 	{/if}
 </dialog>
-
-<style>
-	.actions,
-	header,
-	fieldset {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1rem;
-	}
-	.actions {
-		margin-block: 0.4rem 0.75rem;
-	}
-	button {
-		color: inherit;
-		background: var(--paper, white);
-		border: 1px solid var(--seam, currentColor);
-		padding: 0.45em 0.8em;
-		font: inherit;
-		min-height: max(44px, 2.5em);
-		cursor: pointer;
-	}
-	.strip {
-		flex-wrap: nowrap;
-		margin: 0;
-		white-space: nowrap;
-	}
-	.actions a {
-		display: inline-flex;
-		align-items: center;
-		min-height: max(44px, 2.5em);
-		color: inherit;
-		text-underline-offset: 0.18em;
-	}
-	dialog {
-		color: var(--ink, #17201f);
-		background: var(--paper, white);
-		border: 1px solid currentColor;
-		padding: 1rem;
-		width: min(44rem, calc(100% - 1.5rem));
-		max-height: 85dvh;
-		overflow: auto;
-	}
-	dialog::backdrop {
-		background: rgb(20 22 24 / 55%);
-	}
-	header {
-		justify-content: space-between;
-		border-bottom: 1px solid currentColor;
-		margin-bottom: 0.8rem;
-		padding-bottom: 0.55rem;
-	}
-	h2 {
-		font-size: 1.2em;
-		margin: 0;
-	}
-	.pickers {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.65rem;
-	}
-	fieldset {
-		border: 0;
-		border-top: 1px solid var(--seam);
-		margin: 0.8rem 0;
-		padding: 0.3rem 0;
-	}
-	fieldset label {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25em;
-		min-height: max(44px, 2.5em);
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		table-layout: fixed;
-	}
-	caption {
-		text-align: start;
-		font-weight: 600;
-	}
-	th,
-	td {
-		overflow-wrap: anywhere;
-		text-align: start;
-		vertical-align: top;
-		border-bottom: 1px solid var(--seam);
-		padding: 0.45rem 0.2rem;
-	}
-	@media (max-width: 40rem) {
-		.pickers {
-			grid-template-columns: 1fr;
-		}
-	}
-</style>

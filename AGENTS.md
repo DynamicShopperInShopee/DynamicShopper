@@ -2,6 +2,10 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
+## Marketplace interview and preset inspection
+
+The four optional interview questions map the shopper’s answers directly to a validated view. Review shows the proposed changes before Apply. The shopper can edit the answers, use explicit controls, refine the view in chat, undo or reset. The preset library is for inspection. Its examples keep the current shop and catalog facts intact.
+
 ## Product rules
 
 1. **Facts come only from the catalog and the pricing logic.** Price, original price, rating, review count, units sold, shipping, specs, voucher terms and deal amounts are never computed, rounded, restated or invented anywhere else.

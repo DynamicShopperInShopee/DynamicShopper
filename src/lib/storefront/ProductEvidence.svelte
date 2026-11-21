@@ -18,44 +18,22 @@
 {#if product}
 	{#each details as field (field)}
 		{#if field === 'specs'}
-			<dl>
+			<dl class="m-0 grid gap-1">
 				{#each specs[product.category].filter(({ key }) => product?.specs[key] !== undefined) as spec (spec.key)}
-					<div>
+					<div class="flex justify-between gap-2 [border-bottom:1px_dotted_var(--seam)]">
 						<dt>{spec.label[locale]}</dt>
-						<dd><FactValue {productId} field={`spec.${spec.key}`} {locale} /></dd>
+						<dd class="m-0 text-end font-[family-name:'IBM_Plex_Mono',monospace]">
+							<FactValue {productId} field={`spec.${spec.key}`} {locale} />
+						</dd>
 					</div>
 				{/each}
 			</dl>
 		{:else if field === 'reviews' && product.reviews.length}
-			<blockquote><FactValue {productId} field="review.0" {locale} /></blockquote>
+			<blockquote class="m-0 ps-[0.65rem] [border-inline-start:2px_solid_var(--seam)]">
+				<FactValue {productId} field="review.0" {locale} />
+			</blockquote>
 		{:else if field === 'summary'}
 			<FactValue tag="p" {productId} field="summary" {locale} />
 		{/if}
 	{/each}
 {/if}
-
-<style>
-	dl,
-	dd,
-	blockquote {
-		margin: 0;
-	}
-	dl {
-		display: grid;
-		gap: 0.25rem;
-	}
-	dl div {
-		display: flex;
-		gap: 0.5rem;
-		justify-content: space-between;
-		border-bottom: 1px dotted var(--seam);
-	}
-	dd {
-		font-family: 'IBM Plex Mono', monospace;
-		text-align: end;
-	}
-	blockquote {
-		border-inline-start: 2px solid var(--seam);
-		padding-inline-start: 0.65rem;
-	}
-</style>

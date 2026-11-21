@@ -94,33 +94,53 @@
 </script>
 
 <svelte:head><title>{title} · DynamicShopper</title></svelte:head>
-<main data-storefront-theme="standard" lang={locale}>
-	<header>
-		<span>DynamicShopper</span>
-		<a href={resolve(returnToStore(session))}>
+<main
+	class="mx-auto min-h-screen max-w-[78rem] px-[clamp(1rem,3vw,3rem)] pt-4 pb-12"
+	data-storefront-theme="standard"
+	lang={locale}
+>
+	<header
+		class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[var(--seam)]"
+	>
+		<span class="font-semibold">DynamicShopper</span>
+		<a
+			class="inline-flex min-h-[var(--tap)] items-center underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]"
+			href={resolve(returnToStore(session))}
+		>
 			{th ? 'กลับหน้าร้าน' : 'Back to the store'}
 		</a>
 	</header>
-	<h1>{title}</h1>
-	<p>
+	<h1 class="mt-4 text-[2rem] font-semibold">{title}</h1>
+	<p class="mb-4">
 		{th
 			? 'เลือกผู้ซื้อแต่ละฝั่ง แล้วเทียบข้อมูลสินค้าจากผลการค้นหาเดียวกัน'
 			: 'Choose a shopper for each view to compare facts from the same search.'}
 	</p>
-	<label>
+	<label class="grid max-w-[40rem] gap-1">
 		{th ? 'ค้นหาสินค้า' : 'Search products'}<input
+			class="min-h-[var(--tap)] min-w-0 border border-[var(--muted)] bg-[var(--surface)] px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]"
 			disabled={!interactive}
 			type="search"
 			maxlength="200"
 			bind:value={query}
 		/>
 	</label>
-	<div class="categories" role="group" aria-label={th ? 'หมวดหมู่' : 'Category'}>
-		<button disabled={!interactive} aria-pressed={!category} onclick={() => (category = undefined)}>
+	<div
+		class="categories mt-3 mb-6 flex flex-wrap items-center gap-x-4 gap-y-2"
+		role="group"
+		aria-label={th ? 'หมวดหมู่' : 'Category'}
+	>
+		<button
+			class="min-h-[var(--tap)] border border-[var(--seam)] bg-[var(--surface)] px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)] aria-pressed:border-[var(--ink)] aria-pressed:font-semibold"
+			disabled={!interactive}
+			aria-pressed={!category}
+			onclick={() => (category = undefined)}
+		>
 			{th ? 'ทั้งหมด' : 'All'}
 		</button>
 		{#each options as key (key)}
 			<button
+				class="min-h-[var(--tap)] border border-[var(--seam)] bg-[var(--surface)] px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)] aria-pressed:border-[var(--ink)] aria-pressed:font-semibold"
 				disabled={!interactive}
 				aria-pressed={category === key}
 				onclick={() => (category = key)}
@@ -140,67 +160,3 @@
 		{listingHref}
 	/>
 </main>
-
-<style>
-	main {
-		max-width: 78rem;
-		min-height: 100vh;
-		margin-inline: auto;
-		padding: 1rem clamp(1rem, 3vw, 3rem) 3rem;
-	}
-	header,
-	.categories {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1rem;
-	}
-	header {
-		justify-content: space-between;
-		border-bottom: 1px solid var(--seam);
-	}
-	header span,
-	h1 {
-		font-weight: 600;
-	}
-	h1 {
-		font-size: 2rem;
-		margin-top: 1rem;
-	}
-	p {
-		margin-bottom: 1rem;
-	}
-	a {
-		display: inline-flex;
-		align-items: center;
-		text-decoration: underline;
-		min-height: var(--tap);
-	}
-	label {
-		display: grid;
-		gap: 0.25rem;
-		max-width: 40rem;
-	}
-	button,
-	input {
-		padding-inline: 0.75rem;
-		min-height: var(--tap);
-		border: 1px solid var(--seam);
-		background: var(--surface);
-	}
-	input {
-		min-width: 0;
-		border-color: var(--muted);
-	}
-	.categories {
-		margin-block: 0.75rem 1.5rem;
-	}
-	button[aria-pressed='true'] {
-		border-color: var(--ink);
-		font-weight: 600;
-	}
-	:is(a, input, button):focus-visible {
-		outline: 2px solid var(--ink);
-		outline-offset: 2px;
-	}
-</style>

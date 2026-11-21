@@ -25,11 +25,16 @@
 </script>
 
 <nav
-	class="actions"
+	class={[
+		'actions sticky bottom-0 grid grid-cols-2 items-stretch gap-0 border-t border-[#e9e6dc] bg-white pb-[env(safe-area-inset-bottom)] [&.has-specs]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)] [@media(max-width:699px)]:fixed [@media(max-width:699px)]:inset-x-0 [@media(max-width:699px)]:z-2 [@media(max-width:699px)]:min-h-[50px]'
+	]}
 	class:has-specs={data.specs.length > 0}
 	aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}
 >
-	<a href="#reviews">
+	<a
+		class="flex min-h-12 flex-1 flex-col items-center justify-center border-e border-[#e9e6dc] px-0.5 text-center text-[max(0.75rem,var(--action-font-floor,0rem))] text-inherit no-underline"
+		href="#reviews"
+	>
 		<svg
 			aria-hidden="true"
 			width="20"
@@ -44,7 +49,10 @@
 		{th ? 'รีวิว' : 'Reviews'}
 	</a>
 
-	<a href="#details">
+	<a
+		class="flex min-h-12 flex-1 flex-col items-center justify-center border-e border-[#e9e6dc] px-0.5 text-center text-[max(0.75rem,var(--action-font-floor,0rem))] text-inherit no-underline"
+		href="#details"
+	>
 		<svg
 			aria-hidden="true"
 			width="20"
@@ -60,6 +68,7 @@
 	</a>
 	{#if data.specs.length}
 		<button
+			class="min-h-12 w-full cursor-pointer rounded-none border border-[#16161a] bg-[#16161a] text-white [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16161a] focus-visible:outline-solid"
 			type="button"
 			disabled={!ready}
 			aria-controls="product-specifications"
@@ -74,20 +83,31 @@
 	{/if}
 </nav>
 {#if data.specs.length}
-	<dialog id="product-specifications" bind:this={sheet} aria-labelledby="specs-title">
-		<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
+	<dialog
+		class="mx-auto mt-auto mb-0 box-border max-h-[85dvh] w-[min(100%,36rem)] max-w-full rounded-t-[12px] border border-[#e9e6dc] p-0 text-[#16161a] backdrop:bg-[rgb(0_0_0/40%)] open:flex open:flex-col open:overflow-hidden min-[700px]:mb-auto min-[700px]:rounded-lg [@media(max-width:699px)]:h-[84dvh]"
+		id="product-specifications"
+		bind:this={sheet}
+		aria-labelledby="specs-title"
+	>
+		<h2
+			class="m-0 border-b border-[#e9e6dc] px-4 py-[0.85rem] text-center text-[max(1.125rem,var(--action-font-floor,0rem))]"
+			id="specs-title"
+		>
+			{th ? 'สเปกสินค้า' : 'Specifications'}
+		</h2>
 		<!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the attribute region.) -->
 		<div
-			class="sheet-content"
+			class="sheet-content min-h-0 flex-auto overflow-auto overscroll-contain px-5 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-current focus-visible:outline-solid"
 			tabindex="0"
 			role="region"
 			aria-label={th ? 'คุณลักษณะสินค้า' : 'Product attributes'}
 		>
 			<dl class="specifications-list">
 				{#each rows as spec (spec.attributes['data-fact'])}
-					<div>
-						<dt>{spec.label}</dt>
+					<div class="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-3 py-[0.65rem]">
+						<dt class="text-[#5d5d63]">{spec.label}</dt>
 						<dd
+							class={['m-0 wrap-anywhere [&.figure]:font-[family-name:var(--product-figure-font)]']}
 							class:figure={Number.isFinite(Number(spec.attributes['data-raw'])) ||
 								spec.attributes['data-fact'] === 'detail.voltage'}
 							{...spec.attributes}
@@ -98,130 +118,15 @@
 				{/each}
 			</dl>
 		</div>
-		<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
+		<form
+			class="flex-none border-t border-[#e9e6dc] px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]"
+			method="dialog"
+		>
+			<button
+				class="min-h-12 w-full cursor-pointer rounded border border-[#16161a] bg-[#16161a] text-white [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16161a] focus-visible:outline-solid"
+			>
+				{th ? 'ตกลง' : 'Done'}
+			</button>
+		</form>
 	</dialog>
 {/if}
-
-<style>
-	.actions {
-		position: sticky;
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0;
-		align-items: stretch;
-		bottom: 0;
-		border-top: 1px solid #e9e6dc;
-		background: white;
-		padding-bottom: env(safe-area-inset-bottom);
-	}
-	.actions.has-specs {
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
-	}
-	.actions button {
-		width: 100%;
-		border-radius: 0;
-	}
-	.actions a {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		border-inline-end: 1px solid #e9e6dc;
-		min-height: 48px;
-		padding: 0 0.125rem;
-		color: inherit;
-		text-align: center;
-		text-decoration: none;
-		font-size: max(0.75rem, var(--action-font-floor, 0rem));
-	}
-	button {
-		font: inherit;
-		width: 100%;
-		min-height: 48px;
-		color: white;
-		background: #16161a;
-		border: 1px solid #16161a;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-	button:focus-visible {
-		outline: 2px solid #16161a;
-		outline-offset: 2px;
-	}
-	dialog {
-		width: min(100%, 36rem);
-		max-width: 100%;
-		max-height: 85dvh;
-		box-sizing: border-box;
-		margin: auto auto 0;
-		border: 1px solid #e9e6dc;
-		border-radius: 12px 12px 0 0;
-		padding: 0;
-		color: #16161a;
-	}
-	dialog[open] {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-	.sheet-content {
-		flex: 1 1 auto;
-		min-height: 0;
-		overflow: auto;
-		overscroll-behavior: contain;
-		padding-inline: 1.25rem;
-	}
-	dialog form {
-		flex: none;
-		border-top: 1px solid #e9e6dc;
-		padding: 0.5rem 0.5rem max(0.5rem, env(safe-area-inset-bottom, 0px));
-	}
-	dialog::backdrop {
-		background: rgb(0 0 0 / 40%);
-	}
-	h2 {
-		text-align: center;
-		margin: 0;
-		padding: 0.85rem 1rem;
-		font-size: max(1.125rem, var(--action-font-floor, 0rem));
-		border-bottom: 1px solid #e9e6dc;
-	}
-	@media (max-width: 699px) {
-		dialog {
-			height: 84dvh;
-		}
-		.actions {
-			position: fixed;
-			inset-inline: 0;
-			z-index: 2;
-			min-height: 50px;
-		}
-	}
-	@media (min-width: 700px) {
-		dialog {
-			margin: auto;
-			border-radius: 8px;
-		}
-	}
-	dl div {
-		display: grid;
-		grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
-		gap: 0.75rem;
-		padding: 0.65rem 0;
-	}
-	dt {
-		color: #5d5d63;
-	}
-	dd {
-		margin: 0;
-		overflow-wrap: anywhere;
-	}
-	dd.figure {
-		font-family: var(--product-figure-font);
-	}
-	.sheet-content:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: -3px;
-	}
-</style>

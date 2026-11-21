@@ -157,18 +157,40 @@
 </script>
 
 {#snippet measurementText(label: string, correct: number, tested: number)}
-	<p>
-		{label} <span data-source="measurement" data-field="correct" data-raw={correct}>{correct}</span>
+	<p class="mx-0 my-2">
+		{label}
+		<span
+			class="font-[family-name:var(--mono,'IBM_Plex_Mono',monospace)] tabular-nums"
+			data-source="measurement"
+			data-field="correct"
+			data-raw={correct}
+		>
+			{correct}
+		</span>
 		/
-		<span data-source="measurement" data-field="tested" data-raw={tested}>{tested}</span>
+		<span
+			class="font-[family-name:var(--mono,'IBM_Plex_Mono',monospace)] tabular-nums"
+			data-source="measurement"
+			data-field="tested"
+			data-raw={tested}
+		>
+			{tested}
+		</span>
 	</p>
 {/snippet}
 
-<section lang={locale} aria-label={t.title}>
-	<h2>{t.title}</h2>
+<section
+	class="max-w-[28rem] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+	lang={locale}
+	aria-label={t.title}
+>
+	<h2 class="m-0 text-[length:inherit]">
+		{t.title}
+	</h2>
 	{@render children?.()}
-	<label>
+	<label class="flex min-h-[var(--tap,3rem)] items-center gap-2">
 		<input
+			class="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
 			type="checkbox"
 			checked={forceOffline}
 			onchange={(event) => onForceOffline(event.currentTarget.checked)}
@@ -176,91 +198,89 @@
 		{t.force}
 	</label>
 	{#if import.meta.env.DEV && onPoison}
-		<button type="button" disabled={poisonArmed} onclick={onPoison}>
+		<button
+			class="min-h-[var(--tap,3rem)] min-w-[var(--tap,3rem)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
+			type="button"
+			disabled={poisonArmed}
+			onclick={onPoison}
+		>
 			{poisonArmed ? t.armed : t.poison}
 		</button>
 	{/if}
 	{#if kind}
-		<p>
+		<p class="mx-0 my-2">
 			{t[kind]}{#if reason}
 				· {t[reason]}{/if}{#if displayedModel}
-				· <span>{displayedModel}</span>{/if}
+				· <span>
+					{displayedModel}
+				</span>{/if}
 		</p>
 	{:else}
-		<p>{t.empty}</p>
+		<p class="mx-0 my-2">
+			{t.empty}
+		</p>
 	{/if}
 	{#if steps.length}
-		<ul>
+		<ul class="mx-0 my-2 ps-5">
 			{#each steps as step, index (index)}
 				<li>
-					<span>{t[step.kind]}</span>
-					<span data-source="trace" data-field="tool.count" data-raw={step.read}>{step.read}</span>
+					<span>
+						{t[step.kind]}
+					</span>
+					<span
+						class="font-[family-name:var(--mono,'IBM_Plex_Mono',monospace)] tabular-nums"
+						data-source="trace"
+						data-field="tool.count"
+						data-raw={step.read}
+					>
+						{step.read}
+					</span>
 				</li>
 			{/each}
 		</ul>
 	{/if}
-	{#if guard}<p>{t[guard]}</p>{/if}
-	{#if merge}<p>{t[merge]}</p>{/if}
-	{#if ranked !== undefined}<p>
-			{t.ranked} <span data-source="trace" data-field="ranked" data-raw={ranked}>{ranked}</span>
+	{#if guard}<p class="mx-0 my-2">
+			{t[guard]}
+		</p>{/if}
+	{#if merge}<p class="mx-0 my-2">
+			{t[merge]}
+		</p>{/if}
+	{#if ranked !== undefined}<p class="mx-0 my-2">
+			{t.ranked}
+			<span
+				class="font-[family-name:var(--mono,'IBM_Plex_Mono',monospace)] tabular-nums"
+				data-source="trace"
+				data-field="ranked"
+				data-raw={ranked}
+			>
+				{ranked}
+			</span>
 		</p>{/if}
 	{#if dropped.length}
-		<h3>{t.dropped}</h3>
-		<ul>
-			{#each dropped as drop, index (index)}<li>{t[drop.field]} · {t[drop.reason]}</li>{/each}
+		<h3 class="text-[length:inherit]">
+			{t.dropped}
+		</h3>
+		<ul class="mx-0 my-2 ps-5">
+			{#each dropped as drop, index (index)}<li>
+					{t[drop.field]} · {t[drop.reason]}
+				</li>{/each}
 		</ul>
 	{/if}
-	<h3>{t.accuracy}</h3>
+	<h3 class="text-[length:inherit]">
+		{t.accuracy}
+	</h3>
 	{#if offlineAccuracy}
 		{@render measurementText(t.offline, offlineAccuracy.correct, offlineAccuracy.tested)}
 	{:else}
-		<p>{t.offlineUnavailable}</p>
+		<p class="mx-0 my-2">
+			{t.offlineUnavailable}
+		</p>
 	{/if}
 	{#if modelAccuracy}
 		{@render measurementText(t.model, modelAccuracy.correct, modelAccuracy.tested)}
 	{:else}
-		<p>{t.modelUnavailable}</p>
+		<p class="mx-0 my-2">
+			{t.modelUnavailable}
+		</p>
 	{/if}
 </section>
-
-<style>
-	section {
-		max-width: 28rem;
-		padding: 1rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-	}
-	h2,
-	h3 {
-		font-size: inherit;
-	}
-	h2 {
-		margin: 0;
-	}
-	p,
-	ul {
-		margin: 0.5rem 0;
-	}
-	ul {
-		padding-inline-start: 1.25rem;
-	}
-	label {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		min-height: var(--tap, 3rem);
-	}
-	button {
-		min-width: var(--tap, 3rem);
-		min-height: var(--tap, 3rem);
-		font: inherit;
-	}
-	:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	[data-raw] {
-		font-family: var(--mono, 'IBM Plex Mono', monospace);
-		font-variant-numeric: tabular-nums;
-	}
-</style>

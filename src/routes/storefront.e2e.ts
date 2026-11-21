@@ -201,7 +201,7 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 test('renders the event demo grid and filters in a modal drawer', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	for (const model of ['mouse-1', 'cooker-1', 'earbuds-1']) {
 		const photo = page.locator('.art[data-model="' + model + '"]');
 		await expect(photo).toHaveCSS('background-image', /url\(/);

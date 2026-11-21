@@ -12,7 +12,10 @@
 	} = $props();
 </script>
 
-<label data-active={sort !== 'default'}>
+<label
+	class="relative grid min-h-[var(--tap)] flex-[0_0_var(--tap)] place-items-center rounded-[var(--radius)] text-[var(--accent)] focus-within:outline-2 focus-within:outline-offset-[-2px] focus-within:outline-[var(--accent)] data-[active=true]:bg-[var(--paper)]"
+	data-active={sort !== 'default'}
+>
 	<svg
 		viewBox="0 0 24 24"
 		width="22"
@@ -24,35 +27,13 @@
 	>
 		<path d="M8 20V4m-4 4 4-4 4 4m4-4v16m-4-4 4 4 4-4" />
 	</svg>
-	<select aria-label={label} bind:value={sort}>
+	<select
+		class="absolute inset-0 size-full cursor-pointer opacity-0"
+		aria-label={label}
+		bind:value={sort}
+	>
 		{#each options as option (option.value)}
 			<option value={option.value}>{option.label}</option>
 		{/each}
 	</select>
 </label>
-
-<style>
-	label {
-		position: relative;
-		flex: 0 0 var(--tap);
-		display: grid;
-		place-items: center;
-		min-height: var(--tap);
-		border-radius: var(--radius);
-		color: var(--accent);
-	}
-	label[data-active='true'] {
-		background: var(--paper);
-	}
-	label:focus-within {
-		outline: 2px solid var(--accent);
-		outline-offset: -2px;
-	}
-	select {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		opacity: 0;
-		cursor: pointer;
-	}
-</style>

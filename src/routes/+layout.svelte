@@ -57,10 +57,19 @@
 </svelte:head>
 
 {#if missingListing}
-	<main class="missing" lang={language} data-storefront-theme={theme}>
-		<section>
-			<h1>{language === 'th' ? 'ไม่พบสินค้า' : 'Product not found'}</h1>
-			<a href={resolve(returnToStore(session))}>
+	<main
+		class="min-h-dvh px-[clamp(1rem,4vw,3rem)] py-[clamp(1rem,4vw,3rem)]"
+		lang={language}
+		data-storefront-theme={theme}
+	>
+		<section class="mx-auto max-w-[30rem] border border-[var(--seam)] bg-[var(--surface)] p-4">
+			<h1 class="text-[1.4em] font-semibold">
+				{language === 'th' ? 'ไม่พบสินค้า' : 'Product not found'}
+			</h1>
+			<a
+				class="inline-flex min-h-[var(--tap)] items-center underline"
+				href={resolve(returnToStore(session))}
+			>
 				{language === 'th' ? 'กลับหน้าร้าน' : 'Back to the store'}
 			</a>
 		</section>
@@ -68,27 +77,3 @@
 {:else}
 	{@render children()}
 {/if}
-
-<style>
-	.missing {
-		min-height: 100dvh;
-		padding: clamp(1rem, 4vw, 3rem);
-	}
-	.missing section {
-		max-width: 30rem;
-		margin: auto;
-		padding: 1rem;
-		background: var(--surface);
-		border: 1px solid var(--seam);
-	}
-	.missing h1 {
-		font-size: 1.4em;
-		font-weight: 600;
-	}
-	.missing a {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap);
-		text-decoration: underline;
-	}
-</style>

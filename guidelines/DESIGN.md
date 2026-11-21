@@ -12,7 +12,7 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Standalone sourced shopping preview
 
-The optional sourced preview uses the DynamicShopper identity. Its shopping header and search action keep their orange colors across themes. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
+The optional sourced preview identifies the catalog source and uses the DynamicShopper wordmark. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
 
 ## Interview transition
 
@@ -22,6 +22,16 @@ view receipt and one Apply action. Desktop centers the dialog; phones use a bott
 sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
 the visible chat-refinement button focuses the existing assistant. No animation is
 required. Large print keeps single-column answers, 20px text and 48px targets.
+
+## Preset inspection library
+
+`/presets` is a separate design-review surface containing the reference's exact 177
+modules across twelve parts and twenty authored presentation examples. Each module
+shows its need, trigger, information order, dependency and default/empty/loading/error
+states. Missing services show neutral unavailable anatomy. No example can apply to
+the store. Existing catalog fixtures and the optimizer support inspection until the
+updated sourced catalog arrives; original photographs are explicitly pending rather
+than substituted with category illustrations. The library uses a neutral header and the DynamicShopper wordmark. The four reading themes apply to the preview. See [the module inventory](../docs/PRESETS.md).
 
 ## North star
 
@@ -303,3 +313,7 @@ The default marketplace keeps its orange header and the DynamicShopper wordmark.
 The digital description reads as one continuous illustrated listing. Introductory and capacity captions sit in the photographs' quiet areas; large print may place text above a photo to keep it readable. Cooking modes use large, unboxed symbols, and the preset timer uses a clock illustration. Dimension values stay beside their measurement arrows, with technical facts below. Package contents form one group. Every caption and measurement retains its catalog fact metadata. The review-photo panel leads with the catalog summary under “From the listing” and separately identifies its simulated photos.
 
 On phone category results, a single sticky search row replaces the home masthead and keeps language selection visible beside search and sorting/filtering. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.
+
+## Style implementation
+
+Use literal Tailwind classes in Svelte markup. Keep shared theme tokens, fonts and product assets in their shared stylesheets. Existing Bits UI and Flowbite components use the same colors, focus indicators and tap targets as the surrounding storefront. See [the Tailwind migration notes](../docs/tailwind-migration.md).
