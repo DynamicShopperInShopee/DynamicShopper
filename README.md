@@ -25,6 +25,7 @@ bun run dev
 | `/?view=receipt` | Explore the adaptive shelf, chat, cart, shareable look, and X-ray. |
 | `/compare` | Compare two presentation presets against the same eligible catalog products. |
 | `/product/cooker-one-button` | Inspect the cooker's facts or request an itemized deal. Listings accept canonical catalog IDs. |
+| `/presets` | Inspect 177 design modules and 20 presentation examples. Examples use the simulated catalog and leave the active shop untouched. See the [module inventory](docs/PRESETS.md). |
 | `/harness` | Open **Explore the agent harness** from the results or category filters to test the standalone assistant, ordered catalog-backed cards and change receipts. |
 | `/demo/better-auth` | Try the separate authentication example after configuring SQLite or D1. |
 

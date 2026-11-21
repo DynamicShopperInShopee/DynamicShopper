@@ -275,3 +275,5 @@ The digital cooker has its own locally bundled gallery and an extended illustrat
 Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
 
 The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+The preset library uses a neutral header. On phones, its section and module choices scroll in their own rows so the selected preview starts within the first screen in both languages. Every choice remains keyboard-accessible.

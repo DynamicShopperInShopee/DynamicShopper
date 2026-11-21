@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import PresetReading from './PresetReading.svelte';
+	import { presetListingHref } from './listing-link';
 	import {
 		categories,
 		products,
@@ -21,10 +23,12 @@
 		recipe,
 		locale,
 		dataState = 'ready',
+		theme,
 		onready
 	}: {
 		recipe: Recipe;
 		locale: Locale;
+		theme: string;
 		dataState?: 'ready' | 'empty' | 'loading' | 'error';
 		onready: () => void;
 	} = $props();
@@ -33,9 +37,7 @@
 	let category = $state<Category>('rice-cooker');
 	let ceiling = $state<number | undefined>();
 	let saved = $state<string[]>([]);
-	let draftReading = $state('standard');
 	let reading = $state('standard');
-	let previousReading = $state<string>();
 	let scope = $state<HTMLElement>();
 	const t = (en: string, th: string) => (locale === 'th' ? th : en);
 	const shown = $derived(
@@ -63,19 +65,21 @@
 				)
 			: undefined
 	);
-	const listingHref = (id: string) => resolve('/product/[id]', { id });
+	const listingHref = (id: string) => presetListingHref(id, locale, reading === 'large' ? 'large-print' : theme);
 	function clear() {
 		query = '';
 		ceiling = undefined;
 		onready();
 	}
-	function apply() {
-		if (reading === draftReading) return;
-		previousReading = reading;
-		reading = draftReading;
+	function resetCanvas() {
+		clear();
+		saved = [];
 	}
+
 </script>
 
+<PresetReading {locale} separateApply={recipe.blocks.includes('apply')} {resetCanvas} bind:reading>
+{#snippet children(controls)}
 <div
 	class="canvas {recipe.arrangement}"
 	class:readable={reading === 'large'}
@@ -244,48 +248,8 @@
 									<Fact fact={resolveCatalogFact(p.id, 'name', locale)!} />
 								</button>{/each}
 						</div>{/if}
-				{:else if block === 'preferences'}
-					<label>
-						{t('Reading style', 'รูปแบบการอ่าน')}<select bind:value={draftReading}>
-							<option value="standard">{t('Standard', 'มาตรฐาน')}</option><option value="large">
-								{t('Large print', 'ตัวอักษรใหญ่')}
-							</option>
-						</select>
-					</label>
-					{#if !recipe.blocks.includes('apply')}<button
-							disabled={draftReading === reading}
-							onclick={apply}
-						>
-							{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-						</button>{/if}
-				{:else if block === 'apply'}
-					<p>{t('Review your reading choice before applying.', 'ตรวจรูปแบบการอ่านที่เลือกก่อนใช้')}</p>
-					<button disabled={draftReading === reading} onclick={apply}>
-						{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-					</button>
-				{:else if block === 'undo'}
-					<div class="actions">
-						<button
-							disabled={previousReading === undefined}
-							onclick={() => {
-								reading = previousReading ?? 'standard';
-								draftReading = reading;
-								previousReading = undefined;
-							}}
-						>
-							{t('Undo', 'ย้อนกลับ')}
-						</button><button
-							onclick={() => {
-								clear();
-								saved = [];
-								reading = 'standard';
-								draftReading = 'standard';
-								previousReading = undefined;
-							}}
-						>
-							{t('Reset', 'คืนค่า')}
-						</button>
-					</div>
+				{:else if block === 'preferences' || block === 'apply' || block === 'undo'}
+					{@render controls(block)}
 				{:else if block === 'question'}
 					<p>{t('What would help you choose?', 'ข้อมูลแบบไหนช่วยให้คุณเลือกได้ง่ายขึ้น?')}</p>
 					<a href={resolve('/?view=receipt#assistant')}>
@@ -315,6 +279,9 @@
 			</div>{/if}
 	{/if}
 </div>
+
+{/snippet}
+</PresetReading>
 
 <style>
 	.canvas {
