@@ -7,17 +7,18 @@
 	import { getStoreSession } from '../storefront/store.svelte';
 	import { quoteBasket } from '../storefront/quoteBasket';
 	import { formatBaht, getProduct } from '../catalog';
-	import { defaultPlan } from '../personalization';
+	import { defaultPlan, rankProducts } from '../personalization';
 	import { describePlanChanges } from '../storefront/describePlanChanges';
 	let { locale }: { locale: Locale } = $props();
 	let selected = $state(shopPresets[0].id);
 	const preset = $derived(shopPresets.find((p) => p.id === selected) ?? shopPresets[0]);
 	const plan = $derived({ ...defaultPlan, ...preset.patch, locale });
 	const session = getStoreSession();
-	const ids = products
-		.filter((p) => p.category === 'rice-cooker')
-		.slice(0, 3)
-		.map((p) => p.id);
+	const ids = $derived(
+		rankProducts(products, { ...plan, category: 'rice-cooker' })
+			.slice(0, 3)
+			.map(({ product }) => product.id)
+	);
 	const columns = specs['rice-cooker'].map((s) => ({ field: `spec.${s.key}`, label: s.label }));
 	const quote = $derived(
 		plan.sections.includes('best-deal')
@@ -52,7 +53,8 @@
 			{locale}
 			{columns}
 			details={plan.details}
-			listingHref={(id: string) => resolve('/product/[id]', { id })}
+			listingHref={(id: string) =>
+				`${resolve('/product/[id]', { id })}?${new URLSearchParams({ lang: locale, theme: plan.theme === 'large-print' ? 'large' : plan.theme })}`}
 			priorities={[
 				{ en: 'Rating', th: 'คะแนน' },
 				{ en: 'Value', th: 'ความคุ้มค่า' }

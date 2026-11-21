@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import ReadingControls from './ReadingControls.svelte';
 	import { resolve } from '$app/paths';
 	import {
 		categories,
@@ -33,9 +35,7 @@
 	let category = $state<Category>('rice-cooker');
 	let ceiling = $state<number | undefined>();
 	let saved = $state<string[]>([]);
-	let draftReading = $state('standard');
 	let reading = $state('standard');
-	let previousReading = $state<string>();
 	let scope = $state<HTMLElement>();
 	const t = (en: string, th: string) => (locale === 'th' ? th : en);
 	const shown = $derived(
@@ -63,258 +63,228 @@
 				)
 			: undefined
 	);
-	const listingHref = (id: string) => resolve('/product/[id]', { id });
+	const listingHref = (id: string) =>
+		`${resolve('/product/[id]', { id })}?${new URLSearchParams({ lang: locale, theme: reading })}`;
 	function clear() {
 		query = '';
 		ceiling = undefined;
 		onready();
 	}
-	function apply() {
-		if (reading === draftReading) return;
-		previousReading = reading;
-		reading = draftReading;
-	}
 </script>
 
-<div
-	class="canvas {recipe.arrangement}"
-	class:readable={reading === 'large'}
-	data-preset={recipe.id}
-	bind:this={scope}
+<ReadingControls
+	{locale}
+	bind:reading
+	separateApply={recipe.blocks.includes('apply')}
+	onreset={() => {
+		clear();
+		saved = [];
+	}}
 >
-	{#if dataState === 'loading'}
-		<div class="state" role="status">
-			<h3>{t('Loading catalog', 'กำลังโหลดข้อมูลสินค้า')}</h3>
-			<p>{t('Your selected view stays ready.', 'มุมมองที่เลือกยังคงอยู่')}</p>
-			<div class="skeleton" aria-hidden="true"></div>
-		</div>
-	{:else if dataState === 'error'}
-		<div class="state" role="alert">
-			<h3>{t('Catalog is unavailable', 'ยังโหลดข้อมูลสินค้าไม่ได้')}</h3>
-			<p>{t('Keep your view and try again.', 'ลองใหม่ได้โดยคงมุมมองเดิมไว้')}</p>
-			<button onclick={onready}>{t('Try again', 'ลองอีกครั้ง')}</button>
-		</div>
-	{:else if recipe.availability === 'service'}
-		<div class="state" role="status">
-			<h3>{recipe.title[locale]}</h3>
-			<p>
-				{dataState === 'empty'
-					? t('No verified data yet.', 'ยังไม่มีข้อมูลที่ยืนยันได้')
-					: t('Waiting for the connected service.', 'รอการเชื่อมต่อบริการ')}
-			</p>
-			<p>{recipe.dependency[locale]}</p>
-		</div>
-		{#each recipe.blocks as block (block)}
-			<section class="anatomy block" aria-label={blockNames[block][locale]}>
-				<h3>{blockNames[block][locale]}</h3>
-				{#if block === 'photos'}<div class="media-slot" aria-hidden="true">
-						<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor">
-							<rect x="4" y="8" width="40" height="32" rx="2" /><path d="m19 16 14 8-14 8Z" />
-						</svg>
-					</div>
-				{:else if block === 'search' || block === 'budget' || block === 'preferences'}<label>
-						{blockNames[block][locale]}<input
-							disabled
-							placeholder={t('Available when connected', 'ใช้งานได้เมื่อเชื่อมระบบ')}
-						/>
-					</label>
-				{:else if block === 'apply' || block === 'payment' || block === 'undo'}<button disabled>
-						{blockNames[block][locale]}
-					</button>
-				{:else}<div class="data-slot"><p>{t('No confirmed value', 'ยังไม่มีค่าที่ยืนยันได้')}</p></div>{/if}
-			</section>
-		{/each}
-	{:else}
-		{#each recipe.blocks as block (block)}
-			<section class="block block-{block}" aria-label={blockNames[block][locale]}>
-				<h3>{blockNames[block][locale]}</h3>
-				{#if block === 'scope'}
-					<div class="brand"><strong>DynamicShopper</strong></div>
-				{:else if block === 'search'}
-					<label>
-						{t('Search products', 'ค้นหาสินค้า')}<input
-							type="search"
-							bind:value={query}
-							placeholder={t('Name or detail', 'ชื่อหรือรายละเอียด')}
-						/>
-					</label>
-				{:else if block === 'categories'}
-					<label>
-						{t('Category', 'หมวดหมู่')}<select bind:value={category}>
-							{#each Object.entries(categories) as [id, name] (id)}<option value={id}>
-									{name[locale]}
-								</option>{/each}
-						</select>
-					</label>
-				{:else if block === 'budget'}
-					<label>
-						{t('Maximum price in baht', 'ราคาสูงสุดเป็นบาท')}<input
-							type="number"
-							min="1"
-							step="1"
-							bind:value={ceiling}
-							placeholder={t('No limit', 'ไม่จำกัด')}
-						/>
-					</label>
-				{:else if block === 'products' || block === 'photos' || block === 'specs'}
-					{#if block === 'photos'}
-						<p>
-							{t(
-								'Original product photographs are pending the sourced catalog.',
-								'รอภาพถ่ายสินค้าต้นฉบับจากแค็ตตาล็อกที่มีแหล่งข้อมูล'
-							)}
-						</p>
-					{/if}
-					<ProductShelf
-						productIds={ids}
-						layout={block === 'specs'
-							? 'table'
-							: recipe.arrangement === 'rail' || recipe.arrangement === 'receipt'
-								? 'list'
-								: 'grid'}
-						{locale}
-						{columns}
-						{listingHref}
-						details={block === 'specs'
-							? ['price', 'specs']
-							: block === 'photos'
-								? ['image', 'price']
-								: ['image', 'price', 'summary']}
-					/>
-					{#if block === 'products'}<div class="actions">
-							{#each shown as p (p.id)}<button
-									aria-pressed={saved.includes(p.id)}
-									onclick={() =>
-										(saved = saved.includes(p.id)
-											? saved.filter((id) => id !== p.id)
-											: [...saved, p.id])}
-								>
-									{t('Save', 'บันทึก')}
-									<Fact fact={resolveCatalogFact(p.id, 'name', locale)!} />
-								</button>{/each}
-						</div>{/if}
-				{:else if block === 'price' || block === 'shipping' || block === 'review'}
-					<div class="receipt">
-						{#each shown as p (p.id)}{@const name = resolveCatalogFact(
-								p.id,
-								'name',
-								locale
-							)}{@const fact = resolveCatalogFact(
-								p.id,
-								block === 'review' ? 'review.0' : block === 'shipping' ? 'shipping' : 'price',
-								locale
-							)}{#if name && fact}<div>
-									<strong><Fact fact={name} /></strong>
-									<p><Fact {fact} /></p>
-								</div>{/if}{/each}
-					</div>
-				{:else if block === 'voucher'}
-					<ItemizedDealSlip
-						receipt={quote?.receipt}
-						{locale}
-						formatMoney={formatBaht}
-						productName={(id: string, lang: Locale) => getProduct(id)?.name[lang]}
-					/>
-				{:else if block === 'source'}
+	{#snippet children(readingControls: Snippet<[string]>)}
+		<div
+			class="canvas {recipe.arrangement}"
+			class:readable={reading === 'large'}
+			data-preset={recipe.id}
+			bind:this={scope}
+		>
+			{#if dataState === 'loading'}
+				<div class="state" role="status">
+					<h3>{t('Loading catalog', 'กำลังโหลดข้อมูลสินค้า')}</h3>
+					<p>{t('Your selected view stays ready.', 'มุมมองที่เลือกยังคงอยู่')}</p>
+					<div class="skeleton" aria-hidden="true"></div>
+				</div>
+			{:else if dataState === 'error'}
+				<div class="state" role="alert">
+					<h3>{t('Catalog is unavailable', 'ยังโหลดข้อมูลสินค้าไม่ได้')}</h3>
+					<p>{t('Keep your view and try again.', 'ลองใหม่ได้โดยคงมุมมองเดิมไว้')}</p>
+					<button onclick={onready}>{t('Try again', 'ลองอีกครั้ง')}</button>
+				</div>
+			{:else if recipe.availability === 'service'}
+				<div class="state" role="status">
+					<h3>{recipe.title[locale]}</h3>
 					<p>
-						{t(
-							'This review uses the shared catalog fixtures. The updated product database is pending.',
-							'การตรวจแบบนี้ใช้ชุดข้อมูลแค็ตตาล็อกร่วม และรอฐานสินค้าเวอร์ชันอัปเดต'
-						)}
+						{dataState === 'empty'
+							? t('No verified data yet.', 'ยังไม่มีข้อมูลที่ยืนยันได้')
+							: t('Waiting for the connected service.', 'รอการเชื่อมต่อบริการ')}
 					</p>
-					<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
-				{:else if block === 'saved'}
-					{#if saved.length}<ul>
-							{#each saved as id (id)}{@const name = resolveCatalogFact(
-									id,
-									'name',
-									locale
-								)}{#if name}<li>
-										<Fact fact={name} /><button
-											onclick={() => (saved = saved.filter((item) => item !== id))}
-										>
-											{t('Remove', 'นำออก')}
-										</button>
-									</li>{/if}{/each}
-						</ul>
-					{:else}<p>{t('Your shortlist is empty.', 'ยังไม่มีรายการที่สนใจ')}</p>
-						<div class="actions">
-							{#each shown as p (p.id)}<button onclick={() => (saved = [...saved, p.id])}>
-									{t('Save', 'บันทึก')}
-									<Fact fact={resolveCatalogFact(p.id, 'name', locale)!} />
-								</button>{/each}
-						</div>{/if}
-				{:else if block === 'preferences'}
-					<label>
-						{t('Reading style', 'รูปแบบการอ่าน')}<select bind:value={draftReading}>
-							<option value="standard">{t('Standard', 'มาตรฐาน')}</option><option value="large">
-								{t('Large print', 'ตัวอักษรใหญ่')}
-							</option>
-						</select>
-					</label>
-					{#if !recipe.blocks.includes('apply')}<button
-							disabled={draftReading === reading}
-							onclick={apply}
-						>
-							{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-						</button>{/if}
-				{:else if block === 'apply'}
-					<p>{t('Review your reading choice before applying.', 'ตรวจรูปแบบการอ่านที่เลือกก่อนใช้')}</p>
-					<button disabled={draftReading === reading} onclick={apply}>
-						{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-					</button>
-				{:else if block === 'undo'}
-					<div class="actions">
-						<button
-							disabled={previousReading === undefined}
-							onclick={() => {
-								reading = previousReading ?? 'standard';
-								draftReading = reading;
-								previousReading = undefined;
-							}}
-						>
-							{t('Undo', 'ย้อนกลับ')}
-						</button><button
-							onclick={() => {
-								clear();
-								saved = [];
-								reading = 'standard';
-								draftReading = 'standard';
-								previousReading = undefined;
-							}}
-						>
-							{t('Reset', 'คืนค่า')}
-						</button>
-					</div>
-				{:else if block === 'question'}
-					<p>{t('What would help you choose?', 'ข้อมูลแบบไหนช่วยให้คุณเลือกได้ง่ายขึ้น?')}</p>
-					<a href={resolve('/?view=receipt#assistant')}>
-						{t('Open the store assistant', 'เปิดผู้ช่วยหน้าร้าน')}
-					</a>
-				{:else}
-					<div class="unavailable">
-						<strong>{t('Service not connected', 'ยังไม่ได้เชื่อมบริการ')}</strong>
-						<p>
-							{block === 'payment'
-								? t(
-										'Payment choices and confirmation appear after checkout is connected.',
-										'ตัวเลือกชำระเงินและการยืนยันจะแสดงเมื่อเชื่อมระบบชำระเงินแล้ว'
-									)
-								: t(
-										'Order status appears after account and order services are connected.',
-										'สถานะคำสั่งซื้อจะแสดงเมื่อเชื่อมบัญชีและระบบคำสั่งซื้อแล้ว'
+					<p>{recipe.dependency[locale]}</p>
+				</div>
+				{#each recipe.blocks as block (block)}
+					<section class="anatomy block" aria-label={blockNames[block][locale]}>
+						<h3>{blockNames[block][locale]}</h3>
+						{#if block === 'photos'}<div class="media-slot" aria-hidden="true">
+								<svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor">
+									<rect x="4" y="8" width="40" height="32" rx="2" /><path d="m19 16 14 8-14 8Z" />
+								</svg>
+							</div>
+						{:else if block === 'search' || block === 'budget' || block === 'preferences'}<label>
+								{blockNames[block][locale]}<input
+									disabled
+									placeholder={t('Available when connected', 'ใช้งานได้เมื่อเชื่อมระบบ')}
+								/>
+							</label>
+						{:else if block === 'apply' || block === 'payment' || block === 'undo'}<button disabled>
+								{blockNames[block][locale]}
+							</button>
+						{:else}<div class="data-slot">
+								<p>{t('No confirmed value', 'ยังไม่มีค่าที่ยืนยันได้')}</p>
+							</div>{/if}
+					</section>
+				{/each}
+			{:else}
+				{#each recipe.blocks as block (block)}
+					<section class="block block-{block}" aria-label={blockNames[block][locale]}>
+						<h3>{blockNames[block][locale]}</h3>
+						{#if block === 'scope'}
+							<div class="brand"><strong>DynamicShopper</strong></div>
+						{:else if block === 'search'}
+							<label>
+								{t('Search products', 'ค้นหาสินค้า')}<input
+									type="search"
+									bind:value={query}
+									placeholder={t('Name or detail', 'ชื่อหรือรายละเอียด')}
+								/>
+							</label>
+						{:else if block === 'categories'}
+							<label>
+								{t('Category', 'หมวดหมู่')}<select bind:value={category}>
+									{#each Object.entries(categories) as [id, name] (id)}<option value={id}>
+											{name[locale]}
+										</option>{/each}
+								</select>
+							</label>
+						{:else if block === 'budget'}
+							<label>
+								{t('Maximum price in baht', 'ราคาสูงสุดเป็นบาท')}<input
+									type="number"
+									min="1"
+									step="1"
+									bind:value={ceiling}
+									placeholder={t('No limit', 'ไม่จำกัด')}
+								/>
+							</label>
+						{:else if block === 'products' || block === 'photos' || block === 'specs'}
+							{#if block === 'photos'}
+								<p>
+									{t(
+										'Original product photographs are pending the sourced catalog.',
+										'รอภาพถ่ายสินค้าต้นฉบับจากแค็ตตาล็อกที่มีแหล่งข้อมูล'
 									)}
-						</p>
-					</div>
-				{/if}
-			</section>
-		{/each}
-		{#if !shown.length}<div class="state" role="status">
-				<h3>{t('No matching products', 'ไม่พบสินค้าที่ตรงกัน')}</h3>
-				<button onclick={clear}>{t('Clear filters', 'ล้างตัวกรอง')}</button>
-			</div>{/if}
-	{/if}
-</div>
+								</p>
+							{/if}
+							<ProductShelf
+								productIds={ids}
+								layout={block === 'specs'
+									? 'table'
+									: recipe.arrangement === 'rail' || recipe.arrangement === 'receipt'
+										? 'list'
+										: 'grid'}
+								{locale}
+								{columns}
+								{listingHref}
+								details={block === 'specs'
+									? ['price', 'specs']
+									: block === 'photos'
+										? ['image', 'price']
+										: ['image', 'price', 'summary']}
+							/>
+							{#if block === 'products'}<div class="actions">
+									{#each shown as p (p.id)}<button
+											aria-pressed={saved.includes(p.id)}
+											onclick={() =>
+												(saved = saved.includes(p.id)
+													? saved.filter((id) => id !== p.id)
+													: [...saved, p.id])}
+										>
+											{t('Save', 'บันทึก')}
+											<Fact fact={resolveCatalogFact(p.id, 'name', locale)!} />
+										</button>{/each}
+								</div>{/if}
+						{:else if block === 'price' || block === 'shipping' || block === 'review'}
+							<div class="receipt">
+								{#each shown as p (p.id)}{@const name = resolveCatalogFact(
+										p.id,
+										'name',
+										locale
+									)}{@const fact = resolveCatalogFact(
+										p.id,
+										block === 'review' ? 'review.0' : block === 'shipping' ? 'shipping' : 'price',
+										locale
+									)}{#if name && fact}<div>
+											<strong><Fact fact={name} /></strong>
+											<p><Fact {fact} /></p>
+										</div>{/if}{/each}
+							</div>
+						{:else if block === 'voucher'}
+							<ItemizedDealSlip
+								receipt={quote?.receipt}
+								{locale}
+								formatMoney={formatBaht}
+								productName={(id: string, lang: Locale) => getProduct(id)?.name[lang]}
+							/>
+						{:else if block === 'source'}
+							<p>
+								{t(
+									'This review uses the shared catalog fixtures. The updated product database is pending.',
+									'การตรวจแบบนี้ใช้ชุดข้อมูลแค็ตตาล็อกร่วม และรอฐานสินค้าเวอร์ชันอัปเดต'
+								)}
+							</p>
+							<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
+						{:else if block === 'saved'}
+							{#if saved.length}<ul>
+									{#each saved as id (id)}{@const name = resolveCatalogFact(
+											id,
+											'name',
+											locale
+										)}{#if name}<li>
+												<Fact fact={name} /><button
+													onclick={() => (saved = saved.filter((item) => item !== id))}
+												>
+													{t('Remove', 'นำออก')}
+												</button>
+											</li>{/if}{/each}
+								</ul>
+							{:else}<p>{t('Your shortlist is empty.', 'ยังไม่มีรายการที่สนใจ')}</p>
+								<div class="actions">
+									{#each shown as p (p.id)}<button onclick={() => (saved = [...saved, p.id])}>
+											{t('Save', 'บันทึก')}
+											<Fact fact={resolveCatalogFact(p.id, 'name', locale)!} />
+										</button>{/each}
+								</div>{/if}
+						{:else if block === 'preferences' || block === 'apply' || block === 'undo'}
+							{@render readingControls(block)}
+						{:else if block === 'question'}
+							<p>{t('What would help you choose?', 'ข้อมูลแบบไหนช่วยให้คุณเลือกได้ง่ายขึ้น?')}</p>
+							<a href={resolve('/?view=receipt#assistant')}>
+								{t('Open the store assistant', 'เปิดผู้ช่วยหน้าร้าน')}
+							</a>
+						{:else}
+							<div class="unavailable">
+								<strong>{t('Service not connected', 'ยังไม่ได้เชื่อมบริการ')}</strong>
+								<p>
+									{block === 'payment'
+										? t(
+												'Payment choices and confirmation appear after checkout is connected.',
+												'ตัวเลือกชำระเงินและการยืนยันจะแสดงเมื่อเชื่อมระบบชำระเงินแล้ว'
+											)
+										: t(
+												'Order status appears after account and order services are connected.',
+												'สถานะคำสั่งซื้อจะแสดงเมื่อเชื่อมบัญชีและระบบคำสั่งซื้อแล้ว'
+											)}
+								</p>
+							</div>
+						{/if}
+					</section>
+				{/each}
+				{#if !shown.length}<div class="state" role="status">
+						<h3>{t('No matching products', 'ไม่พบสินค้าที่ตรงกัน')}</h3>
+						<button onclick={clear}>{t('Clear filters', 'ล้างตัวกรอง')}</button>
+					</div>{/if}
+			{/if}
+		</div>
+	{/snippet}
+</ReadingControls>
 
 <style>
 	.canvas {

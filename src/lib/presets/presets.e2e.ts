@@ -27,3 +27,16 @@ test('presentation examples remain isolated from the store', async ({ page }) =>
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await expect(page.locator('#products table')).toHaveCount(0);
 });
+
+test('examples use ranked choices and retain language and large print in listing links', async ({
+	page
+}) => {
+	await page.goto('/presets');
+	await page.getByRole('button', { name: 'English', exact: true }).click();
+	await page
+		.getByRole('combobox', { name: 'Example', exact: true })
+		.selectOption({ label: 'Large-print comparison' });
+	const links = page.locator('.example-shelf a[href*="/product/"]');
+	await expect(links.first()).toHaveAttribute('href', /lang=en&theme=large/);
+	await expect(links.first()).toHaveAttribute('href', /cooker-ih/);
+});
