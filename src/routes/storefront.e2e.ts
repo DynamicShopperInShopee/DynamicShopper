@@ -106,5 +106,8 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await sheet.getByRole('button', { name: 'Done' }).click();
 	await expect(sheet).toBeHidden();
 	await page.getByRole('link', { name: 'ไทย' }).click();
-	await expect(page.locator('[data-fact="name"]')).toContainText('หม้อหุงข้าว');
+	await expect(page.getByRole('heading', { level: 1 })).toContainText('หม้อหุงข้าว');
+	await expect(page.locator('[data-fact="review"]')).toHaveText('แม่ใช้เองได้โดยไม่ต้องมีคนช่วย');
+	await page.getByRole('link', { name: 'รีวิว', exact: true }).click();
+	await expect(page).toHaveURL(/#reviews$/);
 });

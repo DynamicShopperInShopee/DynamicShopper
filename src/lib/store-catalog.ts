@@ -446,3 +446,9 @@ export const riceCookerSpecs: Readonly<Record<string, readonly [number, number, 
 		'cooker-5': [1.5, 1100, 4, 2],
 		'cooker-6': [1.8, 750, 3, 2]
 	};
+
+// Simulated review excerpts documented in the catalog's Mom mode story.
+export const riceCookerReviews: Readonly<Partial<Record<string, { en: string; th: string }>>> = {
+	'cooker-1': { en: 'Mom uses it without help', th: 'แม่ใช้เองได้โดยไม่ต้องมีคนช่วย' },
+	'cooker-3': { en: 'Large buttons suit seniors', th: 'ปุ่มใหญ่เหมาะกับผู้สูงอายุ' }
+};

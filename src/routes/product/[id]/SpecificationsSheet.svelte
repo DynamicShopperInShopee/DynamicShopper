@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { formatNumber } from '../../../lib/store-search';
 
-	let { specs, th }: { specs: readonly [number, number, number, number]; th: boolean } = $props();
+	let {
+		specs,
+		th,
+		hasReview
+	}: { specs: readonly [number, number, number, number]; th: boolean; hasReview: boolean } =
+		$props();
 	let sheet = $state<HTMLDialogElement>();
 	const fields = $derived([
 		{ key: 'capacity', label: th ? 'ความจุ' : 'Capacity', unit: th ? 'ลิตร' : 'L' },
@@ -12,6 +17,8 @@
 </script>
 
 <div class="actions">
+	{#if hasReview}<a href="#reviews">{th ? 'รีวิว' : 'Reviews'}</a>{/if}
+	<a href="#details">{th ? 'รายละเอียด' : 'Details'}</a>
 	<button type="button" aria-haspopup="dialog" onclick={() => sheet?.showModal()}>
 		{th ? 'สเปกสินค้า' : 'Specifications'}
 	</button>
@@ -35,10 +42,25 @@
 <style>
 	.actions {
 		position: sticky;
+		display: flex;
+		gap: 0.5rem;
+		align-items: stretch;
 		bottom: 0;
 		border-top: 1px solid #e9e6dc;
 		background: white;
 		padding: 0.5rem 1rem max(0.5rem, env(safe-area-inset-bottom));
+	}
+	.actions button {
+		flex: 1;
+		width: auto;
+	}
+	.actions a {
+		display: grid;
+		place-items: center;
+		min-height: 48px;
+		padding: 0 0.4rem;
+		color: inherit;
+		text-align: center;
 	}
 	button {
 		font: inherit;

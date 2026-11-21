@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import '../../../lib/assets/fonts/plex.css';
-	import CategoryGlyph from '../../../lib/CategoryGlyph.svelte';
-	import { riceCookerSpecs } from '../../../lib/store-catalog';
+	import { riceCookerReviews, riceCookerSpecs } from '../../../lib/store-catalog';
 	import { formatBaht, formatNumber } from '../../../lib/store-search';
 	import type { PageProps } from './$types';
 
@@ -11,6 +10,8 @@
 	const th = $derived(data.language === 'th');
 	const specs = $derived(riceCookerSpecs[product.id]);
 	import SpecificationsSheet from './SpecificationsSheet.svelte';
+	import ProductDescription from './ProductDescription.svelte';
+	const review = $derived(riceCookerReviews[product.id]?.[data.language]);
 </script>
 
 <svelte:head><title>{product.name[data.language]} · DynamicShopper</title></svelte:head>
@@ -23,9 +24,7 @@
 		</a>
 	</header>
 	<div class="listing">
-		<div class="art" class:cooker={product.category === 'cooker'} aria-hidden="true">
-			{#if product.category !== 'cooker'}<CategoryGlyph category={product.category} />{/if}
-		</div>
+		<div class="art" data-category={product.category} aria-hidden="true"></div>
 		<section aria-labelledby="product-title">
 			<dl class="prices">
 				<div>
@@ -63,8 +62,9 @@
 			</dl>
 		</section>
 	</div>
+	<ProductDescription {product} language={data.language} {review} />
 	{#if specs}
-		<SpecificationsSheet {specs} {th} />
+		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} />
 	{/if}
 </main>
 
@@ -100,14 +100,22 @@
 	.art {
 		width: 100%;
 		aspect-ratio: 1;
-		display: grid;
-		place-items: center;
-		background: #e9e6dc;
+		background: white url('../../../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300%
+			200%;
 	}
-	.cooker {
-		background: white url('../../../lib/assets/products/demo-categories.jpg') no-repeat 0 100% /
-			300% 200%;
+	.art[data-category='earbuds'] {
+		background-position: 50% 0;
 	}
+	.art[data-category='power'] {
+		background-position: 100% 0;
+	}
+	.art[data-category='cooker'] {
+		background-position: 0 100%;
+	}
+	.art[data-category='skin'] {
+		background-position: 50% 100%;
+	}
+
 	dl {
 		margin: 1rem 0;
 		border-block: 1px dashed #777;
