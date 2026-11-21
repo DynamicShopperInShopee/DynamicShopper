@@ -1,9 +1,12 @@
 import { render } from 'vitest-browser-svelte';
 import { expect, it, vi } from 'vitest';
 import CitationSlip from './CitationSlip.svelte';
-import ItemizedDealSlip from './ItemizedDealSlip.svelte';
+import DealSlip from './DealSlip.svelte';
+import { contractSample } from '#lib/fixtures/contract-sample.ts';
+import { findAddOns, optimizeDeal } from '../pricing/index.ts';
+import { formatBaht } from '../catalog/index.ts';
 import ProductListing from './ProductListing.svelte';
-import type { FactLocale, ResolvePrintedFact } from './verifyFacts';
+import type { ResolvePrintedFact } from './verifyFacts';
 
 const productId = 'cooker-one-button';
 const resolve: ResolvePrintedFact = (id, field, locale) =>
@@ -37,48 +40,42 @@ it('links only canonical citations and declines when no citation survives', asyn
 	await expect.element(screen.getByText('ยืนยันจากรายการสินค้าไม่ได้')).toBeVisible();
 });
 
-it('renders the supplied optimizer result consistently from any entry point', async () => {
-	const receipt = {
-		items: [{ productId, quantity: 1, unitPrice: 690, subtotal: 690 }],
-		subtotal: 690,
-		shipping: 50,
-		baseline: 740,
-		appliedVouchers: [{ code: 'SAVE', kind: 'platform' as const, amount: 50, expiresSoon: false }],
-		coinsUsed: 25,
-		total: 665,
-		savings: 75,
-		unusedVouchers: [
-			{
-				code: 'MIN',
-				kind: 'shop' as const,
-				reason: 'minimum-spend' as const,
-				gap: 10,
-				expiresSoon: false
-			}
-		]
+it.each(['en', 'th'] as const)('prints the itemized reference deal in %s', async (locale) => {
+	const { basket, pricingContext, expectedDeal } = contractSample;
+	const receipt = optimizeDeal(basket, pricingContext);
+	expect(receipt).toEqual(expectedDeal);
+	if (!receipt) throw new Error('Missing reference deal');
+	const addOns = findAddOns(basket, pricingContext);
+	const screen = await render(DealSlip, { receipt, locale, addOns });
+	const amounts = {
+		unitPrice: expectedDeal.items[0].unitPrice,
+		itemSubtotal: expectedDeal.items[0].subtotal,
+		subtotal: expectedDeal.subtotal,
+		baseline: expectedDeal.baseline,
+		shipping: expectedDeal.shipping,
+		total: expectedDeal.total,
+		savings: expectedDeal.savings
 	};
-	const props = {
-		receipt,
-		locale: 'en' as const,
-		formatMoney: (amount: number, locale: FactLocale) =>
-			locale === 'th' ? `${amount} บาท` : `฿${amount}`,
-		productName: (id: string) => (id === productId ? 'One-button rice cooker' : undefined),
-		addOns: [{ productId, extraCost: 15, voucherCode: 'MIN' }]
-	};
-	const first = await render(ItemizedDealSlip, props);
-	const second = await render(ItemizedDealSlip, props);
-	const facts = (root: HTMLElement) =>
-		[...root.querySelectorAll('[data-source="pricing"]')].map((node) => [
-			node.getAttribute('data-field'),
-			node.getAttribute('data-raw'),
-			node.textContent?.trim()
-		]);
-	expect(facts(first.container)).toEqual(facts(second.container));
-	expect(facts(first.container)).toContainEqual(['total', '665', '฿665']);
-	expect(facts(first.container)).toContainEqual(['addOn.extraCost', '15', '฿15']);
-	expect(first.container.textContent).toContain('Minimum spend not met');
-	await second.rerender({ receipt: undefined });
-	expect(second.container.querySelector('[data-proof="calculated"]')).toBeNull();
+	for (const [field, amount] of Object.entries(amounts)) {
+		const node = screen.container.querySelector<HTMLElement>(`[data-deal-fact="${field}"]`);
+		expect(node?.dataset.raw, field).toBe(String(amount));
+		expect(node?.textContent?.trim(), field).toBe(formatBaht(amount, locale));
+	}
+	expect(screen.container.querySelector('[data-deal-fact="coins"]')?.getAttribute('data-raw')).toBe(
+		String(expectedDeal.coinsUsed)
+	);
+	for (const voucher of expectedDeal.appliedVouchers) {
+		await expect.element(screen.getByText(voucher.code, { exact: true })).toBeVisible();
+	}
+	await screen.getByText(locale === 'en' ? 'Unused vouchers' : 'คูปองที่ไม่ได้ใช้').click();
+	for (const voucher of expectedDeal.unusedVouchers) {
+		expect(screen.container.querySelector('details')?.textContent).toContain(voucher.code);
+	}
+	const extras = Array.from(
+		screen.container.querySelectorAll('[data-deal-fact="extraCost"]'),
+		(el) => el.getAttribute('data-raw')
+	);
+	expect(extras).toEqual(addOns.map((item) => String(item.extraCost)));
 });
 
 it('shows a catalog-backed listing in the requested detail order and delegates shopper actions', async () => {
