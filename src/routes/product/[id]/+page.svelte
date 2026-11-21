@@ -3,6 +3,8 @@
 	import '../../../lib/assets/fonts/plex.css';
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
 	import ProductDeal from './ProductDeal.svelte';
+	import ProductGallery from './ProductGallery.svelte';
+	import '../../../lib/assets/products/cooker-photos.css';
 	import ProductDescription from './ProductDescription.svelte';
 	import SpecificationsSheet from './SpecificationsSheet.svelte';
 	import type { PageProps } from './$types';
@@ -56,7 +58,15 @@
 	</header>
 	<div bind:this={proofRoot}>
 		<div class="listing">
-			<div class="art" data-category={data.category} data-model={data.id} aria-hidden="true"></div>
+			<div
+				class="art"
+				data-category={data.category}
+				data-model={data.id}
+				data-cooker-photo={data.id}
+				aria-hidden={data.id === 'cooker-one-button' ? undefined : true}
+			>
+				{#if data.id === 'cooker-one-button'}<ProductGallery {th} />{/if}
+			</div>
 			<section aria-labelledby="product-title">
 				<dl class="prices">
 					<div>
@@ -168,11 +178,12 @@
 		background-position: 100% 0;
 	}
 	.art[data-category='rice-cooker'] {
-		background-position: 0 100%;
+		background-image: var(--cooker-image, url('../../../lib/assets/products/demo-categories.jpg'));
+		background-position: var(--cooker-position, 0 100%);
+		background-size: var(--cooker-size, 300% 200%);
 	}
 	.art[data-model='cooker-one-button'] {
-		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
-			no-repeat;
+		background: #d0dce6;
 	}
 	.art[data-category='skincare'] {
 		background-position: 50% 100%;
