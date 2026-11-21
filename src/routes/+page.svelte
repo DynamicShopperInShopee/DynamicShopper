@@ -9,13 +9,23 @@
 	import { describePlanChanges } from '#lib/storefront/describePlanChanges.ts';
 	import ShareLook from '#lib/storefront/ShareLook.svelte';
 	import { parseSharedLook } from '#lib/storefront/browserState.ts';
+	import { isValidLook, lookFields, validateLook } from '#lib/storefront/sharedLook.ts';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
+	import CookerSearchSort from './CookerSearchSort.svelte';
+	import CookerQuickFilters from './CookerQuickFilters.svelte';
+	import CookerPhotoCaption from '../lib/storefront/CookerPhotoCaption.svelte';
 	import SearchShopPreview from './SearchShopPreview.svelte';
 	import '../lib/assets/products/shelf-photos.css';
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
 	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
-	import { formatBaht, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
+	import {
+		formatBaht,
+		getProduct,
+		products as canonical,
+		specs,
+		type Locale
+	} from '../lib/catalog/index.ts';
 	import { quoteBasket } from '#lib/storefront/quoteBasket.ts';
 	import { optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
 	import {
@@ -45,7 +55,8 @@
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
-	const sorts = ['default', 'price-low', 'price-high', 'top-rated'] as const;
+	const sorts = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'] as const;
+	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
 
 	let interactive = $state(false);
@@ -66,22 +77,11 @@
 	let draftShipping = $state(false);
 	let maxPrice = $state<number>();
 	let freeShipping = $state(false);
+	let capacity = $state<number>();
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
-	const lookFields = [
-		'theme',
-		'layout',
-		'density',
-		'locale',
-		'details',
-		'sections',
-		'simplified'
-	] as const;
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
-	const validLook = $derived(
-		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(sharedLook) ||
-			Boolean(parseSharedLook(sharedLook, lookFields, validateLook))
-	);
+	const validLook = $derived(isValidLook(sharedLook));
 	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
 	const originQuery = $derived(
 		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
@@ -224,7 +224,12 @@
 	const ranked = $derived(
 		adapted
 			? rankProducts(
-					freeShipping ? canonical.filter(({ shipping }) => shipping === 0) : canonical,
+					canonical.filter(
+						(product) =>
+							(!freeShipping || product.shipping === 0) &&
+							(capacity === undefined ||
+								(product.category === 'rice-cooker' && product.specs.capacity === capacity))
+					),
 					activePlan
 				)
 			: []
@@ -243,7 +248,14 @@
 	let storeReady = $state(false);
 
 	function shelfState(): ShelfState {
-		return { plan: $state.snapshot(activePlan), adapted, sort, freeShipping, locks: [...locks] };
+		return {
+			plan: $state.snapshot(activePlan),
+			adapted,
+			sort,
+			freeShipping,
+			capacity,
+			locks: [...locks]
+		};
 	}
 	function remember() {
 		undoStack = [...undoStack.slice(-19), shelfState()];
@@ -300,6 +312,7 @@
 		adapted = previous.adapted;
 		sort = previous.sort;
 		freeShipping = draftShipping = previous.freeShipping;
+		capacity = previous.capacity;
 		locks = previous.locks;
 		changes = [];
 	}
@@ -311,6 +324,7 @@
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
+		capacity = undefined;
 		changes = [];
 	}
 	function removePreference(key: keyof ShopperPlan) {
@@ -396,12 +410,14 @@
 			quantity: quantityInCart(productId)
 		}));
 	}
-	async function openBasket(productIds: readonly string[], locale: Locale = language) {
+	async function openBasket(productIds?: readonly string[], locale: Locale = language) {
 		cancelPending();
 		const generation = requestGeneration;
 		await session.cartSettled();
 		if (!interactive || eventDemo || generation !== requestGeneration) return;
-		if (showBasketDeal(basketForProducts(productIds), locale)) focusedProduct = productIds[0];
+		const basket = productIds ? basketForProducts(productIds) : session.cart;
+		if (basket.length && showBasketDeal(basket, locale) && productIds)
+			focusedProduct = productIds[0];
 	}
 	const calculateQuote = quoteBasket;
 	function showBasketDeal(basket: readonly CartItem[], locale: Locale = language) {
@@ -552,6 +568,7 @@
 				adapted,
 				sort,
 				freeShipping,
+				capacity,
 				locks,
 				undoStack,
 				turn,
@@ -581,7 +598,22 @@
 	}
 	afterNavigate(({ from, to }) => {
 		if (eventDemo) return;
+		const sameStore =
+			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
+		const hasCurrentControls =
+			undoStack.length ||
+			locks.length ||
+			draftQuery !== query ||
+			sort !== 'default' ||
+			freeShipping ||
+			capacity !== undefined;
+		if (!storeReady && sameStore && hasCurrentControls) {
+			session.restoreBrowser();
+			cartRestored = session.cart.length > 0;
+			storeReady = true;
+		}
 		if (!storeReady) restoreStore();
+		else if (sameStore) openSharedLook();
 		if (from?.route.id === '/product/[id]') {
 			const pending = session.listing.takeTurn();
 			if (pending) {
@@ -590,25 +622,12 @@
 				applyTurn(pending);
 			}
 		}
-		if (
-			storeReady &&
-			from?.route.id === '/' &&
-			to?.route.id === '/' &&
-			from.url.search !== to.url.search
-		)
-			openSharedLook();
 	});
 	$effect(() => {
 		if (!storeReady || eventDemo) return;
 		const current = $state.snapshot(activePlan);
 		untrack(() => session.savePlan(current));
 	});
-	function validateLook(input: unknown) {
-		const proposal = validateProposal({ intent: 'change', patch: input }, defaultPlan);
-		return proposal.dropped.length || !Object.keys(proposal.patch).length
-			? undefined
-			: proposal.patch;
-	}
 	function openSharedLook() {
 		sharedLookOpened = false;
 		const look = page.url.searchParams.get('look');
@@ -640,9 +659,26 @@
 	}
 
 	const t = $derived(storefrontCopy[language]);
-	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
+	const queryMatches = $derived(eventDemo && query ? searchProducts({ query, category }) : []);
+	const cookerSearch = $derived(
+		eventDemo &&
+			(category === 'cooker' ||
+				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
+	);
+	const selectedCapacityProduct = $derived(
+		capacity !== undefined
+			? canonical.find(
+					(item) => item.category === 'rice-cooker' && item.specs.capacity === capacity
+				)
+			: undefined
+	);
+	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const products = $derived.by(() => {
-		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping });
+		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping }).filter(
+			(item) =>
+				capacity === undefined ||
+				(item.category === 'cooker' && getProduct(item.catalogId)?.specs.capacity === capacity)
+		);
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
@@ -696,6 +732,7 @@
 		remember();
 		register('query');
 		query = draftQuery.trim();
+		capacity = undefined;
 	}
 
 	function applyFilters(event: SubmitEvent) {
@@ -711,11 +748,30 @@
 
 	function clearFilters() {
 		cancelPending();
+		capacity = undefined;
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
 		maxPrice = undefined;
 		draftShipping = false;
 		freeShipping = false;
+	}
+
+	function chooseCategory(value: Category | 'all') {
+		register('category');
+		category = value;
+		capacity = undefined;
+	}
+	function removeCapacity() {
+		cancelPending();
+		remember();
+		capacity = undefined;
+	}
+
+	function openFilters(trigger: HTMLButtonElement) {
+		trigger.focus({ preventScroll: true });
+		draftPrice = maxPrice;
+		draftShipping = freeShipping;
+		filterDialog?.showModal();
 	}
 
 	function reset() {
@@ -762,8 +818,10 @@
 							data-category={product.category}
 							data-model={product.id}
 							data-cooker-photo={product.catalogId}
-							aria-hidden="true"
-						></div>
+							aria-hidden={product.id === 'cooker-1' ? undefined : true}
+						>
+							{#if product.id === 'cooker-1'}<CookerPhotoCaption locale={language} compact />{/if}
+						</div>
 					{:else if activePlan.details.includes('image')}
 						<div class="art"><CategoryGlyph category={product.category} /></div>
 					{/if}
@@ -1012,7 +1070,7 @@
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
 					</button>
-					<CartControls locale={language} onBestPrice={showBasketDeal} />
+					<CartControls locale={language} onBestPrice={() => openBasket()} />
 				</div>
 			</div>
 		</header>
@@ -1041,7 +1099,7 @@
 				id="search"
 				disabled={!interactive}
 				type="search"
-				placeholder={t.searchHint}
+				placeholder={category !== 'all' ? categories[category][language] : t.searchHint}
 				bind:value={draftQuery}
 			/>
 			{#if eventDemo}
@@ -1058,38 +1116,52 @@
 						<circle cx="10" cy="10" r="6" /><path d="m15 15 5 5" />
 					</svg>
 				</button>
-				<button
-					class="filter-trigger"
-					type="button"
-					aria-haspopup="dialog"
-					onclick={() => {
-						draftPrice = maxPrice;
-						draftShipping = freeShipping;
-						filterDialog?.showModal();
-					}}
-				>
-					<svg
-						viewBox="0 0 24 24"
-						width="20"
-						height="20"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.6"
-						aria-hidden="true"
+				{#if cookerSearch}
+					<CookerSearchSort
+						label={t.sort}
+						bind:sort
+						options={cookerSorts.map((value) => ({ value, label: t[value] }))}
+					/>
+				{:else}
+					<button
+						class="filter-trigger"
+						type="button"
+						aria-haspopup="dialog"
+						onclick={(event) => openFilters(event.currentTarget)}
 					>
-						<path d="M3 5h18l-7 8v6l-4 2v-8z" />
-					</svg>
-					{t.filters}
-				</button>
+						<svg
+							viewBox="0 0 24 24"
+							width="20"
+							height="20"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							aria-hidden="true"
+						>
+							<path d="M3 5h18l-7 8v6l-4 2v-8z" />
+						</svg>
+						{t.filters}
+					</button>
+				{/if}
 			{:else}
 				<button class="primary" type="submit">{t.submit}</button>
 			{/if}
 		</form>
 
-		{#if eventDemo}
+		{#if eventDemo && products.length > 0 && (category === 'skin' || (query && products.every((item) => item.category === 'skin')))}
+			<SearchShopPreview {products} {language} {theme} />
+		{/if}
+		{#if eventDemo && !cookerSearch}
 			<div class="sort-tabs" role="group" aria-label={t.sort}>
 				<button type="button" aria-pressed={sort === 'default'} onclick={() => (sort = 'default')}>
 					{language === 'th' ? 'เกี่ยวข้อง' : 'Relevance'}
+				</button>
+				<button
+					type="button"
+					aria-pressed={sort === 'top-rated'}
+					onclick={() => (sort = 'top-rated')}
+				>
+					{t['top-rated']}
 				</button>
 				<button
 					type="button"
@@ -1126,68 +1198,80 @@
 			</div>
 		{/if}
 
-		<nav class="categories" aria-label={t.categories}>
-			{#if eventDemo}
-				<button
-					type="button"
-					aria-pressed={freeShipping}
-					onclick={() => {
-						freeShipping = !freeShipping;
-						draftShipping = freeShipping;
-					}}
-				>
-					<svg
-						viewBox="0 0 24 24"
-						width="17"
-						height="17"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.7"
-						aria-hidden="true"
-					>
-						<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
-							cx="18"
-							cy="18"
-							r="2"
-						/>
-					</svg>
-					{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
-				</button>
-			{/if}
-			<button
-				aria-pressed={category === 'all'}
-				onclick={() => {
-					register('category');
-					category = 'all';
+		{#if cookerSearch}
+			<CookerQuickFilters
+				{language}
+				{category}
+				bind:capacity
+				{freeShipping}
+				{openFilters}
+				toggleShipping={() => {
+					freeShipping = !freeShipping;
+					draftShipping = freeShipping;
 				}}
-			>
-				{t.all}
-			</button>
-			{#each categoryKeys as key (key)}
-				<button
-					aria-pressed={category === key}
-					onclick={() => {
-						register('category');
-						category = key;
-					}}
-				>
-					{categories[key][language]}
+				changeCategory={(value: Category | 'all') => {
+					if (query) {
+						draftQuery = query = '';
+					}
+					chooseCategory(value);
+				}}
+				toggleLanguage={() => {
+					register('locale');
+					language = language === 'th' ? 'en' : 'th';
+				}}
+			/>
+		{:else}
+			<nav class="categories" aria-label={t.categories}>
+				{#if eventDemo}
+					<button
+						type="button"
+						aria-pressed={freeShipping}
+						onclick={() => {
+							freeShipping = !freeShipping;
+							draftShipping = freeShipping;
+						}}
+					>
+						<svg
+							viewBox="0 0 24 24"
+							width="17"
+							height="17"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.7"
+							aria-hidden="true"
+						>
+							<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
+								cx="18"
+								cy="18"
+								r="2"
+							/>
+						</svg>
+						{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
+					</button>
+				{/if}
+				<button aria-pressed={category === 'all'} onclick={() => chooseCategory('all')}>
+					{t.all}
 				</button>
-			{/each}
-			{#if eventDemo}
-				<button
-					type="button"
-					lang={language === 'th' ? 'en' : 'th'}
-					disabled={!interactive}
-					onclick={() => {
-						register('locale');
-						language = language === 'th' ? 'en' : 'th';
-					}}
-				>
-					{language === 'th' ? 'English' : 'ไทย'}
-				</button>
-			{/if}
-		</nav>
+				{#each categoryKeys as key (key)}
+					<button aria-pressed={category === key} onclick={() => chooseCategory(key)}>
+						{categories[key][language]}
+					</button>
+				{/each}
+				{#if eventDemo}
+					<button
+						type="button"
+						lang={language === 'th' ? 'en' : 'th'}
+						disabled={!interactive}
+						onclick={() => {
+							register('locale');
+							language = language === 'th' ? 'en' : 'th';
+						}}
+					>
+						{language === 'th' ? 'English' : 'ไทย'}
+					</button>
+				{/if}
+			</nav>
+		{/if}
 
 		{#if !eventDemo}
 			<div class="toolbar">
@@ -1273,6 +1357,27 @@
 
 		{#if hasFilters}
 			<div class="chips">
+				{#if selectedCapacityProduct}
+					<button type="button" onclick={removeCapacity}>
+						{language === 'th' ? 'ความจุ' : 'Capacity'}
+						<FactValue
+							productId={selectedCapacityProduct.id}
+							field="spec.capacity"
+							locale={language}
+						/>
+						<svg
+							viewBox="0 0 16 16"
+							width="15"
+							height="15"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							aria-hidden="true"
+						>
+							<path d="m4 4 8 8M12 4l-8 8" />
+						</svg>
+					</button>
+				{/if}
 				{#if maxPrice !== undefined}
 					<button
 						type="button"
@@ -1461,13 +1566,13 @@
 				</section>
 			{/if}
 		{/if}
-		{#if eventDemo && products.length && products.every((product) => product.category === 'cooker')}
+		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
-			<div class="results-header">
-				<h2 id="products-heading">{t.products}</h2>
-				{#if eventDemo}
+			<div class="results-header" class:visually-hidden={cookerSearch && sort === 'default'}>
+				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
+				{#if eventDemo && !cookerSearch}
 					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
@@ -2011,7 +2116,7 @@
 
 	.event-demo {
 		--paper: #f5f5f5;
-		--accent: #b83a23;
+
 		--seam: #e4e4e4;
 		--radius: 6px;
 		--small: 0.8125rem;
@@ -2036,7 +2141,7 @@
 		gap: 0.375rem;
 	}
 	.event-demo .search input {
-		border-color: #ee4d2d;
+		border-color: var(--accent);
 		border-radius: 0.75rem;
 		padding-inline-end: 2.75rem;
 	}
@@ -2063,7 +2168,7 @@
 	}
 	.sort-tabs {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		border-bottom: 1px solid var(--seam);
 	}
 	.sort-tabs button {
@@ -2112,8 +2217,8 @@
 		color: var(--muted);
 	}
 	.event-demo .product-grid {
-		gap: 0.375rem;
-		padding-inline: 0.375rem;
+		gap: 0.5rem;
+		padding-inline: 0.5rem;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 	.event-demo .product {
@@ -2121,30 +2226,23 @@
 		grid-template-rows: auto 1fr;
 	}
 	.event-demo .art {
+		position: relative;
 		aspect-ratio: 1;
 	}
 
-	.event-demo .card-body {
-		padding: 0.4rem;
-	}
 	.event-demo .card-body h3 {
-		font-size: 0.875rem;
+		font-size: var(--size);
+		line-height: 1.35;
 		font-weight: 400;
 	}
 	.event-demo .price :global(strong) {
-		color: var(--accent);
-		font-size: 1.1rem;
+		color: var(--ink);
+		font-size: max(1.1rem, var(--size));
 	}
 	.event-demo .price :global(s) {
 		color: var(--muted);
 	}
-	.event-demo .shipping {
-		border: 0;
-		margin: 0;
-	}
-	.event-demo .leader {
-		border: 0;
-	}
+
 	.event-demo .chips {
 		margin: 0.375rem;
 	}
@@ -2218,5 +2316,42 @@
 		font-size: var(--small);
 		color: var(--ink);
 		text-decoration: underline;
+	}
+
+	.event-demo .card-body {
+		gap: 0.32rem;
+		padding: 0.45rem 0.5rem 0.6rem;
+	}
+	.event-demo .card-body h3 {
+		margin: 0;
+		min-height: 2.7em;
+	}
+	.event-demo .price {
+		margin: 0;
+		gap: 0.15rem 0.4rem;
+	}
+	.event-demo .metadata {
+		order: 1;
+		align-items: center;
+		justify-content: start;
+	}
+	.event-demo .metadata > span:first-child {
+		border: 1px solid var(--seam);
+		padding: 0 0.2rem;
+	}
+	.event-demo .shipping {
+		border: 0;
+		margin: 0;
+		order: 2;
+		align-items: center;
+		justify-content: start;
+		padding-block: 0;
+		gap: 0.35rem;
+	}
+	.event-demo .leader {
+		display: none;
+	}
+	.event-demo .card-body :global(.shop) {
+		order: 3;
 	}
 </style>

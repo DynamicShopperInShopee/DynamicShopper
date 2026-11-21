@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
-	import { goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { defaultPlan, interpretOffline } from '../personalization';
+	import { defaultPlan, interpretOffline, type Turn } from '../personalization';
 	import type { Locale } from '../catalog';
+	import type { ChatSendResult } from './conversation.svelte';
 	import { getStoreSession } from './store.svelte';
 	import { quoteBasket } from './quoteBasket';
 	import ShoppingAssistant from './ShoppingAssistant.svelte';
@@ -23,45 +24,60 @@
 		theme === 'large' || theme === 'minimal' || theme === 'vibrant' ? theme : 'standard'
 	);
 	let pending = $state<'navigation' | 'quote'>();
-	let active = true;
-	onDestroy(() => {
-		active = false;
+	let generation = 0;
+	let handoff: { turn: Turn; target: string } | undefined;
+	function supersede() {
+		generation += 1;
+		pending = undefined;
+	}
+	beforeNavigate(({ from, to }) => {
+		if (from?.url.pathname === to?.url.pathname && from?.url.search === to?.url.search) return;
+		if (handoff && to && to.url.pathname + to.url.search === handoff.target) return;
+		if (handoff) session.listing.cancel(handoff.turn);
+		handoff = undefined;
+		supersede();
 	});
+	onDestroy(supersede);
 
-	async function send(text: string) {
-		if (pending) return false;
+	async function send(text: string): Promise<ChatSendResult> {
+		if (pending) return 'superseded';
+		const request = ++generation;
 		const language = /\p{Script=Thai}/u.test(text) ? 'th' : locale;
 		const plan = { ...(session.visit?.plan ?? session.savedPlan ?? defaultPlan), locale };
 		const turn = interpretOffline(text, plan, productId);
 		if (turn.intent === 'change' || turn.intent === 'undo' || turn.intent === 'reset') {
 			pending = 'navigation';
+			const query = new SvelteURLSearchParams(session.visit?.search);
+			query.set('view', 'receipt');
+			const target = resolve(`/?${query.toString()}`);
+			handoff = { turn, target };
 			session.listing.queue(turn, text, language);
 			try {
-				const query = new SvelteURLSearchParams(session.visit?.search);
-				query.set('view', 'receipt');
-				await goto(resolve(`/?${query.toString()}`));
+				await goto(target);
 				return true;
 			} catch {
 				session.listing.cancel(turn);
-				return false;
+				return request === generation ? false : 'superseded';
 			} finally {
-				pending = undefined;
+				if (request === generation) {
+					handoff = undefined;
+					pending = undefined;
+				}
 			}
 		}
 		let deal: ReturnType<typeof quoteBasket>;
 		if (turn.intent === 'deal' && turn.productIds.length) {
-			const focused = productId;
 			pending = 'quote';
 			try {
 				await session.cartSettled();
-				if (!active || productId !== focused) return false;
+				if (request !== generation) return 'superseded';
 				const basket = turn.productIds.map((id) => ({
 					productId: id,
 					quantity: session.cart.find((item) => item.productId === id)?.quantity ?? 1
 				}));
 				deal = quoteBasket(basket, language);
 			} finally {
-				pending = undefined;
+				if (request === generation) pending = undefined;
 			}
 		}
 		session.conversation.shopper(text, language);

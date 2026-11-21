@@ -62,7 +62,7 @@
 		<p>{t.checking}</p>
 	{:else if result.mismatches.length}
 		<ul class="mismatches">
-			{#each result.mismatches as mismatch}
+			{#each result.mismatches as mismatch, index (index)}
 				<li>{t[mismatch.reason]} {mismatch.productId} {mismatch.field}</li>
 			{/each}
 		</ul>

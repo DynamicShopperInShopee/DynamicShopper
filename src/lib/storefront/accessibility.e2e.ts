@@ -10,8 +10,11 @@ const cooker = 'cooker-one-button';
 
 async function assertReadable(scope: Locator, large: boolean) {
 	const violations = await scope.evaluate(
-		(root, { floor, tap }) => {
+		async (root, { floor, tap }) => {
 			type Color = [number, number, number, number];
+			const white: Color = [255, 255, 255, 1];
+			const black: Color = [0, 0, 0, 1];
+			await document.fonts.ready;
 			const styles = new Map<Element, CSSStyleDeclaration>();
 			const style = (element: Element) => {
 				let value = styles.get(element);
@@ -38,12 +41,67 @@ async function assertReadable(scope: Locator, large: boolean) {
 				const b = luminance(background);
 				return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 			}
-			function background(element: Element): Color {
-				for (let ancestor: Element | null = element; ancestor; ancestor = ancestor.parentElement) {
+			function background(element: Element, stop: Element | null = null, base = white): Color {
+				const layers: Color[] = [];
+				for (
+					let ancestor: Element | null = element;
+					ancestor && ancestor !== stop;
+					ancestor = ancestor.parentElement
+				) {
 					const value = color(style(ancestor).backgroundColor);
-					if (value?.[3] === 1) return value;
+					if (!value || value[3] === 0) continue;
+					layers.push(value);
+					if (value[3] === 1) break;
 				}
-				return [255, 255, 255, 1];
+				return layers.reduceRight<Color>(
+					([r, g, b], [fr, fg, fb, alpha]) => [
+						fr * alpha + r * (1 - alpha),
+						fg * alpha + g * (1 - alpha),
+						fb * alpha + b * (1 - alpha),
+						1
+					],
+					base
+				);
+			}
+			const bitmaps = new Map<HTMLImageElement, CanvasRenderingContext2D>();
+			async function captionContrast(node: Node, image: HTMLImageElement, foreground: Color) {
+				let bitmap = bitmaps.get(image);
+				if (!bitmap) {
+					await image.decode();
+					const canvas = document.createElement('canvas');
+					canvas.width = image.naturalWidth;
+					canvas.height = image.naturalHeight;
+					const context = canvas.getContext('2d', { willReadFrequently: true });
+					if (!context) throw new Error('Cannot measure the product caption against its photo');
+					context.drawImage(image, 0, 0);
+					bitmap = context;
+					bitmaps.set(image, context);
+				}
+				const frame = image.getBoundingClientRect();
+				const scale = Math.max(
+					frame.width / image.naturalWidth,
+					frame.height / image.naturalHeight
+				);
+				const x = frame.x + (frame.width - scale * image.naturalWidth) / 2;
+				const y = frame.y + (frame.height - scale * image.naturalHeight) / 2;
+				const range = document.createRange();
+				range.selectNode(node);
+				let lowest = Infinity;
+				for (const rect of range.getClientRects()) {
+					const left = Math.max(0, Math.floor((rect.left - x) / scale));
+					const top = Math.max(0, Math.floor((rect.top - y) / scale));
+					const right = Math.min(image.naturalWidth, Math.ceil((rect.right - x) / scale));
+					const bottom = Math.min(image.naturalHeight, Math.ceil((rect.bottom - y) / scale));
+					if (right <= left || bottom <= top) continue;
+					const pixels = bitmap.getImageData(left, top, right - left, bottom - top).data;
+					for (let i = 0; i < pixels.length; i += 4)
+						lowest = Math.min(
+							lowest,
+							contrast(foreground, [pixels[i], pixels[i + 1], pixels[i + 2], 1])
+						);
+				}
+				if (!Number.isFinite(lowest)) throw new Error('Caption text does not overlay the photo');
+				return lowest;
 			}
 			function visible(element: Element) {
 				return (
@@ -66,7 +124,10 @@ async function assertReadable(scope: Locator, large: boolean) {
 				if (element.closest(':disabled')) continue;
 				const foreground = color(style(element).color);
 				if (!foreground) continue;
-				const ratio = contrast(foreground, background(element));
+				const image = element.closest('.caption')?.parentElement?.querySelector('img');
+				const ratio = image
+					? await captionContrast(node, image, foreground)
+					: contrast(foreground, background(element));
 				if (ratio < 4.5) problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
 			}
 
@@ -95,7 +156,15 @@ async function assertReadable(scope: Locator, large: boolean) {
 			for (const glyph of root.querySelectorAll<SVGElement>('.art svg')) {
 				if (!visible(glyph)) continue;
 				const foreground = color(style(glyph).color);
-				if (foreground && contrast(foreground, background(glyph)) < 3) {
+				if (!foreground) continue;
+				const gallery = glyph.closest('.gallery');
+				const ratio = gallery
+					? Math.min(
+							contrast(foreground, background(glyph, gallery, black)),
+							contrast(foreground, background(glyph, gallery, white))
+						)
+					: contrast(foreground, background(glyph));
+				if (ratio < 3) {
 					problems.add('Product glyph has less than 3:1 contrast');
 				}
 			}
@@ -187,6 +256,44 @@ for (const theme of themes) {
 					expect(shelf && bounds && shelf.x + shelf.width <= bounds.x + 1).toBe(true);
 				}
 
+				expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+			});
+			test(`listing ${theme}, ${lang}, ${width}×${height} is readable and keyboard-operable`, async ({
+				page
+			}) => {
+				await page.emulateMedia({ reducedMotion: 'reduce' });
+				await page.setViewportSize({ width, height });
+				await page.goto(`/product/${cooker}?view=receipt&theme=${theme}&lang=${lang}`);
+				const listing = page.getByRole('main');
+				await expect(listing).toHaveAttribute('lang', lang);
+				await expect(listing).toHaveAttribute('data-theme', theme);
+				await expect(listing.getByRole('heading', { level: 1 })).toBeVisible();
+				await expect(
+					listing.locator(`[data-product-id="${cooker}"][data-fact="price"]`)
+				).toHaveText(lang === 'th' ? '690 บาท' : '฿690');
+				await expect(listing.locator('[data-proof="verified"]')).toBeVisible();
+				expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+					width
+				);
+				await assertReadable(listing, theme === 'large');
+
+				const specsName = lang === 'th' ? 'สเปกสินค้า' : 'Specifications';
+				const specs = page.getByRole('button', { name: specsName, exact: true });
+				await specs.press('Enter');
+				const sheet = page.getByRole('dialog', { name: specsName, exact: true });
+				await expect(sheet.locator('[data-fact="spec.capacity"]')).toHaveText(
+					lang === 'th' ? '1.8 ลิตร' : '1.8 L'
+				);
+				await expect(
+					sheet.getByRole('button', { name: lang === 'th' ? 'ตกลง' : 'Done' })
+				).toBeFocused();
+				await assertReadable(sheet, theme === 'large');
+				await page.keyboard.press('Escape');
+				await expect(sheet).toBeHidden();
+				await expect(specs).toBeFocused();
+				expect(await specs.evaluate((button) => getComputedStyle(button).outlineStyle)).not.toBe(
+					'none'
+				);
 				expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
 			});
 		}

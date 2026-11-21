@@ -89,7 +89,7 @@
 			<div class="receipt">
 				<h2>{t.changes}</h2>
 				<ul>
-					{#each changes as change}<li>{change[locale]}</li>{/each}
+					{#each changes as change, index (index)}<li>{change[locale]}</li>{/each}
 				</ul>
 			</div>
 		{/if}

@@ -15,6 +15,7 @@ export interface ShelfState {
 	adapted: boolean;
 	sort: Sort;
 	freeShipping: boolean;
+	capacity?: number;
 	locks: (keyof ShopperPlan)[];
 }
 

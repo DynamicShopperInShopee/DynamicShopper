@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { SvelteURL } from 'svelte/reactivity';
 	import { encodeSharedLook } from './browserState';
 	import type { FactLocale } from './verifyFacts';
 
@@ -41,18 +42,18 @@
 		const token = encodeSharedLook(plan, presentationFields);
 		if (!token) return;
 		try {
-			const url = new URL(storefrontUrl);
+			const url = new SvelteURL(storefrontUrl);
 			if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return;
-			url.hash = '';
-			url.search = new URLSearchParams({ look: token }).toString();
-			return url.href;
+			const query = new URLSearchParams({ look: token }).toString();
+			return `${url.origin}${url.pathname}?${query}`;
 		} catch {
 			return undefined;
 		}
 	});
 	const lineUrl = $derived(
 		shareUrl
-			? 'https://social-plugins.line.me/lineit/share?' + new URLSearchParams({ url: shareUrl })
+			? 'https://social-plugins.line.me/lineit/share?' +
+					new URLSearchParams({ url: shareUrl }).toString()
 			: undefined
 	);
 
@@ -84,6 +85,7 @@
 		<p>{t.note}</p>
 		<div class="actions">
 			<button type="button" onclick={() => copyLink(shareUrl)}>{t.copy}</button>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The destination is LINE's external share service. -->
 			<a href={lineUrl} target="_blank" rel="noopener noreferrer">{t.line}</a>
 		</div>
 		<div role="status">{status ? t[status] : ''}</div>

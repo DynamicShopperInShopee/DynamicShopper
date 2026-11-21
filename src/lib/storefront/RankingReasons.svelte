@@ -89,7 +89,7 @@
 		<summary>{t.title}</summary>
 		<p>{t.lead}</p>
 		<ul>
-			{#each reasons as reason}
+			{#each reasons as reason, index (index)}
 				<li>
 					<span>{reason.label}</span>
 					<span class="track" aria-hidden="true">

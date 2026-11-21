@@ -124,3 +124,65 @@ test('a card quote waiting for the cart cannot follow the shopper back from the 
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeEnabled();
 	await expect(page.locator('.quote')).toHaveCount(0);
 });
+
+test('the assistant keeps active Legacy cooker controls and their undo history', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await page.goto('/?view=receipt');
+	const search = page.getByRole('searchbox');
+	await search.fill('gaming mouse');
+	await search.press('Enter');
+	await expect
+		.poll(() =>
+			page.evaluate(() => {
+				const saved = JSON.parse(localStorage.getItem('dynamicshopper.store.v1') ?? '{}') as {
+					plan?: { query?: string };
+				};
+				return saved.plan?.query;
+			})
+		)
+		.toBe('gaming mouse');
+
+	await page.goto('/');
+	await search.fill('rice cooker');
+	await search.press('Enter');
+	const filters = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	await filters.getByRole('button', { name: 'Free shipping', exact: true }).click();
+	const sort = page.getByRole('combobox', { name: 'Sort by', exact: true });
+	await sort.selectOption('top-sales');
+	await filters.getByRole('link', { name: 'Shopping assistant', exact: true }).click();
+
+	await expect(search).toHaveValue('rice cooker');
+	await expect(sort).toHaveValue('top-sales');
+	await page.getByRole('button', { name: 'Filters', exact: true }).click();
+	await expect(
+		page.getByRole('checkbox', { name: 'Free shipping only', exact: true })
+	).toBeChecked();
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(search).toHaveValue('');
+	await expect(sort).toHaveValue('default');
+	await expect(
+		page.getByRole('checkbox', { name: 'Free shipping only', exact: true })
+	).not.toBeChecked();
+});
+
+test('the mobile Legacy cooker assistant link opens and focuses the chat sheet', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	const search = page.getByRole('searchbox');
+	await search.fill('rice cooker');
+	await search.press('Enter');
+	const filters = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	await filters.getByRole('link', { name: 'Shopping assistant', exact: true }).click();
+
+	const chat = page.getByRole('dialog', { name: 'Chat with the assistant' });
+	await expect(chat.getByRole('textbox', { name: 'Ask the store' })).toBeFocused();
+	await page.keyboard.press('Escape');
+	await expect(
+		page.getByRole('button', { name: 'Chat with the assistant', exact: true })
+	).toBeFocused();
+	await expect(search).toHaveValue('rice cooker');
+});

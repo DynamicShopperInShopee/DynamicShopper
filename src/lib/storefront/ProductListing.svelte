@@ -100,6 +100,7 @@
 </script>
 
 <div class="listing" lang={locale}>
+	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The caller supplies the resolved storefront URL. -->
 	<a class="back" href={storeHref}>{t.back}</a>
 	{#if name && price}
 		<div bind:this={shelf}>

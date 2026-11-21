@@ -78,7 +78,7 @@
 		<p>{t.pending}</p>
 	{:else if result.mismatches.length}
 		<ul>
-			{#each result.mismatches as mismatch}
+			{#each result.mismatches as mismatch, index (index)}
 				<li>{t[mismatch.side]} · {t[mismatch.reason]} · {mismatch.productId} · {mismatch.field}</li>
 			{/each}
 		</ul>

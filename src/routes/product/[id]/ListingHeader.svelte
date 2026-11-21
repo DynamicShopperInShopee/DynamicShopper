@@ -2,10 +2,15 @@
 	import { resolve } from '$app/paths';
 	import type { Snippet } from 'svelte';
 	import type { PageData } from './$types';
-	let { data, hero, children }: { data: PageData; hero?: HTMLElement; children?: Snippet } =
-		$props();
+	let {
+		data,
+		hero,
+		backQuery,
+		children
+	}: { data: PageData; hero?: HTMLElement; backQuery: string; children?: Snippet } = $props();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
+	let backLink: HTMLAnchorElement;
 	$effect(() => {
 		if (!hero) return;
 		const observer = new IntersectionObserver(
@@ -22,7 +27,8 @@
 <header data-over-hero={overHero}>
 	<a
 		class="back"
-		href={resolve(data.receiptQuery ? `/?${data.receiptQuery}` : '/')}
+		bind:this={backLink}
+		href={resolve(backQuery ? `/?${backQuery}` : '/')}
 		aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
 	>
 		<svg
@@ -40,7 +46,7 @@
 	<span class="hero-space" aria-hidden="true"></span>
 	<a
 		class="header-search"
-		href={resolve(data.receiptQuery ? `/?${data.receiptQuery}` : '/')}
+		href={resolve(backQuery ? `/?${backQuery}` : '/')}
 		aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}
 	>
 		<svg
@@ -69,6 +75,31 @@
 	</a>
 	{#if children}<div class="header-actions">{@render children()}</div>{/if}
 </header>
+{#if !overHero}
+	<button
+		type="button"
+		class="back-to-top"
+		aria-label={th ? 'กลับขึ้นด้านบน' : 'Back to top'}
+		onclick={() => {
+			window.scrollTo({ top: 0, behavior: 'instant' });
+			backLink.focus({ preventScroll: true });
+		}}
+	>
+		<svg
+			aria-hidden="true"
+			viewBox="0 0 24 24"
+			width="24"
+			height="24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.7"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<path d="M3 3h18m-9 18V7m-7 7 7-7 7 7" />
+		</svg>
+	</button>
+{/if}
 
 <style>
 	header {
@@ -102,7 +133,32 @@
 		padding-inline: 0.65rem;
 		background: #f4f4f4;
 	}
+	.language {
+		min-inline-size: var(--tap, 44px);
+		justify-content: center;
+	}
+	.back-to-top {
+		display: none;
+	}
 	@media (max-width: 699px) {
+		.back-to-top {
+			display: grid;
+			place-items: center;
+			position: fixed;
+			inset-inline-end: 0.65rem;
+			bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+			z-index: 1;
+			width: var(--tap, 44px);
+			height: var(--tap, 44px);
+			border-radius: 50%;
+			border: 1px solid var(--seam, #e9e6dc);
+			background: #fff;
+			color: var(--accent, #16161a);
+			cursor: pointer;
+		}
+		.back-to-top:focus-visible {
+			outline: 2px solid currentColor;
+		}
 		header {
 			height: 60px;
 			box-sizing: border-box;

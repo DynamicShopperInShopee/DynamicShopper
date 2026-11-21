@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { beforeNavigate } from '$app/navigation';
 	import { onMount, tick, type Snippet } from 'svelte';
 	import type { Locale } from '../catalog/index.ts';
 	import type { AddOn, DealReceipt } from '../pricing';
@@ -13,6 +14,10 @@
 
 	const session = getStoreSession();
 	let ready = $state(false);
+	let request = 0;
+	beforeNavigate(() => {
+		request += 1;
+	});
 	let quote = $state<{ receipt: DealReceipt; addOns: readonly AddOn[] } | null>();
 	let closeButton = $state<HTMLButtonElement>();
 	let trigger: HTMLElement | undefined;
@@ -25,21 +30,31 @@
 		};
 	});
 
-	export function showBasket(basket: readonly CartItem[], withAddOns = true) {
+	function showBasket(basket: readonly CartItem[]) {
 		if (!ready) return;
 		trigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		quote = quoteBasket(basket, locale, withAddOns) ?? null;
+		quote = quoteBasket(basket, locale) ?? null;
 		if (quote) void tick().then(() => closeButton?.focus());
 	}
 
-	async function showProduct() {
+	async function priceCurrentBasket(wholeCart: boolean) {
+		const generation = ++request;
 		await session.cartSettled();
-		if (!ready) return;
+		if (!ready || request !== generation) return;
+		if (wholeCart) {
+			if (session.cart.length) showBasket(session.cart);
+			return;
+		}
 		const quantity = session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
-		showBasket([{ productId, quantity }], false);
+		showBasket([{ productId, quantity }]);
+	}
+
+	export function showCart() {
+		return priceCurrentBasket(true);
 	}
 
 	function closeDeal() {
+		request += 1;
 		quote = undefined;
 		trigger?.focus();
 	}
@@ -47,7 +62,7 @@
 
 <div class="actions">
 	{@render children?.()}
-	<button type="button" disabled={!ready} onclick={showProduct}>
+	<button type="button" disabled={!ready} onclick={() => priceCurrentBasket(false)}>
 		{assistantCopy[locale].deal}
 	</button>
 </div>

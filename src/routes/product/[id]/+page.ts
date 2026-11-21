@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import { formatFact, getProduct, resolveFact, specs } from '../../../lib/catalog';
 import type { Fact, Locale } from '../../../lib/catalog';
 import { catalog } from '../../../lib/store-catalog';
+import { isValidLook } from '#lib/storefront/sharedLook.ts';
 import { rawAttribute } from '../../../lib/storefront/verify';
 import type { PageLoad } from './$types';
 
@@ -23,6 +24,7 @@ export const load: PageLoad = ({ params, url }) => {
 		getProduct(params.id) ??
 		getProduct(catalog.find(({ id }) => id === params.id)?.catalogId ?? '');
 	if (!product) error(404, 'Product not found');
+	const shelfItem = catalog.find((item) => item.catalogId === product.id)!;
 	const language: Locale = url.searchParams.get('lang') === 'th' ? 'th' : 'en';
 	const requestedTheme = url.searchParams.get('theme');
 	const theme =
@@ -35,15 +37,14 @@ export const load: PageLoad = ({ params, url }) => {
 	const look = url.searchParams.get('look') ?? '';
 	const receiptQuery =
 		url.searchParams.get('view') === 'receipt'
-			? 'view=receipt' +
-				(/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(look)
-					? '&look=' + look
-					: '')
+			? 'view=receipt' + (isValidLook(look) ? '&look=' + look : '')
 			: '';
 	return {
 		receiptQuery,
 		id: product.id,
 		pathId: params.id,
+		photoModel: shelfItem.id,
+		photoCategory: shelfItem.category,
 		category: product.category,
 		language,
 		theme,
@@ -57,6 +58,13 @@ export const load: PageLoad = ({ params, url }) => {
 		reviews: [fact('review.0'), fact('review.1')],
 		summary: fact('summary'),
 		shop: shop && presentFact(shop, language),
+		shopProducts: catalog
+			.filter(
+				(item) =>
+					item.catalogId !== product.id && getProduct(item.catalogId)?.shopId === product.shopId
+			)
+			.sort((a, b) => b.sold - a.sold)
+			.map(({ id, catalogId, category }) => ({ id, catalogId, category })),
 		specs: specs[product.category].flatMap(({ key, label }) => {
 			const value = resolveFact(product.id, `spec.${key}`);
 			return value ? [{ label: label[language], ...presentFact(value, language) }] : [];

@@ -2,8 +2,11 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 
-	let { specs, th }: { specs: PageData['specs']; th: boolean } = $props();
-	let sheet = $state<HTMLDialogElement>();
+	let {
+		specs,
+		th,
+		sheet = $bindable()
+	}: { specs: PageData['specs']; th: boolean; sheet?: HTMLDialogElement } = $props();
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;

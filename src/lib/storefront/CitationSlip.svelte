@@ -33,8 +33,11 @@
 	<section lang={locale} aria-label={locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}>
 		<h2>{locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}</h2>
 		<ul>
-			{#each rows as row}
-				<li><a href={listingHref(row.productId)}><Fact fact={row} /></a></li>
+			{#each rows as row, index (index)}
+				<li>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The caller supplies the resolved listing URL. -->
+					<a href={listingHref(row.productId)}><Fact fact={row} /></a>
+				</li>
 			{/each}
 		</ul>
 	</section>

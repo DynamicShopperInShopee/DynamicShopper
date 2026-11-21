@@ -10,6 +10,7 @@ it('resolves and formats the anchor facts independently in Thai and English', ()
 	const examples = [
 		['price', 690, 'baht', '฿690', '690 บาท'],
 		['originalPrice', 890, 'baht', '฿890', '890 บาท'],
+		['shopRating', 4.8, null, '4.8', '4.8'],
 		['shipping', 50, 'baht', '฿50', '50 บาท'],
 		['spec.capacity', 1.8, 'L', '1.8 L', '1.8 ลิตร'],
 		['spec.warranty', 2, 'yr', '2 yr', '2 ปี']
