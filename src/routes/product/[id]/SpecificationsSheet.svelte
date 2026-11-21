@@ -2,13 +2,23 @@
 	import type { PageData } from './$types';
 
 	let {
-		specs,
+		data,
 		th,
 		sheet = $bindable()
-	}: { specs: PageData['specs']; th: boolean; sheet?: HTMLDialogElement } = $props();
+	}: { data: PageData; th: boolean; sheet?: HTMLDialogElement } = $props();
+	const rows = $derived([
+		{ label: th ? 'สินค้า' : 'Product', ...data.name },
+		...(data.shop ? [{ label: th ? 'ร้านค้า' : 'Seller', ...data.shop }] : []),
+		...data.specs,
+		{ label: th ? 'เกี่ยวกับสินค้า' : 'About this item', ...data.summary }
+	]);
 </script>
 
-<nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>
+<nav
+	class="actions"
+	class:has-specs={data.specs.length > 0}
+	aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}
+>
 	<a href="#reviews">
 		<svg
 			aria-hidden="true"
@@ -38,7 +48,7 @@
 		</svg>
 		{th ? 'รายละเอียด' : 'Details'}
 	</a>
-	{#if specs.length}
+	{#if data.specs.length}
 		<button
 			type="button"
 			aria-controls="product-specifications"
@@ -52,15 +62,26 @@
 		</button>
 	{/if}
 </nav>
-{#if specs.length}
+{#if data.specs.length}
 	<dialog id="product-specifications" bind:this={sheet} aria-labelledby="specs-title">
 		<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
-		<div class="sheet-content">
-			<dl>
-				{#each specs as spec (spec.attributes['data-fact'])}
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the attribute region.) -->
+		<div
+			class="sheet-content"
+			tabindex="0"
+			role="region"
+			aria-label={th ? 'คุณลักษณะสินค้า' : 'Product attributes'}
+		>
+			<dl class="specifications-list">
+				{#each rows as spec (spec.attributes['data-fact'])}
 					<div>
 						<dt>{spec.label}</dt>
-						<dd {...spec.attributes}>{spec.text}</dd>
+						<dd
+							class:figure={Number.isFinite(Number(spec.attributes['data-raw']))}
+							{...spec.attributes}
+						>
+							{spec.text}
+						</dd>
 					</div>
 				{/each}
 			</dl>
@@ -72,7 +93,8 @@
 <style>
 	.actions {
 		position: sticky;
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 0;
 		align-items: stretch;
 		bottom: 0;
@@ -80,9 +102,11 @@
 		background: white;
 		padding-bottom: env(safe-area-inset-bottom);
 	}
+	.actions.has-specs {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+	}
 	.actions button {
-		flex: 2;
-		width: auto;
+		width: 100%;
 		border-radius: 0;
 	}
 	.actions a {
@@ -170,7 +194,7 @@
 	}
 	dl div {
 		display: grid;
-		grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
 		gap: 0.75rem;
 		padding: 0.65rem 0;
 	}
@@ -180,6 +204,12 @@
 	dd {
 		margin: 0;
 		overflow-wrap: anywhere;
+	}
+	dd.figure {
 		font-family: var(--product-figure-font);
+	}
+	.sheet-content:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: -3px;
 	}
 </style>

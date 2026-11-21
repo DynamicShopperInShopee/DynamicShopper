@@ -1187,7 +1187,7 @@
 												/><circle cx="18" cy="18" r="2" />
 											</svg>
 										{/if}
-										<span>{t.shipping}</span>
+										<span class:visually-hidden={eventDemo}>{t.shipping}</span>
 										<span class="leader" aria-hidden="true"></span>
 										<FactValue
 											class="figure"
@@ -1195,6 +1195,14 @@
 											field="shipping"
 											locale={language}
 										/>
+										{#if eventDemo}
+											<FactValue
+												class="shipping-shop"
+												productId={product.catalogId}
+												field="shop"
+												locale={language}
+											/>
+										{/if}
 									</div>
 									<div class="metadata">
 										<span>
@@ -1229,13 +1237,15 @@
 											/>
 										</span>
 									</div>
-									<FactValue
-										tag="p"
-										class="shop"
-										productId={product.catalogId}
-										field="shop"
-										locale={language}
-									/>
+									{#if !eventDemo}
+										<FactValue
+											tag="p"
+											class="shop"
+											productId={product.catalogId}
+											field="shop"
+											locale={language}
+										/>
+									{/if}
 									{#if !eventDemo}
 										{@const reasons =
 											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
@@ -1849,7 +1859,7 @@
 	}
 
 	.event-demo .card-body h3 {
-		font-size: var(--size);
+		font-size: max(0.9375rem, var(--small));
 		line-height: 1.35;
 		font-weight: 400;
 	}
@@ -1937,7 +1947,7 @@
 	}
 
 	.event-demo .card-body {
-		gap: 0.32rem;
+		gap: 0.25rem;
 		padding: 0.45rem 0.5rem 0.6rem;
 	}
 	.event-demo .card-body h3 {
@@ -1971,5 +1981,14 @@
 	}
 	.event-demo .card-body :global(.shop) {
 		order: 3;
+	}
+	.shipping :global(.shipping-shop) {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		border-inline-start: 1px solid var(--seam);
+		padding-inline-start: 0.35rem;
 	}
 </style>

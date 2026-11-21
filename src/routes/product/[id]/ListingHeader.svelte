@@ -1,10 +1,35 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
 	let { data, hero }: { data: PageData; hero?: HTMLElement } = $props();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
 	let backLink: HTMLAnchorElement;
+	let inDetails = $state(false);
+	let actionsHeight = $state(50);
+	$effect(() => {
+		if (!hero) return;
+		const main = hero.closest('main');
+		const details = main?.querySelector('#details');
+		const actions = main?.querySelector('nav.actions');
+		if (!details || !actions) return;
+		const visibility = new IntersectionObserver(
+			([entry]) => {
+				inDetails = entry.isIntersecting;
+			},
+			{ rootMargin: '-60px 0px -120px' }
+		);
+		const size = new ResizeObserver(() => {
+			actionsHeight = actions.getBoundingClientRect().height;
+		});
+		visibility.observe(details);
+		size.observe(actions);
+		return () => {
+			visibility.disconnect();
+			size.disconnect();
+		};
+	});
 	$effect(() => {
 		if (!hero) return;
 		const observer = new IntersectionObserver(
@@ -18,7 +43,7 @@
 	});
 </script>
 
-<header data-over-hero={overHero}>
+<header data-over-hero={overHero} style:--listing-actions-height={actionsHeight + 'px'}>
 	<a
 		class="back"
 		bind:this={backLink}
@@ -56,6 +81,9 @@
 		</svg>
 		<span>{th ? 'ค้นหาสินค้า' : 'Search products'}</span>
 	</a>
+	{#key data.id + data.language + data.theme}
+		<ListingShare {data} {overHero} showStrip={inDetails && !overHero} />
+	{/key}
 	<a
 		class="language"
 		href={resolve(
@@ -72,6 +100,8 @@
 	<button
 		type="button"
 		class="back-to-top"
+		class:above-share={inDetails}
+		style:--listing-actions-height={actionsHeight + 'px'}
 		aria-label={th ? 'กลับขึ้นด้านบน' : 'Back to top'}
 		onclick={() => {
 			window.scrollTo({ top: 0, behavior: 'instant' });
@@ -135,7 +165,7 @@
 			place-items: center;
 			position: fixed;
 			inset-inline-end: 0.65rem;
-			bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+			bottom: calc(var(--listing-actions-height) + 0.65rem);
 			z-index: 1;
 			width: var(--tap, 44px);
 			height: var(--tap, 44px);
@@ -144,6 +174,9 @@
 			background: #fff;
 			color: var(--accent, #16161a);
 			cursor: pointer;
+		}
+		.back-to-top.above-share {
+			bottom: calc(var(--listing-actions-height) + var(--tap, 44px) + 0.65rem);
 		}
 		.back-to-top:focus-visible {
 			outline: 2px solid currentColor;

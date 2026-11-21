@@ -43,7 +43,7 @@
 			<ProductSummary {data} />
 		</div>
 		<ProductDescription {data} {openSpecifications} />
-		<SpecificationsSheet specs={data.specs} {th} bind:sheet />
+		<SpecificationsSheet {data} {th} bind:sheet />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />
 </main>
