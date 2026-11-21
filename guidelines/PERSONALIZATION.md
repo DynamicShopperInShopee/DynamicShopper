@@ -1,5 +1,23 @@
 # Personalization
 
+## Interview before chat
+
+Accepted: the default marketplace offers an optional short interview, followed by
+chat refinement. Every question is optional; drafts never alter the shelf. Apply
+uses the existing validated plan and records one undo step, including the prior
+interview answers. Search, category, budget, cooker capacity and explicit sorting
+remain intact. Reset removes the interview and restores the default view.
+
+The local synthetic-trained CNN chooses allowlisted layout, information and section
+recipes and may suggest an unlocked theme. Reading density, an explicit large-text
+choice and ranking priorities follow the answers directly. Theme-picker selections
+remain protected. Later chat requests can refine the applied proposal through the
+existing interpretation and validation pipeline. Missing answers or failed model
+inference use direct mappings. No real shopper preference accuracy is claimed.
+
+Proposed: evaluate interview completion, corrections and task success with shoppers
+before treating learned suggestions as an improvement over direct controls.
+
 ## The plan
 
 The plan is the complete description of how one shopper's store looks. It is small, readable and fully enumerable, which is what makes it safe to hand to an AI.

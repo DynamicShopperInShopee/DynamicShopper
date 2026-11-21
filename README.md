@@ -19,6 +19,37 @@ See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.m
 
 The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The mobile storefront is the default at `/`. Its shopping assistant link opens the adaptive receipt view at `/?view=receipt`.
 
+The default storefront also offers **Start a quick interview**. Answer or skip each
+question, review the proposed view, then select **Apply my view**. The existing
+catalog shelf becomes an adaptive receipt view in place. Search, category, capacity,
+budget and explicit sort remain in effect. **Refine this view in chat** focuses the
+existing offline assistant; Undo restores the preceding view and interview answers.
+Closing the interview discards the draft.
+
+The interview runs an exported synthetic-trained CNN locally, without a model API
+or web ML dependency. It proposes allowlisted layout, information, sections and an
+unlocked theme. Reading settings and priorities follow explicit answers. Partial
+answers, disabled inference and inference errors retain the direct-answer path.
+This demonstrates a working interaction, not measured preference accuracy with
+real shoppers. Catalog facts and the voucher optimizer are unchanged.
+
+Focused validation: `bun run test:unit --run --project server src/lib/personalization/interview.spec.ts`.
+The interview browser journeys are in `src/routes/interview.e2e.ts`; after a
+production build, `npx playwright test -c playwright.interview.config.ts` uses
+installed Chrome and an isolated preview port.
+
+Validation of this integration on 2026-11-21: the Node production build, Cloudflare
+build, targeted lint and 32 targeted unit tests pass. Interactive browser checks
+confirmed marketplace → interview → large-print comparison → offline chat list
+refinement → Undo to comparison → Undo to marketplace. Desktop (1440×900) and
+phone (390×844) default storefronts and the mobile interview were inspected
+without page overflow; skipping every question leaves the marketplace unchanged.
+The automated browser
+journeys are authored but were not executed in this session. Full Svelte check
+still reports the two pre-existing `personalization/contract.spec.ts` errors:
+missing `applyTurn` and the missing `contract-sample` fixture; no new diagnostics
+were reported. This is a local integration, not a deployed release.
+
 ## Optional local OpenAI test
 
 Put your API key in the ignored `.env` file as `OPENAI_API_KEY`. Keep the tracked example blank. `OPENAI_MODEL` can select a model available to your API project and defaults to `gpt-5-mini`.

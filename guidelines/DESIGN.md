@@ -1,5 +1,24 @@
 # Design system: "The Thermal Receipt"
 
+## Default marketplace exception
+
+Accepted at the user's explicit request: the default storefront uses a familiar
+orange shopping header, DynamicShopper identity, search, category controls and a
+photo grid. This styling is scoped to `event-demo`; personalized receipt themes
+retain their existing tokens and proof surfaces. No Shopee mark, invented
+promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries only
+large bold white brand text; the darker action/price ink `#b5321a` supports normal
+text on white. The interview entry remains a compact optional strip.
+
+## Interview transition
+
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip, then a proposed
+view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+the visible chat-refinement button focuses the existing assistant. No animation is
+required. Large print keeps single-column answers, 20px text and 48px targets.
+
 ## North star
 
 > The store may rearrange itself; every number prints like a receipt you can check.

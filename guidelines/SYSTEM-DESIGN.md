@@ -1,5 +1,21 @@
 # System design
 
+## Browser interview integration
+
+The optional storefront interview runs exported Conv1d and dense weights locally.
+Only allowlisted answer IDs enter inference; product facts never enter the network.
+Independent categorical heads expand to fixed layout, details and section recipes;
+invalid heads retain their direct-answer fallback independently. The existing
+proposal validator checks the final patch. A complete interview may also suggest
+an unlocked theme; explicit reading settings and priorities remain deterministic.
+
+Apply preserves current filters and writes one plan/history entry before revealing
+the existing adaptive receipt renderer. Undo restores both plan and interview
+metadata. The same catalog, deterministic ranking and optimizer serve this view;
+no separate pricing or product data path is introduced. The optional local live
+assistant remains development-only, while the interview and chat fallback work
+without network access after loading.
+
 ## The central decision: split presentation from facts
 
 Everything in the system follows from one split.

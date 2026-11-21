@@ -28,7 +28,8 @@ Everyone who shapes DynamicShopper, human or AI, should keep these rules. They p
 - Thai and English are equal: every string exists in both, written for each language.
 - The store stays usable after any message: readable, navigable, never blank.
 - Green and red mean state only. A stamp appears only where a check ran and passed.
-- New proof surfaces look like receipt slips. No shadows, gradients, badges, banners or marketplace chrome. No Shopee marks.
+- New proof surfaces look like receipt slips, with no shadows, gradients, badges or sale banners. Personalized receipt themes keep this visual system.
+- At the user's explicit request, the default marketplace storefront may use an orange shopping header, category/sort controls and a photo grid. This exception is scoped to the default storefront; keep DynamicShopper identity, no Shopee marks, and no invented offers or product facts.
 - Every theme meets WCAG AA; large print keeps 20px text and 48px targets; reduced motion means no motion.
 - Every screen works at laptop (1440×900) and phone (390×844) size with no sideways scroll.
 
