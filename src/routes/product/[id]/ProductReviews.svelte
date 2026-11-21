@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import closedCooker from '../../../lib/assets/products/cooker-one-button.jpg';
+	import closedCooker from '../../../lib/assets/products/cooker-intro.jpg';
 	import openCooker from '../../../lib/assets/products/cooker-open-detail.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 	import overview from '../../../lib/assets/products/cooker-overview.mp4';
@@ -249,6 +249,9 @@
 		aspect-ratio: 1;
 		object-fit: cover;
 		display: block;
+	}
+	.thumbnails a[href='#cooker-exterior'] img {
+		object-position: center bottom;
 	}
 	.review-search {
 		display: flex;

@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { carrySearchToListing, readSearchSelection } from '../../search-navigation';
 	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
 	let { data, hero }: { data: PageData; hero?: HTMLElement } = $props();
@@ -8,6 +11,22 @@
 	let backLink: HTMLAnchorElement;
 	let inDetails = $state(false);
 	let actionsHeight = $state(50);
+	carrySearchToListing(() => readSearchSelection(page.state.storeSearch));
+	function returnToShelf(event: MouseEvent) {
+		const selection = readSearchSelection(page.state.storeSearch);
+		if (
+			!selection ||
+			data.receiptQuery ||
+			event.button !== 0 ||
+			event.metaKey ||
+			event.ctrlKey ||
+			event.shiftKey ||
+			event.altKey
+		)
+			return;
+		event.preventDefault();
+		void goto(resolve('/'), { state: { storeSearch: selection } });
+	}
 	$effect(() => {
 		if (!hero) return;
 		const main = hero.closest('main');
@@ -22,12 +41,14 @@
 		);
 		const size = new ResizeObserver(() => {
 			actionsHeight = actions.getBoundingClientRect().height;
+			main?.style.setProperty('--listing-actions-height', actionsHeight + 'px');
 		});
 		visibility.observe(details);
 		size.observe(actions);
 		return () => {
 			visibility.disconnect();
 			size.disconnect();
+			main?.style.removeProperty('--listing-actions-height');
 		};
 	});
 	$effect(() => {
@@ -48,6 +69,7 @@
 		class="back"
 		bind:this={backLink}
 		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		onclick={returnToShelf}
 		aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
 	>
 		<svg
@@ -66,6 +88,7 @@
 	<a
 		class="header-search"
 		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		onclick={returnToShelf}
 		aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}
 	>
 		<svg

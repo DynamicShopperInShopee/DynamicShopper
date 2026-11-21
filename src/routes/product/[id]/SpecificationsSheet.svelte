@@ -117,7 +117,7 @@
 		align-items: center;
 		border-inline-end: 1px solid #e9e6dc;
 		min-height: 48px;
-		padding: 0 0.4rem;
+		padding: 0 0.125rem;
 		color: inherit;
 		text-align: center;
 		text-decoration: none;

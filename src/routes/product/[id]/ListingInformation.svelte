@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import closedCooker from '../../../lib/assets/products/cooker-one-button.jpg';
+	import introCooker from '../../../lib/assets/products/cooker-intro.jpg';
+	import ProductSpecificationTiles from './ProductSpecificationTiles.svelte';
 	import openCooker from '../../../lib/assets/products/cooker-open-detail.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 
@@ -47,15 +48,19 @@
 		{#if data.id === 'cooker-one-button'}
 			<div class="story">
 				<figure id="cooker-exterior">
-					<figcaption class="name" {...data.name.attributes}>{data.name.text}</figcaption>
+					<figcaption class="intro-caption">
+						<h3 {...data.name.attributes}>{data.name.text}</h3>
+						<p {...data.summary.attributes}>{data.summary.text}</p>
+					</figcaption>
 					<img
-						src={closedCooker}
+						src={introCooker}
 						alt={th ? 'หม้อหุงข้าวสีขาวบนเคาน์เตอร์ครัว' : 'White rice cooker on a kitchen counter'}
-						width="1254"
-						height="1254"
+						width="700"
+						height="1050"
 						loading="lazy"
 					/>
 				</figure>
+				<ProductSpecificationTiles specs={data.specs} {th} />
 				<figure id="cooker-capacity">
 					{#if capacity}
 						<figcaption>
@@ -73,7 +78,7 @@
 					/>
 				</figure>
 				<figure id="cooker-switch">
-					<figcaption {...data.summary.attributes}>{data.summary.text}</figcaption>
+					<figcaption>{th ? 'สวิตช์ด้านหน้า' : 'Front switch'}</figcaption>
 					<img
 						src={cookerSwitch}
 						alt={th
@@ -85,45 +90,32 @@
 					/>
 				</figure>
 			</div>
-		{:else}
+		{:else if !data.specs.length}
 			<p {...data.summary.attributes}>{data.summary.text}</p>
 		{/if}
 		{#if data.specs.length}
 			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
-			<dl class:feature-grid={data.id === 'cooker-one-button'}>
+			<p class="text-summary" {...data.summary.attributes}>{data.summary.text}</p>
+			<dl class="information">
+				<div>
+					<dt>{th ? 'สินค้า' : 'Product'}</dt>
+					<dd {...data.name.attributes}>{data.name.text}</dd>
+				</div>
+				{#if data.shop}
+					<div>
+						<dt>{th ? 'ร้านค้า' : 'Seller'}</dt>
+						<dd {...data.shop.attributes}>{data.shop.text}</dd>
+					</div>
+				{/if}
 				{#each data.specs as spec (spec.attributes['data-fact'])}
 					<div>
-						<dt>
-							{#if data.id === 'cooker-one-button'}
-								<svg
-									width="32"
-									height="32"
-									viewBox="0 0 32 32"
-									stroke="currentColor"
-									fill="none"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="1.5"
-									aria-hidden="true"
-								>
-									{#if spec.attributes['data-fact'] === 'spec.capacity'}
-										<path d="M4 10h24l-3 14H7zM7 26h18M9 13h5m-5 4h3" />
-									{:else if spec.attributes['data-fact'] === 'spec.power'}
-										<path d="m18 3-12 16h9l-1 10 12-17h-9z" />
-									{:else if spec.attributes['data-fact'] === 'spec.programs'}
-										<path
-											d="M4 15h24M6 16v7q0 3 3 3h14q3 0 3-3v-7M8 12q8-7 16 0M14 8h4M11 6l1-3m6 3 1-3"
-										/>
-									{:else}
-										<path
-											d="M16 3c4 3 8 4 11 4v9c0 7-8 11-11 13C12 27 5 23 5 16V7c4 0 8-2 11-4zM11 16l4 4 7-8"
-										/>
-									{/if}
-								</svg>
-							{/if}
-							{spec.label}
-						</dt>
-						<dd {...spec.attributes}>{spec.text}</dd>
+						<dt>{spec.label}</dt>
+						<dd
+							class:figure={Number.isFinite(Number(spec.attributes['data-raw']))}
+							{...spec.attributes}
+						>
+							{spec.text}
+						</dd>
 					</div>
 				{/each}
 			</dl>
@@ -185,7 +177,7 @@
 		margin: 0;
 		background: #efeeed;
 	}
-	figure:nth-child(2) {
+	#cooker-capacity {
 		background: #f6f6f4;
 	}
 	figcaption {
@@ -195,10 +187,6 @@
 		font-weight: 600;
 		line-height: 1.35;
 		color: #444;
-	}
-	figcaption.name {
-		padding-block-start: 2.5em;
-		font-size: 1.55em;
 	}
 	figcaption strong {
 		font-family: var(--product-figure-font);
@@ -231,25 +219,42 @@
 			margin-inline: auto;
 		}
 	}
-	.feature-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 2px;
-		max-width: 36rem;
-		margin-inline: auto;
+	#cooker-exterior {
+		position: relative;
 	}
-	.feature-grid div {
-		display: block;
-		background: #f6f6f4;
-		text-align: center;
-		padding: 1.1rem 0.6rem;
+	.intro-caption {
+		position: absolute;
+		top: 6%;
+		inset-inline: 5%;
+		padding: 0;
+		text-align: start;
 	}
-	.feature-grid dt {
-		display: grid;
-		justify-items: center;
-		gap: 0.3rem;
+	.intro-caption h3 {
+		margin: 0;
+		font-size: max(1.5rem, var(--action-font-floor, 0rem));
+		font-weight: 600;
+		line-height: 1.35;
 	}
-	.feature-grid dd {
-		font-weight: 700;
+	.intro-caption p {
+		border-top: 1px solid #858172;
+		padding-top: 1rem;
+		margin-top: 1.2rem;
+		font-size: max(1rem, var(--action-font-floor, 0rem));
+		font-weight: 400;
+		line-height: 1.5;
+	}
+	.information {
+		color: #555;
+	}
+	.information dd {
+		font-family: inherit;
+	}
+	.information dd.figure {
+		font-family: var(--product-figure-font);
+	}
+	.text-summary {
+		margin: 0 0 1rem;
+		color: #555;
+		line-height: 1.6;
 	}
 </style>

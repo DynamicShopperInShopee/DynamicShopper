@@ -9,7 +9,7 @@ test('keeps legacy links and shows the canonical cooker in both languages', asyn
 	);
 	await expect(page.locator('[data-fact="review.0"]')).toHaveText('แม่ใช้เองได้ ไม่ต้องคอยช่วย');
 	await expect(page.locator('[data-fact="review.1"]')).toBeVisible();
-	await expect(page.locator('#details [data-fact="summary"]')).toBeVisible();
+	await expect(page.locator('#details .text-summary')).toBeVisible();
 	await expect(page.locator('[data-fact="reviewCount"]')).toHaveText('2,840');
 	await expect(page.locator('[data-fact="reviewCount"]')).toHaveAttribute('data-raw', '2840');
 	await page.getByRole('button', { name: 'สเปกสินค้า' }).click();

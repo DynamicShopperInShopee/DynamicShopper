@@ -1,6 +1,8 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
+	import { afterNavigate, snapshot } from '$app/navigation';
+	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick } from 'svelte';
@@ -412,6 +414,44 @@
 			(category === 'cooker' ||
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
 	);
+	function captureSearch() {
+		return eventDemo
+			? {
+					category,
+					language,
+					sort,
+					query,
+					draftQuery,
+					maxPrice,
+					freeShipping,
+					capacity,
+					scrollY: Math.max(0, Math.round(window.scrollY))
+				}
+			: undefined;
+	}
+	function restoreSearch(input: unknown) {
+		const selection = readSearchSelection(input);
+		if (!eventDemo || !selection) return;
+		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
+		draftPrice = maxPrice;
+		draftShipping = freeShipping;
+		if (selection.scrollY !== undefined) {
+			const offset = selection.scrollY;
+			void tick().then(async () => {
+				await document.fonts.ready;
+				await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+				if (page.route.id !== '/') return;
+				const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+				window.scrollTo({ top: Math.min(offset, maxScroll), behavior: 'instant' });
+			});
+		}
+	}
+	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
+	carrySearchToListing(captureSearch);
+	afterNavigate(({ from, type }) => {
+		if (type !== 'popstate' && from?.route.id === '/product/[id]')
+			restoreSearch(page.state.storeSearch);
+	});
 	const selectedCapacityProduct = $derived(
 		cookerSearch && capacity !== undefined
 			? canonical.find(
@@ -579,6 +619,7 @@
 			<label class="visually-hidden" for="search">{t.search}</label>
 			<input
 				id="search"
+				maxlength={eventDemo ? searchLimit : undefined}
 				type="search"
 				placeholder={category !== 'all' ? categories[category][language] : t.searchHint}
 				bind:value={draftQuery}
@@ -1743,6 +1784,8 @@
 	}
 
 	.event-demo {
+		/* The sticky filters change height after scrolling. Keep the shelf offset stable. */
+		overflow-anchor: none;
 		--paper: #f5f5f5;
 
 		--seam: #e4e4e4;
