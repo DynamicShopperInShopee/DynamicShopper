@@ -103,7 +103,7 @@
 	let maxPrice = $state<number>();
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
-	let filterDialog: HTMLDialogElement;
+	let filterDialog = $state<HTMLDialogElement>();
 	const eventDemo = $derived(page.url.searchParams.get('demo') === 'shopee');
 
 	const t = $derived(copy[language]);
@@ -119,7 +119,7 @@
 		event.preventDefault();
 		maxPrice = draftPrice;
 		freeShipping = draftShipping;
-		if (eventDemo) filterDialog.close();
+		if (eventDemo) filterDialog?.close();
 	}
 
 	function clearFilters() {
@@ -225,7 +225,7 @@
 					onclick={() => {
 						draftPrice = maxPrice;
 						draftShipping = freeShipping;
-						filterDialog.showModal();
+						filterDialog?.showModal();
 					}}
 				>
 					<svg
@@ -262,7 +262,9 @@
 					type="button"
 					aria-label={sort === 'price-low' ? t['price-high'] : t['price-low']}
 					class:active={sort === 'price-low' || sort === 'price-high'}
-					aria-description={sort === 'price-low' || sort === 'price-high' ? t[sort] : undefined}
+					aria-describedby={sort === 'price-low' || sort === 'price-high'
+						? 'price-sort-direction'
+						: undefined}
 					onclick={() => (sort = sort === 'price-low' ? 'price-high' : 'price-low')}
 				>
 					{t.price}
@@ -278,6 +280,9 @@
 						{#if sort !== 'price-low'}<path d="m4 9 4 4 4-4" />{/if}
 					</svg>
 				</button>
+				{#if sort === 'price-low' || sort === 'price-high'}
+					<span id="price-sort-direction" class="visually-hidden">{t[sort]}</span>
+				{/if}
 			</div>
 		{/if}
 
@@ -387,7 +392,7 @@
 					<button
 						type="button"
 						aria-label={language === 'th' ? 'ปิด' : 'Close'}
-						onclick={() => filterDialog.close()}
+						onclick={() => filterDialog?.close()}
 					>
 						<svg
 							viewBox="0 0 16 16"
