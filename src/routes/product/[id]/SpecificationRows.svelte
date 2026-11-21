@@ -36,6 +36,6 @@
 	}
 	dd {
 		margin: 0;
-		font-family: 'IBM Plex Mono', ui-monospace, monospace;
+		font-family: var(--product-figure-font);
 	}
 </style>

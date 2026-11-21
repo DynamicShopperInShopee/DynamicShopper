@@ -213,4 +213,6 @@ The default storefront at `/` follows the approved Shopee Thailand mobile screen
 
 The product detail route uses a square product illustration, with a locally bundled hero scene showing the same simulated one-button cooker as the grid, a catalog-backed price and shipping summary, and a specification slip opened from the action bar anchored at the bottom of the phone viewport. The price row groups the current price, previous price and sold count. Rice cooker listings preview catalog capacity and warranty before the title. On phones the illustration is full width, the back, search and language controls sit over the illustration and switch to a white search bar after the illustration scrolls out of view, and specifications open in a tall bottom sheet with a scrollable list and a pinned confirmation button. On desktop the illustration and details sit side by side.
 
+The listing price uses bold, tightly tracked Plex Mono. The listing and specification sheet use Plex Sans Thai for the baht symbol and Thai units that Plex Mono does not cover.
+
 Below the price and delivery summary, the product route shows available catalog review excerpts, the seller, and product details with the catalog specifications also shown in the sheet. The bottom action bar links to reviews and product details and opens the specification sheet when that data exists.

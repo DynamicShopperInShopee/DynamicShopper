@@ -155,6 +155,7 @@
 
 <style>
 	main {
+		--product-figure-font: 'IBM Plex Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 		max-width: 72rem;
 		margin: auto;
 		padding: 0 0 2rem;
@@ -233,7 +234,7 @@
 	}
 	dd {
 		margin: 0;
-		font-family: 'IBM Plex Mono', ui-monospace, monospace;
+		font-family: var(--product-figure-font);
 	}
 	section {
 		min-width: 0;
@@ -280,6 +281,8 @@
 	.prices dd[data-fact='price'] {
 		font-size: 1.7rem;
 		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
 	}
 	.facts {
 		border: 0;
@@ -406,7 +409,6 @@
 		}
 		.prices dd[data-fact='price'] {
 			font-size: 1.375rem;
-			font-weight: 400;
 		}
 		.prices s,
 		.prices .sold {

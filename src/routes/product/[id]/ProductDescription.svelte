@@ -75,7 +75,7 @@
 		align-items: baseline;
 	}
 	.rating strong {
-		font-family: 'IBM Plex Mono', ui-monospace, monospace;
+		font-family: var(--product-figure-font);
 		font-size: 1.4rem;
 	}
 	blockquote {
