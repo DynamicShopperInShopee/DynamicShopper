@@ -69,8 +69,8 @@ were not executed in this verification run.
 ## Failure and rollback
 
 Do not publish if the remote count, checksum or source facts differ. An import
-failure leaves the UI using its validated saved catalog or a clearly labeled
-starter fallback; it must never claim the new snapshot is complete.
+failure leaves the previous database snapshot in place. If the API is unavailable,
+the storefront identifies the bundled release catalog and displays its observation date.
 
 If a previously deployed Worker version exists and the release causes API
 errors, roll back that Worker version. Restore catalog data only from its

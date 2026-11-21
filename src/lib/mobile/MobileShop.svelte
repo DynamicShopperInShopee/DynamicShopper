@@ -10,9 +10,9 @@
 	import PartsLibrary from './PartsLibrary.svelte';
 	import { tick, onMount } from 'svelte';
 	import { describePatch, type Answers } from '../personalization/interview';
-	import { listings, shopSource, retrieved } from './shop-data';
 	import type { ShopListing, CatalogSnapshot } from '../catalog-api/types';
-	import { fetchCatalogSnapshot, readCatalogCache, writeCatalogCache } from '../catalog-api/client';
+	import { fetchCatalogSnapshot } from '../catalog-api/client';
+	import { reviewedCatalog } from '../catalog-api/reviewed-catalog';
 	import {
 		initialView,
 		visibleListings,
@@ -29,29 +29,9 @@
 	let saved = $state<string[]>([]);
 	let tab = $state('shop');
 	let sheet = $state<'assistant' | 'product' | 'interview' | 'filters' | null>(null);
-	const starterCategories = [...new Set(listings.map((item) => item.category))].map((id) => ({
-		id,
-		name:
-			id === 'laundry'
-				? { en: 'Laundry care', th: 'ดูแลเสื้อผ้า' }
-				: id === 'dishes'
-					? { en: 'Kitchen care', th: 'ดูแลครัว' }
-					: { en: id, th: id },
-		count: listings.filter((item) => item.category === id).length
-	}));
-	let catalog = $state<CatalogSnapshot>({
-		items: listings,
-		categories: starterCategories,
-		snapshot: {
-			id: 'starter-seven',
-			source: shopSource,
-			observedAt: retrieved,
-			importedAt: retrieved,
-			total: listings.length
-		}
-	});
-	let catalogStatus = $state<'loading' | 'backend' | 'cached' | 'fallback'>('loading');
-	let focus = $state<ShopListing>(listings[0]);
+	let catalog = $state.raw<CatalogSnapshot>(reviewedCatalog);
+	let catalogStatus = $state<'loading' | 'backend' | 'bundled'>('loading');
+	let focus = $state<ShopListing>(reviewedCatalog.items[0]);
 	let message = $state('');
 	let budget = $state<number | undefined>();
 	let chat = $state<{ role: 'user' | 'assistant'; text: string }[]>([]);
@@ -65,15 +45,6 @@
 		const route = new URL(window.location.href).searchParams.get('view');
 		comparisonOpen = route === 'interviews';
 		libraryOpen = route === 'parts';
-		try {
-			const cached = readCatalogCache(window.localStorage);
-			if (cached) {
-				catalog = cached;
-				catalogStatus = 'cached';
-			}
-		} catch {
-			/* Browser storage may be disabled. */
-		}
 		const request = new AbortController();
 		const timeout = setTimeout(() => request.abort(), 8000);
 		let active = true;
@@ -82,14 +53,9 @@
 				if (!active) return;
 				catalog = next;
 				catalogStatus = 'backend';
-				try {
-					writeCatalogCache(window.localStorage, next);
-				} catch {
-					/* Optional offline cache. */
-				}
 			})
 			.catch(() => {
-				if (active && catalogStatus !== 'cached') catalogStatus = 'fallback';
+				if (active) catalogStatus = 'bundled';
 			})
 			.finally(() => clearTimeout(timeout));
 		return () => {
@@ -128,14 +94,9 @@
 	const catalogMessage = $derived(
 		catalogStatus === 'backend'
 			? t('Catalog loaded', 'โหลดข้อมูลสินค้าแล้ว')
-			: catalogStatus === 'cached'
-				? t('Saved offline catalog', 'ข้อมูลสินค้าที่บันทึกไว้สำหรับออฟไลน์')
-				: catalogStatus === 'loading'
-					? t('Loading full catalog…', 'กำลังโหลดข้อมูลสินค้าทั้งหมด…')
-					: t(
-							'Showing the starter catalog; full catalog unavailable.',
-							'แสดงรายการเริ่มต้น ยังโหลดข้อมูลสินค้าทั้งหมดไม่ได้'
-						)
+			: catalogStatus === 'loading'
+				? t('Checking the catalog service…', 'กำลังตรวจสอบข้อมูลจากบริการแค็ตตาล็อก…')
+				: t('Bundled catalog', 'แค็ตตาล็อกที่มาพร้อมแอป')
 	);
 	const interviewChanges = $derived(
 		describePatch(

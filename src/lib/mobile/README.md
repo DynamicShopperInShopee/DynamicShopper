@@ -1,7 +1,7 @@
 # Sourced marketplace shopping prototype
 
 Run `npm run dev:shopping` and open http://127.0.0.1:5176 for the standalone
-preview. Without a catalog service, it shows a labeled starter set. For the
+preview. Without a catalog service, it uses the reviewed catalog bundled with the app. For the
 local SQLite catalog and original images, follow the
 [dataset guide](../../../catalogs/shopee-2026-11-21/README.md), start
 `npm run dev:catalog` in another terminal, and reload the preview. The
@@ -118,13 +118,13 @@ references from the synthetic catalog into the real shop UI.
 
 The shop loads `GET /api/catalog/snapshot` once. The backend catalog is the
 source of facts: local SQLite or cloud D1 behind the same read-only API. The
-browser does not bundle the expanded catalog. Main shop,
-three interview comparisons and parts previews share that fetched snapshot.
-A validated copy is saved in browser storage for offline search and local CNN
-presentation changes. Saved state is revalidated on every read, including
-shop/item IDs, matching source links, image provenance, prices, dates and group
-counts. If both backend and saved copy are unavailable, the UI explicitly labels
-the seven-item starter fallback; it never displays a fabricated expanded count.
+browser starts from the reviewed release catalog bundled with the app. Main shop,
+interview comparisons and parts previews share the same snapshot. If the API is
+unavailable, the full bundled catalog supports search and local CNN presentation
+changes, including on the first visit to a locally served shop. The current API
+response is validated for shop/item IDs, source URLs, original image provenance,
+prices, dates and group counts. Listing facts are never restored from browser
+storage.
 
 Search, group filters and budget filters operate on the complete loaded snapshot.
 Grid, list and comparison table then render the same page of up to 24 products.
@@ -137,7 +137,7 @@ unknown, and unknown prices are excluded from budget results. Prices and any
 source qualifications remain attached to their original records.
 
 The page reports the actual catalog count, observation date and whether it loaded
-from the API, saved offline data or the starter fallback. This is an observation
+from the API or the bundled release. This is an observation
 snapshot, not a promise of current checkout prices, stock, ratings or shipping.
 Original names and photos are retained; an untranslated source name is not
 replaced with an invented English name. Cloud publication uses the same dated
@@ -145,7 +145,7 @@ observations and does not enable automatic ingestion or price refresh. The CNN
 and keyword refinement remain local browser operations; cloud delivery does not
 complete the separate production-agent or checkout integration.
 
-## Starter fallback source observations
+## Earlier starter source observations
 
 Retrieved through cached public Shopee pages on 2026-11-21, not a live API.
 All seven listings belong to [unilever_householdcare](https://shopee.co.th/shop/58418206).
@@ -203,9 +203,9 @@ UI and do not verify the new Finish interview interaction:
   catalog, with identical prices for all 24 products on the displayed page.
 - English carbon-blue, large-print and minimal/table views fit a 390px phone.
   The checked large-print prices render at 20px.
-- With the actual catalog server stopped, reloading retains all 1,500 cached
-  records; searching GameSir returns the same 21 products. Restarting the
-  server restores the loaded-catalog status without another import.
+- An earlier browser-storage implementation retained 1,500 records across a
+  reload with the local server stopped. The current release uses the bundled
+  observations for this path.
 
 These are focused checks, not an exhaustive accessibility or network-off audit.
 Offline photographs require an existing browser HTTP cache; the browser does
@@ -213,7 +213,7 @@ not preload all 1,500 photographs. Evidence is saved as
 `preview/evidence/backend-catalog-*.jpg`.
 
 Targeted catalog-client tests cover a synthetic 1,500-record boundary fixture,
-full-snapshot search, all-page traversal, cache rejection, provenance binding,
+full-snapshot search, all-page traversal, source link validation,
 unknown prices and identical raw prices in the three 24-item shelf layouts.
 These synthetic fixtures are test-only and never enter the storefront catalog.
 Engine, interview and CNN checks remain separate from imported-record validation.
@@ -264,7 +264,7 @@ Apply-flow screenshots and tests cannot establish that the revised flow passes.
   and applying a comparison example; the shopper describes needs through the
   interview and the system selects presentation.
 - Deferred: full shared Owner 2 contract integration in this local adapter.
-- Accepted: persisted backend observations with a validated offline browser cache.
+- Accepted: persisted backend observations with a reviewed release snapshot bundled for offline use.
 - Accepted: a separate cloud catalog Worker, D1 persistence and original image
   assets serving the same UI/API contract; no public product-write endpoint.
 - Deferred: continuous ingestion, checkout calculation and production agent integration.

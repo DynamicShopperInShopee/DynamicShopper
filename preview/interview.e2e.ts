@@ -1,10 +1,14 @@
+import versionedCatalog from '../catalogs/shopee-2026-11-21/catalog.json' with { type: 'json' };
 import { test, expect, type Page } from '@playwright/test';
 
 async function start(page: Page, english = true) {
 	await page.goto('/');
-	await expect(page.locator('.catalog-status')).not.toContainText(/Loading full|กำลังโหลด/, {
-		timeout: 12_000
-	});
+	await expect(page.locator('.catalog-status')).not.toContainText(
+		/Checking the catalog|กำลังตรวจสอบ/,
+		{
+			timeout: 12_000
+		}
+	);
 	if (english) await page.getByRole('button', { name: 'EN', exact: true }).click();
 }
 async function begin(page: Page) {
@@ -222,4 +226,28 @@ test('three examples demonstrate CNN outcomes without selecting or changing the 
 	await expect(page.locator('.phone.marketplace')).toBeVisible();
 	await expect(page.locator('.interview-receipt')).toHaveCount(0);
 	await noOverflow(page);
+});
+
+test('shows reviewed offline prices even with a conflicting saved browser catalog', async ({
+	page
+}) => {
+	const first = versionedCatalog.items[0];
+	const staleItem = { ...first, price: first.price + 1 };
+	const group = versionedCatalog.categories.find((group) => group.id === first.category)!;
+	const stored = {
+		items: [staleItem],
+		categories: [{ ...group, count: 1 }],
+		snapshot: { ...versionedCatalog.snapshot, total: 1 }
+	};
+	await page.addInitScript((snapshot) => {
+		localStorage.setItem('dynamicshopper.catalog.v1', JSON.stringify(snapshot));
+	}, stored);
+	await page.route('**/api/catalog/**', (route) => route.abort());
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('1,500');
+	await expect(page.locator('.catalog-status')).toContainText('Bundled catalog');
+	await expect(page.locator(`[data-fact-key="${first.id}:shopPrice"]`).first()).toHaveAttribute(
+		'data-raw',
+		String(first.price)
+	);
 });

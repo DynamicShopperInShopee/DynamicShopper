@@ -8,7 +8,7 @@
 
 The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront keeps its own preview and Apply flow.
 
-Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. A local read-only API and a separate catalog Worker can serve the same records. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../deploy/catalog/README.md).
+The reviewed versioned catalog ships with the preview for offline browsing and local CNN changes. Browser storage never supplies listing facts. Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. A local read-only API and a separate catalog Worker can serve the same records. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../deploy/catalog/README.md).
 
 ## The problem
 

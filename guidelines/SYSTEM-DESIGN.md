@@ -18,7 +18,7 @@ without network access after loading.
 
 ## Standalone sourced catalog
 
-The standalone preview and its local SQLite service and separate Cloudflare Worker share a read-only catalog interface. The checked-in snapshot records original listing links, whole-baht values and observation times. The API supplies catalog records to every preview layout and comparison example. Observation time and source links remain visible. Imports and packaging are explicit operator actions. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../deploy/catalog/README.md).
+The standalone preview and its local SQLite service and separate Cloudflare Worker share a read-only catalog interface. The checked-in snapshot records original listing links, whole-baht values and observation times. Every layout and comparison starts from the same reviewed catalog bundled with the preview. A validated response from its same-origin API can replace that snapshot for the open session. Shopper-controlled storage supplies no catalog fields. Original images require the local image service or an existing image cache when offline. Observation time and source links remain visible. Imports and packaging are explicit operator actions. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../deploy/catalog/README.md).
 
 ## The central decision: split presentation from facts
 

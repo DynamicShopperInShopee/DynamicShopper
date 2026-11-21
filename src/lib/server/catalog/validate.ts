@@ -1,3 +1,9 @@
+import {
+	isImageSource,
+	isListingSource,
+	isShopSource,
+	isSnapshotSource
+} from '../../catalog-api/provenance.ts';
 import type {
 	CatalogCategory,
 	CatalogSnapshot,
@@ -54,40 +60,13 @@ function date(value: unknown, field: string): string {
 	return result;
 }
 
-function httpsUrl(value: unknown, field: string): string {
-	const result = text(value, field, 10000);
-	let url: URL;
-	try {
-		url = new URL(result);
-	} catch {
-		throw new CatalogInputError(`${field} must be an HTTPS URL`);
-	}
-	if (url.protocol !== 'https:' || url.username || url.password)
-		throw new CatalogInputError(`${field} must be an HTTPS URL without credentials`);
-	return result;
+function sourceUrl(value: unknown, field: string, accepted: (value: unknown) => value is string) {
+	if (!accepted(value)) throw new CatalogInputError(`${field} must match its allowed source`);
+	return value;
 }
 
 export function validListingId(value: string): boolean {
 	return /^\d{1,20}\.\d{1,20}$/.test(value);
-}
-
-function listingSource(value: unknown, id: string): string {
-	const result = httpsUrl(value, 'item.source');
-	const url = new URL(result);
-	const pair = url.pathname.match(/(?:^\/product\/(\d+)\/(\d+)\/?$|-i\.(\d+)\.(\d+)\/?$)/);
-	const linkedId = pair ? `${pair[1] ?? pair[3]}.${pair[2] ?? pair[4]}` : '';
-	if (!['shopee.co.th', 'www.shopee.co.th'].includes(url.hostname) || linkedId !== id) {
-		throw new CatalogInputError('item.source must link to its Thai Shopee shop/item pair');
-	}
-	return result;
-}
-
-function imageSource(value: unknown, field: string): string {
-	const result = httpsUrl(value, field);
-	const url = new URL(result);
-	if (!/(?:^|\.)susercontent\.com$/.test(url.hostname))
-		throw new CatalogInputError(`${field} must use the original Shopee image CDN`);
-	return result;
 }
 
 function categoryId(value: unknown): string {
@@ -107,7 +86,9 @@ function listing(value: unknown): ShopListing {
 	if (input.image !== null) {
 		const candidate = text(input.image, 'item.image', 10000);
 		image =
-			candidate === `/api/catalog/images/${id}` ? candidate : imageSource(candidate, 'item.image');
+			candidate === `/api/catalog/images/${id}`
+				? candidate
+				: sourceUrl(candidate, 'item.image', isImageSource);
 	}
 	if (image?.startsWith('/api/catalog/images/') && !input.imageSource) {
 		throw new CatalogInputError('Cached product images require their original imageSource');
@@ -119,7 +100,7 @@ function listing(value: unknown): ShopListing {
 		price,
 		currency: 'THB',
 		image,
-		source: listingSource(input.source, id),
+		source: sourceUrl(input.source, 'item.source', (value) => isListingSource(value, id)),
 		size: input.size === null ? null : localized(input.size, 'item.size'),
 		...(input.sellerName !== undefined
 			? {
@@ -136,13 +117,17 @@ function listing(value: unknown): ShopListing {
 		...(input.priceSource !== undefined
 			? {
 					priceSource:
-						input.priceSource === null ? null : httpsUrl(input.priceSource, 'item.priceSource')
+						input.priceSource === null
+							? null
+							: sourceUrl(input.priceSource, 'item.priceSource', isShopSource)
 				}
 			: {}),
 		...(input.imageSource !== undefined
 			? {
 					imageSource:
-						input.imageSource === null ? null : imageSource(input.imageSource, 'item.imageSource')
+						input.imageSource === null
+							? null
+							: sourceUrl(input.imageSource, 'item.imageSource', isImageSource)
 				}
 			: {}),
 		...(input.sourceLabel !== undefined
@@ -189,7 +174,7 @@ export function validateCatalogSnapshot(value: unknown): CatalogSnapshot {
 		throw new CatalogInputError('snapshot.total must match its listing records');
 	const snapshot: CatalogSnapshotInfo = {
 		id,
-		source: httpsUrl(rawMeta.source, 'snapshot.source'),
+		source: sourceUrl(rawMeta.source, 'snapshot.source', isSnapshotSource),
 		observedAt:
 			rawMeta.observedAt === null ? null : date(rawMeta.observedAt, 'snapshot.observedAt'),
 		importedAt: date(rawMeta.importedAt, 'snapshot.importedAt'),

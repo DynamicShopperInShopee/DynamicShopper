@@ -33,9 +33,9 @@ Only these read operations are exposed:
 - `GET /api/catalog`: `q`, `category`, `sort`, `maxPrice`, `page`, `pageSize`.
   The default page size is 24; the maximum is 100. The response includes the
   full-result count, current page, source snapshot, and category registry.
-- `GET /api/catalog/snapshot`: the complete validated snapshot, for a client
-  that supports an offline cache. Cached browser data must still be validated
-  at the browser boundary before use.
+- `GET /api/catalog/snapshot`: the complete validated snapshot. The shop uses
+  the bundled release catalog when this endpoint is unavailable; listing facts
+  are never restored from browser storage.
 - `GET /api/catalog/:id`: a listing identified by `shopId.itemId`.
 - `GET /api/catalog/images/:id`: original locally cached JPEG, PNG, or WebP
   bytes from `data/shopee/images/:id.jpg`; missing images return 404. The

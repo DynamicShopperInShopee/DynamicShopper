@@ -1,6 +1,6 @@
 import type { CatalogCategory, CatalogSnapshot, LocalizedText, ShopListing } from './types';
 
-export const CATALOG_CACHE_KEY = 'dynamicshopper.catalog.v1';
+import { isImageSource, isListingSource, isShopSource, isSnapshotSource } from './provenance.ts';
 const MAX_ITEMS = 10_000;
 const MAX_PAYLOAD = 12_000_000;
 const listingIdPattern = /^\d{1,20}\.\d{1,20}$/;
@@ -23,35 +23,11 @@ function date(value: unknown): value is string {
 	const [year, month, day] = value.slice(0, 10).split('-').map(Number);
 	return new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) === value.slice(0, 10);
 }
-function https(value: unknown, listing = false): value is string {
-	if (!text(value, 2048)) return false;
-	try {
-		const url = new URL(value);
-		return (
-			url.protocol === 'https:' &&
-			!url.username &&
-			!url.password &&
-			(!listing || url.hostname === 'shopee.co.th' || url.hostname === 'www.shopee.co.th')
-		);
-	} catch {
-		return false;
-	}
-}
-function listingSource(value: unknown, id: string): value is string {
-	if (!https(value, true)) return false;
-	const pair = new URL(value).pathname.match(
-		/(?:^\/product\/(\d+)\/(\d+)\/?$|-i\.(\d+)\.(\d+)\/?$)/
-	);
-	return !!pair && `${pair[1] ?? pair[3]}.${pair[2] ?? pair[4]}` === id;
-}
-function imageSource(value: unknown): value is string {
-	return https(value) && /(?:^|\.)susercontent\.com$/.test(new URL(value).hostname);
-}
 function imageUrl(value: unknown, id: string): value is string {
-	return value === `/api/catalog/images/${id}` || imageSource(value);
+	return value === `/api/catalog/images/${id}` || isImageSource(value);
 }
 
-/** Revalidate both the API and saved browser state. Never trust a cached cast. */
+/** Decode catalog facts from the read-only API or versioned release snapshot. */
 export function decodeCatalogSnapshot(raw: unknown): CatalogSnapshot | null {
 	if (
 		!record(raw) ||
@@ -66,7 +42,7 @@ export function decodeCatalogSnapshot(raw: unknown): CatalogSnapshot | null {
 	const meta = raw.snapshot;
 	if (
 		!text(meta.id, 200) ||
-		!https(meta.source) ||
+		!isSnapshotSource(meta.source) ||
 		!date(meta.importedAt) ||
 		(meta.observedAt !== null && !date(meta.observedAt)) ||
 		meta.total !== raw.items.length ||
@@ -86,15 +62,15 @@ export function decodeCatalogSnapshot(raw: unknown): CatalogSnapshot | null {
 			!categoryIdPattern.test(item.category) ||
 			item.category === 'all' ||
 			item.currency !== 'THB' ||
-			!listingSource(item.source, item.id) ||
+			!isListingSource(item.source, item.id) ||
 			(item.price !== null && (!Number.isSafeInteger(item.price) || Number(item.price) < 0)) ||
 			(item.image !== null && !imageUrl(item.image, item.id)) ||
 			(item.sellerName != null && !text(item.sellerName, 300)) ||
 			(item.observedAt != null && !date(item.observedAt)) ||
 			(item.collectedAt !== undefined && !date(item.collectedAt)) ||
-			(item.priceSource != null && !https(item.priceSource)) ||
-			(item.imageSource != null && !imageSource(item.imageSource)) ||
-			(item.image === `/api/catalog/images/${item.id}` && !imageSource(item.imageSource))
+			(item.priceSource != null && !isShopSource(item.priceSource)) ||
+			(item.imageSource != null && !isImageSource(item.imageSource)) ||
+			(item.image === `/api/catalog/images/${item.id}` && !isImageSource(item.imageSource))
 		)
 			return null;
 		const name = localized(item.name);
@@ -150,23 +126,6 @@ export function decodeCatalogSnapshot(raw: unknown): CatalogSnapshot | null {
 			...(typeof meta.license === 'string' ? { license: meta.license } : {})
 		}
 	};
-}
-
-export function readCatalogCache(storage: Pick<Storage, 'getItem'>): CatalogSnapshot | null {
-	try {
-		const saved = storage.getItem(CATALOG_CACHE_KEY);
-		return saved && saved.length <= MAX_PAYLOAD ? decodeCatalogSnapshot(JSON.parse(saved)) : null;
-	} catch {
-		return null;
-	}
-}
-
-export function writeCatalogCache(storage: Pick<Storage, 'setItem'>, snapshot: CatalogSnapshot) {
-	try {
-		storage.setItem(CATALOG_CACHE_KEY, JSON.stringify(snapshot));
-	} catch {
-		// A storage quota or private-browsing policy must not break the current catalog.
-	}
 }
 
 export async function fetchCatalogSnapshot(signal: AbortSignal, transport: typeof fetch = fetch) {

@@ -1,7 +1,11 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import manifest from '../../../catalogs/shopee-2026-11-21/manifest.json';
 import { render } from 'svelte/server';
-import { CATALOG_CACHE_KEY, decodeCatalogSnapshot, pageListings, readCatalogCache } from './client';
+import { decodeCatalogSnapshot, pageListings } from './client';
 import type { CatalogSnapshot } from './types';
+import { validateCatalogSnapshot } from '../server/catalog/validate';
 import { initialView, visibleListings, applyInterview } from '../mobile/engine';
 import ShopShelf from '../mobile/ShopShelf.svelte';
 
@@ -36,16 +40,21 @@ function fixture(count = 1): CatalogSnapshot {
 	};
 }
 
-describe('backend catalog and offline cache boundary', () => {
+describe('catalog validation and display', () => {
+	it('ships the exact reviewed snapshot and preserves its source facts on import and display', () => {
+		const asset = new URL('../../../catalogs/shopee-2026-11-21/catalog.json', import.meta.url);
+		const bytes = readFileSync(asset);
+		expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.catalogFileSha256);
+		const original = JSON.parse(bytes.toString('utf8')) as CatalogSnapshot;
+		expect(original.items.length).toBe(manifest.recordCount);
+		expect(decodeCatalogSnapshot(original)).toEqual(original);
+		expect(validateCatalogSnapshot(original)).toEqual(original);
+	});
 	it('revalidates a complete snapshot without changing its source facts', () => {
 		const input = fixture(1500);
 		expect(decodeCatalogSnapshot(input)).toEqual(input);
-		const saved = JSON.stringify(input);
-		expect(
-			readCatalogCache({ getItem: (key) => (key === CATALOG_CACHE_KEY ? saved : null) })
-		).toEqual(input);
 	});
-	it('rejects forged saved facts, unsafe links, duplicates and mismatched metadata', () => {
+	it('rejects malformed facts, unsafe links, duplicates and mismatched metadata', () => {
 		const original = fixture();
 		for (const change of [
 			{ price: -1 },
@@ -80,14 +89,6 @@ describe('backend catalog and offline cache boundary', () => {
 		expect(
 			decodeCatalogSnapshot({ ...original, categories: [{ ...original.categories[0], count: 2 }] })
 		).toBeNull();
-		expect(readCatalogCache({ getItem: () => '{broken' })).toBeNull();
-		expect(
-			readCatalogCache({
-				getItem: () => {
-					throw new Error('disabled');
-				}
-			})
-		).toBeNull();
 	});
 	it('accepts only source links and image provenance bound to the listing', () => {
 		const input = fixture();
@@ -96,6 +97,18 @@ describe('backend catalog and offline cache boundary', () => {
 			items: [{ ...input.items[0], source: 'https://shopee.co.th/observed-title-i.1.1' }]
 		};
 		expect(decodeCatalogSnapshot(slug)).toEqual(slug);
+	});
+	it('accepts only reviewed provenance hosts at import and display', () => {
+		const original = fixture();
+		for (const source of ['https://example.test/store', 'https://shopee.co.th:8443/store']) {
+			for (const changed of [
+				{ ...original, snapshot: { ...original.snapshot, source } },
+				{ ...original, items: [{ ...original.items[0], priceSource: source }] }
+			]) {
+				expect(decodeCatalogSnapshot(changed)).toBeNull();
+				expect(() => validateCatalogSnapshot(changed)).toThrow();
+			}
+		}
 	});
 	it('keeps unavailable prices unknown and excludes them from a budget result', () => {
 		const source = fixture(3);

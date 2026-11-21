@@ -32,7 +32,7 @@ Once the storefront has loaded, ranking, questions, interviews and prices work l
 
 ### Optional sourced catalog preview
 
-Run `npm run dev:shopping` and open `http://127.0.0.1:5176` to try the standalone preview. It displays dated listing observations from its local catalog service or a labeled starter set offline. Its interview applies on Finish. See the [standalone shopping guide](src/lib/mobile/README.md) for the optional local SQLite catalog and original images.
+Run `npm run dev:shopping` and open `http://127.0.0.1:5176` to try the standalone preview. It displays dated listing observations from its local catalog service or the versioned observations bundled for offline use. Its interview applies on Finish. See the [standalone shopping guide](src/lib/mobile/README.md) for the optional local SQLite catalog and original images.
 
 ## How the store works
 

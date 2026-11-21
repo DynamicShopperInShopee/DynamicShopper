@@ -53,7 +53,9 @@ explicit operator actions; see [cloud delivery](../../deploy/catalog/README.md).
 
 ## Rebuild the cloud image package
 
-The 1,500 original product photographs are cloud assets, not Git contents. The
+The storefront bundles `catalog.json` for offline browsing. A validated response
+from the read-only API updates the open session. The full set of original product
+photographs is served separately from the bundled catalog metadata. The
 seven small starter-fallback photographs under `src/lib/assets/shop` are a
 separate fallback dataset. Raw page observations and database files are also
 excluded from this versioned snapshot.
