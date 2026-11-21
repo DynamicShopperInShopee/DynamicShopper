@@ -117,7 +117,7 @@
 			−{formatBaht(receipt.coinsUsed, locale)}
 		</span>
 	</div>
-	<div class="line total">
+	<div class="line total" aria-live="polite" aria-atomic="true">
 		<strong>{t.total}</strong><strong
 			class="number"
 			data-deal-fact="total"

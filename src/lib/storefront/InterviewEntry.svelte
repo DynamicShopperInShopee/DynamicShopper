@@ -3,6 +3,7 @@
 	import type { Answers } from '../personalization/interview';
 	import InterviewWizard from './InterviewWizard.svelte';
 	import InterviewSheet from './InterviewSheet.svelte';
+	import { tick } from 'svelte';
 	let {
 		plan,
 		lockedFields,
@@ -12,7 +13,8 @@
 		disabled,
 		compact = false,
 		onapply,
-		onchat
+		onchat,
+		onundo
 	}: {
 		plan: ShopperPlan;
 		lockedFields: (keyof ShopperPlan)[];
@@ -23,9 +25,18 @@
 		compact?: boolean;
 		onapply: (answers: Answers, directOnly: boolean) => void;
 		onchat: () => void;
+		onundo?: () => void;
 	} = $props();
 	let open = $state(false);
 	const th = $derived(plan.locale === 'th');
+
+	async function undoFromShelf(event: MouseEvent & { currentTarget: HTMLButtonElement }) {
+		const button = event.currentTarget;
+		const shelf = button.closest<HTMLElement>('#products');
+		onundo?.();
+		await tick();
+		if (!button.isConnected) shelf?.focus({ preventScroll: true });
+	}
 </script>
 
 <section
@@ -73,6 +84,11 @@
 					? 'เริ่มตอบคำถามสั้น ๆ'
 					: 'Start a quick interview'}
 		</button>
+		{#if applied}
+			<button type="button" disabled={!onundo} onclick={undoFromShelf}>
+				{th ? 'ย้อนกลับ' : 'Undo'}
+			</button>
+		{/if}
 	</div>
 </section>
 

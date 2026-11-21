@@ -94,9 +94,13 @@ test('returns from compare with the original search and undo history', async ({ 
 	await page.getByRole('searchbox').fill('rice cooker');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
 	await page.getByRole('link', { name: 'Compare views', exact: true }).click();
+	await expect(page).toHaveURL(/\/compare(?:\?|$)/);
+	const backToStore = page.getByRole('link', { name: 'Back to the store' });
+	await expect(backToStore).toBeVisible();
 	await expect(page.getByRole('searchbox')).toHaveValue('rice cooker');
 	await page.getByRole('searchbox').fill('earbuds');
-	await page.getByRole('link', { name: 'Back to the store' }).click();
+	await backToStore.click();
+	await expect(page).toHaveURL(/\/\?view=receipt$/);
 	await expect(page.getByRole('searchbox')).toHaveValue('rice cooker');
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('searchbox')).toHaveValue('');
@@ -157,6 +161,7 @@ for (const layout of ['grid', 'table'] as const) {
 		await live.click();
 		await page.getByRole('button', { name: 'Close X-ray' }).click();
 		if (layout === 'table') {
+			await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 			await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 		}
 		await page

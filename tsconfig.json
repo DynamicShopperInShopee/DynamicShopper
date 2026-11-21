@@ -10,8 +10,7 @@
 		"vite.config.ts",
 		"prettier.config.js",
 		"eslint.config.js",
-		"playwright.config.ts",
-		"playwright.interview.config.ts",
+		"playwright*.config.ts",
 		"drizzle.config.ts"
 	]
 }

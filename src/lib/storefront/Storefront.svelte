@@ -5,6 +5,7 @@
 	import {
 		getStoreSession,
 		type ShelfState,
+		type ShelfChange,
 		type StoreVisitState
 	} from '#lib/storefront/store.svelte.ts';
 	import {
@@ -14,6 +15,7 @@
 	} from '../../routes/search-navigation';
 	import { readInterviewVisit, saveInterviewVisit } from '../../routes/interview-navigation';
 	import InterviewEntry from './InterviewEntry.svelte';
+	import { reconcilePlanPatch } from '../personalization/locked-plan';
 	import { interviewProposal, type Answers } from '../personalization/interview';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
@@ -29,7 +31,6 @@
 		validateLook
 	} from '#lib/storefront/sharedLook.ts';
 	import '../assets/fonts/plex.css';
-	import CategoryGlyph from '../CategoryGlyph.svelte';
 	import CookerSearchSort from '../../routes/CookerSearchSort.svelte';
 	import SearchQuickFilters from '../../routes/SearchQuickFilters.svelte';
 	import CookerPhotoCaption from './CookerPhotoCaption.svelte';
@@ -55,8 +56,11 @@
 	import FactValue from './FactValue.svelte';
 	import FactsReceipt from './FactsReceipt.svelte';
 	import DealSlip from './DealSlip.svelte';
-	import CompareShelves from './CompareShelves.svelte';
 	import { eligibleShelfProducts } from './compare';
+	import CompareShelves from './CompareShelves.svelte';
+	import CriteriaOverview from './CriteriaOverview.svelte';
+	import ShoppingTasks from './ShoppingTasks.svelte';
+	import AdaptiveProductCard from './AdaptiveProductCard.svelte';
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from './ShelfTable.svelte';
 	import ShoppingAssistant from './ShoppingAssistant.svelte';
@@ -70,7 +74,6 @@
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
-	const legacyDetails: ShopperPlan['details'] = ['price', 'shipping', 'rating'];
 	const sorts = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'] as const;
 	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
@@ -112,6 +115,7 @@
 	let cartProofRoot = $state<HTMLElement>();
 	let assistantProofRoot = $state<HTMLElement>();
 	let filterProofRoot = $state<HTMLElement>();
+	let criteriaProofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
@@ -120,6 +124,8 @@
 	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
+	let personasOpen = $state(false);
+	let personaTrigger = $state<HTMLButtonElement>();
 	let traceOpen = $state(false);
 	let traceTrigger = $state<HTMLButtonElement>();
 	let traceMerge = $state<'applied' | 'unchanged'>();
@@ -139,6 +145,7 @@
 	let requestGeneration = 0;
 	let liveFallback = $state(false);
 	let liveModel = $state<string>();
+	let usedLocalSettings = $state(false);
 	let liveRequest: AbortController | undefined;
 	let pendingLocalTurn: Turn | undefined;
 
@@ -161,7 +168,7 @@
 		const fallback = pendingLocalTurn;
 		if (fallback) {
 			cancelPending();
-			applyTurn(fallback);
+			applyTurn(fallback, fallback.patch.category);
 		}
 	}
 	function closeTrace() {
@@ -207,7 +214,7 @@
 				}
 			: undefined
 	);
-	let changes = $state<(keyof ShopperPlan)[]>([]);
+	let changes = $state<ShelfChange[]>([]);
 	let focusedProduct = $state<string>();
 	let quoteInput = $state<{ basket: readonly CartItem[]; locale: Locale }>();
 	const quote = $derived(
@@ -240,7 +247,7 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
-	const canReset = $derived(
+	const hasSettings = $derived(
 		adapted ||
 			interviewAnswers !== null ||
 			interviewDirectOnly ||
@@ -251,6 +258,9 @@
 			(Object.keys(defaultPlan) as (keyof ShopperPlan)[]).some(
 				(key) => JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])
 			)
+	);
+	const canReset = $derived(
+		hasSettings || session.conversation.messages.length > 0 || !!quoteInput || !!pendingPhase
 	);
 	const listingParams = $derived(
 		marketplaceOrigin
@@ -301,6 +311,7 @@
 			turn: $state.snapshot(turn),
 			liveModel,
 			liveFallback,
+			usedLocalSettings,
 			traceMerge,
 			changes: [...changes],
 			focusedProduct,
@@ -329,27 +340,38 @@
 		category = next.category ? shelfFromCategory[next.category] : 'all';
 		maxPrice = draftPrice = next.maxPrice ?? undefined;
 	}
-	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
+	function changePlan(
+		patch: Partial<ShopperPlan>,
+		respectLocks: boolean,
+		requestedCategory?: ShopperPlan['category'],
+		showAdaptiveView = true
+	) {
 		cancelPending();
 		const previous = $state.snapshot(activePlan);
-		const canChange = (key: keyof ShopperPlan) => !respectLocks || !locks.includes(key);
-		const changingCategory = patch.category !== undefined && patch.category !== previous.category;
-		const clearsCategoryQuery = changingCategory && patch.query === '';
-		const entries = Object.entries(patch).filter(([field, value]) => {
-			const key = field as keyof ShopperPlan;
-			const allowed =
-				key === 'query' && clearsCategoryQuery ? canChange('category') : canChange(key);
-			return (
-				allowed && value !== undefined && JSON.stringify(previous[key]) !== JSON.stringify(value)
-			);
-		});
+		const accepted = reconcilePlanPatch(
+			previous,
+			patch,
+			respectLocks ? locks : [],
+			requestedCategory
+		);
+		const entries = Object.entries(accepted).filter(
+			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
+		);
+		const categoryChanged = entries.some(([key]) => key === 'category');
+		const capacityRemoved =
+			capacity !== undefined &&
+			accepted.category !== 'rice-cooker' &&
+			(categoryChanged || (requestedCategory === null && accepted.category === null));
 		changes = entries.map(([key]) => key as keyof ShopperPlan);
+		if (capacityRemoved) changes = [...changes, 'capacityRemoved'];
 		if (!changes.length) return;
 		remember();
 		writePlan({ ...previous, ...Object.fromEntries(entries) });
-		if (clearsCategoryQuery && changes.includes('category'))
-			locks = locks.filter((key) => key !== 'query');
-		adapted = true;
+		if (capacityRemoved) capacity = undefined;
+		if (accepted.category !== undefined && changes.includes('query') && !query) {
+			locks = locks.filter((field) => field !== 'query');
+		}
+		if (showAdaptiveView) adapted = true;
 	}
 	function undo() {
 		cancelPending();
@@ -371,12 +393,32 @@
 	}
 	function restoreVisitState(saved: StoreVisitState) {
 		restoreCheckpoint(saved);
-		({ undoStack, turn, liveModel, liveFallback, traceMerge, changes, focusedProduct, draftQuery } =
-			saved);
+		({
+			undoStack,
+			turn,
+			liveModel,
+			liveFallback,
+			usedLocalSettings,
+			traceMerge,
+			changes,
+			focusedProduct,
+			draftQuery
+		} = saved);
 	}
-	function restoreDefaults() {
+	function restoreDefaults(keepReply = false) {
 		cancelPending();
-		if (canReset) remember();
+		session.conversation.clear();
+		usedLocalSettings = false;
+		quoteInput = undefined;
+		quoteTrigger = undefined;
+		focusedProduct = undefined;
+		liveModel = undefined;
+		liveFallback = false;
+		traceMerge = undefined;
+		if (!keepReply) {
+			turn = undefined;
+		}
+		if (hasSettings) remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		interviewAnswers = null;
@@ -456,6 +498,11 @@
 			register(field);
 		if (persona === 'mom') register('locale');
 	}
+	function closePersonasOnEscape(event: KeyboardEvent) {
+		if (event.key !== 'Escape' || !personasOpen) return;
+		personasOpen = false;
+		personaTrigger?.focus();
+	}
 	function listingHref(id: string) {
 		return resolve(`/product/[id]?${listingParams}`, { id });
 	}
@@ -501,7 +548,7 @@
 				: [];
 		})
 	]);
-	function changeName(key: keyof ShopperPlan) {
+	function changeName(key: ShelfChange) {
 		return key in a ? a[key as keyof typeof a] : a.appearance;
 	}
 	function openDeal(productId: string, locale: Locale = language) {
@@ -544,21 +591,31 @@
 		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
-	function applyTurn(next: Turn) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
 		const previous = $state.snapshot(activePlan);
 		turn = next;
 		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
 		let deal: ReturnType<typeof calculateQuote>;
 		changes = [];
 		switch (next.intent) {
-			case 'change':
-				changePlan(next.patch, true);
+			case 'change': {
+				const patch = { ...next.patch };
+				// The turn validator supplies an empty query when changing category.
+				// Reconcile against the existing search before deciding whether to clear it.
+				if (
+					patch.category !== undefined &&
+					patch.category !== previous.category &&
+					patch.query === ''
+				)
+					delete patch.query;
+				changePlan(patch, true, requestedCategory);
 				break;
+			}
 			case 'undo':
 				undo();
 				break;
 			case 'reset':
-				restoreDefaults();
+				restoreDefaults(true);
 				break;
 			case 'deal':
 				if (next.productIds.length) {
@@ -568,10 +625,13 @@
 				break;
 		}
 		const turnChanges = describePlanChanges(previous, activePlan, replyLocale);
+		if (changes.includes('capacityRemoved'))
+			turnChanges.push(assistantCopy[replyLocale].capacityRemoved);
 		traceMerge = turnChanges.length ? 'applied' : 'unchanged';
 		session.conversation.reply(next, {
 			locale: replyLocale,
 			offline: !liveModel,
+			usedLocalSettings,
 			changes: turnChanges,
 			deal
 		});
@@ -587,6 +647,7 @@
 		pendingPhase = undefined;
 		session.conversation.shopper(message, /\p{Script=Thai}/u.test(message) ? 'th' : language);
 		liveModel = undefined;
+		usedLocalSettings = false;
 		liveFallback = false;
 		const focus = products.some((product) => product.catalogId === focusedProduct)
 			? focusedProduct
@@ -611,12 +672,12 @@
 			!liveEnabled ||
 			(local.intent !== 'chat' && local.intent !== 'change')
 		) {
-			applyTurn(local);
+			applyTurn(local, local.patch.category);
 			return;
 		}
 		const hints = projectLiveHints(message);
 		if (!hints.length) {
-			applyTurn(local);
+			applyTurn(local, local.patch.category);
 			return;
 		}
 		const request = new AbortController();
@@ -633,7 +694,7 @@
 				pendingPhase = undefined;
 				if (!result) {
 					liveFallback = true;
-					applyTurn(local);
+					applyTurn(local, local.patch.category);
 					return;
 				}
 				const proposed = validateProposal(
@@ -645,12 +706,16 @@
 				const dropped = result.rejected
 					? [...new Set([...proposed.dropped, 'unknown-field'])]
 					: proposed.dropped;
+				if (Object.keys(result.patch).length) liveModel = result.model;
 				if (!Object.keys(additions).length) {
-					applyTurn({ ...local, dropped });
+					usedLocalSettings = Boolean(liveModel);
+					applyTurn({ ...local, dropped }, local.patch.category);
 					return;
 				}
-				liveModel = result.model;
-				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
+				applyTurn(
+					{ ...proposed, patch: { ...local.patch, ...additions }, dropped },
+					local.patch.category
+				);
 			}
 		);
 	}
@@ -684,6 +749,9 @@
 			restoreSearch(page.state.storeSearch);
 		if (eventDemo && !(session.visit?.adapted && session.visit.search === page.url.search)) return;
 		if (page.url.hash === '#xray') traceOpen = true;
+		if (page.url.hash === '#criteria-overview')
+			void tick().then(() => document.getElementById('criteria-overview')?.focus());
+		if (['#assistant', '#shopper-assistant'].includes(page.url.hash)) void focusAssistant();
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
 		const hasCurrentControls =
@@ -704,8 +772,9 @@
 			const pending = session.listing.takeTurn();
 			if (pending) {
 				liveModel = undefined;
+				usedLocalSettings = false;
 				liveFallback = false;
-				applyTurn(pending);
+				applyTurn(pending, pending.patch.category);
 			}
 		}
 	});
@@ -820,11 +889,7 @@
 		return captureInterviewVisit() ?? (selection && { ...selection, origin: 'marketplace' });
 	});
 	const selectedCapacityProduct = $derived(
-		capacity !== undefined
-			? canonical.find(
-					(item) => item.category === 'rice-cooker' && item.specs.capacity === capacity
-				)
-			: undefined
+		capacity === undefined ? undefined : eligibleShelfProducts(false, capacity)[0]
 	);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const activeFilterChips = $derived(
@@ -908,34 +973,13 @@
 		freeShipping = false;
 	}
 
-	function chooseCategory(value: Category | 'all') {
-		if (eventDemo) {
-			register('category');
-			category = value;
-			capacity = undefined;
-			return;
-		}
-		const changed = value !== category;
-		if (changed) remember();
-		register('category');
-		if (!changed) return;
-		const previous = $state.snapshot(activePlan);
-		const { patch } = validateProposal(
-			{ intent: 'change', patch: { category: value === 'all' ? null : categoryFromShelf[value] } },
-			previous
-		);
-		writePlan({ ...previous, ...patch });
-		locks = locks.filter((key) => key !== 'query');
-		capacity = undefined;
-	}
-
 	function selectTheme(value: Theme) {
 		if (theme !== value) remember();
 		register('theme');
 		theme = value;
 	}
 
-	function toggleReceiptLanguage() {
+	function toggleLanguage() {
 		remember();
 		register('locale');
 		language = language === 'th' ? 'en' : 'th';
@@ -962,10 +1006,32 @@
 		clearSearchFilters();
 		locks = locks.filter((key) => !eligibilityFields.has(key));
 	}
-	function removeCapacity() {
-		cancelPending();
+	function selectCapacity(value: number | undefined) {
+		if (value === capacity) return;
 		remember();
-		capacity = undefined;
+		cancelPending();
+		capacity = value;
+	}
+
+	function updateCriteria(patch: Partial<ShopperPlan>) {
+		const fields = Object.keys(patch) as (keyof ShopperPlan)[];
+		if (!fields.some((key) => JSON.stringify(activePlan[key]) !== JSON.stringify(patch[key])))
+			return;
+		changePlan(patch, false, patch.category);
+		for (const field of fields) register(field);
+	}
+
+	function updateShipping(value: boolean) {
+		if (freeShipping === value) return;
+		remember();
+		cancelPending();
+		freeShipping = draftShipping = value;
+	}
+	function chooseCategory(value: Category | 'all', clearSearch = false) {
+		const target = value === 'all' ? null : categoryFromShelf[value];
+		const patch = { category: target, ...(clearSearch && value === 'all' ? { query: '' } : {}) };
+		changePlan(patch, false, target, false);
+		register('category');
 	}
 
 	function openFilters(trigger: HTMLButtonElement) {
@@ -985,6 +1051,17 @@
 		clearFilters();
 	}
 </script>
+
+{#snippet languageSwitch()}
+	<button
+		type="button"
+		lang={language === 'th' ? 'en' : 'th'}
+		disabled={!interactive}
+		onclick={toggleLanguage}
+	>
+		{language === 'th' ? 'English' : 'ไทย'}
+	</button>
+{/snippet}
 
 {#snippet harnessLink()}
 	<a
@@ -1071,205 +1148,132 @@
 	{:else}
 		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
 			{#each shelfProducts as product (product.id)}
-				<li
-					class="product"
-					class:no-art={!eventDemo && (!!interviewAnswers || !activePlan.details.includes('image'))}
-					data-product={product.catalogId}
-					data-product-card={product.catalogId}
-				>
-					{#if eventDemo}
+				{#if eventDemo}
+					<li
+						class="product"
+						data-product={product.catalogId}
+						data-product-card={product.catalogId}
+					>
 						{@render shelfPhoto(product)}
-					{:else if !interviewAnswers && activePlan.details.includes('image')}
-						<div class="art"><CategoryGlyph category={product.category} /></div>
-					{/if}
-					<div class="card-body">
-						<h3>
-							<a class="product-link" href={listingHref(product.id)}>
-								<FactValue productId={product.catalogId} field="name" locale={language} />
-							</a>
-						</h3>
-						{#each eventDemo ? legacyDetails : activePlan.details as detail (detail)}
-							{#if detail === 'image' && interviewAnswers}
-								{@render shelfPhoto(product)}
-							{:else if detail === 'price'}
-								<div class="price">
-									<span class="visually-hidden">{t.price} </span>
-									<FactValue
-										tag="strong"
-										class="figure"
-										productId={product.catalogId}
-										field="price"
-										locale={language}
-									/>
-									{#if product.originalPrice !== null}
-										<span class="visually-hidden">{t.was} </span>
-										<FactValue
-											tag="s"
-											class="figure"
-											productId={product.catalogId}
-											field="originalPrice"
-											locale={language}
-										/>
-									{/if}
-								</div>
-							{:else if detail === 'shipping'}
-								<div class="shipping">
-									{#if eventDemo}
-										<svg
-											aria-hidden="true"
-											viewBox="0 0 24 24"
-											width="16"
-											height="16"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.7"
-										>
-											<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
-												cx="6"
-												cy="18"
-												r="2"
-											/><circle cx="18" cy="18" r="2" />
-										</svg>
-									{/if}
-									<span class:visually-hidden={eventDemo}>{t.shipping}</span>
-									<span class="leader" aria-hidden="true"></span>
-									<FactValue
-										class="figure"
-										productId={product.catalogId}
-										field="shipping"
-										locale={language}
-									/>
-									{#if eventDemo}
-										<FactValue
-											class="shipping-shop"
-											productId={product.catalogId}
-											field="shop"
-											locale={language}
-										/>
-									{/if}
-								</div>
-							{:else if detail === 'rating'}
-								<div class="metadata">
-									<span>
-										<svg
-											viewBox="0 0 20 20"
-											width="15"
-											height="15"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.5"
-											aria-hidden="true"
-										>
-											<path
-												d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
-											/>
-										</svg>
-										<span class="visually-hidden">{t.rating} </span>
-										<FactValue
-											class="figure"
-											productId={product.catalogId}
-											field="rating"
-											locale={language}
-										/>
-									</span>
-									{#if !eventDemo}<span>
-											{language === 'th' ? 'จำนวนรีวิว' : 'Reviews'}
-											<FactValue
-												class="figure"
-												productId={product.catalogId}
-												field="reviewCount"
-												locale={language}
-											/>
-										</span>{/if}
-									<span>
-										{t.sold}
-										<FactValue
-											class="figure"
-											productId={product.catalogId}
-											field="sold"
-											locale={language}
-										/>
-									</span>
-								</div>
-							{:else if detail === 'shop'}
+						<div class="card-body">
+							<h3>
+								<a class="product-link" href={listingHref(product.id)}>
+									<FactValue productId={product.catalogId} field="name" locale={language} />
+								</a>
+							</h3>
+							<div class="price">
+								<span class="visually-hidden">{t.price} </span>
 								<FactValue
-									tag="p"
-									class="shop"
+									tag="strong"
+									class="figure"
+									productId={product.catalogId}
+									field="price"
+									locale={language}
+								/>
+								{#if product.originalPrice !== null}
+									<span class="visually-hidden">{t.was} </span>
+									<FactValue
+										tag="s"
+										class="figure"
+										productId={product.catalogId}
+										field="originalPrice"
+										locale={language}
+									/>
+								{/if}
+							</div>
+							<div class="shipping">
+								<svg
+									aria-hidden="true"
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.7"
+								>
+									<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
+										cx="18"
+										cy="18"
+										r="2"
+									/>
+								</svg>
+								<span class="visually-hidden">{t.shipping}</span>
+								<span class="leader" aria-hidden="true"></span>
+								<FactValue
+									class="figure"
+									productId={product.catalogId}
+									field="shipping"
+									locale={language}
+								/>
+								<FactValue
+									class="shipping-shop"
 									productId={product.catalogId}
 									field="shop"
 									locale={language}
 								/>
-							{:else if detail === 'summary'}
-								<FactValue
-									tag="p"
-									productId={product.catalogId}
-									field="summary"
-									locale={language}
-								/>
-							{:else if detail === 'specs'}
-								<dl class="card-specs">
-									{#each cardSpecs(product.catalogId) as spec (spec.key)}
-										<div>
-											<dt>{spec.label[language]}</dt>
-											<dd>
-												<FactValue
-													productId={product.catalogId}
-													field={`spec.${spec.key}`}
-													locale={language}
-												/>
-											</dd>
-										</div>
-									{/each}
-								</dl>
-							{:else if detail === 'reviews'}
-								{#each ['review.0', 'review.1'] as field (field)}
-									<FactValue tag="p" productId={product.catalogId} {field} locale={language} />
-								{/each}
-							{:else if detail === 'vouchers' && cardVouchers.get(product.catalogId)?.length}
-								<ul class="card-vouchers" aria-label={language === 'th' ? 'โค้ดส่วนลด' : 'Vouchers'}>
-									{#each cardVouchers.get(product.catalogId) ?? [] as voucher (voucher.code)}
-										<li>
-											<span
-												data-source="pricing"
-												data-product={product.catalogId}
-												data-field="voucher.code"
-												data-raw={JSON.stringify(voucher.code)}
-											>
-												{voucher.code}
-											</span>
-											{#if voucher.expiresSoon}<span
-													data-source="pricing"
-													data-product={product.catalogId}
-													data-field="voucher.expiresSoon"
-													data-raw="true"
-												>
-													· {language === 'th' ? 'ใกล้หมดอายุ' : 'Expires soon'}
-												</span>{/if}
-										</li>
-									{/each}
-								</ul>
-							{/if}
-						{/each}
-						{#if !eventDemo}
-							<div class="card-actions">
-								<AddToCart
-									productId={product.catalogId}
-									locale={language}
-									onAdd={session.addProduct}
-								/>
-								<button
-									class="best-price"
-									type="button"
-									disabled={Boolean(pendingPhase)}
-									onclick={() => openDeal(product.catalogId)}
-								>
-									{a.deal}
-								</button>
 							</div>
-							{@render rankingExplanation(product.catalogId)}
-						{/if}
-					</div>
-				</li>
+							<div class="metadata">
+								<span>
+									<svg
+										viewBox="0 0 20 20"
+										width="15"
+										height="15"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										aria-hidden="true"
+									>
+										<path
+											d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+										/>
+									</svg>
+									<span class="visually-hidden">{t.rating} </span>
+									<FactValue
+										class="figure"
+										productId={product.catalogId}
+										field="rating"
+										locale={language}
+									/>
+								</span>
+								<span>
+									{t.sold}
+									<FactValue
+										class="figure"
+										productId={product.catalogId}
+										field="sold"
+										locale={language}
+									/>
+								</span>
+							</div>
+						</div>
+					</li>
+				{:else}
+					<AdaptiveProductCard
+						{product}
+						plan={activePlan}
+						photos={Boolean(interviewAnswers)}
+						columns={activePlan.details.includes('specs') ? cardSpecs(product.catalogId) : []}
+						vouchers={cardVouchers.get(product.catalogId) ?? []}
+						href={listingHref(product.id)}
+					>
+						<div class="card-actions">
+							<AddToCart
+								productId={product.catalogId}
+								locale={language}
+								onAdd={session.addProduct}
+							/>
+							<button
+								class="best-price"
+								type="button"
+								disabled={Boolean(pendingPhase)}
+								onclick={() => openDeal(product.catalogId)}
+							>
+								{a.deal}
+							</button>
+						</div>
+						{@render rankingExplanation(product.catalogId)}
+					</AdaptiveProductCard>
+				{/if}
 			{/each}
 		</ul>
 	{/if}
@@ -1328,14 +1332,7 @@
 							<option value={option}>{t[option]}</option>
 						{/each}
 					</select>
-					<button
-						type="button"
-						lang={language === 'th' ? 'en' : 'th'}
-						disabled={!interactive}
-						onclick={toggleReceiptLanguage}
-					>
-						{language === 'th' ? 'English' : 'ไทย'}
-					</button>
+					{@render languageSwitch()}
 					<CartControls
 						locale={language}
 						onBestPrice={() => openBasket()}
@@ -1376,6 +1373,7 @@
 					</svg>
 					<span>DynamicShopper</span>
 				</a>
+				{@render languageSwitch()}
 			</header>
 		{/if}
 
@@ -1421,7 +1419,7 @@
 				{#if cookerSearch}
 					<CookerSearchSort
 						label={t.sort}
-						bind:sort
+						bind:sort={() => sort, selectSort}
 						options={cookerSorts.map((value) => ({ value, label: t[value] }))}
 					/>
 				{:else}
@@ -1461,29 +1459,44 @@
 				compact={eventDemo}
 				onapply={applyInterviewAnswers}
 				onchat={focusAssistant}
+				onundo={undoStack.length ? undo : undefined}
 			/>
 		{/snippet}
 		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
+		{#snippet shoppingTasks()}
+			<ShoppingTasks
+				locale={language}
+				ids={products.map((product) => product.catalogId)}
+				disabled={!interactive || Boolean(pendingPhase)}
+				publicEntry={eventDemo}
+				strip={cookerSearch || skinSearch}
+			/>
+		{/snippet}
+		{#if !cookerSearch && !skinSearch}{@render shoppingTasks()}{/if}
 
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		{#if eventDemo && !cookerSearch}
 			<div class="sort-tabs" role="group" aria-label={t.sort}>
-				<button type="button" aria-pressed={sort === 'default'} onclick={() => (sort = 'default')}>
+				<button
+					type="button"
+					aria-pressed={sort === 'default'}
+					onclick={() => selectSort('default')}
+				>
 					{language === 'th' ? 'เกี่ยวข้อง' : 'Relevance'}
 				</button>
 				<button
 					type="button"
 					aria-pressed={sort === 'top-rated'}
-					onclick={() => (sort = 'top-rated')}
+					onclick={() => selectSort('top-rated')}
 				>
 					{t['top-rated']}
 				</button>
 				<button
 					type="button"
 					aria-pressed={sort === 'top-sales'}
-					onclick={() => (sort = 'top-sales')}
+					onclick={() => selectSort('top-sales')}
 				>
 					{t['top-sales']}
 				</button>
@@ -1494,7 +1507,7 @@
 					aria-describedby={sort === 'price-low' || sort === 'price-high'
 						? 'price-sort-direction'
 						: undefined}
-					onclick={() => (sort = sort === 'price-low' ? 'price-high' : 'price-low')}
+					onclick={() => selectSort(sort === 'price-low' ? 'price-high' : 'price-low')}
 				>
 					{t.price}
 					<svg
@@ -1517,27 +1530,16 @@
 
 		{#if cookerSearch || skinSearch}
 			<SearchQuickFilters
+				{shoppingTasks}
 				{harnessLink}
 				cooker={cookerSearch}
 				{language}
 				{category}
-				bind:capacity
+				bind:capacity={() => capacity, selectCapacity}
 				{freeShipping}
 				{openFilters}
-				toggleShipping={() => {
-					freeShipping = !freeShipping;
-					draftShipping = freeShipping;
-				}}
-				changeCategory={(value: Category | 'all') => {
-					if (query) {
-						draftQuery = query = '';
-					}
-					chooseCategory(value);
-				}}
-				toggleLanguage={() => {
-					register('locale');
-					language = language === 'th' ? 'en' : 'th';
-				}}
+				toggleShipping={() => updateShipping(!freeShipping)}
+				changeCategory={(value: Category | 'all') => chooseCategory(value, true)}
 			/>
 		{:else}
 			<nav class="categories" aria-label={t.categories}>
@@ -1545,10 +1547,7 @@
 					<button
 						type="button"
 						aria-pressed={freeShipping}
-						onclick={() => {
-							freeShipping = !freeShipping;
-							draftShipping = freeShipping;
-						}}
+						onclick={() => updateShipping(!freeShipping)}
 					>
 						<svg
 							viewBox="0 0 24 24"
@@ -1584,19 +1583,6 @@
 						{categories[key][language]}
 					</button>
 				{/each}
-				{#if eventDemo}
-					<button
-						type="button"
-						lang={language === 'th' ? 'en' : 'th'}
-						disabled={!interactive}
-						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
-						}}
-					>
-						{language === 'th' ? 'English' : 'ไทย'}
-					</button>
-				{/if}
 			</nav>
 		{/if}
 
@@ -1686,10 +1672,22 @@
 			</form>
 		{/if}
 
+		{#if !eventDemo}
+			<CriteriaOverview
+				bind:factRoot={criteriaProofRoot}
+				plan={activePlan}
+				onChange={updateCriteria}
+				{freeShipping}
+				{capacity}
+				onShipping={updateShipping}
+				onCapacity={selectCapacity}
+			/>
+		{/if}
+
 		{#if hasFilters && (eventDemo || freeShipping || selectedCapacityProduct)}
 			<div class="chips" bind:this={filterProofRoot}>
 				{#if selectedCapacityProduct}
-					<button type="button" onclick={removeCapacity}>
+					<button type="button" onclick={() => selectCapacity(undefined)}>
 						{language === 'th' ? 'ความจุ' : 'Capacity'}
 						<FactValue
 							productId={selectedCapacityProduct.id}
@@ -1735,15 +1733,7 @@
 					</button>
 				{/if}
 				{#if freeShipping}
-					<button
-						type="button"
-						onclick={() => {
-							cancelPending();
-							if (!eventDemo) remember();
-							freeShipping = false;
-							draftShipping = false;
-						}}
-					>
+					<button type="button" onclick={() => updateShipping(false)}>
 						{t.freeOnly}
 						<svg
 							viewBox="0 0 16 16"
@@ -1790,36 +1780,65 @@
 					bind:this={assistant}
 					locale={language}
 					onSend={send}
-					openOnMount={page.url.hash === '#assistant'}
+					openOnMount={['#assistant', '#shopper-assistant'].includes(page.url.hash)}
 					conversation={session.conversation}
 					pending={Boolean(pendingPhase)}
 					{pendingLabel}
 					largePrint={theme === 'large'}
 					{theme}
 				/>
-				<div class="shopper-actions">
-					{#each personas as persona (persona)}
+				<div class="shopper-toolbar">
+					<div class="shopper-actions shopper-views">
 						<button
-							id={`persona-${persona}`}
+							type="button"
+							aria-expanded={compareOpen}
+							onclick={() => (compareOpen = !compareOpen)}
+						>
+							{compareOpen ? a.closeCompare : a.compare}
+						</button>
+						<button
 							type="button"
 							disabled={!interactive}
-							onclick={() => selectPersona(persona)}
+							aria-expanded={personasOpen}
+							aria-controls="shopper-presets"
+							bind:this={personaTrigger}
+							onclick={() => (personasOpen = !personasOpen)}
+							onkeydown={closePersonasOnEscape}
 						>
-							{a[persona]}
+							{a.persona}
+							<svg class="disclosure" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+								<path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+							</svg>
 						</button>
-					{/each}
-					<button
-						type="button"
-						aria-expanded={compareOpen}
-						onclick={() => (compareOpen = !compareOpen)}
-					>
-						{compareOpen ? a.closeCompare : a.compare}
-					</button>
-					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-					<button type="button" disabled={!canReset} onclick={restoreDefaults}>{a.reset}</button>
-				</div>
-				<div class="preference-controls">
-					<PreferenceChips plan={activePlan} locale={language} onRemove={removePreference} />
+						<div
+							id="shopper-presets"
+							class="shopper-actions shopper-presets"
+							hidden={!personasOpen}
+						>
+							{#each personas as persona (persona)}
+								<button
+									type="button"
+									id={`persona-${persona}`}
+									disabled={!interactive}
+									onclick={() => selectPersona(persona)}
+									onkeydown={closePersonasOnEscape}
+								>
+									{a[persona]}
+								</button>
+							{/each}
+						</div>
+					</div>
+					<div class="shopper-actions shelf-utilities">
+						{#if !adapted || !interviewAnswers}
+							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{/if}
+						<button type="button" disabled={!canReset} onclick={() => restoreDefaults()}>
+							{a.reset}
+						</button>
+					</div>
+					<div class="preference-controls">
+						<PreferenceChips plan={activePlan} locale={language} onRemove={removePreference} />
+					</div>
 				</div>
 			</section>
 			<XrayDrawer locale={language} bind:open={traceOpen} returnFocus={traceTrigger}>
@@ -1905,7 +1924,7 @@
 			{#if !eventDemo}
 				<FactsReceipt
 					root={proofRoot}
-					additionalRoots={[cartProofRoot, filterProofRoot]}
+					additionalRoots={[cartProofRoot, filterProofRoot, criteriaProofRoot]}
 					localizedRoot={assistantProofRoot}
 					locale={language}
 				/>
@@ -2223,14 +2242,6 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.75rem;
 	}
-	.store[data-density='compact'] .card-body {
-		padding: 0.5rem;
-		gap: 0.3rem;
-	}
-	.store[data-density='spacious'] .card-body {
-		padding: 1rem;
-		gap: 0.65rem;
-	}
 	.list-layout {
 		grid-template-columns: minmax(0, 1fr);
 	}
@@ -2249,6 +2260,53 @@
 		gap: 0.4rem;
 		align-items: center;
 		margin-block: 0.55rem;
+	}
+	.shopper-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		column-gap: 1rem;
+		row-gap: 0.15rem;
+		margin-block-start: 0.65rem;
+	}
+	.shopper-toolbar .shopper-actions {
+		margin-block: 0;
+	}
+	.shopper-views,
+	.shelf-utilities {
+		min-inline-size: 0;
+		align-content: start;
+	}
+	.shopper-toolbar button[aria-expanded='true'] {
+		border-color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.disclosure {
+		margin-inline-start: 0.25rem;
+		vertical-align: middle;
+	}
+	button[aria-expanded='true'] .disclosure {
+		rotate: 180deg;
+	}
+	.shelf-utilities button {
+		border-color: transparent;
+		background: transparent;
+	}
+	.shelf-utilities button:not(:disabled):hover {
+		border-color: var(--seam);
+	}
+	.shelf-utilities button:disabled {
+		color: var(--muted);
+		cursor: not-allowed;
+	}
+	.shopper-presets:not([hidden]) {
+		flex-basis: 100%;
+		padding-block-start: 0.55rem;
+		border-block-start: 1px dashed var(--seam);
+	}
+	.shopper-presets[hidden] {
+		display: none;
 	}
 	.assistant-reply {
 		border: 1px dashed var(--seam);
@@ -2281,8 +2339,7 @@
 		align-content: center;
 		cursor: pointer;
 	}
-	.rank ul,
-	.card-vouchers {
+	.rank ul {
 		padding: 0;
 		list-style: none;
 	}
@@ -2300,18 +2357,7 @@
 		height: 0.375rem;
 		background: currentColor;
 	}
-	.card-specs {
-		margin-block: 0.5rem;
-	}
-	.card-specs > div {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		justify-content: space-between;
-	}
-	.card-specs dd {
-		margin: 0;
-	}
+
 	.product-link::after {
 		content: '';
 		position: absolute;
@@ -2332,21 +2378,10 @@
 		background: var(--surface);
 		overflow-wrap: anywhere;
 	}
-	.product.no-art {
-		grid-template-rows: 1fr;
-	}
 	.art {
 		display: grid;
 		place-items: center;
 		color: var(--accent);
-	}
-	.card-body .demo-photo {
-		position: relative;
-		aspect-ratio: 1;
-		margin-block: 0.45rem;
-	}
-	.art:not(.demo-photo) {
-		background: #e9e6dc;
 	}
 	.card-body {
 		display: flex;
@@ -2442,7 +2477,7 @@
 	}
 
 	@media (max-width: 760px) {
-		.product-grid {
+		.product-grid:not(.list-layout) {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
@@ -2477,12 +2512,6 @@
 		.sort select {
 			max-width: 12.25rem;
 		}
-		.store[data-theme='large'] .product {
-			grid-template-columns: minmax(4rem, 20%) minmax(0, 1fr);
-		}
-		.store .product.no-art {
-			grid-template-columns: minmax(0, 1fr);
-		}
 	}
 
 	.event-demo {
@@ -2499,6 +2528,9 @@
 		--muted: #585858;
 	}
 	.marketplace-brand {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		padding: 0.75rem 1rem 0.2rem;
 		background: var(--marketplace-orange);
 		color: #21100c;

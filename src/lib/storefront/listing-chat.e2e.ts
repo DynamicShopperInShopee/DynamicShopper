@@ -69,6 +69,28 @@ test('uses the storefront undo stack once for a change requested on a listing', 
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 });
 
+test('a category requested from a listing clears the incompatible shelf search offline', async ({
+	page,
+	context
+}) => {
+	await page.goto('/?view=receipt');
+	const search = page.getByRole('searchbox');
+	await expect(search).toBeEnabled();
+	await search.fill('gaming mouse');
+	await search.press('Enter');
+	await page.locator('#products [data-product-card="aero-x"]').getByRole('link').press('Enter');
+	await expect(page).toHaveURL(/\/product\/mouse-3\?/);
+	const input = page.getByRole('textbox', { name: 'Ask the store' });
+	await expect(input).toBeEnabled();
+	await context.setOffline(true);
+	await input.fill('Show me rice cookers');
+	await input.press('Enter');
+	await expect(page.locator('#products [data-product-card="cooker-one-button"]')).toBeVisible();
+	await expect(search).toHaveValue('');
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(search).toHaveValue('gaming mouse');
+});
+
 test.describe('before listing hydration', () => {
 	test.use({ javaScriptEnabled: false });
 	test('keeps native links available and the script-controlled specifications sheet disabled', async ({

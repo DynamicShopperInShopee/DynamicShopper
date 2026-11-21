@@ -124,8 +124,12 @@ Chat is the main control, but never the only one.
 
 What the shopper sets explicitly is applied as-is and can always be seen and removed.
 
+**Proposed section editor.** Once the storefront section composer and preferences are wired into the receipt route, let shoppers show, hide, and reorder optional sections from the fixed library. Start with bilingual Move up and Move down buttons. Drag and drop can use the same actions once touch and keyboard behavior are verified. Keep Products present at the end. Route each edit through validated plan history so Undo restores the prior order and later assistant proposals respect an explicit order. Keep product ranking, prices and citation sources under their existing rules. Reusing the storefront components gives both the assistant and the shopper one source of layout state.
+
 ## Sharing a store
 
 A shopper can share their store's look as a link. The link carries the plan and nothing else: no cart, no conversation, nothing personal. Opening one is treated as untrusted input: it is validated exactly like an AI proposal, opened as one undoable step with a "Shared store opened" note, and ignored silently if it is invalid or oversized. The intended use is the family case: set up mom mode with rice cookers, then send it to the parent over LINE.
 
 Both comparison views opened from the shelf use its active capacity, free shipping, price ceiling and shop filters. The standalone comparison keeps those selections within the shopper’s open tab.
+
+Adaptive list and grid cards follow the validated detail order and omit unselected fields. Direct criteria edits use the store’s standard Undo history and protect the edited field against later inference. Shopper-selected comparison products stay independent of model ranking.

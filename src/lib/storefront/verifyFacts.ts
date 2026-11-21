@@ -46,6 +46,20 @@ function matchesRaw(serialized: string | null, expected: FactValue, legacy: bool
 	}
 }
 
+function isVisibleFact(node: HTMLElement): boolean {
+	const style = getComputedStyle(node);
+	if (style.visibility !== 'visible') return false;
+	if (node.localName !== 'option') return node.getClientRects().length > 0;
+
+	// Native picker options are painted by the select without independent layout boxes.
+	const select = node.closest('select');
+	return Boolean(
+		style.display !== 'none' &&
+		select?.getClientRects().length &&
+		getComputedStyle(select).visibility === 'visible'
+	);
+}
+
 function inspectFacts(
 	root: ParentNode,
 	resolve: ResolvePrintedFact,
@@ -59,7 +73,7 @@ function inspectFacts(
 	const identities = new Map<string, PrintedFact>();
 
 	for (const node of nodes) {
-		if (!node.getClientRects().length || getComputedStyle(node).visibility !== 'visible') continue;
+		if (!isVisibleFact(node)) continue;
 		const legacy = node.hasAttribute('data-fact-node') || node.hasAttribute('data-product-id');
 		const product = (legacy ? node.dataset.productId : node.dataset.product) ?? '';
 		const field = (legacy ? node.dataset.fact : node.dataset.field) ?? '';

@@ -39,6 +39,7 @@ test('a Legacy capacity choice survives assistant, Undo, ranking and listing nav
 	await expect(proof).toHaveAttribute('data-proof', 'verified');
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect.poll(ids).toEqual(selected);
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 	await expect.poll(ids).toEqual(selected);
 	await page.locator('#products tbody th a').first().click();

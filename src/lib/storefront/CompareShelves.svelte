@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Product, Locale } from '../catalog';
+	import type { Locale, Product } from '../catalog';
 	import { personaPlan, rankProducts, type ShopperPlan } from '../personalization';
 	import FactsReceipt from './FactsReceipt.svelte';
 	import FactValue from './FactValue.svelte';

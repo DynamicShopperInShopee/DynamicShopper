@@ -11,6 +11,7 @@ function look(details: string[]) {
 
 test('uses the tech storefront plan for the receipt listing', async ({ page }) => {
 	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 	const link = page.locator('a[href*="/product/"][href*="view=receipt"]').first();
 	await link.click();
@@ -26,6 +27,7 @@ test('takes the copied URL order over a conflicting visit and preserves fact pro
 	page
 }) => {
 	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 	const href = receipt + '&look=' + look(['reviews', 'specs', 'summary']) + '&lang=th&theme=large';
 	await page.evaluate((href) => {
@@ -78,6 +80,7 @@ test('real comparison links use their pane orders and preserve the store undo st
 	page
 }) => {
 	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Mom mode', exact: true }).click();
 	await page.locator('a[href^="/compare?"]').click();
 	const panes = page.locator('.panes > .pane');
@@ -107,6 +110,7 @@ test('real shelf links follow presentation changes from a shared store and prese
 	page
 }) => {
 	await page.goto('/?view=receipt&look=' + look(['specs', 'reviews', 'summary']));
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
 	const link = page.locator('#products a[href*="/product/"]').first();
 	await link.click();
@@ -133,6 +137,7 @@ test('real shelf links follow presentation changes from a shared store and prese
 
 test('inline comparison links use their pane orders', async ({ page }) => {
 	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
 	await page.getByRole('button', { name: 'Compare views', exact: true }).click();
 	for (const [index, order] of [

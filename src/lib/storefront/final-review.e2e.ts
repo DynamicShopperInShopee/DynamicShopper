@@ -115,6 +115,32 @@ test('changing receipt category clears the submitted query and Undo restores bot
 	);
 });
 
+test('explicit All products keeps its preferences when an offline turn names another category', async ({
+	page,
+	context
+}) => {
+	await page.addInitScript(
+		(plan) => localStorage.setItem('dynamicshopper.store.v1', JSON.stringify({ plan })),
+		{ ...defaultPlan, highlightedSpecs: ['weight'], specPreferences: { weight: 'lower' } }
+	);
+	await page.goto(store);
+	const all = page.getByRole('button', { name: 'All', exact: true });
+	const weight = page.getByRole('button', { name: 'Remove Weight · Prefer lower', exact: true });
+	await expect(weight).toBeVisible();
+	await all.click();
+	await context.setOffline(true);
+	await send(page, 'Show rice cookers with more capacity in a compact view');
+	await expect(page.locator('.store')).toHaveAttribute('data-density', 'compact');
+	await expect(all).toHaveAttribute('aria-pressed', 'true');
+	await expect(weight).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Remove Capacity · Prefer higher' })).toHaveCount(
+		0
+	);
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-density', 'comfortable');
+	await expect(weight).toBeVisible();
+});
+
 test('clearing incompatible saved shop filters recovers products and has one Undo', async ({
 	page
 }) => {
@@ -214,6 +240,7 @@ test('a mentioned product link from a compare listing retains the pane look over
 	page
 }) => {
 	await page.goto(store);
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
 	const search = page.getByRole('searchbox');
 	await search.fill('rice cooker');
