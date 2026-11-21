@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- The product link points to an absolute external source URL. */
 	import './shop-theme.css';
 	import ShopShelf from './ShopShelf.svelte';
@@ -190,7 +191,7 @@
 			title={t('Product details', 'รายละเอียดสินค้า')}
 			onclose={() => (selected = null)}
 		>
-			<h2>{selected.name[locale]}</h2>
+			<h2 {...catalogNameAttributes(selected, locale)}>{selected.name[locale]}</h2>
 			{#if selected.size}<p data-fact-key={`${selected.id}:size`} data-raw={selected.size[locale]}>
 					{selected.size[locale]}
 				</p>{/if}

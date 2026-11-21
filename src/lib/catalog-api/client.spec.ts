@@ -145,6 +145,27 @@ describe('catalog validation and display', () => {
 		expect(visited).toEqual(source.items);
 		expect(pageListings(source.items, 999).items).toHaveLength(12);
 	});
+	it.each(['en', 'th'] as const)(
+		'attributes shelf names and product groups to their catalog values in %s',
+		(locale) => {
+			const source = fixture();
+			const item = source.items[0];
+			for (const layout of ['grid', 'list', 'table'] as const) {
+				const html = render(ShopShelf, {
+					props: {
+						plan: { ...initialView().plan, layout, locale },
+						rows: source.items,
+						categories: source.categories,
+						onopen: () => {}
+					}
+				}).body;
+				expect(html).toContain(`data-fact-key="${item.id}:name" data-raw="${item.name[locale]}"`);
+				expect(html).toContain(
+					`data-fact-key="${item.id}:category" data-raw="${item.category}" data-print="${source.categories[0].name[locale]}"`
+				);
+			}
+		}
+	);
 	it('renders only one shared page in grid, list and table with exact raw prices', () => {
 		const source = fixture(1500);
 		for (const layout of ['grid', 'list', 'table'] as const) {

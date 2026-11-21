@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- All links are external source URLs; this component also runs without SvelteKit in the standalone preview. */
 	import '../assets/fonts/plex.css';
 	import './marketplace.css';
@@ -281,6 +282,7 @@
 			</div>
 			<div class="search-hints wrap">
 				{#each catalog.categories.slice(0, 5) as category (category.id)}<button
+						{...catalogNameAttributes(category, lang)}
 						onclick={() => setCategory(category.id)}
 					>
 						{category.name[lang]}
@@ -360,6 +362,7 @@
 					{t('All products', 'สินค้าทั้งหมด')}
 				</button>
 				{#each catalog.categories.slice(0, 4) as category (category.id)}<button
+						{...catalogNameAttributes(category, lang)}
 						class:active={!shopHome && tab === 'shop' && view.category === category.id}
 						onclick={() => setCategory(category.id)}
 					>
@@ -380,7 +383,9 @@
 						)?.image}
 						<button onclick={() => setCategory(category.id)}>
 							<span>
-								<small>{t('PRODUCT GROUPS', 'เลือกตามกลุ่มสินค้า')}</small><strong>
+								<small>{t('PRODUCT GROUPS', 'เลือกตามกลุ่มสินค้า')}</small><strong
+									{...catalogNameAttributes(category, lang)}
+								>
 									{category.name[lang]}
 								</strong><span>
 									{t('View products', 'ดูสินค้าในกลุ่มนี้')}
@@ -490,7 +495,10 @@
 						value={view.category}
 						onchange={(event) => setCategory(event.currentTarget.value)}
 					>
-						{#each categories as category (category.id)}<option value={category.id}>
+						{#each categories as category (category.id)}<option
+								value={category.id}
+								{...catalogNameAttributes(category, lang)}
+							>
 								{category.name[lang]}
 							</option>{/each}
 					</select>
@@ -498,7 +506,9 @@
 							class:active={view.category === category.id}
 							onclick={() => setCategory(category.id)}
 						>
-							<Icon name="grid" size={18} />{category.name[lang]}
+							<Icon name="grid" size={18} /><span {...catalogNameAttributes(category, lang)}>
+								{category.name[lang]}
+							</span>
 						</button>{/each}
 					<form
 						class="budget"
@@ -553,7 +563,10 @@
 									value={view.category}
 									onchange={(event) => setCategory(event.currentTarget.value)}
 								>
-									{#each categories as category (category.id)}<option value={category.id}>
+									{#each categories as category (category.id)}<option
+											value={category.id}
+											{...catalogNameAttributes(category, lang)}
+										>
 											{category.name[lang]}
 										</option>{/each}
 								</select>
@@ -747,7 +760,10 @@
 					{/each}
 				</div>
 				{#if outcome === 'ask'}<div class="options">
-						{#each rows.slice(0, 24) as p (p.id)}<button onclick={() => open(p)}>
+						{#each rows.slice(0, 24) as p (p.id)}<button
+								onclick={() => open(p)}
+								{...catalogNameAttributes(p, lang)}
+							>
 								{p.name[lang]}
 							</button>{/each}
 					</div>{/if}
@@ -786,7 +802,7 @@
 					/>{/if}<span class="overline">
 					{focus.sellerName ?? t('Seller not recorded', 'ไม่ได้บันทึกชื่อร้านค้า')}
 				</span>
-				<h2>{focus.name[lang]}</h2>
+				<h2 {...catalogNameAttributes(focus, lang)}>{focus.name[lang]}</h2>
 				{#if focus.size}<p data-fact-key={`${focus.id}:size`} data-raw={focus.size[lang]}>
 						{focus.size[lang]}
 					</p>{/if}

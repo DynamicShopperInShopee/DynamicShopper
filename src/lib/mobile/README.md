@@ -134,7 +134,10 @@ view. Product groups describe the source queries used to collect observations,
 not a verified official marketplace taxonomy. All groups are available in a
 select, with bounded shortcut lists. Unknown prices or specifications stay
 unknown, and unknown prices are excluded from budget results. Prices and any
-source qualifications remain attached to their original records.
+source qualifications remain attached to their original records. Product titles carry the
+listing ID and original localized name in cards, comparison tables and details.
+Each listing’s group label carries its raw group ID and the catalog’s display
+name for the active language.
 
 The page reports the actual catalog count, observation date and whether it loaded
 from the API or the bundled release. This is an observation

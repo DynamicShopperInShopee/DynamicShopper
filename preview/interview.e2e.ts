@@ -1,5 +1,5 @@
 import versionedCatalog from '../catalogs/shopee-2026-11-21/catalog.json' with { type: 'json' };
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 async function start(page: Page, english = true) {
 	await page.goto('/');
@@ -39,16 +39,18 @@ async function complete(page: Page, values = ['compare', 'specs', 'durability', 
 	await expect(page.getByRole('dialog')).toHaveCount(0);
 	await expect(page.locator('.interview-receipt')).toBeVisible();
 }
-async function facts(page: Page) {
-	return page.locator('.products [data-fact-key]').evaluateAll((nodes) =>
-		nodes
-			.map((n) => ({
-				key: n.getAttribute('data-fact-key'),
-				raw: n.getAttribute('data-raw'),
-				text: n.textContent?.trim()
-			}))
-			.sort((a, b) => String(a.key).localeCompare(String(b.key)))
-	);
+async function facts(root: Page | Locator) {
+	return root.locator('.products [data-fact-key]').evaluateAll((nodes) => {
+		// A missing photo can repeat the same sourced title beside the card heading.
+		const facts = nodes.map((node) =>
+			JSON.stringify({
+				key: node.getAttribute('data-fact-key'),
+				raw: node.getAttribute('data-raw'),
+				text: node.textContent?.trim()
+			})
+		);
+		return [...new Set(facts)].sort();
+	});
 }
 async function noOverflow(page: Page) {
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -197,17 +199,7 @@ test('three examples demonstrate CNN outcomes without selecting or changing the 
 	await expect(panes.nth(2).locator('.products.list')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Use this view', exact: true })).toHaveCount(0);
 	await expect(page.getByText(/These examples do not change your shop/)).toBeVisible();
-	const snapshots = await panes.evaluateAll((items) =>
-		items.map((item) =>
-			Array.from(item.querySelectorAll('.products [data-fact-key]'))
-				.map((n) => ({
-					key: n.getAttribute('data-fact-key'),
-					raw: n.getAttribute('data-raw'),
-					text: n.textContent?.trim()
-				}))
-				.sort((a, b) => String(a.key).localeCompare(String(b.key)))
-		)
-	);
+	const snapshots = await Promise.all((await panes.all()).map(facts));
 	expect(snapshots[0]).toEqual(snapshots[1]);
 	expect(snapshots[1]).toEqual(snapshots[2]);
 	if (info.project.name === 'laptop') {
@@ -250,4 +242,12 @@ test('shows reviewed offline prices even with a conflicting saved browser catalo
 		'data-raw',
 		String(first.price)
 	);
+	await page
+		.locator('.products')
+		.getByRole('button', { name: 'View product', exact: true })
+		.first()
+		.click();
+	const title = page.getByRole('dialog').getByRole('heading', { name: first.name.en, exact: true });
+	await expect(title).toHaveAttribute('data-fact-key', `${first.id}:name`);
+	await expect(title).toHaveAttribute('data-raw', first.name.en);
 });
