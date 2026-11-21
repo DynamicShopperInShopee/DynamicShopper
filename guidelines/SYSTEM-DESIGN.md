@@ -185,6 +185,8 @@ Every input from outside the system's own logic is treated as untrusted and vali
 
 Credentials never leave the server. The only configuration value the shopper can ever see is the name of the AI model, in X-ray.
 
+Cloudflare production builds exclude local environment files from both the intermediate server output and the assembled Worker. The deployed Worker receives its authentication configuration through runtime bindings.
+
 ## How the system degrades
 
 | Failure | What the shopper sees |

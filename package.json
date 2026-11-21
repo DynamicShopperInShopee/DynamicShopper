@@ -10,7 +10,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"build:d1": "DEPLOY_TARGET=cloudflare vite build",
+		"build:d1": "DEPLOY_TARGET=cloudflare vite build && node scripts/check-worker-build.mjs",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
