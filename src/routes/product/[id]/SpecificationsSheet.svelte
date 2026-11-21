@@ -6,12 +6,17 @@
 		th,
 		sheet = $bindable()
 	}: { data: PageData; th: boolean; sheet?: HTMLDialogElement } = $props();
-	const rows = $derived([
-		{ label: th ? 'สินค้า' : 'Product', ...data.name },
-		...(data.shop ? [{ label: th ? 'ร้านค้า' : 'Seller', ...data.shop }] : []),
-		...data.specs,
-		{ label: th ? 'เกี่ยวกับสินค้า' : 'About this item', ...data.summary }
-	]);
+	const rows = $derived.by(() => {
+		const details = data.listingDetails;
+		const all = [
+			{ label: th ? 'สินค้า' : 'Product', ...data.name },
+			...(data.shop ? [{ label: th ? 'ร้านค้า' : 'Seller', ...data.shop }] : []),
+			...data.specs,
+			...(details ? [...details.technical, ...details.dimensions, ...details.features] : []),
+			{ label: th ? 'เกี่ยวกับสินค้า' : 'About this item', ...data.summary }
+		];
+		return [...new Map(all.map((row) => [row.attributes['data-fact'], row])).values()];
+	});
 </script>
 
 <nav
@@ -77,7 +82,8 @@
 					<div>
 						<dt>{spec.label}</dt>
 						<dd
-							class:figure={Number.isFinite(Number(spec.attributes['data-raw']))}
+							class:figure={Number.isFinite(Number(spec.attributes['data-raw'])) ||
+								spec.attributes['data-fact'] === 'detail.voltage'}
 							{...spec.attributes}
 						>
 							{spec.text}

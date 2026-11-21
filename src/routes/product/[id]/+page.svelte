@@ -31,14 +31,18 @@
 		<div class="listing">
 			<div
 				class="art"
-				class:demo-photo={data.id !== 'cooker-one-button'}
+				class:demo-photo={data.id !== 'cooker-one-button' && data.id !== 'cooker-digital'}
 				bind:this={hero}
 				data-category={data.photoCategory}
 				data-model={data.photoModel}
 				data-cooker-photo={data.id}
-				aria-hidden={data.id === 'cooker-one-button' ? undefined : true}
+				aria-hidden={data.id === 'cooker-one-button' || data.id === 'cooker-digital'
+					? undefined
+					: true}
 			>
-				{#if data.id === 'cooker-one-button'}<ProductGallery {th} />{/if}
+				{#if data.id === 'cooker-one-button' || data.id === 'cooker-digital'}
+					{#key data.id}<ProductGallery {th} productId={data.id} />{/key}
+				{/if}
 			</div>
 			<ProductSummary {data} />
 		</div>

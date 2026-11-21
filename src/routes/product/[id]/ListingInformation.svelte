@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import introCooker from '../../../lib/assets/products/cooker-intro.jpg';
 	import ProductSpecificationTiles from './ProductSpecificationTiles.svelte';
+	import DigitalCookerDescription from './DigitalCookerDescription.svelte';
 	import servingCooker from '../../../lib/assets/products/cooker-serving.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 
@@ -45,7 +46,9 @@
 	{/if}
 	<div class="body">
 		<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>
-		{#if data.id === 'cooker-one-button'}
+		{#if data.listingDetails}
+			<DigitalCookerDescription {data} details={data.listingDetails} />
+		{:else if data.id === 'cooker-one-button'}
 			<div class="story">
 				<figure id="cooker-exterior">
 					<figcaption class="intro-caption">
@@ -93,7 +96,7 @@
 		{:else if !data.specs.length}
 			<p {...data.summary.attributes}>{data.summary.text}</p>
 		{/if}
-		{#if data.specs.length}
+		{#if data.specs.length && !data.listingDetails}
 			<h3>{th ? 'จุดเด่น' : 'Highlights'}</h3>
 			<p class="text-summary" {...data.summary.attributes}>{data.summary.text}</p>
 			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>

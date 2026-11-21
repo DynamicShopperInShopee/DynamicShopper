@@ -2,14 +2,36 @@
 	import FactValue from './FactValue.svelte';
 	import type { Locale } from '../catalog';
 
-	let { locale, compact = false }: { locale: Locale; compact?: boolean } = $props();
+	let {
+		locale,
+		compact = false,
+		productId = 'cooker-one-button'
+	}: {
+		locale: Locale;
+		compact?: boolean;
+		productId?: 'cooker-one-button' | 'cooker-digital';
+	} = $props();
 </script>
 
 <div class="caption" class:compact>
-	<div class="merchant"><FactValue productId="cooker-one-button" field="shop" {locale} /></div>
+	<div class="merchant"><FactValue {productId} field="shop" {locale} /></div>
 	<div class="capacity">
-		<strong><FactValue productId="cooker-one-button" field="spec.capacity" {locale} /></strong>
-		<span>{locale === 'th' ? 'ความจุ' : 'Capacity'}</span>
+		<strong>
+			<FactValue
+				{productId}
+				field={productId === 'cooker-digital' ? 'spec.programs' : 'spec.capacity'}
+				{locale}
+			/>
+		</strong>
+		<span>
+			{productId === 'cooker-digital'
+				? locale === 'th'
+					? 'โหมดการปรุง'
+					: 'Cooking modes'
+				: locale === 'th'
+					? 'ความจุ'
+					: 'Capacity'}
+		</span>
 	</div>
 </div>
 
