@@ -28,71 +28,25 @@
 	} = $props();
 </script>
 
-<figure {id}>
-	<figcaption>
-		<div class="caption-title">
+<figure class="m-0 scroll-mt-20" {id}>
+	<figcaption class="border-t border-[var(--detail-seam)] py-[0.85em_0.55em] [&_dl]:mt-[0.45em]">
+		<div class="caption-title flex items-center gap-[0.5em]">
 			{@render icon?.()}
 			{#if typeof title === 'string'}
-				<h3>{title}</h3>
+				<h3 class="m-0 text-[1.25em] leading-[1.35] font-semibold text-balance">{title}</h3>
 			{:else}
-				<h3 {...title.attributes}>{title.text}</h3>
+				<h3 class="m-0 text-[1.25em] leading-[1.35] font-semibold text-balance" {...title.attributes}>{title.text}</h3>
 			{/if}
 		</div>
 		{#if summary}
-			<p {...summary.attributes}>{summary.text}</p>
+			<p  class="mx-0 mt-[0.45em] mb-0 text-[var(--detail-muted)]"{...summary.attributes}>{summary.text}</p>
 		{/if}
 		{#if rows.length}
 			<ListingFactRows {rows} />
 		{/if}
 	</figcaption>
-	<div class="photo">
-		<img {src} {alt} {width} {height} loading="lazy" />
+	<div class="photo relative [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:inset-0 [&>svg]:size-full">
+		<img  class="block h-auto w-full bg-[var(--detail-seam)]"{src} {alt} {width} {height} loading="lazy" />
 		{@render overlay?.()}
 	</div>
 </figure>
-
-<style>
-	figure {
-		margin: 0;
-		scroll-margin-top: 5rem;
-	}
-	figcaption {
-		padding-block: 0.85em 0.55em;
-		border-top: 1px solid var(--detail-seam);
-	}
-	.caption-title {
-		display: flex;
-		align-items: center;
-		gap: 0.5em;
-	}
-	h3 {
-		margin: 0;
-		font-size: 1.25em;
-		font-weight: 600;
-		line-height: 1.35;
-		text-wrap: balance;
-	}
-	p {
-		margin: 0.45em 0 0;
-		color: var(--detail-muted);
-	}
-	figcaption :global(dl) {
-		margin-top: 0.45em;
-	}
-	.photo {
-		position: relative;
-	}
-	.photo > :global(svg) {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-	}
-	img {
-		display: block;
-		width: 100%;
-		height: auto;
-		background: var(--detail-seam);
-	}
-</style>

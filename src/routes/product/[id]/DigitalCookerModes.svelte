@@ -15,15 +15,15 @@
 
 {#if modes.length}
 	<section id="digital-modes" aria-labelledby="digital-modes-title">
-		<h3 id="digital-modes-title">
+		<h3 class="mx-0 mt-0 mb-[0.45em] flex flex-wrap items-baseline justify-between gap-x-[0.75em] gap-y-[0.25em] text-[1.25em] font-semibold" id="digital-modes-title">
 			{th ? 'โหมดการปรุง' : 'Cooking modes'}
 			{#if programCount}
-				<span {...programCount.attributes}>{programCount.text}</span>
+				<span {...programCount class="font-[family-name:var(--product-figure-font)]".attributes}>{programCount.text}</span>
 			{/if}
 		</h3>
-		<ul>
+		<ul class="m-0 grid list-none grid-cols-3 border-s border-t border-[var(--detail-seam)] p-0">
 			{#each modes as mode (mode.attributes['data-fact'])}
-				<li>
+				<li class="flex flex-col items-center justify-center gap-[0.3em] border-e border-b border-[var(--detail-seam)] px-[0.3em] py-[0.75em] text-center leading-[1.35] text-balance wrap-anywhere">
 					<CookerModeIcon field={mode.attributes['data-fact']} />
 					<span {...mode.attributes}>{mode.text}</span>
 				</li>
@@ -31,42 +31,3 @@
 		</ul>
 	</section>
 {/if}
-
-<style>
-	h3 {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 0.25em 0.75em;
-		margin: 0 0 0.45em;
-		font-size: 1.25em;
-		font-weight: 600;
-	}
-	h3 span {
-		font-family: var(--product-figure-font);
-	}
-	ul {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		margin: 0;
-		padding: 0;
-		border-top: 1px solid var(--detail-seam);
-		border-inline-start: 1px solid var(--detail-seam);
-		list-style: none;
-	}
-	li {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.3em;
-		padding: 0.75em 0.3em;
-		border-inline-end: 1px solid var(--detail-seam);
-		border-bottom: 1px solid var(--detail-seam);
-		line-height: 1.35;
-		text-align: center;
-		text-wrap: balance;
-		overflow-wrap: anywhere;
-	}
-</style>

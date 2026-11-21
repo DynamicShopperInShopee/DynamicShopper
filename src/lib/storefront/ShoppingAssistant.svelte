@@ -38,7 +38,9 @@
 	}
 </script>
 
-<div class="shopping-assistant">
+<div
+	class="shopping-assistant max-[1023px]:[&_aside]:hidden max-[1023px]:[&_.trigger]:fixed max-[1023px]:[&_.trigger]:end-4 max-[1023px]:[&_.trigger]:bottom-[calc(1rem+env(safe-area-inset-bottom))] max-[1023px]:[&_.trigger]:z-[2] max-[1023px]:[&_.trigger]:bg-[var(--ink,#16161a)] max-[1023px]:[&_.trigger]:text-[var(--surface,white)] max-[1023px]:[.store:has(&)]:pb-[calc(var(--tap,44px)+2rem+env(safe-area-inset-bottom))] min-[1024px]:[&_aside]:fixed min-[1024px]:[&_aside]:inset-[0_0_0_auto] min-[1024px]:[&_aside]:z-[2] min-[1024px]:[&_aside]:box-border min-[1024px]:[&_aside]:w-[var(--chat-width,24rem)] min-[1024px]:[&_aside]:overflow-auto min-[1024px]:[&_.history]:flex-1 min-[1024px]:[&_.history]:content-start min-[1024px]:[&_.history]:max-h-none min-[1024px]:[.store:has(&)]:pe-[var(--chat-width)] min-[1024px]:[.store:has(&)]:[--chat-width:clamp(20rem,28vw,28rem)]"
+>
 	<Chat
 		bind:this={chat}
 		{locale}
@@ -54,9 +56,12 @@
 		{#snippet renderReply(message: ChatMessage)}
 			{@const lang = message.locale ?? locale}
 			{#if message.changes?.length}
-				<section class="changes" aria-label={lang === 'th' ? 'สิ่งที่เปลี่ยน' : 'What changed'}>
-					<h3>{lang === 'th' ? 'สิ่งที่เปลี่ยน' : 'What changed'}</h3>
-					<ul>
+				<section
+					class="changes my-2 border-y border-dashed border-[var(--muted,#5d5d63)] p-3"
+					aria-label={lang === 'th' ? 'สิ่งที่เปลี่ยน' : 'What changed'}
+				>
+					<h3 class="text-[inherit] font-semibold">{lang === 'th' ? 'สิ่งที่เปลี่ยน' : 'What changed'}</h3>
+					<ul class="mt-1.5 mb-0 list-none p-0">
 						{#each message.changes as change (change)}<li>{change}</li>{/each}
 					</ul>
 				</section>
@@ -70,11 +75,14 @@
 				/>
 			{/if}
 			{#if message.productIds?.length}
-				<ul class="mentioned">
+				<ul class="mentioned my-1.5 list-none p-0">
 					{#each message.productIds as id (id)}
 						{@const name = resolveCatalogFact(id, 'name', lang)}
 						{#if name}<li>
-								<a href={resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id })}>
+								<a
+									class="inline-flex min-h-[var(--tap,44px)] items-center underline"
+									href={resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id })}
+								>
 									<Fact fact={name} />
 								</a>
 							</li>{/if}
@@ -86,65 +94,3 @@
 	</Chat>
 </div>
 
-<style>
-	.changes {
-		margin-block: 0.5rem;
-		padding: 0.75rem;
-		border-block: 1px dashed var(--muted, #5d5d63);
-	}
-	h3 {
-		font-size: inherit;
-		font-weight: 600;
-	}
-	.changes ul {
-		list-style: none;
-		margin: 0.375rem 0 0;
-		padding: 0;
-	}
-	.mentioned {
-		list-style: none;
-		margin: 0.375rem 0;
-		padding: 0;
-	}
-	.mentioned a {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap, 44px);
-		text-decoration: underline;
-	}
-	@media (min-width: 1024px) {
-		:global(.store):has(.shopping-assistant) {
-			--chat-width: clamp(20rem, 28vw, 28rem);
-			padding-inline-end: var(--chat-width);
-		}
-		.shopping-assistant :global(aside) {
-			position: fixed;
-			inset: 0 0 0 auto;
-			z-index: 2;
-			width: var(--chat-width, 24rem);
-			box-sizing: border-box;
-			overflow: auto;
-		}
-		.shopping-assistant :global(.history) {
-			flex: 1;
-			max-height: none;
-			align-content: start;
-		}
-	}
-	@media (max-width: 1023px) {
-		:global(.store):has(.shopping-assistant) {
-			padding-bottom: calc(var(--tap, 44px) + 2rem + env(safe-area-inset-bottom));
-		}
-		.shopping-assistant :global(.trigger) {
-			position: fixed;
-			z-index: 2;
-			inset-inline-end: 1rem;
-			bottom: calc(1rem + env(safe-area-inset-bottom));
-			color: var(--surface, white);
-			background: var(--ink, #16161a);
-		}
-		.shopping-assistant :global(aside) {
-			display: none;
-		}
-	}
-</style>

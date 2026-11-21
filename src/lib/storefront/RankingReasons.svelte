@@ -85,15 +85,23 @@
 </script>
 
 {#if productCount > 1 && !simplified && !comparePane && reasons.length}
-	<details lang={locale}>
-		<summary>{t.title}</summary>
-		<p>{t.lead}</p>
-		<ul>
+	<details
+		class="border border-dashed border-[var(--ink,#16161a)] px-3"
+		lang={locale}
+	>
+		<summary
+			class="min-h-[var(--tap,44px)] cursor-pointer content-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+		>{t.title}</summary>
+		<p class="mt-1 mb-2">{t.lead}</p>
+		<ul class="list-none p-0">
 			{#each reasons as reason, index (index)}
-				<li>
+				<li class="grid grid-cols-[minmax(0,1fr)_minmax(2rem,35%)] items-center gap-2">
 					<span>{reason.label}</span>
-					<span class="track" aria-hidden="true">
-						<span class="bar" data-width={reason.strength}></span>
+					<span class="track block" aria-hidden="true">
+						<span
+							class="bar block h-1.5 bg-current data-[width=low]:w-1/4 data-[width=medium]:w-1/2 data-[width=high]:w-3/4 data-[width=full]:w-full"
+							data-width={reason.strength}
+						></span>
 					</span>
 				</li>
 			{/each}
@@ -101,51 +109,3 @@
 	</details>
 {/if}
 
-<style>
-	details {
-		padding-inline: 0.75rem;
-		border: 1px dashed var(--ink, #16161a);
-	}
-	summary {
-		min-height: var(--tap, 44px);
-		align-content: center;
-		cursor: pointer;
-	}
-	summary:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-	p {
-		margin: 0.25rem 0 0.5rem;
-	}
-	ul {
-		padding: 0;
-		list-style: none;
-	}
-	li {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(2rem, 35%);
-		align-items: center;
-		gap: 0.5rem;
-	}
-	.track {
-		display: block;
-	}
-	.bar {
-		display: block;
-		height: 0.375rem;
-		background: currentColor;
-	}
-	[data-width='low'] {
-		width: 25%;
-	}
-	[data-width='medium'] {
-		width: 50%;
-	}
-	[data-width='high'] {
-		width: 75%;
-	}
-	[data-width='full'] {
-		width: 100%;
-	}
-</style>

@@ -6,6 +6,7 @@
 
 <svg
 	viewBox="0 0 96 96"
+	class="block w-[min(70%,5.75rem)]"
 	aria-hidden="true"
 	fill="none"
 	stroke="currentColor"
@@ -34,9 +35,3 @@
 	{/if}
 </svg>
 
-<style>
-	svg {
-		display: block;
-		width: min(70%, 5.75rem);
-	}
-</style>

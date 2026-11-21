@@ -21,8 +21,8 @@
 	]);
 </script>
 
-<div class="digital-description" id="digital-description">
-	<p class="media-note">{th ? 'ภาพประกอบจำลอง' : 'Simulated product illustrations'}</p>
+<div class="digital-description mx-auto flex max-w-[38rem] flex-col gap-7 [--detail-muted:#5d5d63] [--detail-seam:var(--seam,#e9e6dc)] group-data-[theme=vibrant]/listing:[--detail-muted:#4f5068] group-data-[theme=large]/listing:[--detail-muted:#3d3d42] group-data-[theme=large]/listing:[--detail-seam:#858172]" id="digital-description">
+	<p class="media-note mx-0 mt-0 -mb-5 text-[var(--detail-muted)]">{th ? 'ภาพประกอบจำลอง' : 'Simulated product illustrations'}</p>
 	<DigitalCookerPhoto
 		id="digital-intro"
 		src={digitalMedia.intro}
@@ -152,53 +152,17 @@
 
 	{#if details.highlights.length}
 		<section aria-labelledby="digital-highlights-title">
-			<h3 id="digital-highlights-title">{th ? 'จุดเด่น' : 'Highlights'}</h3>
-			<ul class="highlights">
+			<h3 class="mx-0 mt-0 mb-[0.45em] text-[1.25em] font-semibold" id="digital-highlights-title">{th ? 'จุดเด่น' : 'Highlights'}</h3>
+			<ul class="highlights m-0 ps-[1.3em] leading-[1.55]">
 				{#each details.highlights as highlight (highlight.attributes['data-fact'])}
-					<li {...highlight.attributes}>{highlight.text}</li>
+					<li  class="[&+li]:mt-[0.4em]"{...highlight.attributes}>{highlight.text}</li>
 				{/each}
 			</ul>
 		</section>
 	{/if}
 
 	<section aria-labelledby="digital-information-title">
-		<h3 id="digital-information-title">{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
+		<h3 class="mx-0 mt-0 mb-[0.45em] text-[1.25em] font-semibold" id="digital-information-title">{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
 		<ListingFactRows rows={information} />
 	</section>
 </div>
-
-<style>
-	.digital-description {
-		--detail-seam: var(--seam, #e9e6dc);
-		--detail-muted: #5d5d63;
-		display: flex;
-		flex-direction: column;
-		gap: 1.75rem;
-		max-width: 38rem;
-		margin-inline: auto;
-	}
-	:global([data-theme='vibrant']) .digital-description {
-		--detail-muted: #4f5068;
-	}
-	:global([data-theme='large']) .digital-description {
-		--detail-muted: #3d3d42;
-		--detail-seam: #858172;
-	}
-	.media-note {
-		margin: 0 0 -1.25rem;
-		color: var(--detail-muted);
-	}
-	h3 {
-		margin: 0 0 0.45em;
-		font-size: 1.25em;
-		font-weight: 600;
-	}
-	.highlights {
-		margin: 0;
-		padding-inline-start: 1.3em;
-		line-height: 1.55;
-	}
-	.highlights li + li {
-		margin-top: 0.4em;
-	}
-</style>

@@ -75,8 +75,13 @@
 	}
 </script>
 
-<button type="button" popovertarget={id} lang={locale}>{t.title}</button>
+<button
+	class="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+	type="button"
+	popovertarget={id}
+	lang={locale}>{t.title}</button>
 <div
+	class="m-0 box-border w-[min(23rem,calc(100%-2rem))] max-h-[calc(100dvh-2rem)] overflow-auto rounded-none border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] p-4 text-[var(--ink,#16161a)] [font:inherit] [inset:1rem_1rem_auto_auto]"
 	bind:this={panel}
 	{id}
 	popover="auto"
@@ -84,20 +89,25 @@
 	aria-labelledby={`${id}-title`}
 	lang={locale}
 >
-	<h2 id={`${id}-title`}>{t.title}</h2>
+	<h2 class="m-0 text-[1.125em]" id={`${id}-title`}>{t.title}</h2>
 	{#if rows.length}
-		<ul>
+		<ul class="m-0 list-none p-0">
 			{#each rows as row (row.item.productId)}
-				<li>
-					<p><Fact fact={row.name} /></p>
-					<dl>
-						<div>
+				<li
+					class="m-0 wrap-anywhere border-b border-[var(--seam,#e9e6dc)] py-3"
+				>
+					<p class="m-0"><Fact fact={row.name} /></p>
+					<dl class="m-0">
+						<div class="flex justify-between gap-2">
 							<dt>{t.unitPrice}</dt>
-							<dd><Fact fact={row.price} /></dd>
+							<dd class="m-0 [font-family:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)]">
+								<Fact fact={row.price} />
+							</dd>
 						</div>
-						<div>
+						<div class="flex justify-between gap-2">
 							<dt>{t.quantity}</dt>
 							<dd
+								class="m-0 [font-family:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)]"
 								data-source="cart"
 								data-product={row.item.productId}
 								data-field="quantity"
@@ -108,6 +118,7 @@
 						</div>
 					</dl>
 					<button
+						class="mt-2 min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 						type="button"
 						aria-label={`${t.remove} ${row.name.text}`}
 						disabled={removing}
@@ -118,70 +129,15 @@
 				</li>
 			{/each}
 		</ul>
-		<button type="button" disabled={pending || removing} onclick={bestPrice}>{t.best}</button>
+		<button
+			class="mt-2 min-h-[var(--tap,44px)] rounded-[var(--radius,4px)] border border-current bg-[var(--surface,#fff)] px-2.5 text-inherit [font:inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+			type="button"
+			disabled={pending || removing}
+			onclick={bestPrice}>{t.best}</button>
 	{:else}
-		<p role="status">{t.empty}</p>
+		<p class="m-0" role="status">{t.empty}</p>
 	{/if}
-	{#if removing}<p role="status">{t.removing}</p>{/if}
-	{#if removalFailed}<p role="alert">{t.removeFailed}</p>{/if}
+	{#if removing}<p class="m-0" role="status">{t.removing}</p>{/if}
+	{#if removalFailed}<p class="m-0" role="alert">{t.removeFailed}</p>{/if}
 </div>
 
-<style>
-	[popover] {
-		box-sizing: border-box;
-		inset: 1rem 1rem auto auto;
-		margin: 0;
-		padding: 1rem;
-		width: min(23rem, calc(100% - 2rem));
-		max-height: calc(100dvh - 2rem);
-		overflow: auto;
-		border: 1px solid var(--ink, #16161a);
-		background: var(--surface, #fff);
-		color: var(--ink, #16161a);
-		font: inherit;
-	}
-	h2,
-	ul,
-	li,
-	p,
-	dl,
-	dd {
-		margin: 0;
-	}
-	h2 {
-		font-size: 1.125em;
-	}
-	ul {
-		list-style: none;
-		padding: 0;
-	}
-	li {
-		border-bottom: 1px solid var(--seam, #e9e6dc);
-		padding-block: 0.75rem;
-		overflow-wrap: anywhere;
-	}
-	dl > div {
-		display: flex;
-		justify-content: space-between;
-		gap: 0.5rem;
-	}
-	dd {
-		font-family: var(--mono, 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace);
-	}
-	button {
-		min-height: var(--tap, 44px);
-		padding-inline: 0.625rem;
-		border: 1px solid currentColor;
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		color: inherit;
-		font: inherit;
-	}
-	[popover] button {
-		margin-top: 0.5rem;
-	}
-	button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-</style>

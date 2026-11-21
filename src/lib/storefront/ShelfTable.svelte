@@ -51,31 +51,47 @@
 {#if products.length}
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users can scroll the table container.) -->
 	<div
-		class="table-scroll"
+		class="table-scroll max-w-full overflow-x-auto"
 		role="region"
 		aria-label={th ? 'ตารางสินค้า' : 'Product table'}
 		tabindex="0"
 	>
-		<table>
+		<table class="w-full border-collapse text-start">
 			<thead>
 				<tr>
-					<th scope="col">{th ? 'สินค้า' : 'Product'}</th>
+					<th
+						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
+						scope="col">{th ? 'สินค้า' : 'Product'}</th>
 					{#each columns as column (column.key)}
-						<th scope="col" class="figure">{column.label[locale]}</th>
+						<th
+							class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
+							scope="col">{column.label[locale]}</th>
 					{:else}
-						<th scope="col">{th ? 'สเปก' : 'Specifications'}</th>
+						<th
+							class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
+							scope="col">{th ? 'สเปก' : 'Specifications'}</th>
 					{/each}
-					<th scope="col" class="figure">{th ? 'ราคา' : 'Price'}</th>
-					<th scope="col" class="figure">{th ? 'คะแนน' : 'Rating'}</th>
-					<th scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
+					<th
+						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
+						scope="col">{th ? 'ราคา' : 'Price'}</th>
+					<th
+						class="figure border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline"
+						scope="col">{th ? 'คะแนน' : 'Rating'}</th>
+					<th
+						class="border-b-2 border-b-[var(--ink)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
+						scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each products as product (product.id)}
 					<tr data-product={product.id}>
-						<th scope="row">
+						<th
+							class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] align-baseline text-start"
+							scope="row"
+						>
 							<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller's resolved URL preserves the active look and theme. -->
 							<a
+								class="inline-flex min-h-[var(--tap,44px)] min-w-32 items-center text-inherit underline underline-offset-[0.18em]"
 								href={listingHref?.(product.id) ??
 									resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}
 							>
@@ -88,17 +104,21 @@
 							{@render reasons?.(product.id)}
 						</th>
 						{#each columns as column (column.key)}
-							<td class="figure">
+							<td
+								class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+							>
 								<FactValue productId={product.id} field={`spec.${column.key}`} {locale} />
 							</td>
 						{:else}
-							<td>
-								<dl>
+							<td class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] align-baseline">
+								<dl class="m-0">
 									{#each specs[product.category] as spec (spec.key)}
 										{#if product.specs[spec.key] !== undefined}
-											<div>
-												<dt>{spec.label[locale]}</dt>
-												<dd>
+											<div class="flex flex-wrap gap-x-[0.4rem] gap-y-0">
+												<dt class="text-[var(--muted)]">{spec.label[locale]}</dt>
+												<dd
+													class="m-0 text-end tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+												>
 													<FactValue productId={product.id} field={`spec.${spec.key}`} {locale} />
 												</dd>
 											</div>
@@ -107,11 +127,19 @@
 								</dl>
 							</td>
 						{/each}
-						<td class="figure"><FactValue productId={product.id} field="price" {locale} /></td>
-						<td class="figure"><FactValue productId={product.id} field="rating" {locale} /></td>
-						<td>
+						<td
+							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+						><FactValue productId={product.id} field="price" {locale} /></td>
+						<td
+							class="figure border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] text-end whitespace-nowrap align-baseline tabular-nums [font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+						><FactValue productId={product.id} field="rating" {locale} /></td>
+						<td class="border-b border-[var(--seam)] px-[0.55rem] py-[0.4rem] align-baseline">
 							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
-							<button type="button" onclick={() => onDeal(product.id, locale)}>
+							<button
+								class="inline-flex min-h-[var(--tap,44px)] cursor-pointer items-center whitespace-nowrap text-inherit underline underline-offset-[0.18em]"
+								type="button"
+								onclick={() => onDeal(product.id, locale)}
+							>
 								{th ? 'ราคาดีที่สุด' : 'Best price'}
 							</button>
 						</td>
@@ -124,64 +152,3 @@
 	<p>{th ? 'ไม่พบสินค้าที่ตรงกับการค้นหา' : 'No products match this search.'}</p>
 {/if}
 
-<style>
-	.table-scroll {
-		max-inline-size: 100%;
-		overflow-x: auto;
-	}
-	table {
-		inline-size: 100%;
-		border-collapse: collapse;
-		text-align: start;
-	}
-	th,
-	td {
-		padding: 0.4rem 0.55rem;
-		vertical-align: baseline;
-		border-bottom: 1px solid var(--seam);
-	}
-	thead th {
-		border-bottom: 2px solid var(--ink);
-		text-align: start;
-	}
-	tbody th {
-		text-align: start;
-	}
-	a,
-	button {
-		min-block-size: var(--tap, 44px);
-		display: inline-flex;
-		align-items: center;
-		color: inherit;
-		text-decoration: underline;
-		text-underline-offset: 0.18em;
-	}
-	a {
-		min-inline-size: 8rem;
-	}
-	button {
-		white-space: nowrap;
-		cursor: pointer;
-	}
-	.figure {
-		text-align: end;
-		white-space: nowrap;
-	}
-	td.figure,
-	dd {
-		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
-		font-variant-numeric: tabular-nums;
-	}
-	dl,
-	dd {
-		margin: 0;
-	}
-	dl div {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0 0.4rem;
-	}
-	dt {
-		color: var(--muted);
-	}
-</style>
