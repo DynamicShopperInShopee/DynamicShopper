@@ -7,6 +7,8 @@
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import { categories, type Category, type Language } from '../lib/store-catalog';
 	import { formatBaht, formatNumber, searchProducts, type Sort } from '../lib/store-search';
+	import CookerCapacityChips from './CookerCapacityChips.svelte';
+	import CookerSearchSort from './CookerSearchSort.svelte';
 
 	const copy = {
 		en: {
@@ -24,6 +26,8 @@
 			'top-rated': 'Top rated',
 			'top-sales': 'Top sales',
 			filters: 'Filters',
+			quickFilters: 'Quick filters',
+			relevance: 'Relevance',
 			maxPrice: 'Maximum price (฿)',
 			freeOnly: 'Free shipping only',
 			clear: 'Clear filters',
@@ -60,6 +64,8 @@
 			'top-rated': 'คะแนนสูงสุด',
 			'top-sales': 'ขายดี',
 			filters: 'ตัวกรอง',
+			quickFilters: 'ตัวกรองด่วน',
+			relevance: 'เกี่ยวข้อง',
 			maxPrice: 'ราคาสูงสุด (฿)',
 			freeOnly: 'เฉพาะสินค้าส่งฟรี',
 			clear: 'ล้างตัวกรอง',
@@ -102,18 +108,44 @@
 	let draftPrice = $state<number>();
 	let draftShipping = $state(false);
 	let maxPrice = $state<number>();
+	let capacity = $state<number>();
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
+	let categoryStrip = $state<HTMLElement>();
 	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt');
 
 	const t = $derived(copy[language]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
-	const products = $derived(searchProducts({ query, category, sort, maxPrice, freeShipping }));
+	const cookerTools = $derived(eventDemo && isCookerSearch(query, category));
+	const products = $derived(
+		searchProducts({
+			query,
+			category,
+			sort,
+			maxPrice,
+			freeShipping,
+			riceCookerCapacity: cookerTools ? capacity : undefined
+		})
+	);
+
+	function isCookerSearch(term: string, selection: Category | 'all') {
+		if (selection === 'cooker') return true;
+		if (selection !== 'all' || !term) return false;
+		const matches = searchProducts({ query: term });
+		return matches.length > 0 && matches.every((product) => product.category === 'cooker');
+	}
 
 	function submitSearch(event: SubmitEvent) {
 		event.preventDefault();
 		query = draftQuery.trim();
+		if (!isCookerSearch(query, category)) capacity = undefined;
+		categoryStrip?.scrollTo(0, 0);
+	}
+
+	function selectCategory(selection: Category | 'all') {
+		category = selection;
+		if (!isCookerSearch(query, selection)) capacity = undefined;
 	}
 
 	function applyFilters(event: SubmitEvent) {
@@ -128,6 +160,7 @@
 		maxPrice = undefined;
 		draftShipping = false;
 		freeShipping = false;
+		capacity = undefined;
 	}
 
 	function reset() {
@@ -187,6 +220,61 @@
 
 	<main class="wrap">
 		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
+		{#snippet filterTrigger()}
+			<button
+				class="filter-trigger"
+				type="button"
+				aria-haspopup="dialog"
+				onclick={(event) => {
+					draftPrice = maxPrice;
+					draftShipping = freeShipping;
+					event.currentTarget.focus({ preventScroll: true });
+					filterDialog?.showModal();
+				}}
+			>
+				<svg
+					viewBox="0 0 24 24"
+					width="20"
+					height="20"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.6"
+					aria-hidden="true"
+				>
+					<path d="M3 5h18l-7 8v6l-4 2v-8z" />
+				</svg>
+				{t.filters}
+			</button>
+		{/snippet}
+
+		{#snippet freeShippingChip()}
+			<button
+				type="button"
+				aria-pressed={freeShipping}
+				onclick={() => {
+					freeShipping = !freeShipping;
+					draftShipping = freeShipping;
+				}}
+			>
+				<svg
+					viewBox="0 0 24 24"
+					width="17"
+					height="17"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.7"
+					aria-hidden="true"
+				>
+					<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
+						cx="18"
+						cy="18"
+						r="2"
+					/>
+				</svg>
+				{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
+			</button>
+		{/snippet}
+
 		<form class="search" role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
@@ -204,9 +292,15 @@
 				</button>
 			{/if}
 			<label class="visually-hidden" for="search">{t.search}</label>
-			<input id="search" type="search" placeholder={t.searchHint} bind:value={draftQuery} />
+			<input
+				id="search"
+				type="search"
+				placeholder={t.searchHint}
+				disabled={!interactive}
+				bind:value={draftQuery}
+			/>
 			{#if eventDemo}
-				<button type="submit" class="search-icon" aria-label={t.submit}>
+				<button type="submit" class="search-icon" aria-label={t.submit} disabled={!interactive}>
 					<svg
 						viewBox="0 0 24 24"
 						width="22"
@@ -219,38 +313,30 @@
 						<circle cx="10" cy="10" r="6" /><path d="m15 15 5 5" />
 					</svg>
 				</button>
-				<button
-					class="filter-trigger"
-					type="button"
-					aria-haspopup="dialog"
-					onclick={() => {
-						draftPrice = maxPrice;
-						draftShipping = freeShipping;
-						filterDialog?.showModal();
-					}}
-				>
-					<svg
-						viewBox="0 0 24 24"
-						width="20"
-						height="20"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.6"
-						aria-hidden="true"
-					>
-						<path d="M3 5h18l-7 8v6l-4 2v-8z" />
-					</svg>
-					{t.filters}
-				</button>
+				{#if cookerTools}
+					<CookerSearchSort
+						label={t.sort}
+						options={[
+							{ value: 'default', label: t.relevance },
+							{ value: 'top-sales', label: t['top-sales'] },
+							{ value: 'top-rated', label: t['top-rated'] },
+							{ value: 'price-low', label: t['price-low'] },
+							{ value: 'price-high', label: t['price-high'] }
+						]}
+						bind:sort
+					/>
+				{:else}
+					{@render filterTrigger()}
+				{/if}
 			{:else}
-				<button class="primary" type="submit">{t.submit}</button>
+				<button class="primary" type="submit" disabled={!interactive}>{t.submit}</button>
 			{/if}
 		</form>
 
-		{#if eventDemo}
+		{#if eventDemo && !cookerTools}
 			<div class="sort-tabs" role="group" aria-label={t.sort}>
 				<button type="button" aria-pressed={sort === 'default'} onclick={() => (sort = 'default')}>
-					{language === 'th' ? 'เกี่ยวข้อง' : 'Relevance'}
+					{t.relevance}
 				</button>
 				<button
 					type="button"
@@ -258,6 +344,13 @@
 					onclick={() => (sort = 'top-sales')}
 				>
 					{t['top-sales']}
+				</button>
+				<button
+					type="button"
+					aria-pressed={sort === 'top-rated'}
+					onclick={() => (sort = 'top-rated')}
+				>
+					{t['top-rated']}
 				</button>
 				<button
 					type="button"
@@ -287,37 +380,30 @@
 			</div>
 		{/if}
 
-		<nav class="categories" aria-label={t.categories}>
-			{#if eventDemo}
-				<button
-					type="button"
-					aria-pressed={freeShipping}
-					onclick={() => {
-						freeShipping = !freeShipping;
-						draftShipping = freeShipping;
-					}}
-				>
-					<svg
-						viewBox="0 0 24 24"
-						width="17"
-						height="17"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.7"
-						aria-hidden="true"
-					>
-						<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
-							cx="18"
-							cy="18"
-							r="2"
-						/>
-					</svg>
-					{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
-				</button>
+		{#if cookerTools}
+			<div class="quick-filters" role="group" aria-label={t.quickFilters}>
+				<div class="quick-chips">
+					{@render freeShippingChip()}
+					<CookerCapacityChips {language} bind:capacity />
+				</div>
+				{@render filterTrigger()}
+			</div>
+		{/if}
+
+		<nav
+			class="categories"
+			class:cooker-categories={cookerTools}
+			aria-label={t.categories}
+			bind:this={categoryStrip}
+		>
+			{#if eventDemo && !cookerTools}
+				{@render freeShippingChip()}
 			{/if}
-			<button aria-pressed={category === 'all'} onclick={() => (category = 'all')}>{t.all}</button>
+			<button aria-pressed={category === 'all'} onclick={() => selectCategory('all')}>
+				{t.all}
+			</button>
 			{#each categoryKeys as key (key)}
-				<button aria-pressed={category === key} onclick={() => (category = key)}>
+				<button aria-pressed={category === key} onclick={() => selectCategory(key)}>
 					{categories[key][language]}
 				</button>
 			{/each}
@@ -468,6 +554,7 @@
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div class="results-header">
 				<h2 id="products-heading">{t.products}</h2>
+				{#if cookerTools && sort !== 'default'}<p class="current-sort">{t[sort]}</p>{/if}
 				<p aria-live="polite">
 					<span class="visually-hidden">{t.products} </span>
 					<span class="figure" data-fact="resultCount" data-raw={products.length}>
@@ -1015,7 +1102,7 @@
 	}
 	.sort-tabs {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		border-bottom: 1px solid var(--seam);
 	}
 	.sort-tabs button {
@@ -1041,7 +1128,7 @@
 		padding: 0.375rem 0.5rem;
 		gap: 0.375rem;
 	}
-	.event-demo .categories button {
+	.event-demo :is(.categories, .quick-chips) button {
 		flex: none;
 		white-space: nowrap;
 		border: 1px solid transparent;
@@ -1050,9 +1137,36 @@
 		font-size: var(--small);
 		padding-inline: 0.5rem;
 	}
-	.event-demo .categories button[aria-pressed='true'] {
+	.event-demo :is(.categories, .quick-chips) button[aria-pressed='true'] {
 		color: var(--accent);
 		border-color: var(--accent);
+	}
+	.event-demo .cooker-categories {
+		position: static;
+		padding-top: 0;
+	}
+	.quick-filters {
+		position: sticky;
+		top: calc(var(--tap) + 0.75rem);
+		z-index: 2;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		background: var(--surface);
+	}
+	.quick-chips {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.5rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.quick-filters .filter-trigger {
+		flex-direction: column;
+		border-inline-start: 1px solid var(--seam);
+		border-radius: 0;
+		padding-inline: 0.65rem;
+		font-size: var(--small);
 	}
 	.event-demo .results-header {
 		border: 0;
@@ -1062,6 +1176,9 @@
 	.event-demo .results-header h2 {
 		font-size: var(--small);
 		color: var(--muted);
+	}
+	.current-sort {
+		margin-inline-start: auto;
 	}
 	.event-demo .product-grid {
 		gap: 0.375rem;

@@ -1,4 +1,4 @@
-import { catalog, categories, type Category } from './store-catalog';
+import { catalog, categories, riceCookerSpecs, type Category } from './store-catalog';
 
 export { catalog };
 
@@ -9,6 +9,7 @@ interface SearchOptions {
 	category?: Category | 'all';
 	maxPrice?: number;
 	freeShipping?: boolean;
+	riceCookerCapacity?: number;
 	sort?: Sort;
 }
 
@@ -21,6 +22,7 @@ export function searchProducts({
 	category = 'all',
 	maxPrice,
 	freeShipping = false,
+	riceCookerCapacity,
 	sort = 'default'
 }: SearchOptions = {}) {
 	const words = query.normalize('NFC').toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -28,6 +30,8 @@ export function searchProducts({
 		if (category !== 'all' && product.category !== category) return false;
 		if (maxPrice !== undefined && product.price > maxPrice) return false;
 		if (freeShipping && product.shipping !== 0) return false;
+		if (riceCookerCapacity !== undefined && riceCookerSpecs[product.id]?.[0] !== riceCookerCapacity)
+			return false;
 
 		const labels = categories[product.category];
 		const text = [product.name.en, product.name.th, product.shop, labels.en, labels.th]

@@ -84,6 +84,45 @@ test('renders the event demo grid and filters in a modal drawer', async ({ page 
 	await expect(cards).toHaveCount(1);
 });
 
+test('uses the compact search controls and filters cookers by catalog capacity', async ({
+	page,
+	context
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	const searchBox = page.getByRole('searchbox');
+	await expect(searchBox).toBeEnabled();
+	await context.setOffline(true);
+	await searchBox.fill('rice cooker');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	const search = page.getByRole('search');
+	await search.getByRole('combobox', { name: 'Sort by' }).selectOption('price-high');
+	await expect(
+		page.getByRole('region', { name: 'Products' }).getByText('Price: high to low')
+	).toBeVisible();
+	const quick = page.getByRole('group', { name: 'Quick filters' });
+	await expect(quick.getByRole('button', { name: 'Filters' })).toBeVisible();
+	const cards = page.locator('[data-product]');
+	await expect(cards).toHaveCount(6);
+	await expect(cards.first()).toHaveAttribute('data-product', 'cooker-5');
+	await page.evaluate(() => window.scrollTo(0, 260));
+	await expect.poll(async () => (await quick.boundingBox())?.y).toBe(56);
+	const capacity = quick.getByRole('button', { name: '1.8 L', exact: true });
+	await capacity.click();
+	await expect(capacity).toHaveAttribute('aria-pressed', 'true');
+	await expect(cards).toHaveCount(2);
+	await expect(cards.first()).toHaveAttribute('data-product', 'cooker-6');
+	await expect(cards.last()).toHaveAttribute('data-product', 'cooker-1');
+	await capacity.click();
+	await expect(cards).toHaveCount(6);
+	await capacity.click();
+	await searchBox.fill('gaming mouse');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	await expect(quick).toBeHidden();
+	await expect(cards).toHaveCount(8);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+});
+
 test('opens a rice cooker from the shelf and reads its catalog specifications', async ({
 	page
 }) => {
