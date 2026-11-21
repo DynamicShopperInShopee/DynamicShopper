@@ -19,6 +19,10 @@ The optional sourced preview uses the same fixed answer mappings and proposal va
 
 ## The plan
 
+Accepted: clearing applied filters or removing a budget/shipping chip records one
+Undo checkpoint. Clearing an already unfiltered shelf or discarding draft-only
+filter edits adds no history. Undo restores the applied filters and explicit locks.
+
 The plan is the complete description of how one shopper's store looks. It is small, readable and fully enumerable, which is what makes it safe to hand to an AI.
 
 | Part | Choices | What it controls |
