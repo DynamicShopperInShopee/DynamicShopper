@@ -5,7 +5,7 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 	context
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'en');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await expect(page.getByRole('heading', { name: 'Browse products' })).toBeVisible();
@@ -53,7 +53,7 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 
 test('renders the event demo grid and filters in a modal drawer', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.goto('/?demo=shopee');
+	await page.goto('/');
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'en');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
@@ -82,4 +82,18 @@ test('renders the event demo grid and filters in a modal drawer', async ({ page 
 	await drawer.getByRole('button', { name: 'Apply filters' }).click();
 	await expect(drawer).toBeHidden();
 	await expect(cards).toHaveCount(1);
+});
+
+test('opens a rice cooker from the shelf and reads its catalog specifications', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await page.locator('[data-product="cooker-1"]').getByRole('link').click();
+	await expect(page).toHaveURL(/\/product\/cooker-1/);
+	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
+	await page.getByText('Specifications', { exact: true }).click();
+	await expect(page.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
+	await page.getByRole('link', { name: 'ไทย' }).click();
+	await expect(page.locator('[data-fact="name"]')).toContainText('หม้อหุงข้าว');
 });

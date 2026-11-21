@@ -435,3 +435,14 @@ export const catalog = rows.map(
 		shipping
 	})
 );
+
+// Capacity (L), power (W), cooking programs, and warranty (years) from CATALOG.md.
+export const riceCookerSpecs: Readonly<Record<string, readonly [number, number, number, number]>> =
+	{
+		'cooker-1': [1.8, 700, 2, 2],
+		'cooker-2': [1, 450, 8, 3],
+		'cooker-3': [2.2, 900, 4, 3],
+		'cooker-4': [0.8, 350, 2, 1],
+		'cooker-5': [1.5, 1100, 4, 2],
+		'cooker-6': [1.8, 750, 3, 2]
+	};

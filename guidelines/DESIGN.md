@@ -207,6 +207,8 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 - Use Unicode glyphs for icons.
 - Animate anything under reduced motion.
 
-## Event demo
+## Storefront entry point
 
-The local Sea × OpenAI demo at `/?demo=shopee` follows the approved Shopee Thailand mobile screenshots for the sticky search row and horizontally scrollable quick filters, sort tabs, and two-column grid. The filter drawer is based on the earlier Shopee reference. It uses the same simulated catalog as the standard storefront, with locally bundled illustrative product photos in its cards. The Thermal Receipt design governs the standard storefront.
+The default storefront at `/` follows the approved Shopee Thailand mobile screenshots for the sticky search row and horizontally scrollable quick filters, sort tabs, and two-column grid. The filter drawer is based on the earlier Shopee reference. It uses the same simulated catalog as the standard storefront, with locally bundled illustrative product photos in its cards. The Thermal Receipt storefront remains available at `/?view=receipt`.
+
+The product detail route uses a square product illustration, a catalog-backed price and shipping summary, and an expandable specification slip. The mobile layout stacks these sections, and the desktop layout places the illustration beside the details.

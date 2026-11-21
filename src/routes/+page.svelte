@@ -104,7 +104,7 @@
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
-	const eventDemo = $derived(page.url.searchParams.get('demo') === 'shopee');
+	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt');
 
 	const t = $derived(copy[language]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
@@ -495,7 +495,11 @@
 								<div class="art"><CategoryGlyph category={product.category} /></div>
 							{/if}
 							<div class="card-body">
-								<h3 data-fact="name" data-raw={product.name[language]}>{product.name[language]}</h3>
+								<h3 data-fact="name" data-raw={product.name[language]}>
+									<a href={`${resolve('/product/[id]', { id: product.id })}?lang=${language}`}>
+										{product.name[language]}
+									</a>
+								</h3>
 								<div class="price">
 									<span class="visually-hidden">{t.price} </span>
 									<strong class="figure" data-fact="price" data-raw={product.price}>
