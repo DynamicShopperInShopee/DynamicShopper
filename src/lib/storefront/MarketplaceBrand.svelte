@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import type { Locale } from '../catalog';
 	let {
 		locale,
@@ -7,7 +8,8 @@
 		theme,
 		themes,
 		ontheme,
-		onlocale
+		onlocale,
+		children
 	}: {
 		locale: Locale;
 		showControls: boolean;
@@ -16,6 +18,7 @@
 		themes: { value: string; label: string }[];
 		ontheme: (value: string) => void;
 		onlocale: () => void;
+		children?: Snippet;
 	} = $props();
 </script>
 
@@ -51,6 +54,7 @@
 					{locale === 'th' ? 'English' : 'ไทย'}
 				</button>
 			</div>
+			{@render children?.()}
 		{/if}
 	</div>
 </header>

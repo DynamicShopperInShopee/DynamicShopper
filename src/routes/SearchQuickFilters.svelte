@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { products } from '../lib/catalog';
 	import type { Category, Language } from '../lib/store-catalog';
 	import { categories } from '../lib/store-catalog';
@@ -40,10 +41,10 @@
 	let strip: HTMLDivElement;
 	let previousMode: boolean | undefined;
 	$effect(() => {
-		if (previousMode !== cooker) strip.scrollLeft = 0;
+		if (strip && previousMode !== cooker) strip.scrollLeft = 0;
 		previousMode = cooker;
 	});
-	const sizes = new Map<number, string>();
+	const sizes = new SvelteMap<number, string>();
 	for (const item of products) {
 		if (item.category !== 'rice-cooker') continue;
 		const volume = item.specs.capacity;
@@ -109,7 +110,7 @@
 		<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
 			{th ? 'English' : 'ไทย'}
 		</button>
-		<a href={resolve('/?view=receipt')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
+		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
 	</div>
 	{#if cooker}
 		<button

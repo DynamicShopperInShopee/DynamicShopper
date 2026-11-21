@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 
 	let {
@@ -12,6 +13,10 @@
 		...data.specs,
 		{ label: th ? 'เกี่ยวกับสินค้า' : 'About this item', ...data.summary }
 	]);
+	let ready = $state(false);
+	onMount(() => {
+		ready = true;
+	});
 </script>
 
 <nav
@@ -51,6 +56,7 @@
 	{#if data.specs.length}
 		<button
 			type="button"
+			disabled={!ready}
 			aria-controls="product-specifications"
 			aria-haspopup="dialog"
 			onclick={(event) => {

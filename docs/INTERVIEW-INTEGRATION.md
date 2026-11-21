@@ -2,7 +2,7 @@
 
 Status: accepted for the root storefront; production effectiveness of the model is unmeasured.
 
-Baseline: `origin/main` at `e248361`, merged with `8364e30`. The user requested a PR for the integration
+Baseline: `origin/main` at `bcf1d06`, including the storefront integration in PR #7. The user requested a PR for the integration
 owner while another chat owns the default Shopee-style surface. The user's follow-up
 explicitly requires retaining Shopee branding before and after CNN Apply. A small
 `MarketplaceBrand` header stays mounted across both renderers; presentation
@@ -11,6 +11,12 @@ remain responsive, with no device frame. This change
 ports the existing interview work into main's catalog, validator, ranking and
 undo history. It does not replace the root with the separate sourced-shop demo
 or import that demo's seven listings or its component-preview workspace.
+
+The user confirmed `codex/cnn-interview-main` as the UI source of intent. Its
+branded header, optional interview sheet, review and Apply flow are retained.
+After Apply, the brand shell also exposes main's cart, comparison and inspection
+controls. Returning from a listing restores the applied view and its Undo history.
+Undo back to the marketplace also persists the restored preferences.
 
 ## Integration seam
 
@@ -67,21 +73,20 @@ behavioral tracking or deployment of a new agent service.
 
 ## Verification on the combined tree
 
-- Production build passes with the Node adapter.
-- 82 tests in 11 relevant server suites pass, including all 625 complete/skipped
-  interview combinations, invalid model heads, inference failure, theme locks,
-  catalog immutability, ranking, pricing and the existing assistant boundary.
-- Scoped ESLint and `git diff --check` pass.
-- Browser checks: 390×844 and 1440×900 fit the page; English and Thai; unchanged
-  draft; Apply preserves a selected cooker capacity; direct answers survive a
-  conflicting visual chat preset; one Undo restores the marketplace and filter;
-  a no-op Apply adds neither an undo entry nor a hidden density lock. Shopee
-  branding remains visible after Apply and locale change.
-- `npm run check` still reports the two existing errors in
-  `src/lib/personalization/contract.spec.ts` noted above. The full server suite
-  also has five failures in that same stale contract suite. They are not hidden
-  by modifying or deleting the test. The targeted suites are the passing scope.
-- These are focused checks, not the full browser suite or a claim of real-shopper
-  effectiveness. Independent review found three state regressions and a listing
-  origin regression; the fixes preserve capacity, provenance locks, no-op history,
-  and branded search capture across product navigation.
+- Keyless Node production build passes after merging main `bcf1d06`.
+- Full browser suite: 101 passed, one development-only skip. The poisoned-model
+  development check passes separately. All four themes, both languages and both
+  viewport sizes pass the existing accessibility matrix.
+- Added interview regressions cover phone and laptop Apply, preserved capacity,
+  exposed cart controls, listing return, direct-answer locks under chat, no-op
+  Apply, Undo persistence, draft cancellation and the Thai CNN path. The phone
+  interview sheet was also visually checked against the confirmed UI intent.
+- Full unit/component suite: 169 passed and five existing failures in the stale
+  personalization contract suite. Interview coverage includes all 625 complete
+  and skipped answer combinations, invalid heads, fallback and catalog immutability.
+- Scoped ESLint, formatting and `git diff --check` pass. Type checking retains
+  only the two existing personalization contract errors (missing `applyTurn`
+  export and extensionless fixture import). That shared contract is unchanged.
+- Browser checks use installed Chromium 1223 through temporary runner configs.
+  No dependency or runner configuration changes are committed.
+- These checks establish integration behavior, not real-shopper model effectiveness.
