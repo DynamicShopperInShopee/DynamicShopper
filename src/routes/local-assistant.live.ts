@@ -128,50 +128,6 @@ test('applies the local result when the shopper switches offline during a pendin
 	}
 });
 
-test('a new chat request aborts and supersedes an older model response', async ({ page }) => {
-	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'X-ray' }).click();
-	await page.getByRole('button', { name: 'Try live model' }).click();
-
-	let releaseFirst = () => {};
-	const firstPending = new Promise<void>((resolve) => {
-		releaseFirst = resolve;
-	});
-	let requestCount = 0;
-	await page.route(`**${endpoint}`, async (route) => {
-		requestCount += 1;
-		if (requestCount === 1) {
-			await firstPending;
-			try {
-				await route.fulfill({ json: { model: 'stale-model', patch: { theme: 'vibrant' } } });
-			} catch {
-				// Superseding the turn aborts its request.
-			}
-			return;
-		}
-		await route.fulfill({ json: { model: 'current-model', patch: { theme: 'large-print' } } });
-	});
-
-	try {
-		const input = page.getByRole('textbox', { name: 'Ask the store' });
-		await input.fill('playful');
-		await page.getByRole('button', { name: 'Send' }).click();
-		await expect(page.getByText('Testing the live model', { exact: true })).toBeVisible();
-		await input.fill('large print');
-		await page.getByRole('button', { name: 'Send' }).click();
-		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
-		releaseFirst();
-		await expect(
-			page.locator('#store-xray').getByText('current-model', { exact: true })
-		).toBeVisible();
-		await expect(page.locator('#store-xray')).not.toContainText('stale-model');
-		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
-		expect(requestCount).toBe(2);
-	} finally {
-		releaseFirst();
-	}
-});
-
 test('shows a rejection in X-ray when every model field is unusable', async ({ page }) => {
 	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();

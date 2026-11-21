@@ -10,7 +10,7 @@ afterEach(async () => {
 	await page.viewport(1440, 900);
 });
 
-it('sends suggestions and typed messages through the same callback, supersedes pending turns, and respects IME', async () => {
+it('sends suggestions and typed messages through the same callback, and respects pending and IME', async () => {
 	await page.viewport(1440, 900);
 	const send = vi.fn();
 	const screen = await render(Chat, { locale: 'en', messages: [], pending: false, onSend: send });
@@ -30,7 +30,8 @@ it('sends suggestions and typed messages through the same callback, supersedes p
 	expect(send).toHaveBeenCalledTimes(1);
 
 	await screen.rerender({ pending: true });
-	await expect.element(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+	await expect.element(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+	await screen.rerender({ pending: false });
 	await userEvent.keyboard('{Enter}');
 	expect(send).toHaveBeenLastCalledWith('ขอแบบเรียบง่าย');
 	expect(send).toHaveBeenCalledTimes(2);
