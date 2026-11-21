@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { snapshot } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { categories, products, specs, type Category, type Locale } from '#lib/catalog/index.ts';
 	import { personaPlan, rankProducts } from '#lib/personalization/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
+	import { comparePresets, type ComparePreset } from '#lib/storefront/compare.ts';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 
 	let interactive = $state(false);
@@ -18,6 +20,19 @@
 	const glyphs = new Map(catalog.map((item) => [item.catalogId, item.category]));
 	let query = $derived(page.url.searchParams.get('q')?.slice(0, 200) ?? '');
 	let category = $derived(options.find((key) => key === page.url.searchParams.get('category')));
+	let leftPreset = $state<ComparePreset>('tech');
+	let rightPreset = $state<ComparePreset>('visual');
+	snapshot({
+		capture: () => ({ query, category, leftPreset, rightPreset }),
+		restore: (saved) => {
+			if (!saved || typeof saved !== 'object') return;
+			if (typeof saved.query === 'string' && saved.query.length <= 200) query = saved.query;
+			if (saved.category === undefined || options.includes(saved.category))
+				category = saved.category;
+			if (comparePresets.includes(saved.leftPreset)) leftPreset = saved.leftPreset;
+			if (comparePresets.includes(saved.rightPreset)) rightPreset = saved.rightPreset;
+		}
+	});
 	const columns = $derived(
 		category
 			? specs[category].slice(0, 3).map(({ key, label }) => ({
@@ -76,6 +91,8 @@
 		{/each}
 	</div>
 	<CompareViews
+		bind:leftPreset
+		bind:rightPreset
 		{locale}
 		{productsFor}
 		{columns}

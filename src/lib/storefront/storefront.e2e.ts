@@ -72,13 +72,17 @@ test('compares one catalog search in two personas and opens the Thai listing', a
 	await page.getByRole('searchbox').fill('no matching cooker');
 	await expect(page.getByText('No shared facts to check yet')).toBeVisible();
 	await expect(page.locator('[data-proof="passed"]')).toHaveCount(0);
-	await page.getByRole('searchbox').fill('rice cooker');
+	await page.getByRole('searchbox').fill('one-button');
 	await right
 		.getByRole('link')
 		.filter({ has: page.locator('[data-product="cooker-one-button"]') })
 		.click();
 	await expect(page.locator('main')).toHaveAttribute('lang', 'th');
 	await expect(page.locator('main')).toHaveAttribute('data-theme', 'large');
+	await page.goBack();
+	await expect(page.getByRole('searchbox')).toHaveValue('one-button');
+	await expect(right.getByRole('combobox')).toHaveValue('mom');
+	await expect(right.locator(anchor)).toHaveText('690 บาท');
 });
 
 test('returns from compare with the original search and undo history', async ({ page }) => {

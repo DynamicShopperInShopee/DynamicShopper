@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { comparePresets, presets, type ComparePreset } from './compare';
 	import { onMount } from 'svelte';
 	import { resolveCatalogFact } from './catalogFact';
 	import './theme.css';
@@ -7,27 +8,9 @@
 	import ProductShelf from './ProductShelf.svelte';
 	import type { FactLocale, LocalizedText, ResolvePrintedFact } from './verifyFacts';
 
-	type Preset = 'tech' | 'visual' | 'mom';
-	const presets = {
-		tech: {
-			label: { en: 'Tech minimal', th: 'สายเทคแบบเรียบง่าย' },
-			layout: 'table',
-			theme: 'minimal'
-		},
-		visual: {
-			label: { en: 'Visual vibrant', th: 'เน้นภาพสีสด' },
-			layout: 'grid',
-			theme: 'vibrant'
-		},
-		mom: {
-			label: { en: 'Mom mode', th: 'โหมดสำหรับแม่' },
-			layout: 'large-print',
-			theme: 'large-print'
-		}
-	} as const;
-	const options = Object.keys(presets) as Preset[];
-
 	let {
+		leftPreset = $bindable('tech'),
+		rightPreset = $bindable('visual'),
 		productsFor,
 		columns,
 		resolve = resolveCatalogFact,
@@ -35,13 +18,15 @@
 		categoryFor,
 		locale
 	}: {
-		productsFor: (preset: Preset) => readonly string[];
+		leftPreset?: ComparePreset;
+		rightPreset?: ComparePreset;
+		productsFor: (preset: ComparePreset) => readonly string[];
 		columns: readonly { field: string; label: LocalizedText }[];
 		resolve?: ResolvePrintedFact;
 		listingHref: (
 			id: string,
 			locale: FactLocale,
-			theme: (typeof presets)[Preset]['theme']
+			theme: (typeof presets)[ComparePreset]['theme']
 		) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		locale: FactLocale;
@@ -56,8 +41,6 @@
 		interactive = true;
 	});
 	const t = $derived(copy[locale]);
-	let leftPreset = $state<Preset>('tech');
-	let rightPreset = $state<Preset>('visual');
 	let left = $state<HTMLElement>();
 	let right = $state<HTMLElement>();
 	const a = $derived(presets[leftPreset]);
@@ -67,7 +50,7 @@
 </script>
 
 {#snippet presetOptions()}
-	{#each options as option (option)}
+	{#each comparePresets as option (option)}
 		<option value={option}>{presets[option].label[locale]}</option>
 	{/each}
 {/snippet}
