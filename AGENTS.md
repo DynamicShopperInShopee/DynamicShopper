@@ -1,6 +1,6 @@
 # Rules for contributors and coding agents
 
-Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](PRODUCT.md) and [SYSTEM-DESIGN.md](SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](DESIGN.md) before any visual work.
+Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
 ## Product rules
 
@@ -36,12 +36,20 @@ Everyone who shapes DynamicShopper, human or AI, should keep these rules. They p
 
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
-- **The core journey always works.** [JOURNEY.md](JOURNEY.md) should work end to end, offline included, after every change.
+- **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
-- **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](DESIGN.md).
+- **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).
 - **Keys and secrets stay private.**
 - **Stay lean.** New third-party libraries need a written reason.
+
+## Team workflow
+
+- Work in this repository on your own task branch. Start from the team's agreed baseline. Commit and push small, reviewable increments to that branch.
+- Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
+- The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.
+- Before merging, sync with main, resolve conflicts with the affected owner, rerun the affected checks and obtain review from someone other than the author. Record what passed on the combined tree.
+- Keep keys, private configuration, raw conversations and event access materials out of commits, review evidence and public artifacts. Use synthetic examples for handoffs.
 
 ## Before calling anything done
 

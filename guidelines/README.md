@@ -21,7 +21,7 @@ In one sentence: *"Same products, same prices, a different store for every shopp
 | [DESIGN.md](DESIGN.md) | The visual system, "The Thermal Receipt": colour, type, layout, shapes, components, themes and their rules |
 | [CATALOG.md](CATALOG.md) | The simulated catalog, shops and vouchers, and why each exists |
 | [JOURNEY.md](JOURNEY.md) | The core journey through the product, step by step |
-| [AGENTS.md](AGENTS.md) | The rules every contributor and coding agent must keep |
+| [AGENTS.md](../AGENTS.md) | The rules every contributor and coding agent must keep |
 
 ## Vocabulary
 
