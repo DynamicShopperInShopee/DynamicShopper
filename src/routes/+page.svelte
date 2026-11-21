@@ -22,15 +22,7 @@
 		type Locale
 	} from '../lib/catalog/index.ts';
 	import { findAddOns, optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
-	import {
-		defaultPlan,
-		interpretOffline,
-		personaPlan,
-		rankProducts,
-		validateProposal,
-		type ShopperPlan,
-		type Turn
-	} from '../lib/personalization';
+	import { defaultPlan, personaPlan, type ShopperPlan, type Turn } from '../lib/personalization';
 	import FactValue from '../lib/storefront/FactValue.svelte';
 	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
@@ -38,8 +30,19 @@
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
 	import { getStoreOpenedAt } from '../lib/storefront/clock';
-	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
-	import { projectLiveHints } from '../lib/personalization/live';
+	import { HarnessContext, setHarness } from '#lib/harness-ui/context.svelte.ts';
+	import {
+		toHarness,
+		fromHarness,
+		websiteState,
+		websiteTurn,
+		websiteRanking as rankProducts,
+		partMap
+	} from '#lib/harness-ui/website-adapter.ts';
+	import { defaultCatalog, whatChanged, pageSections } from '#lib/harness/index.ts';
+	import ChangeSlip from '#lib/harness-ui/ChangeSlip.svelte';
+	import Accuracy from '#lib/harness-ui/Accuracy.svelte';
+
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
@@ -48,6 +51,8 @@
 	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
 
+	const harness = setHarness(new HarnessContext());
+	let assistantOpen = $state(false);
 	let interactive = $state(false);
 	onMount(() => {
 		interactive = true;
@@ -81,6 +86,7 @@
 			plan: ShopperPlan;
 			adapted: boolean;
 			sort: Sort;
+			capacity?: number;
 			freeShipping: boolean;
 			locks: (keyof ShopperPlan)[];
 		}[]
@@ -97,6 +103,7 @@
 	let pendingLocalTurn: Turn | undefined;
 
 	function cancelLive() {
+		harness.cancel();
 		liveRequest?.abort();
 		liveRequest = undefined;
 		pendingLocalTurn = undefined;
@@ -142,7 +149,11 @@
 	const ranked = $derived(
 		adapted
 			? rankProducts(
-					freeShipping ? canonical.filter(({ shipping }) => shipping === 0) : canonical,
+					canonical.filter(
+						(product) =>
+							(!freeShipping || product.shipping === 0) &&
+							(!cookerSearch || capacity === undefined || product.specs.capacity === capacity)
+					),
 					activePlan
 				)
 			: []
@@ -159,10 +170,49 @@
 				plan: structuredClone($state.snapshot(activePlan)),
 				adapted,
 				sort,
+				capacity,
 				freeShipping,
 				locks: [...locks]
 			}
 		];
+	}
+	function syncHarness() {
+		harness.state = websiteState(
+			harness.state,
+			$state.snapshot(activePlan),
+			[...locks],
+			$state.snapshot(undoStack)
+		);
+	}
+	function receipt(before: ShopperPlan) {
+		const after = $state.snapshot(activePlan);
+		changes = (Object.keys(after) as (keyof ShopperPlan)[]).filter(
+			(k) => JSON.stringify(before[k]) !== JSON.stringify(after[k])
+		);
+		syncHarness();
+		harness.changes = whatChanged(
+			harness.state.plan,
+			changes.map((k) => partMap[k]),
+			language,
+			defaultCatalog
+		);
+	}
+	function compareSignal() {
+		syncHarness();
+		harness.signal('open_compare');
+	}
+	function acceptSuggestion(id: Parameters<typeof harness.accept>[0]) {
+		const offered = harness.state.suggestions.find((s) => s.id === id);
+		if (!offered) return;
+		syncHarness();
+		harness.accept(id);
+		const next = fromHarness(harness.state.plan);
+		const nextLocks = Object.entries(partMap)
+			.filter(([, part]) => harness.state.explicit.includes(part))
+			.map(([key]) => key as keyof ShopperPlan);
+		changePlan(next, false);
+		locks = nextLocks;
+		syncHarness();
 	}
 	function register(key: keyof ShopperPlan) {
 		cancelLive();
@@ -190,28 +240,35 @@
 		remember();
 		writePlan({ ...previous, ...Object.fromEntries(entries) });
 		adapted = true;
+		if (!respectLocks)
+			locks = [...new Set([...locks, ...entries.map(([key]) => key as keyof ShopperPlan)])];
+		receipt(previous);
 	}
 	function undo() {
 		cancelLive();
+		const before = $state.snapshot(activePlan);
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
 		writePlan(previous.plan);
 		adapted = previous.adapted;
 		sort = previous.sort;
+		capacity = previous.capacity;
 		freeShipping = draftShipping = previous.freeShipping;
 		locks = previous.locks;
-		changes = [];
+		receipt(before);
 	}
 	function restoreDefaults() {
 		cancelLive();
+		const before = $state.snapshot(activePlan);
 		remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		adapted = false;
+		capacity = undefined;
 		sort = 'default';
 		freeShipping = draftShipping = false;
-		changes = [];
+		receipt(before);
 	}
 	function removePreference(key: keyof ShopperPlan) {
 		const previous = [...locks];
@@ -258,7 +315,8 @@
 	}
 	function openBasket(productIds: readonly string[], locale: Locale = language) {
 		const openedAt = getStoreOpenedAt();
-		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
+		referenceTime = Math.max(openedAt, Date.now());
+		const context = { openedAt, now: referenceTime };
 		const basket = productIds.map((productId) => ({ productId, quantity: 1 }));
 		const receipt = optimizeDeal(basket, context);
 		if (!receipt) return;
@@ -291,74 +349,49 @@
 		}
 	}
 
-	function send(message: string) {
+	async function send(message: string) {
 		cancelLive();
-		liveModel = undefined;
-		liveFallback = false;
-		const focus = products.some((product) => product.catalogId === focusedProduct)
+		harness.state = websiteState(
+			harness.state,
+			$state.snapshot(activePlan),
+			[...locks],
+			$state.snapshot(undoStack)
+		);
+		const focus = products.some((p) => p.catalogId === focusedProduct)
 			? focusedProduct
 			: products[0]?.catalogId;
-		const simulating = dev && poisonArmed;
+		if (focus) harness.focus(focus);
+		harness.forceOffline = !liveEnabled && !(dev && poisonArmed);
+		harness.poison = dev && poisonArmed;
 		poisonArmed = false;
-		const local = simulating
-			? validateProposal(
-					{
-						intent: 'change',
-						patch: { price: 1, layout: 'foreign', sections: ['unknown'] },
-						reply: '฿1'
-					},
-					activePlan,
-					focus
-				)
-			: interpretOffline(message, activePlan, focus);
-		if (
-			simulating ||
-			!dev ||
-			!liveEnabled ||
-			(local.intent !== 'chat' && local.intent !== 'change')
-		) {
-			applyTurn(local);
-			return;
-		}
-		const hints = projectLiveHints(message);
-		if (!hints.length) {
-			applyTurn(local);
-			return;
-		}
-		const request = new AbortController();
-		liveRequest = request;
-		pendingLocalTurn = local;
 		livePending = true;
-		turn = undefined;
-		changes = [];
-		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
-			(result) => {
-				if (liveRequest !== request) return;
-				liveRequest = undefined;
-				pendingLocalTurn = undefined;
-				livePending = false;
-				if (!result) {
-					liveFallback = true;
-					applyTurn(local);
-					return;
-				}
-				const proposed = validateProposal(
-					{ intent: 'change', patch: result.patch },
-					activePlan,
-					focus
-				);
-				const additions = fillPresentationGaps(local.patch, proposed.patch, activePlan, locks);
-				const dropped = result.rejected
-					? [...new Set([...proposed.dropped, 'unknown-field'])]
-					: proposed.dropped;
-				if (!Object.keys(additions).length) {
-					applyTurn({ ...local, dropped });
-					return;
-				}
-				liveModel = result.model;
-				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
-			}
+		const result = await harness.send(message);
+		livePending = harness.pending;
+		if (!result) return;
+		turn = websiteTurn(result);
+		liveModel = result.backend === 'model' ? (result.trace.model ?? 'AI') : undefined;
+		liveFallback = result.backend === 'offline';
+		if (result.turn.intent === 'undo') {
+			undo();
+		} else if (result.turn.intent === 'reset') {
+			restoreDefaults();
+		} else if (JSON.stringify(result.state.plan) !== JSON.stringify(toHarness(activePlan))) {
+			remember();
+			writePlan(fromHarness(result.state.plan));
+			adapted = true;
+		}
+		changes = result.changes.flatMap((line) =>
+			Object.entries(partMap)
+				.filter(([, part]) => part === line.part)
+				.map(([key]) => key as keyof ShopperPlan)
 		);
+		harness.changes = whatChanged(
+			toHarness(activePlan),
+			result.changes.map((line) => line.part),
+			language,
+			defaultCatalog
+		);
+		if (result.deal) openBasket(result.basket);
 	}
 
 	async function shareLook() {
@@ -376,7 +409,18 @@
 		opening = getStoreOpenedAt();
 		referenceTime = Math.max(opening, Date.now());
 		const timer = window.setInterval(() => {
-			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
+			if (opening !== undefined) {
+				referenceTime = Math.max(opening, Date.now());
+				if (quote) {
+					const basket = quote.receipt.items.map((item) => ({
+						productId: item.productId,
+						quantity: item.quantity
+					}));
+					const clock = { openedAt: opening, now: referenceTime };
+					const updated = optimizeDeal(basket, clock);
+					if (updated) quote = { ...quote, receipt: updated, addOns: findAddOns(basket, clock) };
+				}
+			}
 		}, 60_000);
 		return () => {
 			cancelLive();
@@ -421,11 +465,13 @@
 	);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const products = $derived.by(() => {
-		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping });
-		if (cookerSearch && capacity !== undefined) {
-			return matched.filter((item) => getProduct(item.catalogId)?.specs.capacity === capacity);
-		}
-		if (!adapted || eventDemo) return matched;
+		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping }).filter(
+			(item) =>
+				!cookerSearch ||
+				capacity === undefined ||
+				getProduct(item.catalogId)?.specs.capacity === capacity
+		);
+		if (!adapted) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
 				rankProducts(canonical, { ...activePlan, simplified: false }).map(
@@ -435,12 +481,14 @@
 			const filtered = matched.filter(({ catalogId }) => visible.has(catalogId));
 			return plan.simplified ? filtered.slice(0, 3) : filtered;
 		}
-		return ranked.flatMap(({ product }) => catalogById.get(product.id) ?? []);
+		const visible = new Set(matched.map((item) => item.catalogId));
+		return ranked
+			.filter(({ product }) => visible.has(product.id))
+			.flatMap(({ product }) => catalogById.get(product.id) ?? []);
 	});
 	const topDeal = $derived.by(() => {
 		const top = products[0];
 		if (
-			eventDemo ||
 			!adapted ||
 			!plan.sections.includes('best-deal') ||
 			!top ||
@@ -456,13 +504,12 @@
 
 	function submitSearch(event: SubmitEvent) {
 		event.preventDefault();
-		remember();
-		register('query');
-		query = draftQuery.trim();
+		changePlan({ query: draftQuery.trim() }, false);
 		capacity = undefined;
 	}
 
 	function applyFilters(event: SubmitEvent) {
+		cancelLive();
 		event.preventDefault();
 		remember();
 		if (draftPrice !== undefined) register('maxPrice');
@@ -482,8 +529,7 @@
 	}
 
 	function chooseCategory(value: Category | 'all') {
-		register('category');
-		category = value;
+		changePlan({ category: value === 'all' ? null : categoryFromShelf[value] }, false);
 		capacity = undefined;
 	}
 
@@ -537,7 +583,20 @@
 					DynamicShopper
 				</a>
 				<div class="settings">
-					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
+					<select
+						aria-label={t.theme}
+						value={theme}
+						onchange={(e) =>
+							changePlan(
+								{
+									theme:
+										e.currentTarget.value === 'large'
+											? 'large-print'
+											: (e.currentTarget.value as ShopperPlan['theme'])
+								},
+								false
+							)}
+					>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -547,8 +606,7 @@
 						lang={language === 'th' ? 'en' : 'th'}
 						disabled={!interactive}
 						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
+							changePlan({ locale: language === 'th' ? 'en' : 'th' }, false);
 						}}
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
@@ -600,7 +658,14 @@
 				{#if cookerSearch}
 					<CookerSearchSort
 						label={t.sort}
-						bind:sort
+						bind:sort={
+							() => sort,
+							(value) => {
+								cancelLive();
+								remember();
+								sort = value;
+							}
+						}
 						options={cookerSorts.map((value) => ({ value, label: t[value] }))}
 					/>
 				{:else}
@@ -634,20 +699,36 @@
 		{/if}
 		{#if eventDemo && !cookerSearch}
 			<div class="sort-tabs" role="group" aria-label={t.sort}>
-				<button type="button" aria-pressed={sort === 'default'} onclick={() => (sort = 'default')}>
+				<button
+					type="button"
+					aria-pressed={sort === 'default'}
+					onclick={() => {
+						cancelLive();
+						remember();
+						sort = 'default';
+					}}
+				>
 					{language === 'th' ? 'เกี่ยวข้อง' : 'Relevance'}
 				</button>
 				<button
 					type="button"
 					aria-pressed={sort === 'top-rated'}
-					onclick={() => (sort = 'top-rated')}
+					onclick={() => {
+						cancelLive();
+						remember();
+						sort = 'top-rated';
+					}}
 				>
 					{t['top-rated']}
 				</button>
 				<button
 					type="button"
 					aria-pressed={sort === 'top-sales'}
-					onclick={() => (sort = 'top-sales')}
+					onclick={() => {
+						cancelLive();
+						remember();
+						sort = 'top-sales';
+					}}
 				>
 					{t['top-sales']}
 				</button>
@@ -658,7 +739,11 @@
 					aria-describedby={sort === 'price-low' || sort === 'price-high'
 						? 'price-sort-direction'
 						: undefined}
-					onclick={() => (sort = sort === 'price-low' ? 'price-high' : 'price-low')}
+					onclick={() => {
+						cancelLive();
+						remember();
+						sort = sort === 'price-low' ? 'price-high' : 'price-low';
+					}}
 				>
 					{t.price}
 					<svg
@@ -683,10 +768,19 @@
 			<CookerQuickFilters
 				{language}
 				{category}
-				bind:capacity
+				bind:capacity={
+					() => capacity,
+					(value) => {
+						cancelLive();
+						remember();
+						capacity = value;
+					}
+				}
 				{freeShipping}
 				{openFilters}
 				toggleShipping={() => {
+					cancelLive();
+					remember();
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
@@ -697,8 +791,7 @@
 					chooseCategory(value);
 				}}
 				toggleLanguage={() => {
-					register('locale');
-					language = language === 'th' ? 'en' : 'th';
+					changePlan({ locale: language === 'th' ? 'en' : 'th' }, false);
 				}}
 			/>
 		{:else}
@@ -708,6 +801,8 @@
 						type="button"
 						aria-pressed={freeShipping}
 						onclick={() => {
+							cancelLive();
+							remember();
 							freeShipping = !freeShipping;
 							draftShipping = freeShipping;
 						}}
@@ -758,7 +853,7 @@
 			<div class="toolbar">
 				<label class="sort">
 					<span>{t.sort}</span>
-					<select bind:value={sort}>
+					<select bind:value={sort} onchange={cancelLive}>
 						{#each sorts as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -907,9 +1002,9 @@
 			</div>
 		{/if}
 
-		{#if !eventDemo}
+		{#if assistantOpen || !eventDemo}
 			<section class="shopper-tools" aria-label={a.persona}>
-				<ShoppingAssistant locale={language} onSend={send} />
+				<ShoppingAssistant locale={language} onSend={send} pending={livePending} />
 				<div class="shopper-actions">
 					{#each personas as persona (persona)}
 						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
@@ -917,7 +1012,10 @@
 					<button
 						type="button"
 						aria-expanded={compareOpen}
-						onclick={() => (compareOpen = !compareOpen)}
+						onclick={() => {
+							compareOpen = !compareOpen;
+							if (compareOpen) compareSignal();
+						}}
 					>
 						{compareOpen ? a.closeCompare : a.compare}
 					</button>
@@ -965,16 +1063,27 @@
 						{/if}
 					</div>
 				{/if}
-				{#if changes.length}
-					<div class="assistant-reply" aria-live="polite">
-						<strong>{a.changed}</strong>
-						<div class="shopper-actions">
-							{#each [...new Set(changes.map(changeName))] as label (label)}
-								<span>{label}</span>
-							{/each}
-						</div>
+				<ChangeSlip lines={harness.changes} lang={language} />
+				{#each harness.state.suggestions as suggestion (suggestion.id)}
+					<div class="assistant-reply">
+						<p>
+							{language === 'th'
+								? 'อยากใช้มุมมองตามการเลือกดูของคุณไหม?'
+								: 'Would this view suit your browsing?'}
+						</p>
+						{#each harness.preview(suggestion.patch) as line (line.part)}<p>{line.text}</p>{/each}
+						<button
+							onclick={() => {
+								acceptSuggestion(suggestion.id);
+							}}
+						>
+							{language === 'th' ? 'ใช้คำแนะนำ' : 'Apply suggestion'}
+						</button>
+						<button onclick={() => harness.dismiss(suggestion.id)}>
+							{language === 'th' ? 'ไม่ใช้' : 'Dismiss'}
+						</button>
 					</div>
-				{/if}
+				{/each}
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
 						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
@@ -1005,7 +1114,7 @@
 									? 'ใช้การตอบแบบออฟไลน์แทน'
 									: 'Live model unavailable. Used offline mode.'}
 							</p>{/if}
-						{#if dev}
+						{#if true}
 							<button type="button" onclick={toggleLive} aria-pressed={liveEnabled}>
 								{liveEnabled
 									? language === 'th'
@@ -1017,7 +1126,18 @@
 							</button>
 						{/if}
 						{#if turn?.guarded}<p>{a.guard}</p>{/if}
-						{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
+						{#if turn?.dropped.length}<p>{a.rejected}</p>
+							<ul>
+								{#each turn.dropped as drop (drop)}<li>{drop}</li>{/each}
+							</ul>{/if}
+						{#if harness.last}<p>
+								{language === 'th' ? 'สาเหตุออฟไลน์' : 'Fallback reason'}: {harness.last.trace
+									.fallbackReason ?? '—'}
+							</p>
+							<p>
+								{language === 'th' ? 'ตัวตรวจคำตอบ' : 'Fact guard'}: {harness.last.trace.guard}
+							</p>{/if}
+						<Accuracy />
 						{#if !changes.length}<p>{a.noChange}</p>{/if}
 						{#if dev}<button
 								type="button"
@@ -1047,240 +1167,264 @@
 					<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
 				</section>
 			{/if}
-			{#if topDeal && !quote}<DealSlip receipt={topDeal} locale={language} />{/if}
-			{#if adapted && plan.sections.includes('what-matters') && products.length}
-				<section class="assistant-reply">
-					<strong>{a.guide}</strong>
-					<p>
-						{[
-							...new Set(
-								[
-									...Object.keys(activePlan.specPreferences),
-									...Object.keys(activePlan.priorities)
-								].map((key) => termName(key, products[0]?.catalogId))
-							)
-						].join(' · ')}
-					</p>
-				</section>
-			{/if}
-			{#if adapted && plan.sections.includes('share')}
-				<div class="shopper-actions">
-					<button type="button" onclick={shareLook}>{a.share}</button>
-					{#if shareCopied}<span role="status">{a.shared}</span>{/if}
-				</div>
-			{/if}
 		{/if}
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
-		<section id="products" aria-labelledby="products-heading" tabindex="-1">
-			<div class="results-header" class:visually-hidden={cookerSearch && sort === 'default'}>
-				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
-				{#if eventDemo && !cookerSearch}
-					<a class="assistant-link" href={resolve('/?view=receipt')}>
-						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
-					</a>
-				{/if}
-				<p aria-live="polite">
-					<span class="visually-hidden">{t.products} </span>
-					<span class="figure" data-fact="resultCount" data-raw={products.length}>
-						{formatNumber(products.length)}
-					</span>
-				</p>
-			</div>
-			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
-			<div bind:this={proofRoot}>
-				{#if products.length === 0}
-					<div class="empty">
-						<h3>{t.empty}</h3>
-						<p>{t.emptyHint}</p>
-						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
-					</div>
-				{:else if !eventDemo && adapted && plan.layout === 'table'}
-					<ShelfTable
-						products={products.flatMap(
-							(product) => canonical.find(({ id }) => id === product.catalogId) ?? []
-						)}
-						locale={language}
-						onDeal={openDeal}
-						highlightedSpecs={plan.highlightedSpecs}
-					/>
-				{:else}
-					{#if !eventDemo && adapted && plan.sections.includes('compare')}
+		{#snippet productShelf()}
+			<section id="products" aria-labelledby="products-heading" tabindex="-1">
+				<div class="results-header">
+					<h2 id="products-heading">{t.products}</h2>
+					{#if eventDemo}
+						<button
+							class="assistant-link"
+							onclick={() => (assistantOpen = !assistantOpen)}
+							aria-expanded={assistantOpen}
+						>
+							{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
+						</button>
+					{/if}
+					<p aria-live="polite">
+						<span class="visually-hidden">{t.products} </span>
+						<span class="figure" data-fact="resultCount" data-raw={products.length}>
+							{formatNumber(products.length)}
+						</span>
+					</p>
+				</div>
+				{#if !eventDemo || adapted}<FactsReceipt root={proofRoot} locale={language} />{/if}
+				<div bind:this={proofRoot}>
+					{#if products.length === 0}
+						<div class="empty">
+							<h3>{t.empty}</h3>
+							<p>{t.emptyHint}</p>
+							<button type="button" class="primary" onclick={reset}>{t.reset}</button>
+						</div>
+					{:else if adapted && plan.layout === 'table'}
 						<ShelfTable
-							products={products
-								.slice(0, 3)
-								.flatMap((product) => canonical.find(({ id }) => id === product.catalogId) ?? [])}
+							products={products.flatMap(
+								(product) => canonical.find(({ id }) => id === product.catalogId) ?? []
+							)}
 							locale={language}
 							onDeal={openDeal}
 							highlightedSpecs={plan.highlightedSpecs}
 						/>
-					{/if}
-					<ul
-						class="product-grid"
-						class:list-layout={!eventDemo && adapted && plan.layout === 'list'}
-					>
-						{#each products as product (product.id)}
-							<li class="product" data-product={product.catalogId}>
-								{#if eventDemo}
-									<div
-										class="art demo-photo"
-										data-category={product.category}
-										data-model={product.id}
-										data-cooker-photo={product.catalogId}
-										aria-hidden={product.id === 'cooker-1' ? undefined : true}
-									>
-										{#if product.id === 'cooker-1'}<CookerPhotoCaption
-												locale={language}
-												compact
-											/>{/if}
-									</div>
-								{:else}
-									<div class="art"><CategoryGlyph category={product.category} /></div>
-								{/if}
-								<div class="card-body">
-									<h3>
-										<a
-											class="product-link"
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
-												id: product.id
-											})}
+						{#if sort === 'default' && ranked[0]?.bars.length}
+							<details class="rank">
+								<summary>{a.rank}</summary>
+								<ul>
+									{#each ranked[0].bars as reason (reason.label.en)}<li>
+											{reason.label[language]}
+										</li>{/each}
+								</ul>
+							</details>
+						{/if}
+					{:else}
+						<ul class="product-grid" class:list-layout={adapted && plan.layout === 'list'}>
+							{#each products as product (product.id)}
+								<li class="product" data-product={product.catalogId}>
+									{#if eventDemo}
+										<div
+											class="art demo-photo"
+											data-category={product.category}
+											data-model={product.id}
+											data-cooker-photo={product.catalogId}
+											aria-hidden={product.id === 'cooker-1' ? undefined : true}
 										>
-											<FactValue productId={product.catalogId} field="name" locale={language} />
-										</a>
-									</h3>
-									<div class="price">
-										<span class="visually-hidden">{t.price} </span>
-										<FactValue
-											tag="strong"
-											class="figure"
-											productId={product.catalogId}
-											field="price"
-											locale={language}
-										/>
-										{#if product.originalPrice !== null}
-											<span class="visually-hidden">{t.was} </span>
-											<FactValue
-												tag="s"
-												class="figure"
-												productId={product.catalogId}
-												field="originalPrice"
-												locale={language}
-											/>
-										{/if}
-									</div>
-									<div class="shipping">
-										{#if eventDemo}
-											<svg
-												aria-hidden="true"
-												viewBox="0 0 24 24"
-												width="16"
-												height="16"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.7"
-											>
-												<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
-													cx="6"
-													cy="18"
-													r="2"
-												/><circle cx="18" cy="18" r="2" />
-											</svg>
-										{/if}
-										<span>{t.shipping}</span>
-										<span class="leader" aria-hidden="true"></span>
-										<FactValue
-											class="figure"
-											productId={product.catalogId}
-											field="shipping"
-											locale={language}
-										/>
-									</div>
-									<div class="metadata">
-										<span>
-											<svg
-												viewBox="0 0 20 20"
-												width="15"
-												height="15"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.5"
-												aria-hidden="true"
-											>
-												<path
-													d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
-												/>
-											</svg>
-											<span class="visually-hidden">{t.rating} </span>
-											<FactValue
-												class="figure"
-												productId={product.catalogId}
-												field="rating"
-												locale={language}
-											/>
-										</span>
-										<span>
-											{t.sold}
-											<FactValue
-												class="figure"
-												productId={product.catalogId}
-												field="sold"
-												locale={language}
-											/>
-										</span>
-									</div>
-									<FactValue
-										tag="p"
-										class="shop"
-										productId={product.catalogId}
-										field="shop"
-										locale={language}
-									/>
-									{#if !eventDemo}
-										{@const reasons =
-											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
-											[]}
-										{#if adapted && plan.details.includes('summary')}
-											<FactValue
-												tag="p"
-												productId={product.catalogId}
-												field="summary"
-												locale={language}
-											/>
-										{/if}
-										{#if adapted && (plan.sections.includes('reviews') || plan.details.includes('reviews'))}
-											<FactValue
-												tag="p"
-												productId={product.catalogId}
-												field="review.0"
-												locale={language}
-											/>
-										{/if}
-										<button
-											class="best-price"
-											type="button"
-											onclick={() => openDeal(product.catalogId)}
-										>
-											{a.deal}
-										</button>
-										{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
-											<details class="rank">
-												<summary>{a.rank}</summary>
-												<ul>
-													{#each reasons.slice(0, 3) as reason (reason.key)}
-														<li>{termName(reason.key, product.catalogId)}</li>
-													{/each}
-												</ul>
-											</details>
-										{/if}
+											{#if product.id === 'cooker-1'}<CookerPhotoCaption
+													locale={language}
+													compact
+												/>{/if}
+										</div>
+									{:else}
+										<div class="art"><CategoryGlyph category={product.category} /></div>
 									{/if}
-								</div>
-							</li>
+									<div class="card-body">
+										<h3>
+											<a
+												class="product-link"
+												href={resolve(
+													`/product/[id]?lang=${language}&theme=${theme}${originQuery}`,
+													{
+														id: product.id
+													}
+												)}
+											>
+												<FactValue productId={product.catalogId} field="name" locale={language} />
+											</a>
+										</h3>
+										<div class="price">
+											<span class="visually-hidden">{t.price} </span>
+											<FactValue
+												tag="strong"
+												class="figure"
+												productId={product.catalogId}
+												field="price"
+												locale={language}
+											/>
+											{#if product.originalPrice !== null}
+												<span class="visually-hidden">{t.was} </span>
+												<FactValue
+													tag="s"
+													class="figure"
+													productId={product.catalogId}
+													field="originalPrice"
+													locale={language}
+												/>
+											{/if}
+										</div>
+										<div class="shipping">
+											<span>{t.shipping}</span>
+											<span class="leader" aria-hidden="true"></span>
+											<FactValue
+												class="figure"
+												productId={product.catalogId}
+												field="shipping"
+												locale={language}
+											/>
+										</div>
+										<div class="metadata">
+											<span>
+												<svg
+													viewBox="0 0 20 20"
+													width="15"
+													height="15"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="1.5"
+													aria-hidden="true"
+												>
+													<path
+														d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+													/>
+												</svg>
+												<span class="visually-hidden">{t.rating} </span>
+												<FactValue
+													class="figure"
+													productId={product.catalogId}
+													field="rating"
+													locale={language}
+												/>
+											</span>
+											<span>
+												{t.sold}
+												<FactValue
+													class="figure"
+													productId={product.catalogId}
+													field="sold"
+													locale={language}
+												/>
+											</span>
+										</div>
+										<FactValue
+											tag="p"
+											class="shop"
+											productId={product.catalogId}
+											field="shop"
+											locale={language}
+										/>
+										{#if true}
+											{@const reasons =
+												ranked.find(({ product: item }) => item.id === product.catalogId)?.bars ??
+												[]}
+											{#if adapted && plan.details.includes('summary')}
+												<FactValue
+													tag="p"
+													productId={product.catalogId}
+													field="summary"
+													locale={language}
+												/>
+											{/if}
+											{#if adapted && (plan.sections.includes('reviews') || plan.details.includes('reviews'))}
+												<FactValue
+													tag="p"
+													productId={product.catalogId}
+													field="review.0"
+													locale={language}
+												/>
+											{/if}
+											<button
+												class="best-price"
+												type="button"
+												onclick={() => openDeal(product.catalogId)}
+											>
+												{a.deal}
+											</button>
+											{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
+												<details class="rank">
+													<summary>{a.rank}</summary>
+													<ul>
+														{#each reasons as reason (reason.label.en)}
+															<li>
+																{reason.label[language]}<span
+																	class="rank-bar"
+																	style:width={`${reason.width * 25}%`}
+																></span>
+															</li>
+														{/each}
+													</ul>
+												</details>
+											{/if}
+										{/if}
+									</div>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			</section>
+		{/snippet}
+		{#each adapted ? pageSections(toHarness(activePlan)) : ['products'] as section (section)}
+			{#if section === 'products'}
+				{@render productShelf()}
+			{:else if section === 'best-deal' && topDeal && !quote}
+				<DealSlip receipt={topDeal} locale={language} />
+			{:else if section === 'share'}
+				<div class="shopper-actions" data-section={section}>
+					<button type="button" onclick={shareLook}>{a.share}</button>
+					{#if shareCopied}<span role="status">{a.shared}</span>{/if}
+				</div>
+			{:else if products.length && ['compare', 'top-picks', 'reviews', 'what-matters'].includes(section)}
+				<section class="assistant-reply" data-section={section}>
+					{#if section === 'compare' || section === 'top-picks'}
+						<h2>
+							{section === 'compare'
+								? language === 'th'
+									? 'เปรียบเทียบ'
+									: 'Compare'
+								: language === 'th'
+									? 'สินค้าที่เหมาะกับคุณ'
+									: 'Top picks'}
+						</h2>
+						<ShelfTable
+							products={products
+								.slice(0, 3)
+								.flatMap((p) => canonical.find((c) => c.id === p.catalogId) ?? [])}
+							locale={language}
+							onDeal={openDeal}
+							highlightedSpecs={plan.highlightedSpecs}
+						/>
+					{:else if section === 'reviews'}
+						<h2>{language === 'th' ? 'รีวิวจากผู้ซื้อ' : 'Shopper reviews'}</h2>
+						{#each products.slice(0, 3) as product (product.id)}
+							<FactValue tag="h3" productId={product.catalogId} field="name" locale={language} />
+							<FactValue tag="p" productId={product.catalogId} field="review.0" locale={language} />
 						{/each}
-					</ul>
-				{/if}
-			</div>
-		</section>
+					{:else if section === 'what-matters'}
+						<h2>{a.guide}</h2>
+						<p>
+							{[
+								...new Set(
+									[
+										...Object.keys(activePlan.specPreferences),
+										...Object.keys(activePlan.priorities)
+									].map((key) => termName(key, products[0]?.catalogId))
+								)
+							].join(' · ')}
+						</p>
+					{/if}
+				</section>
+			{/if}
+		{/each}
 		<footer>
 			{eventDemo
 				? language === 'th'
@@ -1292,6 +1436,20 @@
 </div>
 
 <style>
+	.rank-bar {
+		display: block;
+		height: 6px;
+		background: currentColor;
+		margin-block: 6px;
+	}
+	.assistant-link {
+		min-height: 44px;
+		background: transparent;
+		color: inherit;
+		text-decoration: underline;
+		border: 0;
+		cursor: pointer;
+	}
 	:global(body) {
 		margin: 0;
 	}

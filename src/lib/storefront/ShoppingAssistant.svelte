@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Locale } from '../catalog';
 
-	let { locale, onSend }: { locale: Locale; onSend: (message: string) => void } = $props();
+	let {
+		locale,
+		onSend,
+		pending = false
+	}: { locale: Locale; onSend: (message: string) => void; pending?: boolean } = $props();
 	let draft = $state('');
 	let input: HTMLInputElement;
 	const th = $derived(locale === 'th');
@@ -23,13 +27,17 @@
 <form aria-label={th ? 'ถามหน้าร้าน' : 'Ask the store'} onsubmit={submit}>
 	<label>
 		<span>{th ? 'ถามหน้าร้าน' : 'Ask the store'}</span>
-		<input type="text" bind:this={input} bind:value={draft} maxlength="1000" />
+		<input type="text" bind:this={input} bind:value={draft} maxlength="500" />
 	</label>
-	<button class="send" type="submit" disabled={!draft.trim()}>{th ? 'ส่ง' : 'Send'}</button>
+	<button class="send" type="submit" disabled={pending || !draft.trim()}>
+		{th ? 'ส่ง' : 'Send'}
+	</button>
 </form>
 <div class="suggestions" aria-label={th ? 'คำแนะนำ' : 'Suggestions'}>
 	{#each suggestions[locale] as suggestion (suggestion)}
-		<button type="button" onclick={() => onSend(suggestion)}>{suggestion}</button>
+		<button type="button" disabled={pending} onclick={() => onSend(suggestion)}>
+			{suggestion}
+		</button>
 	{/each}
 </div>
 
