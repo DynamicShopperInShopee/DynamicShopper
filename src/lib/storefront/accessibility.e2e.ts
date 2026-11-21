@@ -64,7 +64,13 @@ async function assertReadable(scope: Locator, large: boolean) {
 				);
 			}
 			const bitmaps = new Map<HTMLImageElement, CanvasRenderingContext2D>();
-			async function captionContrast(node: Node, image: HTMLImageElement, foreground: Color) {
+			async function captionContrast(
+				node: Node,
+				element: Element,
+				photo: { frame: Element; image: HTMLImageElement },
+				foreground: Color
+			) {
+				const { frame: stop, image } = photo;
 				let bitmap = bitmaps.get(image);
 				if (!bitmap) {
 					await image.decode();
@@ -97,7 +103,10 @@ async function assertReadable(scope: Locator, large: boolean) {
 					for (let i = 0; i < pixels.length; i += 4)
 						lowest = Math.min(
 							lowest,
-							contrast(foreground, [pixels[i], pixels[i + 1], pixels[i + 2], 1])
+							contrast(
+								foreground,
+								background(element, stop, [pixels[i], pixels[i + 1], pixels[i + 2], 1])
+							)
 						);
 				}
 				if (!Number.isFinite(lowest)) throw new Error('Caption text does not overlay the photo');
@@ -124,10 +133,12 @@ async function assertReadable(scope: Locator, large: boolean) {
 				if (element.closest(':disabled')) continue;
 				const foreground = color(style(element).color);
 				if (!foreground) continue;
-				const image = element.closest('.caption')?.parentElement?.querySelector('img');
-				const ratio = image
-					? await captionContrast(node, image, foreground)
-					: contrast(foreground, background(element));
+				const frame = element.closest('.caption')?.parentElement;
+				const image = frame?.querySelector('img');
+				const ratio =
+					frame && image
+						? await captionContrast(node, element, { frame, image }, foreground)
+						: contrast(foreground, background(element));
 				if (ratio < 4.5) problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
 			}
 

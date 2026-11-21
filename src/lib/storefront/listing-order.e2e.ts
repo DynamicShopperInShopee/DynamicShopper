@@ -69,7 +69,9 @@ test('uses defaults for unusable receipt looks and keeps the legacy listing orde
 	}
 	await page.goto(cooker + '?look=' + look(['specs']));
 	await expect(page.locator('[data-listing-section]')).toHaveCount(0);
-	await expect(page.locator('#reviews ~ #details [data-fact="summary"]')).toBeVisible();
+	await expect(
+		page.locator('#reviews ~ #details .text-summary[data-fact="summary"]')
+	).toBeVisible();
 });
 
 test('real comparison links use their pane orders and preserve the store undo step', async ({

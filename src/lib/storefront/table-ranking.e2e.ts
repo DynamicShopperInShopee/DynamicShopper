@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { parseSharedLook } from './browserState';
+import { lookFields, validateLook } from './sharedLook';
 
 test('the ranked table explains its order and keeps the active look on listing links', async ({
 	page
@@ -14,7 +16,14 @@ test('the ranked table explains its order and keeps the active look on listing l
 	await expect(reasons).toContainText('Rating');
 	const link = row.locator('th a');
 	await expect(link).toHaveAttribute('href', /theme=minimal/);
-	await expect(link).toHaveAttribute('href', /look=minimal\.table\.en/);
+	const target = new URL((await link.getAttribute('href'))!, page.url());
+	expect(parseSharedLook(target.searchParams.get('look')!, lookFields, validateLook)).toMatchObject(
+		{
+			theme: 'minimal',
+			layout: 'table',
+			locale: 'en'
+		}
+	);
 	await link.click();
 	await expect(page.locator('main')).toHaveAttribute('data-theme', 'minimal');
 	await page.getByRole('link', { name: 'Back to store', exact: true }).click();
