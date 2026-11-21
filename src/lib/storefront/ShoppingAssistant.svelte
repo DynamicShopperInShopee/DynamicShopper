@@ -14,6 +14,7 @@
 		conversation,
 		pending = false,
 		largePrint = false,
+		openOnMount = false,
 		theme = 'standard'
 	}: {
 		locale: Locale;
@@ -21,11 +22,12 @@
 		conversation: Conversation;
 		pending?: boolean;
 		largePrint?: boolean;
+		openOnMount?: boolean;
 		theme?: 'standard' | 'minimal' | 'vibrant' | 'large';
 	} = $props();
 
 	function listingHref(id: string, lang: Locale) {
-		return resolve(`/product/[id]?lang=${lang}&theme=${theme}`, { id });
+		return resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id });
 	}
 </script>
 
@@ -35,6 +37,7 @@
 		{pending}
 		{onSend}
 		{largePrint}
+		{openOnMount}
 		messages={conversation.messages}
 		showingDeal={Boolean(conversation.messages.at(-1)?.deal)}
 		inputLabel={locale === 'th' ? 'ถามหน้าร้าน' : 'Ask the store'}
@@ -63,7 +66,7 @@
 					{#each message.productIds as id (id)}
 						{@const name = resolveCatalogFact(id, 'name', lang)}
 						{#if name}<li>
-								<a href={resolve(`/product/[id]?lang=${lang}&theme=${theme}`, { id })}>
+								<a href={resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id })}>
 									<Fact fact={name} />
 								</a>
 							</li>{/if}

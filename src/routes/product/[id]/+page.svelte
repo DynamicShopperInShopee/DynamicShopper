@@ -5,6 +5,7 @@
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
 	import CartControls from '../../../lib/storefront/CartControls.svelte';
 	import AddToCart from '../../../lib/storefront/AddToCart.svelte';
+	import type { CartItem } from '#lib/storefront/cart.ts';
 	import ProductDeal from '../../../lib/storefront/ProductDeal.svelte';
 	import ProductGallery from './ProductGallery.svelte';
 	import '../../../lib/assets/products/cooker-photos.css';
@@ -16,7 +17,7 @@
 	let { data }: PageProps = $props();
 	let hero = $state<HTMLDivElement>();
 	let proofRoot = $state<HTMLElement>();
-	let productDeal = $state<ReturnType<typeof ProductDeal>>();
+	let productDeal = $state<{ showBasket: (basket: readonly CartItem[]) => void }>();
 	const th = $derived(data.language === 'th');
 </script>
 
@@ -26,13 +27,12 @@
 	<ListingHeader
 		data={{ ...data, receiptQuery: session.visit?.search.slice(1) ?? data.receiptQuery }}
 		{hero}
-	/>
-	<div class="listing-cart">
+	>
 		<CartControls
 			locale={data.language}
-			onBestPrice={(basket) => productDeal?.showBasket(basket)}
+			onBestPrice={(basket: readonly CartItem[]) => productDeal?.showBasket(basket)}
 		/>
-	</div>
+	</ListingHeader>
 	<div bind:this={proofRoot}>
 		<div class="listing">
 			<div
@@ -84,7 +84,7 @@
 						<AddToCart
 							productId={data.id}
 							locale={data.language}
-							onAdd={(id) => session.addProduct(id)}
+							onAdd={(id: string) => session.addProduct(id)}
 						/>
 					</ProductDeal>
 				{/key}
@@ -97,11 +97,6 @@
 </main>
 
 <style>
-	.listing-cart {
-		display: flex;
-		justify-content: flex-end;
-		padding-inline: 1rem;
-	}
 	main {
 		--product-figure-font: 'IBM Plex Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 		max-width: 72rem;

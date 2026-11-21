@@ -124,7 +124,7 @@ it('keeps the cited value in the reply language when the shopper switches the in
 	const cited = screen.getByRole('log').getByRole('link', { name: '1.8 ลิตร' });
 	await expect
 		.element(cited)
-		.toHaveAttribute('href', '/product/cooker-one-button?lang=th&theme=large');
+		.toHaveAttribute('href', '/product/cooker-one-button?lang=th&theme=large&view=receipt');
 	await expect.element(cited.getByText('1.8 ลิตร')).toHaveAttribute('data-source', 'catalog');
 	await expect.element(cited.getByText('1.8 ลิตร')).toHaveAttribute('data-raw', '1.8');
 });
@@ -142,4 +142,20 @@ it('keeps a failed draft available to retry and announces a local error', async 
 	await expect.element(input).toHaveValue('');
 	expect(screen.container.querySelector('[role="alert"]')).toBeNull();
 	expect(send).toHaveBeenCalledTimes(2);
+});
+
+it('opens the requested phone conversation once and leaves it closed after Escape', async () => {
+	await page.viewport(390, 844);
+	const screen = await render(ShoppingAssistant, {
+		locale: 'en',
+		conversation: new Conversation(),
+		onSend: vi.fn(),
+		openOnMount: true
+	});
+	const dialog = screen.getByRole('dialog');
+	await expect.element(dialog.getByRole('textbox', { name: 'Ask the store' })).toHaveFocus();
+	await userEvent.keyboard('{Escape}');
+	await expect
+		.element(screen.getByRole('button', { name: 'Chat with the assistant' }))
+		.toHaveFocus();
 });

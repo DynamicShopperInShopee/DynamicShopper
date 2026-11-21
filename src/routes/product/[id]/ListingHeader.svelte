@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { Snippet } from 'svelte';
 	import type { PageData } from './$types';
-	let { data, hero }: { data: PageData; hero?: HTMLElement } = $props();
+	let { data, hero, children }: { data: PageData; hero?: HTMLElement; children?: Snippet } =
+		$props();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
 	$effect(() => {
@@ -20,7 +22,7 @@
 <header data-over-hero={overHero}>
 	<a
 		class="back"
-		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		href={resolve(data.receiptQuery ? `/?${data.receiptQuery}` : '/')}
 		aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
 	>
 		<svg
@@ -38,7 +40,7 @@
 	<span class="hero-space" aria-hidden="true"></span>
 	<a
 		class="header-search"
-		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		href={resolve(data.receiptQuery ? `/?${data.receiptQuery}` : '/')}
 		aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}
 	>
 		<svg
@@ -65,6 +67,7 @@
 	>
 		{th ? 'English' : 'ไทย'}
 	</a>
+	{#if children}<div class="header-actions">{@render children()}</div>{/if}
 </header>
 
 <style>
@@ -138,6 +141,16 @@
 		.language {
 			padding-inline: 0.55rem;
 			font-size: inherit;
+		}
+		.header-actions {
+			pointer-events: auto;
+		}
+		header[data-over-hero='true'] .header-actions :global(button[popovertarget]) {
+			min-inline-size: var(--tap, 44px);
+			border-color: transparent;
+			border-radius: 999px;
+			background: #27394e;
+			color: #fff;
 		}
 		header[data-over-hero='false'] {
 			background: #fff;

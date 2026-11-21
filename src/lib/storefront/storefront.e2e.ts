@@ -33,7 +33,7 @@ test('applying shipping filters supersedes a delayed model response', async ({ p
 			});
 		};
 	});
-	await page.goto(storefrontUrl);
+	await page.goto(storefrontUrl + '/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await page.getByRole('button', { name: 'Try live model' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('playful');
@@ -89,7 +89,7 @@ test('compares one catalog search in two personas and opens the Thai listing', a
 });
 
 test('returns from compare with the original search and undo history', async ({ page }) => {
-	await page.goto(storefrontUrl);
+	await page.goto(storefrontUrl + '/?view=receipt');
 	await page.getByRole('searchbox').fill('rice cooker');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
 	await page.getByRole('link', { name: 'Compare views', exact: true }).click();
@@ -131,7 +131,7 @@ test('keeps the completed offline fallback explanation after returning from comp
 	page
 }) => {
 	await page.route('**/api/local-assistant', (route) => route.abort());
-	await page.goto(storefrontUrl);
+	await page.goto(storefrontUrl + '/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await page.getByRole('button', { name: 'Try live model' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('playful');

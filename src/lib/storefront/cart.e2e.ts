@@ -13,7 +13,7 @@ function receiptLines(root: Locator) {
 test('quotes the same cooker from its listing and restored cart, then removes it', async ({
 	page
 }) => {
-	await page.goto('/product/cooker-one-button');
+	await page.goto('/product/cooker-one-button?view=receipt');
 	await page.getByRole('button', { name: 'Best price', exact: true }).click();
 	const receipt = page.locator('[data-deal-fact="total"]');
 	await expect(receipt).toHaveAttribute('data-raw', '585');
@@ -44,7 +44,7 @@ test('quotes the same cooker from its listing and restored cart, then removes it
 test('restores the saved presentation before applying a shared look as one undo step', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 	await page.reload();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
@@ -54,4 +54,17 @@ test('restores the saved presentation before applying a shared look as one undo 
 	await page.getByRole('button', { name: 'ย้อนกลับ', exact: true }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'en');
+});
+
+test('a missing Thai listing keeps its requested theme and links to the receipt store', async ({
+	page
+}) => {
+	const response = await page.goto('/product/no-such-product?lang=th&theme=large&view=receipt');
+	expect(response?.status()).toBe(404);
+	const main = page.getByRole('main');
+	await expect(main).toHaveAttribute('lang', 'th');
+	await expect(main).toHaveAttribute('data-storefront-theme', 'large-print');
+	await expect(main.getByRole('heading', { name: 'ไม่พบสินค้า' })).toBeVisible();
+	await main.getByRole('link', { name: 'กลับหน้าร้าน' }).click();
+	await expect(page.getByRole('button', { name: 'Mom mode', exact: true })).toBeVisible();
 });

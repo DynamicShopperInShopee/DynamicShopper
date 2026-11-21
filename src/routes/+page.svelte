@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick, untrack } from 'svelte';
+	import { describePlanChanges } from '#lib/storefront/describePlanChanges.ts';
 	import ShareLook from '#lib/storefront/ShareLook.svelte';
 	import { parseSharedLook } from '#lib/storefront/browserState.ts';
 	import '../lib/assets/fonts/plex.css';
@@ -308,6 +309,7 @@
 		quoteTrigger?.focus();
 	}
 	function applyTurn(next: Turn) {
+		const previous = $state.snapshot(activePlan);
 		turn = next;
 		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
 		let deal: ReturnType<typeof calculateQuote>;
@@ -332,7 +334,7 @@
 		session.conversation.reply(next, {
 			locale: replyLocale,
 			offline: !liveModel,
-			changes: changes.map(changeName),
+			changes: describePlanChanges(previous, activePlan, replyLocale),
 			deal
 		});
 	}
@@ -420,8 +422,7 @@
 			window.clearInterval(timer);
 		};
 	});
-	onMount(() => {
-		if (eventDemo) return;
+	function restoreStore() {
 		session.restoreBrowser();
 		storeReady = true;
 		const saved = session.visit;
@@ -457,8 +458,13 @@
 		}
 		cartRestored = session.cart.length > 0;
 		openSharedLook();
-	});
+	}
 	afterNavigate(({ from, to }) => {
+		if (eventDemo) return;
+		if (!storeReady) {
+			restoreStore();
+			return;
+		}
 		if (
 			storeReady &&
 			from?.route.id === '/' &&
@@ -967,6 +973,7 @@
 				<ShoppingAssistant
 					locale={language}
 					onSend={send}
+					openOnMount={page.url.hash === '#assistant'}
 					conversation={session.conversation}
 					pending={livePending}
 					largePrint={theme === 'large'}
@@ -974,7 +981,14 @@
 				/>
 				<div class="shopper-actions">
 					{#each personas as persona (persona)}
-						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
+						<button
+							id={`persona-${persona}`}
+							type="button"
+							disabled={!interactive}
+							onclick={() => selectPersona(persona)}
+						>
+							{a[persona]}
+						</button>
 					{/each}
 					<button
 						type="button"
@@ -1098,7 +1112,7 @@
 			<div class="results-header">
 				<h2 id="products-heading">{t.products}</h2>
 				{#if eventDemo}
-					<a class="assistant-link" href={resolve('/?view=receipt')}>
+					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
 				{/if}
@@ -1578,6 +1592,9 @@
 	}
 
 	.card-actions {
+		position: relative;
+		z-index: 1;
+		align-self: flex-start;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;

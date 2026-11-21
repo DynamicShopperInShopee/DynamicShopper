@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { categories, products, specs, type Category, type Locale } from '#lib/catalog/index.ts';
 	import { rankProducts, type ShopperPlan } from '#lib/personalization/index.ts';
+	import { matchesQuery } from '#lib/personalization/ranking.ts';
 	import { optimizeDeal, type PricingContext } from '#lib/pricing/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
@@ -41,9 +42,16 @@
 			if (comparePresets.includes(saved.rightPreset)) rightPreset = saved.rightPreset;
 		}
 	});
+	const specCategory = $derived.by(() => {
+		if (category) return category;
+		const matchedCategories = new Set(
+			products.filter((product) => matchesQuery(product, query)).map((product) => product.category)
+		);
+		return matchedCategories.size === 1 ? [...matchedCategories][0] : undefined;
+	});
 	const columns = $derived(
-		category
-			? specs[category].slice(0, 3).map(({ key, label }) => ({
+		specCategory
+			? specs[specCategory].slice(0, 3).map(({ key, label }) => ({
 					field: 'spec.' + key,
 					label
 				}))
@@ -53,7 +61,11 @@
 	const title = $derived(th ? 'เทียบมุมมองหน้าร้าน' : 'Compare views');
 
 	function listingHref(id: string, lang: Locale, theme: ShopperPlan['theme']) {
-		const params = new URLSearchParams({ lang, theme: theme === 'large-print' ? 'large' : theme });
+		const params = new URLSearchParams({
+			view: 'receipt',
+			lang,
+			theme: theme === 'large-print' ? 'large' : theme
+		});
 		return resolve(`/product/[id]?${params.toString()}`, { id });
 	}
 	function productsFor(plan: ShopperPlan) {

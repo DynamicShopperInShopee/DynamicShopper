@@ -10,6 +10,7 @@
 		onSend,
 		renderReply,
 		largePrint = false,
+		openOnMount = false,
 		showingDeal = false,
 		inputLabel,
 		pendingLabel
@@ -20,6 +21,7 @@
 		onSend: (message: string) => boolean | void;
 		renderReply?: Snippet<[ChatMessage]>;
 		largePrint?: boolean;
+		openOnMount?: boolean;
 		showingDeal?: boolean;
 		inputLabel?: string;
 		pendingLabel?: string;
@@ -79,6 +81,11 @@
 			mobile = breakpoint.matches;
 		};
 		update();
+		if (mobile && openOnMount) {
+			void tick().then(() => {
+				if (dialog?.isConnected && !dialog.open) open();
+			});
+		}
 		breakpoint.addEventListener('change', update);
 		return () => breakpoint.removeEventListener('change', update);
 	});
