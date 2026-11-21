@@ -47,22 +47,13 @@ answers, disabled inference and inference errors retain the direct-answer path.
 This demonstrates a working interaction, not measured preference accuracy with
 real shoppers. Catalog facts and the voucher optimizer are unchanged.
 
-Focused validation: `bun run test:unit --run --project server src/lib/personalization/interview.spec.ts`.
-The interview browser journeys are in `src/routes/interview.e2e.ts`; after a
-production build, `npx playwright test -c playwright.interview.config.ts` uses
-installed Chrome and an isolated preview port.
-
-Validation of this integration on 2026-11-21: the Node production build, Cloudflare
-build, targeted lint and 32 targeted unit tests pass. Interactive browser checks
-confirmed marketplace → interview → large-print comparison → offline chat list
-refinement → Undo to comparison → Undo to marketplace. Desktop (1440×900) and
-phone (390×844) default storefronts and the mobile interview were inspected
-without page overflow; skipping every question leaves the marketplace unchanged.
-The automated browser
-journeys are authored but were not executed in this session. Full Svelte check
-still reports the two pre-existing `personalization/contract.spec.ts` errors:
-missing `applyTurn` and the missing `contract-sample` fixture; no new diagnostics
-were reported. This is a local integration, not a deployed release.
+Run `bun run test:unit --run --project server src/lib/personalization/interview.spec.ts`
+for the interview proposal tests. After `bun run build`, run
+`npx playwright test -c playwright.interview.config.ts` with installed Chrome for
+the interview browser journeys. They exercise the keyboard flow in Thai and
+English, the applied catalog evidence, and offline returns from a listing with
+Undo. Listing history keeps the interview and Undo state in the current tab.
+Opening a shared listing starts a separate visit.
 
 ## Optional local OpenAI test
 
