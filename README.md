@@ -13,6 +13,8 @@ bun run dev
 
 ### Try the demo
 
+[Watch the 51-second silent walkthrough](docs/demo/DynamicShopper-final-demo.mp4) of the interview, shopping assistant, catalog citation, deal receipt and Undo.
+
 1. Open `/` and choose **Rice cookers**. Select **1.8 L**. Choose **ไทย** to try the same journey in Thai.
 2. Select **Start a quick interview** (**เริ่มตอบคำถามสั้น ๆ**). Answer **Compare** and **Specs**, skip the remaining questions, and review the proposed changes. **Apply my view** opens the filtered comparison table. Closing the draft leaves the shelf as it was.
 3. Open a product, inspect a catalog specification, then choose **Back to store**. The applied interview and capacity selection return. Choose **Refine this view in chat** to ask a question. **Undo** returns to the preceding store state.
@@ -25,10 +27,15 @@ bun run dev
 | `/?view=receipt` | Explore the adaptive shelf, chat, cart, shareable look, and X-ray. |
 | `/compare` | Compare two presentation presets against the same eligible catalog products. |
 | `/product/cooker-one-button` | Inspect the cooker's facts or request an itemized deal. Listings accept canonical catalog IDs. |
+| `/presets` | Inspect 177 design modules and 20 presentation examples. Examples use the simulated catalog and leave the active shop untouched. See the [module inventory](docs/PRESETS.md). |
 | `/harness` | Open **Explore the agent harness** from the results or category filters to test the standalone assistant, ordered catalog-backed cards and change receipts. |
 | `/demo/better-auth` | Try the separate authentication example after configuring SQLite or D1. |
 
 Once the storefront has loaded, ranking, questions, interviews and prices work locally. The browser suites also exercise supported offline navigation and switching views.
+
+### Optional sourced catalog preview
+
+Run `npm run dev:shopping` and open `http://127.0.0.1:5176` to try the standalone preview. It opens with seven dated listings and their photos. A configured same-origin API supplies the full catalog. After the published release has loaded, its checksum-verified copy is also available offline. Its interview applies on Finish. See the [standalone shopping guide](src/lib/mobile/README.md) for the optional local SQLite catalog and original images.
 
 ## How the store works
 
@@ -37,7 +44,7 @@ Once the storefront has loaded, ranking, questions, interviews and prices work l
 | [Catalog](src/lib/catalog) | Product, shop, voucher and bilingual specification data. The fact resolver supplies both the raw value and its formatted display. |
 | [Pricing](src/lib/pricing) | Basket quantities, shipping, voucher eligibility and the simulated coin balance feed one optimizer. The returned receipt drives the listing, cart and shelf. |
 | [Personalization](src/lib/personalization) | A bounded store plan, deterministic ranking and explanations, the keyword fallback, and part-by-part validation of proposed changes. Listing answers cite a known fact or decline. |
-| [Interview](src/lib/personalization/interview.ts) | A small, locally executed CNN proposes allowlisted presentation choices from four answer IDs. Partial answers, the direct-only switch and inference failure use direct mappings. Its training used synthetic examples. Shopper preference accuracy is unmeasured. |
+| [Interview](src/lib/personalization/interview.ts) | Four optional questions map directly to settings for layout, information, priorities and reading. Review the changes before applying them. Skipped answers preserve existing settings. |
 | [Storefront](src/lib/storefront) and [routes](src/routes) | Fixed rendering components, bilingual copy, product details, cart, change explanations, Undo and Reset. The fact checker compares rendered text and raw fact attributes with their source before showing proof. |
 | [Standalone harness](src/lib/harness), [UI adapter](src/lib/harness-ui), and [bounded agent](src/lib/server/agent) | A separate route exercises validated card order, read-only catalog tools, guarded replies, visible traces and offline fallback. |
 | [Local model handler](src/lib/server/live-assistant) | Optional loopback development endpoint for allowlisted presentation hints. The server validates the response before the shelf can use it. |

@@ -2,12 +2,9 @@
 
 The local Node backend stores validated Shopee Thailand observations in a durable
 SQLite database, separate from shopper presentation state and the local
-authentication database. It uses the already installed `better-sqlite3`; no package
-was added. A separate Cloudflare Worker implements the same read-only API over
-D1 and packaged original images. Its catalog tables share the existing D1 database
-without changing unrelated authentication tables.
+authentication database. It uses the repository’s existing `better-sqlite3` dependency.
 
-Import a normalized `CatalogSnapshot` produced by the collection pipeline:
+To import a separately staged, normalized `CatalogSnapshot`, run:
 
 ```sh
 node scripts/catalog-server.ts --import data/shopee/catalog.json
@@ -20,22 +17,16 @@ requests to port 4190; that port is only the internal local backend listener.
 
 `--database` overrides `data/catalog.sqlite`; `CATALOG_DATABASE_PATH` can also
 set it. `--images` overrides `data/shopee/images`. The server binds only to
-`127.0.0.1`. This package provides the standalone local server and a separate
-catalog Worker; it does not add Node-backed SvelteKit API routes to the main
-Cloudflare application. The standalone server does not require auth settings.
-Cloud delivery lives in
-[`deploy/catalog`](../../../../deploy/catalog/README.md), uses Fetch and D1, and
-packages the standalone shopping frontend without the Node/auth scaffold.
-Importing local SQLite and publishing the cloud catalog are separate actions.
+`127.0.0.1`. The preview works immediately with the bundled starter catalog. The optional
+loopback service supplies additional records and images when available.
 
 Only these read operations are exposed:
 
 - `GET /api/catalog`: `q`, `category`, `sort`, `maxPrice`, `page`, `pageSize`.
   The default page size is 24; the maximum is 100. The response includes the
   full-result count, current page, source snapshot, and category registry.
-- `GET /api/catalog/snapshot`: the complete validated snapshot, for a client
-  that supports an offline cache. Cached browser data must still be validated
-  at the browser boundary before use.
+- `GET /api/catalog/snapshot`: the complete validated snapshot. The shop uses
+  the seven bundled observations when the endpoint is unavailable, unless a previously saved full release passes the manifest checksum again.
 - `GET /api/catalog/:id`: a listing identified by `shopId.itemId`.
 - `GET /api/catalog/images/:id`: original locally cached JPEG, PNG, or WebP
   bytes from `data/shopee/images/:id.jpg`; missing images return 404. The
@@ -75,45 +66,16 @@ scheduling, or a public write API.
 
 The 2026-11-21 import contains 1,500 unique listings across 122 source query
 groups, observed at 14:22–14:32 Asia/Bangkok. `data/catalog.sqlite` is the durable
-database, not browser state. Its data survives a server restart. The normalized
-working source is `data/shopee/catalog.json`; the same normalized metadata is
-versioned at `catalogs/shopee-2026-11-21/catalog.json`, with hashes and source
-dates in its manifest. Original images and collection evidence are staged in
-`data/shopee/images` and `data/shopee/provenance` respectively.
+database, not browser state. Its data survives a server restart. A full local import needs an operator-supplied snapshot at
+`data/shopee/catalog.json`. The [dataset guide](../../../../catalogs/shopee-2026-11-21/README.md)
+identifies the original file and validated record checksums. Keep original
+images in `data/shopee/images` and collection evidence under
+`data/shopee/provenance`. The data directory, database and image cache are
+ignored. A fresh preview can browse the seven bundled records without them.
 
-The working data directory, database, raw observations and expanded image cache
-are excluded from Git; pushing code does not copy them to another machine.
-The versioned metadata and [dataset guide](../../../../catalogs/shopee-2026-11-21/README.md)
-support reproducing the selected catalog without committing its image cache.
 To reuse the complete locally cached package,
 retain the complete `data/shopee` directory and run `npm run catalog:import`,
 then `npm run dev:catalog` and `npm run dev:shopping`. Reimporting the same
 snapshot does not duplicate records. Back up a running SQLite database with
 SQLite's backup mechanism, or stop the catalog server before copying its file.
-There is no automatic price refresh. The accepted cloud path imports the same
-validated snapshot into D1 and packages the original images as Worker assets;
-local data files are not uploaded merely by pushing application code.
-
-## Cloud catalog data and publication
-
-Remote D1 import on 2026-11-21 was verified as 1,500 rows with 1,500 unique listing
-IDs. Its validated-snapshot checksum is
-`ff5cfb032f9a497e191700de474892924e290ef763a8fe4637dd8af4a93cf653`.
-This verifies the database import; public Worker availability and its URL require
-separate deployment and live smoke verification.
-
-`scripts/export-catalog-d1.ts` validates source records, exports only catalog
-tables and checks exact round-trip, repeat-import idempotence and unrelated-table
-isolation. Changed imports invalidate metadata before replacing items and publish
-metadata last, so interrupted imports do not advertise a complete mixed snapshot.
-The Worker reads metadata and product results together using D1 batches. There is
-no public import endpoint and no agent catalog-write path.
-
-`deploy/catalog/prepare.ts` packages the built frontend and only original images
-referenced by the validated snapshot. Database files, collection evidence,
-credentials and unreferenced image files are excluded from public assets. The
-Worker keeps `/api/catalog/*` separate from the app fallback, returns JSON errors,
-and serves original JPEG/PNG/WebP bytes with their actual content type. Follow
-[the cloud build and publication steps](../../../../deploy/catalog/README.md).
-Neither D1 persistence nor Worker publication schedules new Shopee collection or
-changes the observation date. Refreshing data remains an explicit validated import.
+The observation times come from the imported records.

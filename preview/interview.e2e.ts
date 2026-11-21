@@ -1,10 +1,13 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 async function start(page: Page, english = true) {
 	await page.goto('/');
-	await expect(page.locator('.catalog-status')).not.toContainText(/Loading full|กำลังโหลด/, {
-		timeout: 12_000
-	});
+	await expect(page.locator('.catalog-status')).not.toContainText(
+		/Checking the catalog|กำลังตรวจสอบ/,
+		{
+			timeout: 12_000
+		}
+	);
 	if (english) await page.getByRole('button', { name: 'EN', exact: true }).click();
 }
 async function begin(page: Page) {
@@ -35,16 +38,18 @@ async function complete(page: Page, values = ['compare', 'specs', 'durability', 
 	await expect(page.getByRole('dialog')).toHaveCount(0);
 	await expect(page.locator('.interview-receipt')).toBeVisible();
 }
-async function facts(page: Page) {
-	return page.locator('.products [data-fact-key]').evaluateAll((nodes) =>
-		nodes
-			.map((n) => ({
-				key: n.getAttribute('data-fact-key'),
-				raw: n.getAttribute('data-raw'),
-				text: n.textContent?.trim()
-			}))
-			.sort((a, b) => String(a.key).localeCompare(String(b.key)))
-	);
+async function facts(root: Page | Locator) {
+	return root.locator('.products [data-fact-key]').evaluateAll((nodes) => {
+		// A missing photo can repeat the same sourced title beside the card heading.
+		const facts = nodes.map((node) =>
+			JSON.stringify({
+				key: node.getAttribute('data-fact-key'),
+				raw: node.getAttribute('data-raw'),
+				text: node.textContent?.trim()
+			})
+		);
+		return [...new Set(facts)].sort();
+	});
 }
 async function noOverflow(page: Page) {
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -56,7 +61,7 @@ async function noOverflow(page: Page) {
 		);
 }
 
-test('draft stays inert, finishing runs CNN once, and chat plus Undo preserve source facts', async ({
+test('draft stays inert, finishing applies the answers once, and chat plus Undo preserve source facts', async ({
 	page,
 	context
 }) => {
@@ -74,10 +79,10 @@ test('draft stays inert, finishing runs CNN once, and chat plus Undo preserve so
 	}
 	await advance(page, 'spacious', true);
 	await expect(page.getByRole('dialog')).toHaveCount(0);
-	await expect(page.locator('.phone')).toHaveClass(/vibrant/);
+	await expect(page.locator('.phone')).toHaveClass(/standard/);
 	await expect(page.locator('.products.grid')).toBeVisible();
 	await page.getByText('How the interview adapted this shop', { exact: true }).click();
-	await expect(page.getByTestId('interview-backend')).toContainText('CNN evaluated');
+	await expect(page.getByText('Your answers set this view.', { exact: false })).toBeVisible();
 	expect(await facts(page)).toEqual(original);
 	await page
 		.locator('.interview-receipt')
@@ -119,7 +124,9 @@ test('settings start the interview, cancellation is inert, and skipping complete
 	await expect(page.getByRole('table')).toBeVisible();
 	await expect(page.locator('.phone')).toHaveClass(/standard/);
 	await page.getByText('How the interview adapted this shop', { exact: true }).click();
-	await expect(page.getByTestId('interview-backend')).toContainText('Skipped questions');
+	await expect(
+		page.getByText('Skipped questions keep their current settings.', { exact: false })
+	).toBeVisible();
 	expect(await facts(page)).toEqual(original);
 	await page.getByRole('button', { name: 'Reset view', exact: true }).click();
 	await complete(page, []);
@@ -138,7 +145,7 @@ test('a later completed interview replaces earlier reading preferences and creat
 	await expect(page.locator('.phone')).toHaveClass(/large-print/);
 	await expect(page.getByRole('table')).toBeVisible();
 	await complete(page, ['browse', 'photos', 'value', 'spacious']);
-	await expect(page.locator('.phone')).toHaveClass(/vibrant/);
+	await expect(page.locator('.phone')).toHaveClass(/standard/);
 	await expect(page.locator('.products.grid')).toBeVisible();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.locator('.phone')).toHaveClass(/large-print/);
@@ -161,25 +168,30 @@ test('Thai interview outcomes fit the phone in every theme without a manual them
 		{ theme: 'large-print', answers: ['shortlist', 'summary', 'durability', 'large'] }
 	];
 	for (const example of examples) {
+		if (example.theme === 'minimal' || example.theme === 'vibrant') {
+			await page.getByRole('button', { name: 'เปิดผู้ช่วย', exact: true }).click();
+			const chat = page.getByRole('dialog', { name: 'ผู้ช่วยเลือกซื้อ' });
+			await chat.getByLabel('ความต้องการของคุณ').fill(example.theme === 'minimal' ? 'มินิมอล' : 'สีสัน');
+			await chat.getByRole('button', { name: 'ส่งคำขอ' }).click();
+			await page.keyboard.press('Escape');
+		}
 		await complete(page, example.answers);
 		await expect(page.locator('.phone')).toHaveClass(new RegExp(example.theme));
 		await noOverflow(page);
 		if (example.theme === 'large-print') {
-			const sizes = await page
-				.locator('.interview-receipt button')
-				.evaluateAll((nodes) =>
-					nodes.map((n) => ({
-						font: parseFloat(getComputedStyle(n).fontSize),
-						height: n.getBoundingClientRect().height
-					}))
-				);
+			const sizes = await page.locator('.interview-receipt button').evaluateAll((nodes) =>
+				nodes.map((n) => ({
+					font: parseFloat(getComputedStyle(n).fontSize),
+					height: n.getBoundingClientRect().height
+				}))
+			);
 			expect(sizes.every((s) => s.font >= 20 && s.height >= 48)).toBe(true);
 		}
 		await page.getByRole('button', { name: 'คืนมุมมองเริ่มต้น', exact: true }).click();
 	}
 });
 
-test('three examples demonstrate CNN outcomes without selecting or changing the shopper view', async ({
+test('three examples demonstrate shopper-selected outcomes without selecting or changing the shopper view', async ({
 	page,
 	context
 }, info) => {
@@ -193,17 +205,7 @@ test('three examples demonstrate CNN outcomes without selecting or changing the 
 	await expect(panes.nth(2).locator('.products.list')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Use this view', exact: true })).toHaveCount(0);
 	await expect(page.getByText(/These examples do not change your shop/)).toBeVisible();
-	const snapshots = await panes.evaluateAll((items) =>
-		items.map((item) =>
-			Array.from(item.querySelectorAll('.products [data-fact-key]'))
-				.map((n) => ({
-					key: n.getAttribute('data-fact-key'),
-					raw: n.getAttribute('data-raw'),
-					text: n.textContent?.trim()
-				}))
-				.sort((a, b) => String(a.key).localeCompare(String(b.key)))
-		)
-	);
+	const snapshots = await Promise.all((await panes.all()).map(facts));
 	expect(snapshots[0]).toEqual(snapshots[1]);
 	expect(snapshots[1]).toEqual(snapshots[2]);
 	if (info.project.name === 'laptop') {
@@ -222,4 +224,73 @@ test('three examples demonstrate CNN outcomes without selecting or changing the 
 	await expect(page.locator('.phone.marketplace')).toBeVisible();
 	await expect(page.locator('.interview-receipt')).toHaveCount(0);
 	await noOverflow(page);
+});
+
+test('shows reviewed offline prices even with a conflicting saved browser catalog', async ({
+	page
+}) => {
+	const first = { id: '58418206.41776476003', price: 475, name: { en: 'Breeze Matic detergent' } };
+	await page.addInitScript((listing) => {
+		localStorage.setItem(
+			'dynamicshopper.catalog.v1',
+			JSON.stringify({ items: [{ ...listing, price: 1 }] })
+		);
+	}, first);
+	await page.route('**/api/catalog/**', (route) => route.abort());
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('7 products');
+	await expect(page.locator('.catalog-status')).toContainText('Offline starter catalog');
+	await expect(page.locator(`[data-fact-key="${first.id}:shopPrice"]`).first()).toHaveAttribute(
+		'data-raw',
+		String(first.price)
+	);
+	await page
+		.locator('.products')
+		.getByRole('button', { name: 'View product', exact: true })
+		.first()
+		.click();
+	const title = page.getByRole('dialog').getByRole('heading', { name: first.name.en, exact: true });
+	await expect(title).toHaveAttribute('data-fact-key', `${first.id}:name`);
+	await expect(title).toHaveAttribute('data-raw', first.name.en);
+});
+
+test('uses validated same-origin listings while online and returns to starter facts offline', async ({
+	page
+}) => {
+	const id = '1.1';
+	const name = { en: 'Test listing', th: 'สินค้าทดสอบ' };
+	const listing = {
+		id,
+		name,
+		category: 'test',
+		price: null,
+		currency: 'THB',
+		image: null,
+		source: 'https://shopee.co.th/product/1/1',
+		size: null
+	};
+	const response = {
+		items: [listing],
+		categories: [{ id: 'test', name, count: 1 }],
+		snapshot: {
+			id: 'fixture',
+			source: 'https://shopee.co.th/',
+			observedAt: null,
+			importedAt: '2026-11-21',
+			total: 1
+		}
+	};
+	await page.route('**/api/catalog/snapshot', (route) => route.fulfill({ json: response }));
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('Catalog loaded');
+	await expect(page.locator(`[data-fact-key="${id}:name"]`).first()).toHaveAttribute(
+		'data-raw',
+		name.en
+	);
+	await expect(page.locator(`[data-fact-key="${id}:shopPrice"]`)).toHaveCount(0);
+	await page.unroute('**/api/catalog/snapshot');
+	await page.route('**/api/catalog/snapshot', (route) => route.abort());
+	await start(page);
+	await expect(page.locator('.catalog-status')).toContainText('7 products');
+	await expect(page.locator('.catalog-status')).toContainText('Offline starter catalog');
 });

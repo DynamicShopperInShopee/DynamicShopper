@@ -24,6 +24,10 @@ describe('interview-led shopper presentation', () => {
 		expect(next.interview?.applied).toEqual({});
 		expect(applyInterview(next, { reading: 'comfortable' })).toBe(next);
 	});
+	it('preserves a theme chosen in chat through a later family request', () => {
+		const chosen = interpret('minimal', initialView()).state;
+		expect(interpret('for my mother', chosen).state.plan.theme).toBe('minimal');
+	});
 	it('keeps a theme explicitly changed in chat after the prior interview', () => {
 		const first = applyInterview(initialView(), {
 			goal: 'compare',
@@ -56,7 +60,7 @@ describe('interview-led shopper presentation', () => {
 			reading: 'spacious'
 		});
 		expect(first.plan.theme).toBe('large-print');
-		expect(next.plan.theme).toBe('vibrant');
+		expect(next.plan.theme).toBe(before.plan.theme);
 		expect(next.plan.layout).toBe('grid');
 		expect(next.themeLocked).toBe(false);
 		expect(before.plan.theme).toBe('standard');

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { optimizeDeal } from '../pricing';
+import { formatFact, resolveFact } from '../catalog';
 for (const width of [390, 1440]) {
 	test(`decision modes and cart survive Undo ${width}`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
@@ -50,6 +51,7 @@ for (const width of [390, 1440]) {
 			await page.setViewportSize({ width, height: 900 });
 			await page.goto('/product/vitamin-c-serum?view=receipt');
 			await page.getByRole('button', { name: /^Add to cart/ }).click();
+			await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
 			await page.getByRole('link', { name: 'Back to store', exact: true }).click();
 			const panel = page.getByRole('region', { name: 'Smart Basket', exact: true });
 			await expect(panel).toBeVisible();
@@ -81,3 +83,74 @@ for (const width of [390, 1440]) {
 			);
 		});
 }
+
+test('easy-use preserves eligible cookers and explains a selection with no simple model', async ({
+	page
+}) => {
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	const search = page.getByRole('searchbox');
+	await search.fill('rice cooker');
+	await search.press('Enter');
+	const volume = formatFact(resolveFact('cooker-digital', 'spec.capacity')!, 'en');
+	await page
+		.getByRole('navigation', { name: 'Rice cooker filters' })
+		.getByRole('button', { name: volume, exact: true })
+		.click();
+	const cards = page.locator('#products .product-grid [data-product]');
+	const before = await cards.evaluateAll((nodes) =>
+		nodes.map((node) => node.getAttribute('data-product'))
+	);
+	expect(before).toContain('cooker-digital');
+	await page.getByRole('button', { name: 'For mum, easy to use' }).click();
+	await expect(page.getByRole('region', { name: 'Decision help' })).toContainText(
+		'No simple models match'
+	);
+	expect(
+		await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-product')))
+	).toEqual(before);
+});
+
+test('easy-use suggestions preserve the shopper’s explicit price order and Thai basket label', async ({
+	page
+}) => {
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	const search = page.getByRole('searchbox');
+	await search.fill('rice cooker');
+	await search.press('Enter');
+	await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('price-high');
+	const ids = () =>
+		page
+			.locator('#products .product-grid [data-product]')
+			.evaluateAll((nodes) => nodes.map((n) => n.getAttribute('data-product')));
+	const original = await ids();
+	expect(original.length).toBeGreaterThan(3);
+	await page.getByRole('button', { name: 'For mum, easy to use' }).click();
+	expect(await ids()).toEqual(original);
+
+	await page.goto('/product/vitamin-c-serum');
+	await page
+		.getByRole('button', { name: /Add to cart/ })
+		.first()
+		.click();
+	await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
+	await page.goto('/');
+	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
+	await expect(
+		page.getByRole('region', { name: 'ตะกร้าแนะนำ' }).getByRole('heading', { name: 'ตะกร้าแนะนำ' })
+	).toBeVisible();
+});
+
+test('listing navigation restores the chosen decision view and its Undo', async ({ page }) => {
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.getByRole('button', { name: 'For mum, easy to use' }).click();
+	await page.getByRole('button', { name: 'Compare before buying' }).click();
+	const panel = page.getByRole('region', { name: 'Decision help' });
+	await panel.getByRole('link').first().click();
+	await page.getByRole('link', { name: /Back to (store|results)/ }).click();
+	await expect(panel.getByRole('table')).toBeVisible();
+	await page.getByRole('button', { name: 'Undo decision view' }).click();
+	await expect(panel).toContainText('fewer programs');
+});

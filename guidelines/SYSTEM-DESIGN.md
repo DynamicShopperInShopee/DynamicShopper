@@ -2,13 +2,9 @@
 
 ## Browser interview integration
 
-The root storefront uses deterministic answer mappings through the existing
-proposal validator, with directOnly forced on at its application boundary. It does
-not execute CNN inference. The historical Conv1d experiments remain in the repository
-for research; they do not select the active root presentation. Chat uses the merged
-bounded live adapter with the existing offline fallback.
+The storefront interview maps recognized answer IDs to fixed presentation settings, validates the patch, and previews it for the shopper. Each question is optional. Only choosing large text changes the theme.
 
-Interview completion preserves current filters and writes one plan/history entry before revealing
+Apply preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
 metadata. The same catalog, deterministic ranking and optimizer serve this view;
 no separate pricing or product data path is introduced. The optional live
@@ -16,6 +12,10 @@ shopping assistant remains development-only. The preference interview can call
 OpenAI from the production server using only the shopper's dialogue and locale;
 its key stays server-side and same-origin JSON checks remain enabled. The direct
 answer and chat fallbacks continue to work without the interview service.
+
+## Standalone sourced catalog
+
+The standalone preview reads an optional local SQLite service through a same-origin, read-only catalog interface. All layouts and comparisons start with seven checked-in listing observations, their sources and their original photos. The preview validates a same-origin API response before displaying it. It persists one size-limited snapshot only when its canonical JSON matches the SHA-256 digest in the release manifest, and rechecks the digest before displaying any saved facts. Unavailable or altered storage leaves the seven starter listings visible. Original images require the local image service or an existing image cache when offline. Observation time and source links remain visible. A local operator imports the separately supplied full catalog. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
 
 ## The central decision: split presentation from facts
 
@@ -56,16 +56,7 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 
 ## Explicit interview entry
 
-The root storefront can also obtain a presentation proposal from the optional
-OpenAI-led interview. The server receives only the shopper's interview dialogue
-and a locale, and returns one follow-up at a time plus answers restricted to the
-fixed interview vocabulary. The endpoint sends no catalog or pricing context.
-Draft answers are isolated; the validated proposal is reviewed before applying,
-and the existing root change function owns the undo step. Invalid answer fields
-are discarded, replies containing digits or currency marks are replaced, and the
-local keyword/chat path remains available when the interview service is absent.
-Catalog facts, deterministic ranking and the optimizer stay on their existing paths. See
-[the integration contract](../docs/INTERVIEW-INTEGRATION.md).
+Draft answers stay inside the four-question dialog. Apply passes the validated patch to the root store and its Undo history. The catalog, ranker and optimizer supply the displayed facts and order. See [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline
 
@@ -185,8 +176,6 @@ Every input from outside the system's own logic is treated as untrusted and vali
 
 Credentials never leave the server. The only configuration value the shopper can ever see is the name of the AI model, in X-ray.
 
-Cloudflare production builds exclude local environment files from both the intermediate server output and the assembled Worker. The deployed Worker receives its authentication configuration through runtime bindings.
-
 ## How the system degrades
 
 | Failure | What the shopper sees |
@@ -209,15 +198,6 @@ The 177-module registry describes authored design needs and dependencies. Its 73
 and 104 service entries are design classifications, not live-feature certifications.
 The twenty presentation examples select only theme, layout, density, details and
 sections through the existing validator. `/presets` holds selections locally with no
-store mutation callback, agent write path, new pricing logic or product ranking.
+store mutation callback or agent write path. Example shelves use the shared deterministic ranking, catalog and pricing logic.
 Missing services and original photographs remain unavailable. The sourced catalog
 handoff and cloud publication belong to the data owner and are outside this change.
-
-## Brand and presentation update
-
-The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
-white and large/bold, and the search action stays dark orange (#b5321a) with white
-foreground in every theme. Chat changes the body and product presentation only.
-The root storefront passes directOnly:true to its validated interview mapping; CNN
-inference is not used by this route. Existing model experiments remain archival.
-The current main chat uses its bounded live adapter with offline fallback.

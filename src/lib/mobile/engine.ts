@@ -1,12 +1,7 @@
 import { defaultPlan, interpretOffline, type ShopperPlan } from '../personalization';
 import { listings } from './shop-data';
 import type { ShopListing } from '../catalog-api/types';
-import {
-	interviewProposal,
-	sanitizeAnswers,
-	type Answers,
-	type Backend
-} from '../personalization/interview';
+import { interviewProposal, sanitizeAnswers, type Answers } from '../personalization/interview';
 export type View = {
 	plan: ShopperPlan;
 	order: 'catalog' | 'price-low' | 'price-high';
@@ -14,10 +9,8 @@ export type View = {
 	page: number;
 	languageLocked: boolean;
 	themeLocked: boolean;
-	interviewDirectOnly: boolean;
 	interview: {
 		answers: Answers;
-		backend: Backend;
 		before: ShopperPlan;
 		beforeThemeLocked: boolean;
 		applied: Partial<ShopperPlan>;
@@ -30,7 +23,6 @@ export const initialView = (): View => ({
 	page: 1,
 	languageLocked: false,
 	themeLocked: false,
-	interviewDirectOnly: false,
 	interview: null
 });
 
@@ -41,31 +33,7 @@ export function resetView(state: View): View {
 	return next;
 }
 
-function rememberInterviewControls(
-	state: View,
-	answers: Answers,
-	backend: Backend,
-	directOnly: boolean,
-	themeLocked: boolean
-): View {
-	const next = {
-		...state,
-		themeLocked,
-		interviewDirectOnly: directOnly,
-		interview: state.interview
-			? { ...state.interview, answers, backend }
-			: {
-					answers,
-					backend,
-					before: structuredClone(state.plan),
-					beforeThemeLocked: state.themeLocked,
-					applied: {}
-				}
-	};
-	return JSON.stringify(next) === JSON.stringify(state) ? state : next;
-}
-
-export function applyInterview(state: View, raw: unknown, directOnly = false): View {
+export function applyInterview(state: View, raw: unknown): View {
 	const answers = sanitizeAnswers(raw);
 	// A new explicit reading answer can replace the lock created by the prior interview.
 	const replaceReading =
@@ -79,33 +47,21 @@ export function applyInterview(state: View, raw: unknown, directOnly = false): V
 		replaceReading && state.plan.theme === 'large-print'
 			? { theme: state.interview!.before.theme }
 			: {};
-	const result = interviewProposal(
-		answers,
-		{ ...state.plan, ...restoredTheme },
-		{ directOnly, lockedFields: inheritedLock ? ['theme'] : [] }
-	);
+	const result = interviewProposal(answers, { ...state.plan, ...restoredTheme });
 	const patch = { ...restoredTheme, ...result.patch };
 	const plan = { ...state.plan, ...patch };
-	const themeLocked = inheritedLock || result.answers.reading === 'large';
-	if (JSON.stringify(plan) === JSON.stringify(state.plan))
-		return rememberInterviewControls(
-			state,
-			result.answers,
-			result.backend,
-			directOnly,
-			themeLocked
-		);
+	const changed = JSON.stringify(plan) !== JSON.stringify(state.plan);
+	if (!changed && JSON.stringify(answers) === JSON.stringify(state.interview?.answers))
+		return state;
 	return {
 		...state,
-		plan,
-		themeLocked,
-		interviewDirectOnly: directOnly,
+		plan: changed ? plan : state.plan,
+		themeLocked: changed ? inheritedLock || result.answers.reading === 'large' : state.themeLocked,
 		interview: {
 			answers: result.answers,
-			backend: result.backend,
 			before: state.interview?.before ?? structuredClone(state.plan),
 			beforeThemeLocked: state.interview?.beforeThemeLocked ?? state.themeLocked,
-			applied: { ...state.interview?.applied, ...patch }
+			applied: { ...state.interview?.applied, ...(changed ? patch : {}) }
 		}
 	};
 }
@@ -165,9 +121,17 @@ export function interpret(message: string, state: View): { state: View; intent: 
 	const patch = Object.fromEntries(Object.entries(presentation).filter(([, v]) => v !== undefined));
 	if (state.languageLocked && !/ภาษาไทย|ภาษาอังกฤษ|in english|in thai/i.test(message))
 		delete patch.locale;
-	if (/\bmom\b|แม่/i.test(message)) {
+	// The family recipe can suggest a theme; an explicit theme request owns its choice.
+	if (simplified) {
 		if (state.themeLocked) delete patch.theme;
 		for (const key of Object.keys(state.interview?.applied ?? {})) delete patch[key];
 	}
-	return { state: { ...state, plan: { ...state.plan, ...patch } }, intent: 'change' };
+	return {
+		state: {
+			...state,
+			plan: { ...state.plan, ...patch },
+			themeLocked: state.themeLocked || (!!theme && !simplified)
+		},
+		intent: 'change'
+	};
 }

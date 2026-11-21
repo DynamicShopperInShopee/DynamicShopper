@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- Sourced external listing links. */
 	import type { CatalogSnapshot } from '../catalog-api/types';
 	import { formatBaht } from '../catalog';
@@ -60,7 +61,10 @@
 					{t('Product groups', 'กลุ่มสินค้า')}
 					<select aria-label={t('Product groups', 'กลุ่มสินค้า')} bind:value={category}>
 						<option value="all">{t('All products', 'สินค้าทั้งหมด')}</option>
-						{#each catalog.categories as item (item.id)}<option value={item.id}>
+						{#each catalog.categories as item (item.id)}<option
+								value={item.id}
+								{...catalogNameAttributes(item, lang)}
+							>
 								{item.name[lang]}
 							</option>{/each}
 					</select>
@@ -69,13 +73,13 @@
 				<div class="sample-photos">
 					{#each shown as p (p.id)}<figure>
 							{#if p.image}<img src={p.image} alt={p.name[lang]} loading="lazy" />{/if}
-							<figcaption>{p.name[lang]}</figcaption>
+							<figcaption {...catalogNameAttributes(p, lang)}>{p.name[lang]}</figcaption>
 						</figure>{/each}
 				</div>
 			{:else if block === 'products'}
 				<div class="sample-products">
 					{#each shown as p (p.id)}<article>
-							<h3>{p.name[lang]}</h3>
+							<h3 {...catalogNameAttributes(p, lang)}>{p.name[lang]}</h3>
 							{#if p.size}<p data-fact-key={`${p.id}:size`} data-raw={p.size[lang]}>
 									{p.size[lang]}
 								</p>{/if}
@@ -98,7 +102,7 @@
 			{:else if block === 'specs'}
 				<dl class="sample-specs">
 					{#each shown as p (p.id)}<div>
-							<dt>{p.name[lang]}</dt>
+							<dt {...catalogNameAttributes(p, lang)}>{p.name[lang]}</dt>
 							<dd>
 								{#if p.size}<span data-fact-key={`${p.id}:size`} data-raw={p.size[lang]}>
 										{p.size[lang]}
@@ -109,7 +113,9 @@
 			{:else if block === 'price'}
 				<div class="sample-receipt">
 					{#each shown as p (p.id)}<div>
-							<span>{p.name[lang]}</span>{#if p.price !== null}<strong
+							<span {...catalogNameAttributes(p, lang)}>
+								{p.name[lang]}
+							</span>{#if p.price !== null}<strong
 									data-fact-key={`${p.id}:shopPrice`}
 									data-raw={p.price}
 									data-print={formatBaht(p.price, lang)}
@@ -159,7 +165,9 @@
 				</label><small>{t('Filters this preview only.', 'กรองเฉพาะตัวอย่างนี้')}</small>
 			{:else if block === 'saved'}
 				{#if saved.length}<ul>
-						{#each catalog.items.filter((p) => saved.includes(p.id)) as p (p.id)}<li>
+						{#each catalog.items.filter((p) => saved.includes(p.id)) as p (p.id)}<li
+								{...catalogNameAttributes(p, lang)}
+							>
 								{p.name[lang]}
 							</li>{/each}
 					</ul>{:else}<div class="sample-empty">

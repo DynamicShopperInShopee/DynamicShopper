@@ -1,12 +1,12 @@
 # Public Shopee observations
 
-Accepted: use current, visible public listing observations for the local catalog,
-with source URLs and observation timestamps. The historical May 2025 dataset is
-excluded from this import because the requested catalog needs current observed
-prices.
+The 2026-11-21 collection preserved public listing URLs, observed prices, source
+photographs and observation times. Its original importer and raw observations
+were retired from this checkout. This document describes the collection method
+used for that historical snapshot. The [dataset manifest and usage guide](../../catalogs/shopee-2026-11-21/README.md)
+identify its recorded hashes and explain how to use separately staged catalog data.
 
-The importer reads a separately collected JSON array, or an object with a
-`rows` array. Each record contains:
+The collection input was a JSON array (or a `rows` array) with these fields:
 
 ```text
 id, shopId, itemId, name, source, imageSource,
@@ -22,32 +22,9 @@ Capture `priceText` from the actual price element; do not parse it back out of
 flattened `cardText`, which can concatenate a price and the following rating.
 The importer does not fetch listing pages or infer prices from titles.
 
-Run the boundary checks and inspect the current collection:
-
-```sh
-python3 scripts/import-shopee-observations.py --self-test
-python3 scripts/import-shopee-observations.py --validate-only
-```
-
-While collection is still running, cache original photos without replacing the
-active catalog:
-
-```sh
-python3 scripts/import-shopee-observations.py --cache-only
-```
-
-Only publish the requested final snapshot after its required count is present:
-
-```sh
-python3 scripts/import-shopee-observations.py --require-count 1500
-```
-
-The default input is `/private/tmp/shopee-live-observations.json`; `--input`
-selects another captured file. The default output is
-`data/shopee/catalog.json`, matching `CatalogSnapshot` in
-`src/lib/catalog-api/types.ts`. `--output` can point to a separate development
-snapshot. A smaller explicit `--limit` permits development imports;
-`--no-images` keeps image fields null without requesting remote media.
+For current validation and local import of a separately staged normalized snapshot,
+see the [catalog backend](../../src/lib/server/catalog/README.md). A fresh
+checkout runs the standalone preview with its seven bundled source observations.
 
 Validation rejects fractional, ranged, missing, zero or negative prices and
 preserves accepted whole-baht values exactly. The selected price text must occur
@@ -91,8 +68,7 @@ an old photo being reused after the listing's image changes.
 digest, selected rows and image outcomes. `image-cache-audit.json` records
 cache-only runs. The collected input and visited page URLs can additionally be
 retained as `provenance/observations.json` and `provenance/pages.json`, with their
-SHA-256 digests in `provenance/files.json`. Use the observations file with
-`--input` to reproduce the selection while it is inside the freshness limit.
+SHA-256 digests in `provenance/files.json`. The historical collection used the observations file to reproduce the selection within its freshness limit.
 These files and the image cache are local data, not code;
 `data/shopee/` belongs in `.gitignore`. Import failures never erase the last good
 snapshot. A successful file import is not evidence that every listing is still

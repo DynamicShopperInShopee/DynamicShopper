@@ -31,30 +31,38 @@
 </script>
 
 <section aria-label={locale === 'th' ? 'ช่วยตัดสินใจ' : 'Decision help'}>
-	<p role="status">
-		{locale === 'th'
-			? mode === 'easy'
-				? 'คัดรุ่นที่แค็ตตาล็อกระบุว่าใช้ง่าย เรียงตามจำนวนโปรแกรมจากน้อยไปมาก ภายใต้งบและตัวกรองของคุณ'
-				: 'เทียบสเปกภายใต้งบและตัวกรองของคุณ'
-			: mode === 'easy'
-				? 'Catalog-tagged simple models, fewer programs first, within your budget and filters.'
-				: 'Compare specifications within your budget and filters.'}
-	</p>
-	<ProductShelf
-		productIds={selected}
-		layout={mode === 'compare' ? 'table' : 'grid'}
-		{locale}
-		{columns}
-		{listingHref}
-		details={['price', 'specs', 'summary']}
-	>
-		{#snippet extras(id: string)}
-			{#if mode === 'easy'}<p>
-					{locale === 'th' ? 'ข้อมูลประกอบการเลือก' : 'Selection evidence'}: <Fact
-						fact={resolveCatalogFact(id, 'summary', locale)!}
-					/>
-				</p>{/if}
-			<AddToCart productId={id} {locale} onAdd={session.addProduct} />
-		{/snippet}
-	</ProductShelf>
+	{#if mode === 'easy' && !selected.length}
+		<p role="status">
+			{locale === 'th'
+				? 'ไม่พบรุ่นที่มีป้ายว่าใช้ง่ายในตัวกรองนี้ ดูรุ่นอื่นในผลลัพธ์ได้'
+				: 'No simple models match these filters. Browse the other results below.'}
+		</p>
+	{:else}
+		<p role="status">
+			{locale === 'th'
+				? mode === 'easy'
+					? 'คัดรุ่นที่แค็ตตาล็อกระบุว่าใช้ง่าย เรียงตามจำนวนโปรแกรมจากน้อยไปมาก ภายใต้งบและตัวกรองของคุณ'
+					: 'เทียบสเปกภายใต้งบและตัวกรองของคุณ'
+				: mode === 'easy'
+					? 'Catalog-tagged simple models, fewer programs first, within your budget and filters.'
+					: 'Compare specifications within your budget and filters.'}
+		</p>
+		<ProductShelf
+			productIds={selected}
+			layout={mode === 'compare' ? 'table' : 'grid'}
+			{locale}
+			{columns}
+			{listingHref}
+			details={['price', 'specs', 'summary']}
+		>
+			{#snippet extras(id: string)}
+				{#if mode === 'easy'}<p>
+						{locale === 'th' ? 'ข้อมูลประกอบการเลือก' : 'Selection evidence'}: <Fact
+							fact={resolveCatalogFact(id, 'summary', locale)!}
+						/>
+					</p>{/if}
+				<AddToCart productId={id} {locale} onAdd={session.addProduct} />
+			{/snippet}
+		</ProductShelf>
+	{/if}
 </section>

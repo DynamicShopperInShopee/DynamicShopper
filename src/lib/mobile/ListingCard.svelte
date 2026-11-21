@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	import { formatBaht } from '../catalog';
 	import type { ShopListing, CatalogCategory } from '../catalog-api/types';
-	import { categoryName } from '../catalog-api/client';
+	import ListingCategory from './ListingCategory.svelte';
 	import type { ShopperPlan } from '../personalization/plan';
 	let {
 		product,
@@ -33,7 +34,7 @@
 				loading="lazy"
 				onerror={() => (failedImage = product.image)}
 			/>{:else}<span class="missing">
-				{product.name[lang]}<small>
+				<span {...catalogNameAttributes(product, lang)}>{product.name[lang]}</span><small>
 					{lang === 'th' ? 'ยังไม่มีภาพที่ตรวจสอบแล้ว' : 'Verified image unavailable'}
 				</small>
 			</span>{/if}
@@ -45,7 +46,7 @@
 	<div class="body">
 		<div class="line">
 			<span class="category">
-				{categoryName(product.category, categories, lang)}
+				<ListingCategory {product} {categories} {lang} />
 			</span>{#if onsave}<button
 					class="save"
 					aria-label={lang === 'th' ? 'บันทึก ' + product.name.th : 'Save ' + product.name.en}
@@ -64,7 +65,11 @@
 					</svg>
 				</button>{/if}
 		</div>
-		<h3><button onclick={onopen}>{product.name[lang]}</button></h3>
+		<h3>
+			<button onclick={onopen} {...catalogNameAttributes(product, lang)}>
+				{product.name[lang]}
+			</button>
+		</h3>
 		{#each facts as fact (fact)}
 			{#if fact === 'size' && product.size}
 				{#if details.includes('specs')}<span class="spec-label">

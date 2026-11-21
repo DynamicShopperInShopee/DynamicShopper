@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	import { tick } from 'svelte';
 	import ListingCard from './ListingCard.svelte';
 	import type { ShopListing, CatalogCategory } from '../catalog-api/types';
-	import { categoryName, pageListings } from '../catalog-api/client';
+	import { pageListings } from '../catalog-api/client';
+	import ListingCategory from './ListingCategory.svelte';
 	import type { ShopperPlan } from '../personalization/plan';
 	import { formatBaht } from '../catalog';
 	let {
@@ -63,7 +65,7 @@
 				{#each guide.slice(0, 8) as product (product.category)}<button
 						onclick={() => onopen(product)}
 					>
-						{categoryName(product.category, categories, lang)}
+						<ListingCategory {product} {categories} {lang} />
 					</button>{/each}
 			</div>
 		</section>
@@ -97,8 +99,13 @@
 							<tbody>
 								{#each window.items as product (product.id)}<tr>
 										<th scope="row">
-											<button onclick={() => onopen(product)}>{product.name[lang]}</button><small>
-												{categoryName(product.category, categories, lang)}
+											<button
+												onclick={() => onopen(product)}
+												{...catalogNameAttributes(product, lang)}
+											>
+												{product.name[lang]}
+											</button><small>
+												<ListingCategory {product} {categories} {lang} />
 											</small>
 										</th>
 										{#if plan.details.includes('image')}<td class="photo-cell">
