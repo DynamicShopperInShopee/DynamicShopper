@@ -1,6 +1,6 @@
 # DynamicShopper team setup
 
-Use one checkout of DynamicShopper and one feature branch per owner. Open only that checkout in Codex. Each person starts with their assignment's prompt, [AGENTS.md](../AGENTS.md) and the guidelines linked from their plan.
+Use one checkout of DynamicShopper and one working branch per owner. Keep your existing branch or create one from `origin/main`. Open only that checkout in Codex. Each person starts with their assignment's prompt, [AGENTS.md](../AGENTS.md) and the guidelines linked from their plan.
 
 ## Required tools
 
@@ -33,6 +33,7 @@ Give any subagent one task and its relevant paths, test vector and expected outp
 
 - Fetch the project's configured `origin`. Switch to your own feature branch and merge `origin/main` there. Sync again before review. Push scoped commits to your own branch and use a reviewed PR for integration.
 - Keep Codex scoped to this repo. Use the existing local Git workflow and approve only specific actions needed for a check or push. Keep secrets, personal files and unrelated repositories outside the agent workspace. Keep unrelated connectors disabled for this task.
+- After a PR merges, fetch origin and merge `origin/main` into your working branch. Check `git diff --stat origin/main...HEAD` before starting another task, and open a separate PR for that task.
 - Review the staged files with `git diff --cached --name-only` and `git diff --cached --check` before committing. Keep the organizer PDF, access materials, private environment files, raw prompts, logs and real conversations out of Git and agent handoffs. Prefer synthetic sentinel values in tests and share test results without dumping process environment or credentials.
 - The public prototype runs keyless. For the optional local agent, keep credentials in private server configuration and keep prices out of the entire serialized model request, including history and tool responses. X-ray shows only allowlisted summaries. Force offline is available in every build and the poisoned-response switch belongs to development. Treat model output, shared links and restored state as untrusted inputs.
 - If a secret reaches a commit, stop its push or publication and notify the owner privately. Rotate the exposed value if it left the local machine. Coordinate any history cleanup with the repo owner.
