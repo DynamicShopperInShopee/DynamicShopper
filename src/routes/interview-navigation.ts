@@ -1,10 +1,9 @@
-import type { ShopperPlan } from '../lib/personalization';
-import type { ShelfState } from '../lib/storefront/store.svelte';
+import type { ShelfState, ShelfChange } from '../lib/storefront/store.svelte';
 
 type InterviewVisit = {
 	current: ShelfState;
 	undo: ShelfState[];
-	changes: (keyof ShopperPlan)[];
+	changes: ShelfChange[];
 	draftQuery: string;
 	search: string;
 	scrollY: number;

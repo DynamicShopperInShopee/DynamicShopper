@@ -2,13 +2,13 @@
 
 The root storefront offers the optional DynamicShopper interview from PR #14.
 The shopper can search, choose a category, or open the interview immediately.
-One Apply updates the existing shelf. The receipt URL, listing pages, cart, chat,
+Completing or skipping the last question automatically updates the existing shelf. The receipt URL, listing pages, cart, chat,
 comparison views, pricing engine and catalog use the same store session.
 
 `InterviewEntry.svelte` opens the bilingual dialog. `InterviewWizard.svelte`
-keeps draft answers, supports skipping each question and previews the actual
-plan changes. Closing the dialog returns focus to the opener. Apply focuses
-the shelf and exposes chat for further changes.
+keeps draft answers and supports skipping each question. There is no separate
+preview/Apply gate. Closing the dialog returns focus to the opener without applying
+a draft. Completion focuses the change receipt and exposes chat for refinement.
 
 The bundled Conv1d model receives four allowlisted answer IDs. It can suggest
 presentation fields from the fixed library. Prior explicit settings protect
@@ -16,9 +16,9 @@ their fields from inference. Missing answers and model failure use direct
 mappings. The direct-only switch bypasses inference. The synthetic training
 labels have not been evaluated against real shopper preferences.
 
-An effective Apply records one Undo step, including previous answers and locks.
+An effective completion records one Undo step, including previous answers and locks.
 Answer-sourced fields remain protected from later inference. CNN-suggested
-fields can be refined in chat. Applying equivalent settings preserves the
+fields can be refined in chat. Completing equivalent settings preserves the
 direct-only choice without creating locks or consuming Undo. Undo restores
 the earlier presentation in browser preferences. Reset restores the store
 defaults. Returning from a listing restores the interview and its Undo history
@@ -27,7 +27,6 @@ through an opaque tab-local key.
 The regression suite exercises every complete or skipped answer combination,
 independent rejection of invalid model output, unchanged catalog facts, locale,
 focus, cart controls, capacity, navigation, chat, and Undo.
-
 
 ## Integration validation against current main
 
@@ -49,3 +48,28 @@ Status: accepted UI decision — the user selected PR #14's DynamicShopper desig
 Its orange DynamicShopper header and interview flow replace the earlier
 `codex/cnn-interview-main` branded interface. The integration checks above apply
 to the approved design.
+
+## Preset library follow-up
+
+Status: accepted — the latest user instruction replaces the preview/Apply gate with
+automatic completion and removes manual theme/persona choosers from the main store.
+This follow-up starts from main `084490a`, preserving the merged interview, catalog,
+listing media, shared session and development-only agent harness.
+
+`/presets` provides the reference's exact 177 module designs in twelve groups plus
+twenty isolated presentation examples. Every entry has bilingual needs, triggers,
+anatomy and dependencies. The 73 ready / 104 service split classifies design support;
+it does not claim 177 production features. Missing services remain unavailable.
+Original photographs and the updated sourced catalog are pending. No database import
+or publication is included. See [the full inventory](PRESETS.md).
+
+Validation for this follow-up is recorded separately in its PR; the earlier integration
+counts above describe the earlier accepted main tree, not this new change.
+
+Follow-up verification: server tests 313 passed (one opt-in live test skipped);
+interview browser tests 16 passed; focused preset, cart, composition, capacity,
+Undo and accessibility browser tests 46 passed (development-only poison test skipped
+in production). A fresh build after the final density-token adjustment passed both
+preset browser tests again. Type checking reports zero errors/warnings; scoped ESLint,
+formatting and diff checks pass. Browser inspection also confirmed automatic completion,
+receipt focus, Undo, and isolation of library examples on the combined main tree.

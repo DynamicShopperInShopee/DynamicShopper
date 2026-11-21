@@ -1,4 +1,48 @@
 import { expect, test } from '@playwright/test';
+import { vouchers } from '../lib/catalog';
+import { optimizeDeal } from '../lib/pricing';
+
+test('moves from an explicit mouse search to Mom mode without losing the undo state', async ({
+	page,
+	context
+}) => {
+	await page.goto('/?view=receipt');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await context.setOffline(true);
+	await page.getByRole('searchbox').fill('gaming mouse');
+	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	await expect(page.locator('#products [data-product]')).toHaveCount(8);
+	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
+	await page.getByRole('button', { name: 'Send' }).click();
+	await expect(page.locator('#products [data-product]')).toHaveCount(3);
+	await expect(page.locator('#products [data-product="cooker-one-button"]')).toBeVisible();
+	await expect(page.getByRole('searchbox')).toHaveValue('');
+	await page.getByRole('button', { name: 'ย้อนกลับ' }).click();
+	await expect(page.getByRole('searchbox')).toHaveValue('gaming mouse');
+	await expect(page.locator('#products [data-product]')).toHaveCount(8);
+});
+
+test('refreshes an open shelf quote when a voucher expires offline', async ({ page, context }) => {
+	const openedAt = Date.UTC(2026, 10, 21);
+	const expiry = vouchers.find(({ code }) => code === 'MEGA8')!.expiresAfterMs;
+	const basket = [{ productId: 'titan-max', quantity: 1 }];
+	const before = optimizeDeal(basket, { openedAt, now: openedAt + expiry - 1 })!;
+	const after = optimizeDeal(basket, { openedAt, now: openedAt + expiry })!;
+	await page.clock.install({ time: openedAt - 1000 });
+	await page.clock.pauseAt(openedAt);
+	await page.goto('/?view=receipt');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await context.setOffline(true);
+	await page.clock.fastForward(expiry - 1);
+	await page
+		.locator('#products [data-product="titan-max"]')
+		.getByRole('button', { name: 'Best price' })
+		.dispatchEvent('click');
+	const total = page.locator('[data-deal-fact="total"]');
+	await expect(total).toHaveAttribute('data-raw', String(before.total));
+	await page.clock.runFor(1);
+	await expect(total).toHaveAttribute('data-raw', String(after.total));
+});
 
 test('verifies rendered Thai facts and withdraws the proof when the price changes', async ({
 	page
@@ -49,6 +93,10 @@ test('preserves explicit sorting and prices each chat-selected product offline',
 	await expect(items.nth(0)).toHaveAttribute('data-raw', '1450');
 	await expect(items.nth(1)).toHaveAttribute('data-raw', '1590');
 	await expect(sort).toHaveValue('price-high');
+	await page.getByRole('button', { name: 'Reset store' }).click();
+	await expect(items).toHaveCount(0);
+	await expect(page.locator('.mode-label')).toHaveCount(0);
+	await expect(sort).toHaveValue('default');
 });
 
 test('adapts and reverses the shelf offline and compares the same cooker deal', async ({
@@ -59,6 +107,23 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'Compare views' })).toBeEnabled();
 	await context.setOffline(true);
+	const views = page.getByRole('button', { name: 'Shopper views' });
+	const tech = page.getByRole('button', { name: 'Tech minimal' });
+	await expect(tech).toBeHidden();
+	await views.press('Space');
+	await expect(views).toHaveAttribute('aria-expanded', 'true');
+	await page.keyboard.press('Tab');
+	await expect(page.locator('#shopper-presets button').first()).toBeFocused();
+	await page.keyboard.press('Escape');
+	await expect(tech).toBeHidden();
+	await expect(views).toBeFocused();
+	await views.press('Enter');
+	await tech.click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+	await page.getByRole('button', { name: 'Undo' }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
+	await views.click();
+	await expect(tech).toBeHidden();
 	await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
 	await page.getByRole('button', { name: 'Send' }).click();
@@ -242,7 +307,8 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await shops.getByRole('link').first().click();
 	await expect(page).toHaveURL(/\/product\/cooker-/);
 	await page.getByRole('link', { name: 'Back to store' }).click();
-	await page.getByRole('link', { name: 'Shopping assistant' }).click();
+	await page.getByRole('link', { name: 'Shopping assistant' }).press('Enter');
+	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeFocused();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });
 
@@ -261,7 +327,10 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await page.getByLabel('Sort by').selectOption('price-high');
 	await expect(cards.first()).toHaveAttribute('data-product', 'cooker-steamer');
 	await expect(page.getByRole('heading', { name: 'Price: high to low' })).toBeVisible();
-	await expect(page.getByRole('link', { name: 'Shopping assistant' })).toHaveCount(1);
+	await expect(page.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
+		'href',
+		'/?view=receipt#assistant'
+	);
 	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toBeVisible();
 	await strip.getByRole('button', { name: 'Filters' }).click();
 	const drawer = page.getByRole('dialog', { name: 'Filters' });
@@ -276,6 +345,42 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await strip.getByLabel('Categories').selectOption('skin');
 	await expect(strip).toHaveCount(0);
 	await expect(page.getByRole('region', { name: 'Matching shops' })).toBeVisible();
+	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
+});
+
+test('compacts the cooker controls without displacing the product shelf', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.evaluate(() => document.fonts.ready);
+	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	const shelf = page.locator('.product-grid');
+	const position = () =>
+		shelf.evaluate((element) => Math.round(element.getBoundingClientRect().top + window.scrollY));
+
+	await page.evaluate(() => scrollTo(0, 179));
+	await expect(strip).not.toHaveClass(/condensed/);
+	const expandedPosition = await position();
+	const expandedHeight = (await strip.boundingBox())!.height;
+	await page.evaluate(() => scrollTo(0, 181));
+	await expect(strip).toHaveClass(/condensed/);
+	expect((await strip.boundingBox())!.height).toBeLessThan(expandedHeight);
+	await expect.poll(position).toBe(expandedPosition);
+});
+
+test('opens the interview from the category results quick controls', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Skincare', exact: true }).click();
+	const strip = page.getByRole('navigation', { name: 'Skincare filters' });
+	const interview = strip.getByRole('button', { name: 'Start a quick interview' });
+	await interview.click();
+	const dialog = page.getByRole('dialog', { name: 'Make the shop fit you' });
+	await expect(dialog).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(interview).toBeFocused();
 	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
 });
 

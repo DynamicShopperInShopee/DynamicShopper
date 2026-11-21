@@ -2,47 +2,18 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted marketplace baseline
+## Accepted shopping flow
 
-Accepted on 2026-11-21: the sourced shop starts with a familiar Shopee-inspired
-shopping page, including an orange search header, gray ground, shop navigation,
-filters and product grids. Keep DynamicShopper's identity; do not imply Shopee
-affiliation or use Shopee marks. This scoped marketplace-chrome exception
-supersedes the earlier branding exception and does not permit invented promotions,
-stock, ratings, review counts or shipping promises. Proof and price details keep
-receipt styling.
-
-The orange shopping header and search action keep their brand colors across
-standard, minimal, vibrant and large-print views. Interview or chat theme changes
-must not turn this chrome black or recolor it. These fixed brand tokens stay
-outside model-controlled presentation choices; DynamicShopper identity and
-the no-Shopee-marks rule still apply.
-
-## Accepted sourced catalog and interview completion
-
-The user-requested sourced shopping surface uses 1,500 dated Shopee Thailand
-observations and original photographs, with local SQLite and a separate
-Cloudflare catalog Worker backed by D1. The cloud package exposes read-only
-catalog APIs and serves the shopping frontend; it does not publish the Node/auth
-scaffold or give an agent a catalog write path. Catalog-only imports preserve
-unrelated tables. See [cloud delivery](deploy/catalog/README.md) and the
-[versioned snapshot](catalogs/shopee-2026-11-21/README.md). Simulated fixtures
-retain their simulation disclosure; the sourced shop identifies its observation
-date and original listing links instead. Do not invent missing product facts or
-describe observed prices as continuously synchronized or guaranteed at checkout.
-Keep original URLs and collection times, reject stale observations at ingestion,
-and validate API and saved browser snapshots as untrusted input. Imports and
-publication are explicit operator actions; there is no automatic price refresh.
-
-The accepted shopping flow is store first, an optional four-step interview,
-automatic application of one validated proposal on completion, then a change
-receipt, Undo and chat refinement. Draft answers do not change the shop; closing
-an unfinished draft is inert. The shopper describes needs and the system chooses
-presentation. The main flow has no separate preview/Apply gate or manual UI
-preset/theme chooser. Comparison examples are inspection-only and cannot apply
-a view to the shop. This scoped flow supersedes the earlier interview Apply step.
-Cloud publication does not establish learned shopper-preference accuracy,
-continuous ingestion, checkout or completed production-agent integration.
+Accepted on 2026-11-21 at the user's explicit request: keep the familiar orange
+marketplace baseline with DynamicShopper identity and no Shopee marks. The store
+opens first, followed by an optional four-question needs interview. Finishing or
+skipping its last question automatically applies one validated, undoable proposal.
+Draft answers never restyle the shop. Explain the change, provide Undo and chat
+refinement. There is no separate preview/Apply gate or manual preset, persona or
+theme chooser in the main shopping flow. Comparison examples and `/presets` are
+inspection-only and cannot apply a view to the shop. This flow supersedes earlier
+preview-and-Apply guidance. Sourced catalog publication remains the data owner's
+explicit action; no automatic refresh, agent write access or checkout claim is added.
 
 ## Product rules
 
@@ -70,7 +41,8 @@ continuous ingestion, checkout or completed production-agent integration.
 - Thai and English are equal: every string exists in both, written for each language.
 - The store stays usable after any message: readable, navigable, never blank.
 - Green and red mean state only. A stamp appears only where a check ran and passed.
-- New proof surfaces look like receipt slips. No shadows, gradients or unsupported promotional badges and banners. Marketplace chrome is limited to the accepted baseline above. No Shopee marks.
+- New proof surfaces look like receipt slips, with no shadows, gradients, badges or sale banners. Personalized receipt themes keep this visual system.
+- At the user's explicit request, the default marketplace storefront may use an orange shopping header, category/sort controls and a photo grid. This exception is scoped to the default storefront; keep DynamicShopper identity, no Shopee marks, and no invented offers or product facts.
 - Every theme meets WCAG AA; large print keeps 20px text and 48px targets; reduced motion means no motion.
 - Every screen works at laptop (1440×900) and phone (390×844) size with no sideways scroll.
 
@@ -79,6 +51,7 @@ continuous ingestion, checkout or completed production-agent integration.
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
 - **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
+- **Check both storefront entry points.** Verify the public `/` route, its **Shopping assistant** link, and the adaptive `/?view=receipt` route. Keep provider credentials out of production and run the local assistant browser suite with credentials cleared.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
 - **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).
@@ -87,6 +60,7 @@ continuous ingestion, checkout or completed production-agent integration.
 
 ## Team workflow
 
+- Follow the [team development checklist](docs/team-setup.md#from-assignment-to-main) for branch sync, verification, review and release handoffs.
 - Pick one [team assignment](README.md#choose-your-team-assignment) per coding session. Work in this repository on your own task branch. Start from the team's agreed baseline. Commit and push small, reviewable increments to that branch.
 - Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
 - The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.
@@ -371,3 +345,12 @@ Use schema-derived types such as `$inferSelect` and `$inferInsert` instead of du
 Propagate database failures to the server layer and translate them there using the project's custom error classes. Do not silently swallow or disguise constraint errors.
 
 Use Drizzle transactions for operations that must succeed or fail together, after confirming the operation is supported by both the local SQLite driver and D1. For bulk inserts, pass an array of typed rows to `.values(...)`. Keep database-specific behavior behind repository functions so callers do not depend on the selected SQLite driver.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.

@@ -17,6 +17,8 @@
 		openFilters,
 		changeCategory,
 		toggleLanguage,
+		interviewControl,
+		shoppingTasks,
 		harnessLink
 	}: {
 		language: Language;
@@ -27,7 +29,9 @@
 		toggleShipping: () => void;
 		openFilters: (trigger: HTMLButtonElement) => void;
 		changeCategory: (value: Category | 'all') => void;
-		toggleLanguage: () => void;
+		toggleLanguage?: () => void;
+		interviewControl?: Snippet;
+		shoppingTasks?: Snippet;
 		harnessLink?: Snippet;
 	} = $props();
 	const th = $derived(language === 'th');
@@ -99,6 +103,7 @@
 				{/each}
 			</select>
 		</label>
+		{@render interviewControl?.()}
 		{#if cooker}
 			{#each sizes as [volume, id] (volume)}
 				<button
@@ -110,10 +115,13 @@
 				</button>
 			{/each}
 		{/if}
-		<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
-			{th ? 'English' : 'ไทย'}
-		</button>
+		{#if toggleLanguage}
+			<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
+				{th ? 'English' : 'ไทย'}
+			</button>
+		{/if}
 		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
+		{@render shoppingTasks?.()}
 		{@render harnessLink?.()}
 	</div>
 	{#if cooker}
@@ -138,6 +146,9 @@
 		</button>
 	{/if}
 </nav>
+{#if cooker}
+	<div class="compact-space" aria-hidden="true"></div>
+{/if}
 
 <style>
 	nav {
@@ -220,8 +231,16 @@
 		grid-template-rows: auto;
 	}
 	@media (max-width: 699px) {
+		nav:not(.single-row, .condensed) .chips {
+			padding-block: 0;
+			row-gap: 1px;
+		}
 		.condensed .chips {
 			grid-template-rows: auto;
+		}
+		/* Preserve the shelf's scroll position when one visible row collapses. */
+		.condensed + .compact-space {
+			block-size: calc(var(--tap) + 1px - 0.6rem);
 		}
 	}
 </style>

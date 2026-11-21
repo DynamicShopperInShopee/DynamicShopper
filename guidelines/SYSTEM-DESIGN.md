@@ -1,44 +1,19 @@
 # System design
 
-## Sourced catalog backend and cloud delivery
-
-The sourced shop loads one validated `CatalogSnapshot` from a read-only API.
-Local SQLite and the separate Cloudflare catalog Worker/D1 runtime use the same
-catalog DTO and query validation. `catalog_items` and `catalog_meta` persist the
-observed listing facts; unrelated authentication tables are preserved. Metadata
-is published only after imported items, and Worker reads batch metadata and
-items consistently. There is no public import or product-write endpoint.
-The cloud package contains the built shopping frontend and original image
-assets, not the Node/auth scaffold, raw observations or database files. See
-[cloud delivery](../deploy/catalog/README.md).
-
-The versioned snapshot contains 1,500 records observed on 2026-11-21, with source
-URLs, exact whole-baht amounts and per-listing timestamps. Publication does not
-refresh observations, complete checkout integration or run a background ingestion
-agent. All layouts and comparison examples share the same fetched snapshot. A
-validated browser copy supports offline search and CNN personalization; the
-seven-record starter fallback is explicitly labeled when both API and saved
-catalog are unavailable. Images require the cloud/local image service or an
-existing browser image cache. See [the dataset](../catalogs/shopee-2026-11-21/README.md).
-
 ## Browser interview integration
 
-The optional storefront interview runs exported Conv1d and dense weights locally.
-Only allowlisted answer IDs enter inference; product facts never enter the network.
-Independent categorical heads expand to fixed layout, details and section recipes;
-invalid heads retain their direct-answer fallback independently. The existing
-proposal validator checks the final patch. A complete interview may also suggest
-an unlocked theme; explicit reading settings and priorities remain deterministic.
+The root storefront uses deterministic answer mappings through the existing
+proposal validator, with directOnly forced on at its application boundary. It does
+not execute CNN inference. The historical Conv1d experiments remain in the repository
+for research; they do not select the active root presentation. Chat uses the merged
+bounded live adapter with the existing offline fallback.
 
-Completing the interview preserves current filters and records one atomic change,
-then focuses its receipt with Undo and chat refinement. Undo restores both plan
-and interview metadata; equivalent settings create no extra Undo step. There is
-no separate preview/Apply gate. The fixture-backed renderer retains its existing
-catalog, deterministic ranking and optimizer. The sourced adapter uses its
-read-only catalog snapshot and does not invent unsupported ranking or deal facts
-or transfer synthetic product references into the sourced shelf. The optional
-local live assistant remains development-only, while the interview and chat
-fallback work without network access after loading.
+Interview completion preserves current filters and writes one plan/history entry before revealing
+the existing adaptive receipt renderer. Undo restores both plan and interview
+metadata. The same catalog, deterministic ranking and optimizer serve this view;
+no separate pricing or product data path is introduced. The optional local live
+assistant remains development-only, while the interview and chat fallback work
+without network access after loading.
 
 ## The central decision: split presentation from facts
 
@@ -80,16 +55,14 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 ## Explicit interview entry
 
 The root storefront can also obtain a presentation proposal from the optional
-four-question interview. The browser model receives answer IDs only and feeds
-the same proposal validator. Draft answers are isolated. Completing the fourth
-step immediately passes one validated patch to the change function and undo stack,
-closes the sheet and focuses the change receipt with Undo and chat refinement.
-There is no separate review/Apply gate or manual UI chooser. Full answers use
-the browser CNN; skipped/partial answers and model failure use the deterministic
-answer mapping. Skipped settings are preserved and closing an unfinished draft
-is inert. Comparison examples cannot mutate the shop. Catalog facts stay on
-their existing paths, and unsupported sourced facts or ranking inputs are not
-invented. See
+OpenAI-led interview. The server receives only the shopper's interview dialogue
+and a locale, and returns one follow-up at a time plus answers restricted to the
+fixed interview vocabulary. The endpoint sends no catalog or pricing context.
+Draft answers are isolated; the validated proposal is reviewed before applying,
+and the existing root change function owns the undo step. Invalid answer fields
+are discarded, replies containing digits or currency marks are replaced, and the
+local keyword/chat path remains available when the interview service is absent.
+Catalog facts, deterministic ranking and the optimizer stay on their existing paths. See
 [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline
@@ -166,7 +139,7 @@ When to use tools: for vague or multi-need requests ("something for my mom", "a 
 
 ## Offline parity: the keyword fallback
 
-The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
+The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. X-ray identifies the responding model and states when local settings determine every applied change. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
 
 The keyword fallback answers whenever the AI cannot: no key, forced offline, an error, a timeout, or unusable output. It produces exactly the same kind of answer as the AI, so everything after "Understand" is identical online and offline.
 
@@ -189,7 +162,7 @@ A deal request prices "this": the products the AI named, else the product in foc
 
 ## Where state lives
 
-- **Catalog server state only.** Local SQLite and cloud D1 persist sourced observations through explicit imports. The read-only catalog API does not store shopper accounts, interview answers or cross-device preferences; agents have no catalog write path.
+- **No server state.** The server is a pure function of the message, the static catalog and the clock. No accounts, no database.
 - **The browser holds the store:** the plan, undo history, conversation, cart and recently viewed products. Only the plan and the cart are saved between visits, as a convenience. A saved store that differs from the standard one explains itself on return ("Restored your saved store", with the differences).
 - **Debug switches are never saved:** X-ray open, force offline and the armed poisoned model reset on reload.
 - **Time-dependent facts wait for the clock:** voucher expiry depends on "now", so anything that depends on it appears only once the page knows the time, and the clock refreshes every minute.
@@ -210,6 +183,8 @@ Every input from outside the system's own logic is treated as untrusted and vali
 
 Credentials never leave the server. The only configuration value the shopper can ever see is the name of the AI model, in X-ray.
 
+Cloudflare production builds exclude local environment files from both the intermediate server output and the assembled Worker. The deployed Worker receives its authentication configuration through runtime bindings.
+
 ## How the system degrades
 
 | Failure | What the shopper sees |
@@ -225,3 +200,22 @@ Credentials never leave the server. The only configuration value the shopper can
 ## Measuring understanding
 
 A **golden set** of about sixty real shopper messages (Thai, English, code-switched, slang and adversarial) is run through the real pipeline for both the AI and the fallback. A message passes when the intent and the expected plan changes match. Separately, three **safety checks** run on every answer: no fact in the reply, no plan value outside the allowlists, no product id outside the catalog. Any safety failure is a **fact violation**, and the target is zero. Adversarial messages are scored on safety only. The fallback's score should never be allowed to slip; the AI's score is kept alongside its typical response time and how often its output had to be trimmed or guarded. See [TRUST-AND-PROOF.md](TRUST-AND-PROOF.md).
+
+## Preset inspection boundary
+
+The 177-module registry describes authored design needs and dependencies. Its 73 ready
+and 104 service entries are design classifications, not live-feature certifications.
+The twenty presentation examples select only theme, layout, density, details and
+sections through the existing validator. `/presets` holds selections locally with no
+store mutation callback, agent write path, new pricing logic or product ranking.
+Missing services and original photographs remain unavailable. The sourced catalog
+handoff and cloud publication belong to the data owner and are outside this change.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.

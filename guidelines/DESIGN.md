@@ -4,51 +4,34 @@
 
 Accepted at the user's explicit request: the default storefront uses a familiar
 orange shopping header, DynamicShopper identity, search, category controls and a
-photo grid. This marketplace-chrome exception covers the `event-demo` template
-and accepted sourced-shop baseline; personalized receipt themes retain their
-existing tokens and proof surfaces. No Shopee marks, affiliation claims, invented
-promotion, urgency or shopping facts are permitted. It supersedes the earlier
-branding exception. In `event-demo`, header orange `#ee4d2d` carries only large
-bold white brand text; the darker action/price ink `#b5321a` supports normal text
-on white. The interview entry remains a compact optional strip. No device frame
-or full-page onboarding replaces shopping.
-
-The shopping header and search CTA retain their orange brand colors across all
-themes, including minimal and large print. CNN and chat may change shelf layout,
-density and content-theme tokens, but cannot recolor this fixed chrome or turn
-the header black. Keep accessible foreground contrast and DynamicShopper's
-identity; this invariant does not authorize Shopee marks or affiliation claims.
+photo grid. This styling is scoped to `event-demo`; personalized receipt themes
+retain their existing tokens and proof surfaces. No Shopee mark, invented
+promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries only
+large bold white brand text; the darker action/price ink `#b5321a` supports normal
+text on white. The interview entry remains a compact optional strip.
 
 ## Interview transition
 
-The default marketplace has a plain optional interview entry. Its modal shows one
-question at a time with labeled radio choices, Back, Next and Skip. Four short
-steps cover shopping goal, preferred evidence, priority and reading. Draft answers
-stay inside the dialog. **Finish interview** / **ตอบเสร็จแล้ว** validates and
-applies one proposal immediately, closes the dialog and focuses the actual change
-receipt with Undo and chat refinement. Final-step Skip also completes the interview
-while preserving skipped settings. Close/Escape before completion leaves the store
-unchanged. There is no proposed-view chooser, separate Apply screen or shopper
-inference toggle. Desktop centers the dialog; phones use a bottom sheet. The
-chat-refinement button focuses the existing assistant. No animation is required.
-Large print keeps single-column answers, 20px text and 48px targets. See
-[the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+The default marketplace has a plain optional needs interview. OpenAI asks a natural
+sequence of follow-up questions in a chat-style sheet, one at a time. On completion,
+the fixed validator applies one proposal, closes the sheet and focuses the change
+receipt. Drafts and cancellation leave the store unchanged. Undo restores the plan
+and answers; chat refines the same view. There is no separate preview or Apply screen
+and no preset, persona or theme chooser in the main shopping flow. Desktop centers
+the dialog; phones use a bottom sheet. Large print keeps 20px text and 48px targets,
+with no motion when reduced motion is requested.
 
-## Sourced shopping and comparison inspection
+## Preset inspection library
 
-The sourced shopping surface uses original photographs and observed listing
-facts. Missing facts or images require honest empty states, not fabricated
-promotions, stock, shipping or ratings. All shelf layouts show the same page of
-up to 24 catalog records; comparison products occupy rows. The UI exposes the
-observed date, source links and backend/cache/fallback status. Cloud delivery
-uses the same presentation and source facts as the local catalog.
-
-The three-view comparison workspace demonstrates how different interview answers
-affect presentation. Examples can be edited independently, but there is no
-**Use this view** action or mutation of the live shop. The main shopping flow
-uses an interview entry instead of manual UI preset/theme selection. Actual
-changes remain visible, explained and reversible. Receipt styling governs
-change explanations and price provenance.
+`/presets` is a separate design-review surface containing the reference's exact 177
+modules across twelve parts and twenty authored presentation examples. Each module
+shows its need, trigger, information order, dependency and default/empty/loading/error
+states. Missing services show neutral unavailable anatomy. No example can apply to
+the store. Existing catalog fixtures and the optimizer support inspection until the
+updated sourced catalog arrives; original photographs are explicitly pending rather
+than substituted with category illustrations. This surface keeps the orange shopping
+identity, DynamicShopper wordmark, receipt proof surfaces and all four accessible
+themes. See [the module inventory](../docs/PRESETS.md).
 
 ## North star
 
@@ -58,7 +41,7 @@ The world is a Thai convenience-store thermal slip: warm off-white paper, carbon
 
 The density is calm and even: a header strip, underline category tabs, a row of what the shopper asked for, then the shelf. When the AI changes the store, the change prints in as a slip with a torn edge, and a green stamp appears only where a real check ran.
 
-Outside the accepted marketplace baseline, the system uses receipt styling. Unsupported promotional badges, banners, countdowns and urgency remain excluded everywhere.
+The system deliberately refuses the orange marketplace grid with badges, banners, countdowns and shouty sale chrome. Trust is the product, and the look should feel like a receipt, not an advert.
 
 **Story:** the shopper sees a calm shop, chats, watches the shelves rearrange, and reads a printed slip of exactly what changed and what they will pay, then believes the numbers.
 
@@ -74,24 +57,24 @@ Outside the accepted marketplace baseline, the system uses receipt styling. Unsu
 
 A near-monochrome receipt palette: ink on paper, two state inks, and, in one theme, a carbon-copy blue.
 
-| Name | Hex | Role |
-| --- | --- | --- |
-| Thermal Paper | `#fbfbf8` | Page ground (standard, vibrant, large print) |
-| Slip White | `#ffffff` | Cards, slips, inputs, secondary buttons; minimal's page ground |
-| Carbon Ink | `#16161a` | Text, primary buttons, the shopper's chat bubble, input borders, heavy rules, active tab underline; the accent in standard, minimal and large print |
-| Faded Ink | `#5d5d63` | Secondary text, inactive tabs, labels, review quotes |
-| Paper Seam | `#e9e6dc` | Every hairline border, card and chip outlines, slip outlines, scrollbars, the art tile behind product glyphs |
-| Verified Green | `#0f7b4a` | Applied vouchers, the savings line, the verification stamp. Nothing else |
-| Void Red | `#d1263b` | Expired vouchers, the struck original price, "Expires soon", error borders. Nothing else |
-| Minimal Seam | `#ecebe6` | Minimal theme's fainter seams |
-| Carbon-Copy Blue | `#2f3ccf` | Vibrant theme's accent only. Chosen because it is neither state colour |
-| Carbon-Copy Muted | `#4f5068` | Vibrant theme's secondary text |
-| Carbon-Copy Seam | `#e3e3ef` | Vibrant theme's seams |
-| Large-Print Ink | `#0d0d10` | Large print's darker text |
-| Large-Print Muted | `#3d3d42` | Large print's secondary text |
-| Large-Print Seam | `#858172` | Large print's seams, dark enough to see (3:1 against paper) |
-| Large-Print Green | `#0b6b3f` | Large print's state green |
-| Large-Print Red | `#b01e31` | Large print's state red |
+| Name              | Hex       | Role                                                                                                                                                |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thermal Paper     | `#fbfbf8` | Page ground (standard, vibrant, large print)                                                                                                        |
+| Slip White        | `#ffffff` | Cards, slips, inputs, secondary buttons; minimal's page ground                                                                                      |
+| Carbon Ink        | `#16161a` | Text, primary buttons, the shopper's chat bubble, input borders, heavy rules, active tab underline; the accent in standard, minimal and large print |
+| Faded Ink         | `#5d5d63` | Secondary text, inactive tabs, labels, review quotes                                                                                                |
+| Paper Seam        | `#e9e6dc` | Every hairline border, card and chip outlines, slip outlines, scrollbars, the art tile behind product glyphs                                        |
+| Verified Green    | `#0f7b4a` | Applied vouchers, the savings line, the verification stamp. Nothing else                                                                            |
+| Void Red          | `#d1263b` | Expired vouchers, the struck original price, "Expires soon", error borders. Nothing else                                                            |
+| Minimal Seam      | `#ecebe6` | Minimal theme's fainter seams                                                                                                                       |
+| Carbon-Copy Blue  | `#2f3ccf` | Vibrant theme's accent only. Chosen because it is neither state colour                                                                              |
+| Carbon-Copy Muted | `#4f5068` | Vibrant theme's secondary text                                                                                                                      |
+| Carbon-Copy Seam  | `#e3e3ef` | Vibrant theme's seams                                                                                                                               |
+| Large-Print Ink   | `#0d0d10` | Large print's darker text                                                                                                                           |
+| Large-Print Muted | `#3d3d42` | Large print's secondary text                                                                                                                        |
+| Large-Print Seam  | `#858172` | Large print's seams, dark enough to see (3:1 against paper)                                                                                         |
+| Large-Print Green | `#0b6b3f` | Large print's state green                                                                                                                           |
+| Large-Print Red   | `#b01e31` | Large print's state red                                                                                                                             |
 
 ### Rules
 
@@ -102,20 +85,20 @@ A near-monochrome receipt palette: ink on paper, two state inks, and, in one the
 
 The four themes are token variants of one world, not separate looks.
 
-| Token | Standard | Minimal | Vibrant | Large print |
-| --- | --- | --- | --- | --- |
-| Page | `#fbfbf8` | `#ffffff` | `#fbfbf8` | `#fbfbf8` |
-| Surface | `#ffffff` | `#ffffff` | `#ffffff` | `#ffffff` |
-| Text | `#16161a` | `#16161a` | `#16161a` | `#0d0d10` |
-| Muted | `#5d5d63` | `#5d5d63` | `#4f5068` | `#3d3d42` |
-| Accent | `#16161a` | `#16161a` | `#2f3ccf` | `#16161a` |
-| On accent | `#ffffff` | `#ffffff` | `#ffffff` | `#ffffff` |
-| Seam | `#e9e6dc` | `#ecebe6` | `#e3e3ef` | `#858172` |
-| Green / Red | `#0f7b4a` / `#d1263b` | same | same | `#0b6b3f` / `#b01e31` |
-| Corner radius | 4px | 0 | 6px | 6px |
-| Base text | 16px | 16px | 16px | 20px |
-| Smallest text | 12px | 12px | 12px | 20px |
-| Tap target | 44px | 44px | 44px | 48px |
+| Token         | Standard              | Minimal   | Vibrant   | Large print           |
+| ------------- | --------------------- | --------- | --------- | --------------------- |
+| Page          | `#fbfbf8`             | `#ffffff` | `#fbfbf8` | `#fbfbf8`             |
+| Surface       | `#ffffff`             | `#ffffff` | `#ffffff` | `#ffffff`             |
+| Text          | `#16161a`             | `#16161a` | `#16161a` | `#0d0d10`             |
+| Muted         | `#5d5d63`             | `#5d5d63` | `#4f5068` | `#3d3d42`             |
+| Accent        | `#16161a`             | `#16161a` | `#2f3ccf` | `#16161a`             |
+| On accent     | `#ffffff`             | `#ffffff` | `#ffffff` | `#ffffff`             |
+| Seam          | `#e9e6dc`             | `#ecebe6` | `#e3e3ef` | `#858172`             |
+| Green / Red   | `#0f7b4a` / `#d1263b` | same      | same      | `#0b6b3f` / `#b01e31` |
+| Corner radius | 4px                   | 0         | 6px       | 6px                   |
+| Base text     | 16px                  | 16px      | 16px      | 20px                  |
+| Smallest text | 12px                  | 12px      | 12px      | 20px                  |
+| Tap target    | 44px                  | 44px      | 44px      | 48px                  |
 
 Character: **standard** is paper and seams with 4px corners; **minimal** is white paper, fainter seams, square corners; **vibrant** is the carbon-copy blue accent with 6px corners; **large print** has darker ink and seams, a 20px floor and 48px targets.
 
@@ -130,15 +113,15 @@ The whole page canvas, including overscroll, follows the active theme's page col
 
 All sizes derive from the theme's base (16px, or 20px in large print), and nested text never compounds. No visible text falls below the theme's floor.
 
-| Style | Face | Size (× base) | Use |
-| --- | --- | --- | --- |
-| Price | Mono 700, tight tracking, line-height 1 | 2.125 | The headline price on a card. The biggest thing on the shelf |
-| Total | Mono 700 | 1.5 | The TOTAL row of a deal receipt |
-| Wordmark | Sans 700, tight tracking | 1.25 | "DynamicShopper" in the header only |
-| Title | Sans 600, snug, balanced | 1.125 | Product names, chat and empty-state headings |
-| Body | Sans 400 | 1 | UI copy, chat, review quotes |
-| Figure | Mono 400, tabular | 0.875 | Receipt rows, specs, ratings, table numbers, right-aligned in tables |
-| Label | Sans 600, uppercase, 0.05em tracking | 0.75 | Table column heads and receipt titles only |
+| Style    | Face                                    | Size (× base) | Use                                                                  |
+| -------- | --------------------------------------- | ------------- | -------------------------------------------------------------------- |
+| Price    | Mono 700, tight tracking, line-height 1 | 2.125         | The headline price on a card. The biggest thing on the shelf         |
+| Total    | Mono 700                                | 1.5           | The TOTAL row of a deal receipt                                      |
+| Wordmark | Sans 700, tight tracking                | 1.25          | "DynamicShopper" in the header only                                  |
+| Title    | Sans 600, snug, balanced                | 1.125         | Product names, chat and empty-state headings                         |
+| Body     | Sans 400                                | 1             | UI copy, chat, review quotes                                         |
+| Figure   | Mono 400, tabular                       | 0.875         | Receipt rows, specs, ratings, table numbers, right-aligned in tables |
+| Label    | Sans 600, uppercase, 0.05em tracking    | 0.75          | Table column heads and receipt titles only                           |
 
 ### Rules
 
@@ -237,6 +220,8 @@ Semibold, slightly larger than body, underlined by a 2px ink rule, like a receip
 
 Assistant messages sit on the paper as plain text and slips. The shopper's message is a right-aligned accent bubble at most 85% wide. The waiting line pulses only when motion is allowed. Error messages have a red border.
 
+Keep **Compare views** visible beside the **Shopper views** disclosure. Collapsing the presets keeps the product shelf closer to the top on phones. When the presets are open, the next tab reaches the first preset. Escape closes the disclosure and returns focus to its trigger. Undo, Reset, and X-ray use quieter buttons with the same target sizes. The public storefront link scrolls to and focuses the assistant section. Voucher expiry updates an open receipt in place and announces the changed content politely.
+
 ## Motion
 
 - **Receipt print:** 260ms, exponential ease-out (clip reveal plus a 0.5rem drop). Once, on appearance.
@@ -257,7 +242,7 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 - Use green or red for anything but state: no red sale prices, no green promos.
 - Add shadows, gradients or glossy fills.
 - Stamp a slip unless a check ran on it.
-- Add marketplace chrome outside the accepted baseline, unsupported promotional badges or countdown urgency, or any Shopee mark.
+- Add marketplace chrome: badges, banners, countdown urgency, orange sale styling, or any Shopee mark.
 - Use Unicode glyphs for icons.
 - Animate anything under reduced motion.
 
@@ -285,14 +270,51 @@ The specification sheet includes the catalog product name, seller, category spec
 
 Search cards group the delivery amount and seller on one metadata row. The matching-shop panel uses shorter vertical spacing so the first row of square product photos begins higher in the viewport.
 
+The storefront header includes the language switch on phones and laptops. Shoppers can choose Thai or English before searching or starting the interview.
+
 Skincare results lead with the shop panel, sort tabs and a single row of working quick controls, beginning with Free shipping. The result heading and count remain available to assistive technology without adding another visible row. Cooker searches place the submit icon inside the leading edge of the input on phones, with full-size tap targets.
 
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
 
+The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf receives focus. Chat, Edit my answers and Undo sit beside the updated products and remain visible at that handoff. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.
+
+The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+Shopping criteria use three compact disclosures listing active settings. Product comparison and deal calculation open on demand and return focus to their respective buttons. The comparison fits the phone viewport, labels missing catalog facts and lets shoppers choose which fields to inspect.
+
 The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
 
 Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
 
 The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+## Direct decision help and Smart Basket
+
+Accepted: cooker results offer explicit easy-use and comparison tasks without an
+interview or chat. They preserve current eligibility and theme; an independent Undo
+restores the previous decision view without mutating search, filters or cart. Easy-use
+selects up to three catalog-tagged simple models ordered by program count then ID.
+The comparison shows catalog price, capacity, programs and warranty, with cart actions.
+
+Smart Basket offers at most one curated catalog-supported companion, with a cited
+source review and the target skin-type fact. The current demo pairs vitamin-C serum
+with ceramide moisturiser; no cooker companion is asserted. Both quotes use the same
+optimizer context and coin balance. Add is explicit, rejection hides the offer for
+this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
+The catalog remains simulated; this is not a clinical compatibility guarantee or a
+new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.
+
+The digital description reads as one continuous illustrated listing. Introductory and capacity captions sit in the photographs' quiet areas; large print may place text above a photo to keep it readable. Cooking modes use large, unboxed symbols, and the preset timer uses a clock illustration. Dimension values stay beside their measurement arrows, with technical facts below. Package contents form one group. Every caption and measurement retains its catalog fact metadata. The review-photo panel leads with the catalog summary under “From the listing” and separately identifies its simulated photos.
+
+On phone category results, a single sticky search row replaces the home masthead and keeps language selection visible beside search and sorting/filtering. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.

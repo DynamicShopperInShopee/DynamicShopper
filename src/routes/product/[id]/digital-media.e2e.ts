@@ -20,6 +20,11 @@ test('digital media belongs to the digital cooker and plays locally on demand', 
 	await expect(gallery.locator('[data-fact="spec.programs"]')).toHaveText('9');
 	const media = page.getByRole('region', { name: 'Simulated review media' });
 	await expect(media.getByRole('link')).toHaveCount(3);
+	for (const link of await media.getByRole('link').all()) {
+		const target = await link.getAttribute('href');
+		const source = await link.locator('img').getAttribute('src');
+		await expect(page.locator(`${target} img`)).toHaveAttribute('src', source!);
+	}
 	await Promise.all(cachedClips.map(async (response) => (await response).finished()));
 	await context.setOffline(true);
 	await gallery.getByRole('button', { name: 'Play rice cooker overview' }).click();

@@ -30,9 +30,11 @@
 			const response = await fetch('/api/interview', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ locale: lang, history: messages, message: message.trim() }) });
 			if (!response.ok) throw new Error('Interview unavailable');
 			const data = await response.json() as { reply: string; complete: boolean; answers: Record<string, string | null> };
-			answers = fromModelAnswers(data.answers);
+			const mappedAnswers = fromModelAnswers(data.answers);
+			answers = mappedAnswers;
 			messages = [...messages, { role: 'user', content: message.trim() }, { role: 'assistant', content: data.reply }];
 			complete = data.complete;
+			if (data.complete) onapply(mappedAnswers, false);
 			await Promise.resolve();
 			transcript?.scrollTo({ top: transcript.scrollHeight, behavior: 'smooth' });
 		} catch { failure = true; }
