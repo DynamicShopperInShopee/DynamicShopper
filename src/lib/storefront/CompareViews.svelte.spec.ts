@@ -35,3 +35,18 @@ it('switches one pane from Visual vibrant to Mom mode and checks both localized 
 	await expect.element(right.getByText('1.8 ลิตร')).toBeVisible();
 	await expect.element(screen.getByText('Facts identical (3 checked)')).toBeVisible();
 });
+
+it('keeps the shopper’s Thai in Tech and Visual panes', async () => {
+	const screen = await render(CompareViews, {
+		productIds: [cooker],
+		columns: [],
+		resolve,
+		listingHref: (id: string) => `/product/${id}`,
+		locale: 'th'
+	});
+	const left = screen.getByRole('region', { name: 'มุมมองซ้าย', exact: true });
+	const right = screen.getByRole('region', { name: 'มุมมองขวา', exact: true });
+	await expect.element(left.getByText('690 บาท')).toBeVisible();
+	await expect.element(right.getByText('690 บาท')).toBeVisible();
+	await expect.element(screen.getByText('ข้อมูลตรงกัน (ตรวจแล้ว 2 รายการ)')).toBeVisible();
+});

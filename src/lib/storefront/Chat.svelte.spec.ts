@@ -51,3 +51,31 @@ it('opens the chat as a phone sheet and returns focus after Escape', async () =>
 	expect(screen.container.querySelector('dialog')?.open).toBe(false);
 	await expect.element(trigger).toHaveFocus();
 });
+
+it('scrolls to a reply received while the phone sheet was closed', async () => {
+	await page.viewport(390, 844);
+	const messages = Array.from({ length: 20 }, (_, index) => ({
+		id: String(index),
+		role: 'assistant' as const,
+		text: 'Here is a previous reply. '.repeat(6)
+	}));
+	const screen = await render(Chat, {
+		locale: 'en',
+		messages: [],
+		pending: true,
+		onSend: vi.fn()
+	});
+	const trigger = screen.getByRole('button', { name: 'Chat with the assistant' });
+	await trigger.click();
+	await screen.getByRole('button', { name: 'Close chat' }).click();
+	await screen.rerender({
+		messages: [...messages, { id: 'new', role: 'assistant', text: 'This just arrived.' }],
+		pending: false
+	});
+	await trigger.click();
+	const history = screen.getByRole('log').element();
+	const reply = screen.getByText('This just arrived.').element();
+	expect(reply.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+		history.getBoundingClientRect().bottom
+	);
+});

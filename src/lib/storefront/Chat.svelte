@@ -89,13 +89,16 @@
 		const viewport = history;
 		if (!latest || !viewport) return;
 		void tick().then(() => {
-			const row = viewport.lastElementChild;
-			if (row) {
-				viewport.scrollTop +=
-					row.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
-			}
+			if (viewport === history && (!mobile || dialog?.open)) scrollToLatest(viewport);
 		});
 	});
+
+	function scrollToLatest(viewport: HTMLElement) {
+		const row = viewport.lastElementChild;
+		if (row) {
+			viewport.scrollTop += row.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
+		}
+	}
 
 	function send(text: string) {
 		const message = text.trim();
@@ -111,7 +114,8 @@
 
 	function open() {
 		dialog?.showModal();
-		textbox?.focus();
+		textbox?.focus({ preventScroll: true });
+		if (history) scrollToLatest(history);
 	}
 </script>
 

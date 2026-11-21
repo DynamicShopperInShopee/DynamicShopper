@@ -52,3 +52,22 @@ it('avoids a redundant table and gives unmatched filters a single actionable emp
 	await screen.getByRole('button', { name: 'Clear filters' }).click();
 	await expect.element(screen.getByRole('table')).toBeVisible();
 });
+
+it('keeps one focusable product target when picks cover the shelf or the shelf is empty', async () => {
+	const screen = await render(Sections, {
+		...base,
+		productIds: products.slice(0, 3),
+		sections: ['picks', 'products']
+	});
+	const assertTarget = (label: string) => {
+		const targets = screen.container.querySelectorAll<HTMLElement>('#products');
+		expect(targets).toHaveLength(1);
+		const target = targets[0];
+		expect(target).toHaveAttribute('aria-label', label);
+		target.focus();
+		expect(document.activeElement).toBe(target);
+	};
+	assertTarget('Top picks');
+	await screen.rerender({ productIds: [] });
+	assertTarget('No products match');
+});

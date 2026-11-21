@@ -9,19 +9,16 @@
 	const presets = {
 		tech: {
 			label: { en: 'Tech minimal', th: 'สายเทคแบบเรียบง่าย' },
-			locale: 'en',
 			layout: 'table',
 			theme: 'minimal'
 		},
 		visual: {
 			label: { en: 'Visual vibrant', th: 'เน้นภาพสีสด' },
-			locale: 'en',
 			layout: 'grid',
 			theme: 'vibrant'
 		},
 		mom: {
 			label: { en: 'Mom mode', th: 'โหมดสำหรับแม่' },
-			locale: 'th',
 			layout: 'large-print',
 			theme: 'large-print'
 		}
@@ -55,6 +52,8 @@
 	let right = $state<HTMLElement>();
 	const a = $derived(presets[leftPreset]);
 	const b = $derived(presets[rightPreset]);
+	const leftLocale = $derived(leftPreset === 'mom' ? 'th' : locale);
+	const rightLocale = $derived(rightPreset === 'mom' ? 'th' : locale);
 </script>
 
 {#snippet presetOptions()}
@@ -76,7 +75,7 @@
 					{listingHref}
 					{categoryFor}
 					layout={a.layout}
-					locale={a.locale}
+					locale={leftLocale}
 				/>
 			</div>
 		</section>
@@ -90,12 +89,12 @@
 					{listingHref}
 					{categoryFor}
 					layout={b.layout}
-					locale={b.locale}
+					locale={rightLocale}
 				/>
 			</div>
 		</section>
 	</div>
-	<CompareSlip {left} {right} leftLocale={a.locale} rightLocale={b.locale} {locale} {resolve} />
+	<CompareSlip {left} {right} {leftLocale} {rightLocale} {locale} {resolve} />
 </div>
 
 <style>

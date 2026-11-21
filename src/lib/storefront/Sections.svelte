@@ -109,10 +109,13 @@
 		result.push('products');
 		return { sections: result, remaining: claimedTop ? eligible.slice(top.length) : eligible };
 	});
+	const firstShelf = $derived(
+		ordered.sections.find((section) => ['picks', 'compare', 'products'].includes(section))
+	);
 </script>
 
 {#if !eligible.length}
-	<section class="empty" aria-label={t.empty} lang={locale}>
+	<section id="products" tabindex="-1" class="empty" aria-label={t.empty} lang={locale}>
 		<h2>{t.empty}</h2>
 		{#if activeFilters.length}
 			<ul>
@@ -125,7 +128,11 @@
 	<div class="sections" lang={locale}>
 		{#each ordered.sections as section (section)}
 			{#if section === 'products' && ordered.remaining.length}
-				<section id="products" aria-label={t.products}>
+				<section
+					id={firstShelf === section ? 'products' : undefined}
+					tabindex="-1"
+					aria-label={t.products}
+				>
 					{#if ordered.sections.length > 1}<h2>{t.products}</h2>{/if}
 					<ProductShelf
 						productIds={ordered.remaining}
@@ -138,7 +145,11 @@
 					/>
 				</section>
 			{:else if section === 'picks' || section === 'compare'}
-				<section aria-label={t[section]}>
+				<section
+					id={firstShelf === section ? 'products' : undefined}
+					tabindex="-1"
+					aria-label={t[section]}
+				>
 					<h2>{t[section]}</h2>
 					<ProductShelf
 						productIds={top}
