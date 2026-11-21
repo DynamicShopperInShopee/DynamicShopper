@@ -83,8 +83,8 @@
 			{#if !compact && !applied}
 				<p>
 					{th
-						? 'เลือกข้อมูลที่อยากเห็นก่อน แล้วดูตัวอย่างก่อนใช้'
-						: 'Choose which details come first and preview the result.'}
+						? 'เลือกข้อมูลที่อยากเห็นก่อน ตอบเสร็จแล้วร้านจะปรับให้ คุณย้อนกลับได้'
+						: 'Choose which details come first. Finish to update your view; you can undo it.'}
 				</p>
 			{/if}
 		</div>

@@ -3,7 +3,7 @@
 ## Interview before chat
 
 Accepted: the default marketplace offers an optional short interview, followed by
-chat refinement. Every question is optional; drafts never alter the shelf. Apply
+chat refinement. Every question is optional; drafts never alter the shelf. Finishing or skipping the last question automatically
 uses the existing validated plan and records one undo step, including the prior
 interview answers and locks. Undo also restores the saved presentation. Applying
 equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
