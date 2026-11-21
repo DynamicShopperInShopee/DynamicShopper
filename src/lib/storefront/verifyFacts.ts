@@ -1,4 +1,6 @@
-export type FactValue = string | number | boolean | null;
+export type FactLocale = 'en' | 'th';
+export type LocalizedText = Readonly<Record<FactLocale, string>>;
+export type FactValue = string | number | boolean | null | LocalizedText;
 
 // A rendering view of a fact. The integration supplies its canonical lookup and localized text.
 export interface PrintedFact {
@@ -9,7 +11,6 @@ export interface PrintedFact {
 	text: string;
 }
 
-export type FactLocale = 'en' | 'th';
 export type ResolvePrintedFact = (
 	productId: string,
 	field: string,
@@ -27,11 +28,18 @@ export interface FactCheck {
 	mismatches: FactMismatch[];
 }
 
+function matchesValue(actual: unknown, expected: FactValue): boolean {
+	if (expected === null || typeof expected !== 'object') return Object.is(actual, expected);
+	if (actual === null || typeof actual !== 'object' || Array.isArray(actual)) return false;
+	const value = actual as Record<string, unknown>;
+	return Object.keys(value).length === 2 && value.en === expected.en && value.th === expected.th;
+}
+
 function matchesRaw(serialized: string | null, expected: FactValue): boolean {
 	if (serialized === null) return false;
 	try {
 		const actual: unknown = JSON.parse(serialized);
-		return Object.is(actual, expected);
+		return matchesValue(actual, expected);
 	} catch {
 		return false;
 	}
@@ -99,7 +107,7 @@ export function compareFacts(left: View, right: View, resolve: ResolvePrintedFac
 	for (const [key, fact] of a.identities) {
 		const match = b.identities.get(key);
 		if (!match) continue;
-		if (Object.is(fact.raw, match.raw)) {
+		if (matchesValue(fact.raw, match.raw)) {
 			result.checked++;
 		} else {
 			result.mismatches.push({
