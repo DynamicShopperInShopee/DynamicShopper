@@ -6,7 +6,7 @@ import type { createAuth } from './lib/server/auth';
 declare global {
 	namespace App {
 		interface Locals {
-			auth: ReturnType<typeof createAuth>;
+			auth?: ReturnType<typeof createAuth>;
 			user?: User;
 			session?: Session;
 		}
