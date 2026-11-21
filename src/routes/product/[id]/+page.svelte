@@ -2,6 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { defaultPlan } from '#lib/personalization/plan.ts';
 	import ProductChat from '#lib/storefront/ProductChat.svelte';
+	import { receiptListingParams } from '#lib/storefront/sharedLook.ts';
 	import { getStoreSession } from '#lib/storefront/store.svelte.ts';
 	import ListingHeader from './ListingHeader.svelte';
 	import '../../../lib/assets/fonts/plex.css';
@@ -22,8 +23,15 @@
 	let hero = $state<HTMLDivElement>();
 	let sheet = $state<HTMLDialogElement>();
 	let proofRoot = $state<HTMLElement>();
+	let cartProofRoot = $state<HTMLElement>();
+	let assistantProofRoot = $state<HTMLElement>();
 	let productDeal = $state<{ showCart: () => Promise<void> }>();
 	const th = $derived(data.language === 'th');
+	const assistantListingQuery = $derived(
+		data.listingDetails || !session.visit
+			? data.receiptQuery
+			: receiptListingParams(session.visit.plan)
+	);
 	afterNavigate(() => session.listing.record(data.id));
 
 	function openSpecifications(trigger: HTMLButtonElement) {
@@ -41,7 +49,11 @@
 		backQuery={data.receiptQuery ? session.visit?.search.slice(1) || data.receiptQuery : ''}
 		{hero}
 	>
-		<CartControls locale={data.language} onBestPrice={() => void productDeal?.showCart()} />
+		<CartControls
+			locale={data.language}
+			onBestPrice={() => void productDeal?.showCart()}
+			bind:factRoot={cartProofRoot}
+		/>
 	</ListingHeader>
 	<div bind:this={proofRoot}>
 		<div class="listing">
@@ -73,11 +85,17 @@
 		/>
 		<SpecificationsSheet {data} {th} bind:sheet />
 	</div>
-	<FactsReceipt root={proofRoot} locale={data.language} />
+	<FactsReceipt
+		root={proofRoot}
+		additionalRoots={[cartProofRoot, assistantProofRoot]}
+		locale={data.language}
+	/>
 	{#if data.receiptQuery}<ProductChat
 			productId={data.id}
 			locale={data.language}
 			theme={data.theme}
+			listingQuery={assistantListingQuery}
+			bind:factRoot={assistantProofRoot}
 		/>{/if}
 </main>
 

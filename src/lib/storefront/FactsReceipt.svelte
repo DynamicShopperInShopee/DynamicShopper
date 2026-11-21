@@ -4,7 +4,17 @@
 	import { observeMountedFacts } from './observeMountedFacts';
 	import { compareFacts, verifyFacts, type FactCheck } from './verifyFacts';
 
-	let { root, locale, compare }: { root?: HTMLElement; locale: Locale; compare?: true } = $props();
+	let {
+		root,
+		additionalRoots = [],
+		locale,
+		compare
+	}: {
+		root?: HTMLElement;
+		additionalRoots?: readonly (HTMLElement | undefined)[];
+		locale: Locale;
+		compare?: true;
+	} = $props();
 	let result = $state<FactCheck>();
 	const reasons = {
 		en: {
@@ -25,11 +35,21 @@
 		const target = root;
 		const activeLocale = locale;
 		const comparePanes = compare;
+		const scopes = new Set([target, ...additionalRoots]);
 		return observeMountedFacts<FactCheck>(
-			[target],
+			[...scopes],
 			() => {
+				if (!comparePanes) {
+					const combined: FactCheck = { checked: 0, mismatches: [] };
+					for (const scope of scopes) {
+						if (!scope) continue;
+						const result = verifyFacts(scope, resolveCatalogFact, activeLocale);
+						combined.checked += result.checked;
+						combined.mismatches.push(...result.mismatches);
+					}
+					return combined;
+				}
 				if (!target) return { checked: 0, mismatches: [] };
-				if (!comparePanes) return verifyFacts(target, resolveCatalogFact, activeLocale);
 				const [left, right] = target.querySelectorAll<HTMLElement>('[data-compare-pane]');
 				if (!left || !right) return { checked: 0, mismatches: [] };
 				return compareFacts(

@@ -13,11 +13,15 @@
 	let {
 		productId,
 		locale,
-		theme
+		theme,
+		listingQuery,
+		factRoot = $bindable()
 	}: {
 		productId: string;
 		locale: Locale;
 		theme: string;
+		listingQuery: string;
+		factRoot?: HTMLElement;
 	} = $props();
 	const session = getStoreSession();
 	const displayTheme = $derived(
@@ -89,6 +93,7 @@
 <div class="listing-chat">
 	<ShoppingAssistant
 		{locale}
+		{listingQuery}
 		theme={displayTheme}
 		largePrint={theme === 'large'}
 		pending={pending !== undefined}
@@ -101,6 +106,7 @@
 				: 'Checking the price…'}
 		onSend={send}
 		conversation={session.conversation}
+		bind:factRoot
 	/>
 </div>
 

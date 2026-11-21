@@ -10,6 +10,7 @@
 		products,
 		locale,
 		onDeal,
+		dealPending = false,
 		onAdd,
 		listingHref,
 		reasons,
@@ -20,6 +21,7 @@
 		listingHref?: (productId: string) => string;
 		reasons?: Snippet<[string]>;
 		onDeal: (productId: string, locale: Locale) => void;
+		dealPending?: boolean;
 		onAdd?: (
 			id: string
 		) =>
@@ -101,7 +103,11 @@
 						<td class="figure"><FactValue productId={product.id} field="rating" {locale} /></td>
 						<td>
 							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
-							<button type="button" onclick={() => onDeal(product.id, locale)}>
+							<button
+								type="button"
+								disabled={dealPending}
+								onclick={() => onDeal(product.id, locale)}
+							>
 								{th ? 'ราคาดีที่สุด' : 'Best price'}
 							</button>
 						</td>

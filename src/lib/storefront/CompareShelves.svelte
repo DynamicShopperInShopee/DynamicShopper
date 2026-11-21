@@ -11,11 +11,13 @@
 		plan,
 		locale,
 		freeShipping = false,
+		dealPending = false,
 		onDeal
 	}: {
 		plan: ShopperPlan;
 		locale: Locale;
 		freeShipping?: boolean;
+		dealPending?: boolean;
 		onDeal: (productId: string, locale: Locale) => void;
 	} = $props();
 
@@ -50,6 +52,7 @@
 				products={tech}
 				locale="en"
 				{onDeal}
+				{dealPending}
 				listingHref={(id: string) => resolve(`/product/[id]?${techParams}`, { id })}
 			/>
 		</section>
@@ -73,7 +76,9 @@
 									<dd><FactValue productId={product.id} field="shipping" locale="th" /></dd>
 								</div>
 							</dl>
-							<button type="button" onclick={() => onDeal(product.id, 'th')}>ราคาดีที่สุด</button>
+							<button type="button" disabled={dealPending} onclick={() => onDeal(product.id, 'th')}>
+								ราคาดีที่สุด
+							</button>
 						</li>
 					{/each}
 				</ul>

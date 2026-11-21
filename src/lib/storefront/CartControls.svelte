@@ -6,10 +6,14 @@
 
 	let {
 		locale,
-		onBestPrice
+		onBestPrice,
+		pending = false,
+		factRoot = $bindable()
 	}: {
 		locale: Locale;
 		onBestPrice: () => void;
+		pending?: boolean;
+		factRoot?: HTMLElement;
 	} = $props();
 
 	const session = getStoreSession();
@@ -21,4 +25,6 @@
 	resolve={resolveCatalogFact}
 	onRemove={session.removeProduct}
 	{onBestPrice}
+	{pending}
+	bind:factRoot
 />

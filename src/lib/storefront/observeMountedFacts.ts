@@ -1,7 +1,7 @@
 import { tick } from 'svelte';
 
 export function observeMountedFacts<Result>(
-	scopes: readonly (HTMLElement | undefined)[],
+	scopes: readonly (HTMLElement | null | undefined)[],
 	check: () => Result,
 	publish: (result: Result | undefined) => void
 ): () => void {
@@ -16,9 +16,10 @@ export function observeMountedFacts<Result>(
 	}
 
 	const observer = new MutationObserver(scheduleCheck);
-	const roots = new Set(scopes.filter((scope) => scope !== undefined));
+	const roots = new Set(scopes.filter((scope) => scope != null));
 	const ancestors = new Set<HTMLElement>();
 	for (const scope of roots) {
+		scope.addEventListener('toggle', scheduleCheck, true);
 		observer.observe(scope, {
 			attributes: true,
 			characterData: true,
@@ -36,6 +37,7 @@ export function observeMountedFacts<Result>(
 	return () => {
 		revision++;
 		observer.disconnect();
+		for (const scope of roots) scope.removeEventListener('toggle', scheduleCheck, true);
 		window.removeEventListener('resize', scheduleCheck);
 	};
 }

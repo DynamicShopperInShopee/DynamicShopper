@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import type { Locale } from '#lib/contracts.ts';
 	import Chat from './Chat.svelte';
 	import type { Conversation, ChatMessage, ChatSendResult } from './conversation.svelte';
@@ -16,7 +17,9 @@
 		largePrint = false,
 		openOnMount = false,
 		pendingLabel,
-		theme = 'standard'
+		theme = 'standard',
+		listingQuery = 'view=receipt',
+		factRoot = $bindable()
 	}: {
 		locale: Locale;
 		onSend: (message: string) => ChatSendResult | Promise<ChatSendResult>;
@@ -26,14 +29,19 @@
 		openOnMount?: boolean;
 		pendingLabel?: string;
 		theme?: 'standard' | 'minimal' | 'vibrant' | 'large';
+		listingQuery?: string;
+		factRoot?: HTMLElement;
 	} = $props();
 
 	function listingHref(id: string, lang: Locale) {
-		return resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id });
+		const params = new SvelteURLSearchParams(listingQuery);
+		params.set('lang', lang);
+		params.set('theme', theme);
+		return resolve(`/product/[id]?${params}`, { id });
 	}
 </script>
 
-<div class="shopping-assistant">
+<div class="shopping-assistant" bind:this={factRoot}>
 	<Chat
 		{locale}
 		{pending}
@@ -68,7 +76,8 @@
 					{#each message.productIds as id (id)}
 						{@const name = resolveCatalogFact(id, 'name', lang)}
 						{#if name}<li>
-								<a href={resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id })}>
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- listingHref resolves the route. -->
+								<a href={listingHref(id, lang)}>
 									<Fact fact={name} />
 								</a>
 							</li>{/if}

@@ -15,13 +15,12 @@ test('persona and shared-look changes explain themselves and clear on Undo', asy
 	await expect(notice).toHaveCount(0);
 });
 
-test('Reset store at the default state leaves Undo unavailable', async ({ page }) => {
+test('Reset and Undo are disabled at the default state', async ({ page }) => {
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('searchbox')).toBeEnabled();
 	const undo = page.getByRole('button', { name: 'Undo', exact: true });
 	await expect(undo).toBeDisabled();
-	await page.getByRole('button', { name: 'Reset store', exact: true }).click();
-	await expect(undo).toBeDisabled();
+	await expect(page.getByRole('button', { name: 'Reset store', exact: true })).toBeDisabled();
 });
 
 test('submitting the same search again adds no duplicate Undo entry', async ({ page }) => {

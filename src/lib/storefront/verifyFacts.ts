@@ -62,7 +62,12 @@ function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: Fac
 			? node.hasAttribute('data-fact-node')
 			: node.getAttribute('data-fact') === '';
 
-		const fact = product && field ? resolve(product, field, locale) : undefined;
+		const localized = node.closest<HTMLElement>('[lang]');
+		const lang = localized && root.contains(localized) ? localized.lang : locale;
+		const fact =
+			product && field
+				? resolve(product, field, lang === 'en' || lang === 'th' ? lang : locale)
+				: undefined;
 		const report = (reason: FactMismatch['reason']) =>
 			result.mismatches.push({ productId: product, field, reason });
 		if (!fact || fact.productId !== product || fact.field !== field) {

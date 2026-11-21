@@ -55,6 +55,7 @@
 	import { projectLiveHints } from '../personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from './copy';
 	import PreferenceChips from './PreferenceChips.svelte';
+	import { derivePreferenceChips } from './preferences';
 	import Xray from './Xray.svelte';
 	import XrayDrawer from './XrayDrawer.svelte';
 
@@ -64,6 +65,13 @@
 	const sorts = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'] as const;
 	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
+	const eligibilityFields = new Set<keyof ShopperPlan>([
+		'query',
+		'category',
+		'maxPrice',
+		'shops',
+		'mallOnly'
+	]);
 
 	let interactive = $state(false);
 	onMount(() => {
@@ -90,6 +98,9 @@
 	const validLook = $derived(isValidLook(sharedLook));
 	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
 	let proofRoot = $state<HTMLElement>();
+	let cartProofRoot = $state<HTMLElement>();
+	let assistantProofRoot = $state<HTMLElement>();
+	let filterProofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	let adapted = $state(false);
 	const session = getStoreSession();
@@ -103,6 +114,15 @@
 	let forceOffline = $state(false);
 	let liveEnabled = $state(false);
 	let pendingPhase = $state<'cart' | 'model'>();
+	const pendingLabel = $derived(
+		pendingPhase === 'cart'
+			? language === 'th'
+				? 'กำลังบันทึกตะกร้า…'
+				: 'Saving your cart…'
+			: language === 'th'
+				? 'กำลังจัดหน้าร้านใหม่…'
+				: 'Reshaping the store…'
+	);
 	let requestGeneration = 0;
 	let liveFallback = $state(false);
 	let liveModel = $state<string>();
@@ -207,6 +227,15 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
+	const canReset = $derived(
+		adapted ||
+			sort !== 'default' ||
+			freeShipping ||
+			capacity !== undefined ||
+			(Object.keys(defaultPlan) as (keyof ShopperPlan)[]).some(
+				(key) => JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])
+			)
+	);
 	const listingParams = $derived(
 		eventDemo
 			? new URLSearchParams({ lang: language, theme }).toString()
@@ -289,16 +318,23 @@
 	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
 		cancelPending();
 		const previous = $state.snapshot(activePlan);
-		const entries = Object.entries(patch).filter(
-			([key, value]) =>
-				value !== undefined &&
-				!(respectLocks && locks.includes(key as keyof ShopperPlan)) &&
-				JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
-		);
+		const canChange = (key: keyof ShopperPlan) => !respectLocks || !locks.includes(key);
+		const changingCategory = patch.category !== undefined && patch.category !== previous.category;
+		const clearsCategoryQuery = changingCategory && patch.query === '';
+		const entries = Object.entries(patch).filter(([field, value]) => {
+			const key = field as keyof ShopperPlan;
+			const allowed =
+				key === 'query' && clearsCategoryQuery ? canChange('category') : canChange(key);
+			return (
+				allowed && value !== undefined && JSON.stringify(previous[key]) !== JSON.stringify(value)
+			);
+		});
 		changes = entries.map(([key]) => key as keyof ShopperPlan);
 		if (!changes.length) return;
 		remember();
 		writePlan({ ...previous, ...Object.fromEntries(entries) });
+		if (clearsCategoryQuery && changes.includes('category'))
+			locks = locks.filter((key) => key !== 'query');
 		adapted = true;
 	}
 	function undo() {
@@ -316,11 +352,7 @@
 	}
 	function restoreDefaults() {
 		cancelPending();
-		const hasPlanChanges = (Object.keys(defaultPlan) as (keyof ShopperPlan)[]).some(
-			(key) => JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])
-		);
-		if (hasPlanChanges || adapted || sort !== 'default' || freeShipping || capacity !== undefined)
-			remember();
+		if (canReset) remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		adapted = false;
@@ -417,6 +449,7 @@
 		}));
 	}
 	async function openBasket(productIds?: readonly string[], locale: Locale = language) {
+		if (pendingPhase) return;
 		cancelPending();
 		const generation = requestGeneration;
 		await session.cartSettled();
@@ -717,6 +750,9 @@
 			: undefined
 	);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
+	const activeFilterChips = $derived(
+		derivePreferenceChips(activePlan, language).filter(({ field }) => eligibilityFields.has(field))
+	);
 	const products = $derived.by(() => {
 		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping }).filter(
 			(item) =>
@@ -782,6 +818,11 @@
 
 	function clearFilters() {
 		cancelPending();
+		if (!eventDemo && hasFilters) remember();
+		clearSearchFilters();
+	}
+
+	function clearSearchFilters() {
 		capacity = undefined;
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
@@ -791,9 +832,58 @@
 	}
 
 	function chooseCategory(value: Category | 'all') {
+		if (eventDemo) {
+			register('category');
+			category = value;
+			capacity = undefined;
+			return;
+		}
+		const changed = value !== category;
+		if (changed) remember();
 		register('category');
-		category = value;
+		if (!changed) return;
+		const previous = $state.snapshot(activePlan);
+		const { patch } = validateProposal(
+			{ intent: 'change', patch: { category: value === 'all' ? null : categoryFromShelf[value] } },
+			previous
+		);
+		writePlan({ ...previous, ...patch });
+		locks = locks.filter((key) => key !== 'query');
 		capacity = undefined;
+	}
+
+	function selectTheme(value: Theme) {
+		if (theme !== value) remember();
+		register('theme');
+		theme = value;
+	}
+
+	function toggleReceiptLanguage() {
+		remember();
+		register('locale');
+		language = language === 'th' ? 'en' : 'th';
+	}
+
+	function selectSort(value: Sort) {
+		cancelPending();
+		if (sort === value) return;
+		remember();
+		sort = value;
+	}
+
+	function recoverProducts() {
+		cancelPending();
+		remember();
+		writePlan({
+			...$state.snapshot(activePlan),
+			query: '',
+			category: null,
+			maxPrice: null,
+			shops: [],
+			mallOnly: false
+		});
+		clearSearchFilters();
+		locks = locks.filter((key) => !eligibilityFields.has(key));
 	}
 	function removeCapacity() {
 		cancelPending();
@@ -866,6 +956,7 @@
 			{listingHref}
 			reasons={rankingExplanation}
 			highlightedSpecs={plan.highlightedSpecs}
+			dealPending={Boolean(pendingPhase)}
 		/>
 	{:else}
 		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
@@ -1065,6 +1156,7 @@
 								<button
 									class="best-price"
 									type="button"
+									disabled={Boolean(pendingPhase)}
 									onclick={() => openDeal(product.catalogId)}
 								>
 									{a.deal}
@@ -1122,7 +1214,12 @@
 					>
 						{a.compare}
 					</a>
-					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
+					<select
+						aria-label={t.theme}
+						value={theme}
+						disabled={!interactive}
+						onchange={(event) => selectTheme(event.currentTarget.value as Theme)}
+					>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -1131,14 +1228,16 @@
 						type="button"
 						lang={language === 'th' ? 'en' : 'th'}
 						disabled={!interactive}
-						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
-						}}
+						onclick={toggleReceiptLanguage}
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
 					</button>
-					<CartControls locale={language} onBestPrice={() => openBasket()} />
+					<CartControls
+						locale={language}
+						onBestPrice={() => openBasket()}
+						pending={Boolean(pendingPhase)}
+						bind:factRoot={cartProofRoot}
+					/>
 					<button
 						type="button"
 						bind:this={traceTrigger}
@@ -1358,7 +1457,11 @@
 			<div class="toolbar">
 				<label class="sort">
 					<span>{t.sort}</span>
-					<select bind:value={sort} onchange={cancelPending}>
+					<select
+						value={sort}
+						disabled={!interactive}
+						onchange={(event) => selectSort(event.currentTarget.value as Sort)}
+					>
 						{#each sorts as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -1437,7 +1540,7 @@
 		{/if}
 
 		{#if hasFilters && (eventDemo || freeShipping || selectedCapacityProduct)}
-			<div class="chips">
+			<div class="chips" bind:this={filterProofRoot}>
 				{#if selectedCapacityProduct}
 					<button type="button" onclick={removeCapacity}>
 						{language === 'th' ? 'ความจุ' : 'Capacity'}
@@ -1536,16 +1639,13 @@
 						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
 					</p>{/if}
 				<ShoppingAssistant
+					bind:factRoot={assistantProofRoot}
 					locale={language}
 					onSend={send}
 					openOnMount={page.url.hash === '#assistant'}
 					conversation={session.conversation}
 					pending={Boolean(pendingPhase)}
-					pendingLabel={pendingPhase === 'cart'
-						? language === 'th'
-							? 'กำลังบันทึกตะกร้า…'
-							: 'Saving your cart…'
-						: undefined}
+					{pendingLabel}
 					largePrint={theme === 'large'}
 					{theme}
 				/>
@@ -1568,7 +1668,7 @@
 						{compareOpen ? a.closeCompare : a.compare}
 					</button>
 					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
+					<button type="button" disabled={!canReset} onclick={restoreDefaults}>{a.reset}</button>
 				</div>
 				<div class="preference-controls">
 					<PreferenceChips plan={activePlan} locale={language} onRemove={removePreference} />
@@ -1606,7 +1706,13 @@
 			</XrayDrawer>
 			{#if compareOpen}
 				<div class="comparison-area">
-					<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+					<CompareShelves
+						plan={activePlan}
+						locale={language}
+						{freeShipping}
+						onDeal={openDeal}
+						dealPending={Boolean(pendingPhase)}
+					/>
 				</div>
 			{/if}
 			{#if quote}
@@ -1646,13 +1752,42 @@
 					</span>
 				</p>
 			</div>
-			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
-			<div bind:this={proofRoot}>
+			{#if !eventDemo}
+				<FactsReceipt
+					root={proofRoot}
+					additionalRoots={[cartProofRoot, assistantProofRoot, filterProofRoot]}
+					locale={language}
+				/>
+			{/if}
+			{#if pendingPhase}<p role="status">{pendingLabel}</p>{/if}
+			<div bind:this={proofRoot} class:reshaping={Boolean(pendingPhase)}>
 				{#if products.length === 0}
 					<div class="empty">
 						<h3>{t.empty}</h3>
 						<p>{t.emptyHint}</p>
-						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
+						{#if eventDemo}
+							<button type="button" class="primary" onclick={reset}>{t.reset}</button>
+						{:else}
+							{#if activeFilterChips.length || freeShipping || selectedCapacityProduct}
+								<ul aria-label={language === 'th' ? 'ตัวกรองที่ใช้' : 'Active filters'}>
+									{#each activeFilterChips as { id, label } (id)}
+										<li>{label}</li>
+									{/each}
+									{#if freeShipping}<li>{t.freeOnly}</li>{/if}
+									{#if selectedCapacityProduct}
+										<li>
+											{language === 'th' ? 'ความจุ' : 'Capacity'}
+											<FactValue
+												productId={selectedCapacityProduct.id}
+												field="spec.capacity"
+												locale={language}
+											/>
+										</li>
+									{/if}
+								</ul>
+							{/if}
+							<button type="button" class="primary" onclick={recoverProducts}>{t.clear}</button>
+						{/if}
 					</div>
 				{:else if eventDemo}
 					{@render shelf(
@@ -2115,9 +2250,15 @@
 	.card-body :global(.shop) {
 		margin-top: 0.2rem;
 	}
+	.reshaping {
+		opacity: 0.92;
+	}
 	.empty {
 		padding: 1rem;
 		border: 1px dashed var(--ink);
+	}
+	.empty li {
+		overflow-wrap: anywhere;
 	}
 	.empty p {
 		margin-block: 0.25rem 0.8rem;

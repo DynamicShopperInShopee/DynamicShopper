@@ -29,8 +29,14 @@ test('a Legacy capacity choice survives assistant, Undo, ranking and listing nav
 		.locator('.chips button')
 		.filter({ has: page.locator('[data-fact="spec.capacity"]') });
 	await expect(capacityChip).toBeVisible();
+	const proof = page.locator('#products [data-proof]');
+	const capacity = capacityChip.locator('[data-fact="spec.capacity"]');
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
+	await capacity.evaluate((node) => (node.textContent = '1 L'));
+	await expect(proof).toHaveAttribute('data-proof', 'failed');
 	await capacityChip.click();
 	await expect.poll(async () => (await ids()).length).toBe(6);
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect.poll(ids).toEqual(selected);
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();

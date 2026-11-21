@@ -9,7 +9,8 @@
 		resolve,
 		onRemove,
 		onBestPrice,
-		pending = false
+		pending = false,
+		factRoot = $bindable()
 	}: {
 		items: readonly CartItem[];
 		locale: FactLocale;
@@ -17,10 +18,10 @@
 		onRemove: (productId: string) => void | Promise<void>;
 		onBestPrice: (basket: readonly CartItem[]) => void;
 		pending?: boolean;
+		factRoot?: HTMLElement;
 	} = $props();
 
 	const id = $props.id();
-	let panel = $state<HTMLDivElement>();
 	let removing = $state(false);
 	let removalFailed = $state(false);
 	const copy = {
@@ -57,7 +58,7 @@
 
 	function bestPrice() {
 		if (pending || removing || !rows.length) return;
-		panel?.hidePopover();
+		factRoot?.hidePopover();
 		onBestPrice(rows.map(({ item }) => item));
 	}
 
@@ -77,7 +78,7 @@
 
 <button type="button" popovertarget={id} lang={locale}>{t.title}</button>
 <div
-	bind:this={panel}
+	bind:this={factRoot}
 	{id}
 	popover="auto"
 	role="region"

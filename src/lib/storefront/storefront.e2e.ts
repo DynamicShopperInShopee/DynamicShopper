@@ -38,12 +38,13 @@ test('applying shipping filters supersedes a delayed model response', async ({ p
 	await page.getByRole('button', { name: 'Try live model' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('playful');
 	await page.getByRole('button', { name: 'Send' }).click();
-	await expect(page.getByText('Testing the live model')).toBeVisible();
+	const pending = page.locator('#products').getByText('Reshaping the store…');
+	await expect(pending).toBeVisible();
 	await page.getByRole('button', { name: 'Filters', exact: true }).click();
 	await page.getByRole('checkbox', { name: 'Free shipping only' }).check();
 	await page.getByRole('button', { name: 'Apply filters' }).click();
 	await page.evaluate(() => window.dispatchEvent(new Event('release-test-response')));
-	await expect(page.getByText('Testing the live model')).toHaveCount(0);
+	await expect(pending).toHaveCount(0);
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await expect(page.getByRole('checkbox', { name: 'Free shipping only' })).toBeChecked();
 });
@@ -144,3 +145,70 @@ test('keeps the completed offline fallback explanation after returning from comp
 	await expect(reason).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Try live model' })).toBeVisible();
 });
+
+for (const layout of ['grid', 'table'] as const) {
+	test(`disables ${layout} and cart quotes during a live reshape, while explicit choices remain enabled`, async ({
+		page
+	}) => {
+		await page.setViewportSize({ width: 1440, height: 900 });
+		await page.goto(storefrontUrl + '/?view=receipt');
+		await page.getByRole('button', { name: 'X-ray', exact: true }).click();
+		const live = page.getByRole('button', { name: 'Try live model' });
+		await live.click();
+		await page.getByRole('button', { name: 'Close X-ray' }).click();
+		if (layout === 'table') {
+			await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+		}
+		await page
+			.getByRole('button', { name: /^Add to cart/ })
+			.first()
+			.click();
+		await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
+
+		const { promise, resolve } = Promise.withResolvers<void>();
+		const settled = Promise.withResolvers<void>();
+		await page.route('**/api/local-assistant', async (route) => {
+			await promise;
+			await route
+				.fulfill({ json: { model: 'test-model', patch: { theme: 'vibrant' } } })
+				.catch(() => {})
+				.finally(settled.resolve);
+		});
+		const request = page.waitForRequest('**/api/local-assistant');
+		const input = page.getByRole('textbox', { name: 'Ask the store' });
+		await input.fill('show me a playful store');
+		await input.press('Enter');
+		await request;
+		const quotes = page
+			.locator('#products')
+			.getByRole('button', { name: 'Best price', exact: true });
+		try {
+			await expect(quotes.first()).toBeDisabled();
+			await expect(
+				page.locator('#products').getByRole('status').filter({ hasText: 'Reshaping the store' })
+			).toBeVisible();
+			await page.getByRole('button', { name: 'Cart', exact: true }).click();
+			await expect(page.getByRole('button', { name: 'Best price for my cart' })).toBeDisabled();
+			await page.keyboard.press('Escape');
+			await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+
+			if (layout === 'table') {
+				await page.getByRole('button', { name: 'ไทย', exact: true }).click();
+				await expect(page.locator('.store')).toHaveAttribute('lang', 'th');
+				await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+				await expect(
+					page.locator('#products').getByRole('button', { name: 'ราคาดีที่สุด', exact: true }).first()
+				).toBeEnabled();
+			}
+		} finally {
+			resolve();
+		}
+		await settled.promise;
+		if (layout === 'grid') {
+			await expect(page.getByRole('log').getByText('What changed', { exact: true })).toBeVisible();
+			await expect(quotes.first()).toBeEnabled();
+		} else {
+			await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+		}
+	});
+}

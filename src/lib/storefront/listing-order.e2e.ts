@@ -94,8 +94,10 @@ test('real comparison links use their pane orders and preserve the store undo st
 			)
 			.toEqual(order);
 		await page.goBack();
+		await expect(page).toHaveURL((url) => url.pathname === '/compare');
 	}
-	await page.locator('main header a[href^="/?"]').click();
+	await expect(panes).toHaveCount(2);
+	await page.getByRole('link', { name: 'กลับหน้าร้าน', exact: true }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 	await page.getByRole('button', { name: 'ย้อนกลับ', exact: true }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
