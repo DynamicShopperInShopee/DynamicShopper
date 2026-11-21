@@ -10,7 +10,7 @@
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
-	import CookerQuickFilters from './CookerQuickFilters.svelte';
+	import SearchQuickFilters from './SearchQuickFilters.svelte';
 	import CookerPhotoCaption from '../lib/storefront/CookerPhotoCaption.svelte';
 	import SearchShopPreview from './SearchShopPreview.svelte';
 	import '../lib/assets/products/shelf-photos.css';
@@ -414,6 +414,11 @@
 			(category === 'cooker' ||
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
 	);
+	const skinSearch = $derived(
+		eventDemo &&
+			(category === 'skin' ||
+				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
+	);
 	function captureSearch() {
 		return eventDemo
 			? {
@@ -600,7 +605,7 @@
 
 	<main class="wrap">
 		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
-		<form class="search" role="search" onsubmit={submitSearch}>
+		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
 					<svg
@@ -670,7 +675,7 @@
 			{/if}
 		</form>
 
-		{#if eventDemo && products.length > 0 && (category === 'skin' || (query && products.every((item) => item.category === 'skin')))}
+		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		{#if eventDemo && !cookerSearch}
@@ -720,8 +725,9 @@
 			</div>
 		{/if}
 
-		{#if cookerSearch}
-			<CookerQuickFilters
+		{#if cookerSearch || skinSearch}
+			<SearchQuickFilters
+				cooker={cookerSearch}
 				{language}
 				{category}
 				bind:capacity
@@ -1115,9 +1121,12 @@
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
-			<div class="results-header" class:visually-hidden={cookerSearch && sort === 'default'}>
+			<div
+				class="results-header"
+				class:visually-hidden={skinSearch || (cookerSearch && sort === 'default')}
+			>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
-				{#if eventDemo && !cookerSearch}
+				{#if eventDemo && !cookerSearch && !skinSearch}
 					<a class="assistant-link" href={resolve('/?view=receipt')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
@@ -2033,5 +2042,27 @@
 		text-overflow: ellipsis;
 		border-inline-start: 1px solid var(--seam);
 		padding-inline-start: 0.35rem;
+	}
+	@media (max-width: 699px) {
+		.event-demo .cooker-search {
+			display: grid;
+			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+			padding-inline: 0.125rem;
+			gap: 0.125rem;
+		}
+		.cooker-search .search-back {
+			grid-area: 1 / 1;
+		}
+		.event-demo .cooker-search input {
+			grid-area: 1 / 2;
+			width: 100%;
+			padding-inline: var(--tap) 0.5rem;
+		}
+		.event-demo .cooker-search .search-icon {
+			grid-area: 1 / 2;
+			justify-self: start;
+			width: var(--tap);
+			margin: 0;
+		}
 	}
 </style>

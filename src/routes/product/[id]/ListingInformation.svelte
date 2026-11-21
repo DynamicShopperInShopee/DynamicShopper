@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import introCooker from '../../../lib/assets/products/cooker-intro.jpg';
 	import ProductSpecificationTiles from './ProductSpecificationTiles.svelte';
-	import openCooker from '../../../lib/assets/products/cooker-open-detail.jpg';
+	import servingCooker from '../../../lib/assets/products/cooker-serving.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 
 	let {
@@ -63,17 +63,17 @@
 				<ProductSpecificationTiles specs={data.specs} {th} />
 				<figure id="cooker-capacity">
 					{#if capacity}
-						<figcaption>
+						<figcaption class="capacity-caption">
 							{capacity.label} <strong {...capacity.attributes}>{capacity.text}</strong>
 						</figcaption>
 					{/if}
 					<img
-						src={openCooker}
+						src={servingCooker}
 						alt={th
-							? 'หม้อหุงข้าวเปิดฝาให้เห็นข้าวสุกด้านใน'
-							: 'Rice cooker with the lid open and cooked rice inside'}
-						width="840"
-						height="1260"
+							? 'คนตักข้าวใส่ถ้วยข้างหม้อหุงข้าวที่เปิดฝา'
+							: 'A person serving rice beside the open cooker'}
+						width="700"
+						height="1050"
 						loading="lazy"
 					/>
 				</figure>
@@ -94,8 +94,9 @@
 			<p {...data.summary.attributes}>{data.summary.text}</p>
 		{/if}
 		{#if data.specs.length}
-			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
+			<h3>{th ? 'จุดเด่น' : 'Highlights'}</h3>
 			<p class="text-summary" {...data.summary.attributes}>{data.summary.text}</p>
+			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
 			<dl class="information">
 				<div>
 					<dt>{th ? 'สินค้า' : 'Product'}</dt>
@@ -178,7 +179,14 @@
 		background: #efeeed;
 	}
 	#cooker-capacity {
+		position: relative;
 		background: #f6f6f4;
+	}
+	.capacity-caption {
+		position: absolute;
+		top: 4%;
+		inset-inline: 5%;
+		padding: 0;
 	}
 	figcaption {
 		padding: 1.8em 0.9em 1.25em;

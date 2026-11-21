@@ -231,4 +231,8 @@ The specification sheet includes the catalog product name, seller, category spec
 
 Search cards group the delivery amount and seller on one metadata row. The matching-shop panel uses shorter vertical spacing so the first row of square product photos begins higher in the viewport.
 
+Skincare results lead with the shop panel, sort tabs and a single row of working quick controls, beginning with Free shipping. The result heading and count remain available to assistive technology without adding another visible row. Cooker searches place the submit icon inside the leading edge of the input on phones, with full-size tap targets.
+
+The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
+
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.

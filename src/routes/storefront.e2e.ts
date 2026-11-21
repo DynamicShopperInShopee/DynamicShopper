@@ -229,6 +229,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	const shops = page.getByRole('region', { name: 'Matching shops' });
 	await expect(shops).toBeVisible();
@@ -246,6 +247,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 test('rice cooker filters pin below search and select the catalog capacity', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
 	const cards = page.locator('.product-grid > li');
@@ -330,4 +332,48 @@ test('returns to the visible row of rice cooker results', async ({ page }) => {
 		await expect(page.locator('.product-grid > li')).toHaveCount(6);
 		await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(rowOffset);
 	}
+});
+
+test('keeps category search controls ahead of the mobile results', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Skincare', exact: true }).click();
+	const filters = page.getByRole('navigation', { name: 'Skincare filters' });
+	const free = filters.getByRole('button', { name: 'Free shipping', exact: true });
+	await expect(free).toBeInViewport({ ratio: 1 });
+	await free.click();
+	await expect(free).toHaveAttribute('aria-pressed', 'true');
+	await expect(
+		page.locator('.product-grid > li').first().locator('[data-fact="shipping"]')
+	).toHaveAttribute('data-raw', '0');
+	await free.click();
+	const heading = page.locator('#products-heading');
+	await expect(heading).toBeAttached();
+	const strip = await filters.boundingBox();
+	const firstRow = await page.locator('.product-grid').boundingBox();
+	expect(firstRow!.y - strip!.y - strip!.height).toBeLessThan(12);
+	await expect(filters.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
+		'href',
+		'/?view=receipt'
+	);
+	await filters.getByLabel('Categories').selectOption('cooker');
+	const search = page.getByRole('search');
+	const box = await search.getByRole('searchbox').boundingBox();
+	const submit = await search.getByRole('button', { name: 'Search', exact: true }).boundingBox();
+	expect(submit!.width).toBeGreaterThanOrEqual(44);
+	expect(submit!.height).toBeGreaterThanOrEqual(44);
+	expect(Math.abs(submit!.x - box!.x)).toBeLessThanOrEqual(2);
+	const cookerFilters = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	const chipRow = cookerFilters.locator('.chips');
+	await chipRow.evaluate((node) => {
+		node.scrollLeft = node.scrollWidth;
+	});
+	await expect.poll(() => chipRow.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+	await cookerFilters.getByLabel('Categories').selectOption('skin');
+	await expect(free).toBeInViewport({ ratio: 1 });
+	await filters.getByLabel('Categories').selectOption('cooker');
+	await search.getByRole('searchbox').fill('steamer');
+	await search.getByRole('button', { name: 'Search', exact: true }).click();
+	await expect(page.locator('.product-grid > li')).toHaveCount(1);
 });

@@ -2,11 +2,12 @@
 	import type { PageData } from './$types';
 	import closedCooker from '../../../lib/assets/products/cooker-intro.jpg';
 	import openCooker from '../../../lib/assets/products/cooker-open-detail.jpg';
+	import servingCooker from '../../../lib/assets/products/cooker-serving.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 	import overview from '../../../lib/assets/products/cooker-overview.mp4';
 	const illustrations = [
 		{ id: 'cooker-exterior', src: closedCooker, en: 'Cooker exterior', th: 'ตัวหม้อหุงข้าว' },
-		{ id: 'cooker-capacity', src: openCooker, en: 'Inside the cooker', th: 'ด้านในหม้อหุงข้าว' },
+		{ id: 'cooker-capacity', src: servingCooker, en: 'Serving rice', th: 'การตักข้าว' },
 		{ id: 'cooker-switch', src: cookerSwitch, en: 'Front switch', th: 'สวิตช์ด้านหน้า' }
 	];
 
@@ -250,7 +251,8 @@
 		object-fit: cover;
 		display: block;
 	}
-	.thumbnails a[href='#cooker-exterior'] img {
+	.thumbnails a[href='#cooker-exterior'] img,
+	.thumbnails a[href='#cooker-capacity'] img {
 		object-position: center bottom;
 	}
 	.review-search {
