@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
 
@@ -11,7 +11,9 @@ export const load: PageServerLoad = (event) => {
 
 export const actions: Actions = {
 	signOut: async (event) => {
-		await event.locals.auth.api.signOut({
+		const { auth } = event.locals;
+		if (!auth) error(503, 'Authentication demo is unavailable');
+		await auth.api.signOut({
 			headers: event.request.headers
 		});
 		return redirect(302, '/demo/better-auth/login');

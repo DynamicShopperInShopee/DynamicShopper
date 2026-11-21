@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
 import { APIError } from 'better-auth/api';
@@ -15,12 +15,14 @@ export const load: PageServerLoad = (event) => {
 
 export const actions: Actions = {
 	signInEmail: async (event) => {
+		const { auth } = event.locals;
+		if (!auth) error(503, 'Authentication demo is unavailable');
 		const formData = await event.request.formData();
 		const email = parseEntry(formData.get('email'));
 		const password = parseEntry(formData.get('password'));
 
 		try {
-			await event.locals.auth.api.signInEmail({
+			await auth.api.signInEmail({
 				body: {
 					email,
 					password,
@@ -37,13 +39,15 @@ export const actions: Actions = {
 		return redirect(302, '/demo/better-auth');
 	},
 	signUpEmail: async (event) => {
+		const { auth } = event.locals;
+		if (!auth) error(503, 'Authentication demo is unavailable');
 		const formData = await event.request.formData();
 		const email = parseEntry(formData.get('email'));
 		const password = parseEntry(formData.get('password'));
 		const name = parseEntry(formData.get('name'));
 
 		try {
-			await event.locals.auth.api.signUpEmail({
+			await auth.api.signUpEmail({
 				body: {
 					email,
 					password,
