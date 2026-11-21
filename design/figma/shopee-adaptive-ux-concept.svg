@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3140" height="1260" viewBox="0 0 3140 1260">
+  <defs>
+    <style>
+      .title{font:700 30px Arial,sans-serif;fill:#202124}.h1{font:700 22px Arial,sans-serif;fill:#202124}.h2{font:700 16px Arial,sans-serif;fill:#202124}.body{font:14px Arial,sans-serif;fill:#333}.small{font:12px Arial,sans-serif;fill:#6B7280}.tiny{font:10px Arial,sans-serif;fill:#6B7280}.white{fill:#fff}.orange{fill:#EE4D2D}.orangeText{fill:#EE4D2D}.ink{fill:#202124}.muted{fill:#6B7280}.line{stroke:#E5E7EB;stroke-width:1}.strongline{stroke:#202124;stroke-width:2}.card{fill:#fff;stroke:#E5E7EB;stroke-width:1}.chip{fill:#FFF3EF;stroke:#F6B7A8;stroke-width:1}.receipt{fill:#FFF;stroke:#D1D5DB;stroke-width:1}.phone{fill:#FFF;stroke:#202124;stroke-width:4}.nav{fill:#FFF;stroke:#E5E7EB;stroke-width:1}.sample{font:700 9px Arial,sans-serif;fill:#9CA3AF;letter-spacing:.7px}.mono{font:12px monospace;fill:#202124}.good{fill:#14804A}.bad{fill:#B42318}.bar{fill:#202124}.soft{fill:#FFF8F5}.gray{fill:#F5F6F7}.orangeSoft{fill:#FFF0EB}.blueSoft{fill:#EFF6FF}.greenSoft{fill:#ECFDF3}
+    </style>
+    <linearGradient id="none" x1="0" x2="0"><stop stop-color="#fff"/><stop stop-color="#fff"/></linearGradient>
+    <symbol id="search" viewBox="0 0 20 20"><circle cx="8" cy="8" r="5.5" fill="none" stroke="#6B7280" stroke-width="1.7"/><path d="M12 12l5 5" stroke="#6B7280" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="heart" viewBox="0 0 20 20"><path d="M10 17S2 12 2 7.3C2 4.4 5.6 3 7.6 5.3 9.5 3 13 4.4 13 7.3 13 12 10 17 10 17z" transform="translate(2 0)" fill="none" stroke="#6B7280" stroke-width="1.5"/></symbol>
+    <symbol id="cart" viewBox="0 0 24 24"><path d="M3 4h2l2 11h10l2-7H6" fill="none" stroke="#6B7280" stroke-width="1.7"/><circle cx="9" cy="19" r="1.4" fill="#6B7280"/><circle cx="17" cy="19" r="1.4" fill="#6B7280"/></symbol>
+    <symbol id="home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-6v-6h-4v6H4z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="mouse" viewBox="0 0 120 90"><path d="M60 8c-21 0-36 17-36 39v9c0 18 15 28 36 28s36-10 36-28v-9C96 25 81 8 60 8z" fill="#E8EAED" stroke="#5F6368" stroke-width="2"/><path d="M60 8v31" stroke="#5F6368" stroke-width="2"/><rect x="56" y="19" width="8" height="14" rx="4" fill="#EE4D2D"/></symbol>
+    <symbol id="rice" viewBox="0 0 120 90"><rect x="26" y="28" width="68" height="50" rx="12" fill="#F1F3F4" stroke="#5F6368" stroke-width="2"/><path d="M36 28c4-17 44-17 48 0" fill="#fff" stroke="#5F6368" stroke-width="2"/><rect x="50" y="45" width="20" height="9" rx="3" fill="#EE4D2D"/><path d="M36 78v6M84 78v6" stroke="#5F6368" stroke-width="3"/></symbol>
+    <symbol id="earbuds" viewBox="0 0 120 90"><path d="M38 20c-9 0-15 7-15 16s7 15 16 15h7V36c0-9-2-16-8-16zM82 20c9 0 15 7 15 16s-7 15-16 15h-7V36c0-9 2-16 8-16z" fill="#F1F3F4" stroke="#5F6368" stroke-width="2"/><path d="M38 50v25M82 50v25" stroke="#5F6368" stroke-width="7" stroke-linecap="round"/></symbol>
+    <symbol id="nav" viewBox="0 0 390 62">
+      <rect width="390" height="62" class="nav"/>
+      <g transform="translate(30 12)" color="#EE4D2D"><use href="#home" width="23" height="23"/><text x="-1" y="40" class="tiny orangeText">หน้าแรก</text></g>
+      <g transform="translate(108 12)"><use href="#search" width="23" height="23"/><text x="-4" y="40" class="tiny">ค้นหา</text></g>
+      <g transform="translate(186 12)"><path d="M3 6h18v14H3zM7 3h10v4" fill="none" stroke="#6B7280" stroke-width="1.5"/><text x="-3" y="40" class="tiny">ฟีด</text></g>
+      <g transform="translate(265 12)"><use href="#cart" width="23" height="23"/><text x="-3" y="40" class="tiny">ตะกร้า</text></g>
+      <g transform="translate(343 12)"><circle cx="11" cy="10" r="6" fill="none" stroke="#6B7280" stroke-width="1.5"/><path d="M2 24c2-8 16-8 18 0" fill="none" stroke="#6B7280" stroke-width="1.5"/><text x="-2" y="40" class="tiny">ฉัน</text></g>
+    </symbol>
+  </defs>
+
+  <rect width="3140" height="1260" fill="#F3F4F6"/>
+  <text x="70" y="58" class="title">Shopee Adaptive UX — Concept Redesign</text>
+  <text x="70" y="84" class="body">Shopee visual language × DynamicShopper logic · concept only · sample catalog · presentation adapts, facts stay fixed</text>
+  <rect x="2690" y="38" width="370" height="42" rx="8" class="orangeSoft" stroke="#EE4D2D"/>
+  <text x="2710" y="64" class="small orangeText">RESEARCH-DRIVEN CONCEPT • NOT OFFICIAL UI</text>
+
+  <!-- Screen 1 -->
+  <g transform="translate(70 120)">
+    <text x="0" y="-22" class="h2">01 · Adaptive Home</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="126" rx="26" class="orange"/>
+    <text x="18" y="31" style="font:700 18px Arial,sans-serif;fill:#fff">Shopee <tspan style="font:12px Arial">UX CONCEPT</tspan></text>
+    <rect x="16" y="46" width="304" height="42" rx="7" fill="#fff"/>
+    <use href="#search" x="28" y="57" width="20" height="20"/><text x="56" y="72" class="small">วันนี้กำลังหาอะไร?</text>
+    <use href="#heart" x="329" y="55" width="23" height="23"/><use href="#cart" x="356" y="54" width="23" height="23"/>
+    <rect x="16" y="98" width="108" height="24" rx="12" fill="#fff" opacity=".95"/><text x="27" y="114" class="tiny orangeText">ปรับร้านตามฉัน</text>
+    <rect x="130" y="98" width="80" height="24" rx="12" fill="#fff" opacity=".95"/><text x="145" y="114" class="tiny orangeText">ดูที่เปลี่ยน</text>
+    <text x="324" y="114" style="font:11px Arial;fill:#fff">Undo</text>
+    <text x="16" y="153" class="h2">ช้อปตามเป้าหมาย</text>
+    <g transform="translate(16 168)"><rect width="112" height="54" rx="10" class="orangeSoft"/><text x="14" y="23" class="body">เปรียบเทียบ</text><text x="14" y="41" class="tiny">Compare</text></g>
+    <g transform="translate(139 168)"><rect width="112" height="54" rx="10" class="blueSoft"/><text x="14" y="23" class="body">หาดีลคุ้ม</text><text x="14" y="41" class="tiny">Best deal</text></g>
+    <g transform="translate(262 168)"><rect width="112" height="54" rx="10" class="greenSoft"/><text x="14" y="23" class="body">ซื้อให้คนอื่น</text><text x="14" y="41" class="tiny">For someone</text></g>
+    <rect x="16" y="238" width="358" height="50" rx="9" class="chip"/><text x="28" y="258" class="small orangeText">สิ่งสำคัญตอนนี้</text><text x="28" y="278" class="body">ส่งไว · คุ้มค่า · รีวิวที่เชื่อถือได้</text><text x="349" y="268" class="body">×</text>
+    <text x="16" y="315" class="h2">เลือกสำหรับคุณ</text><text x="326" y="315" class="small orangeText">ดูทั้งหมด</text>
+    <g transform="translate(16 329)"><rect width="171" height="203" rx="10" class="card"/><rect width="171" height="108" rx="10" class="gray"/><use href="#earbuds" x="26" y="10" width="120" height="90"/><text x="10" y="102" class="sample">SAMPLE CATALOG</text><text x="12" y="129" class="body">หูฟังไร้สาย Everyday</text><text x="12" y="151" class="h2 orangeText">฿—</text><text x="12" y="171" class="small">ส่งไว · คะแนนจากแคตตาล็อก</text><rect x="12" y="181" width="147" height="12" rx="6" fill="#F3F4F6"/></g>
+    <g transform="translate(203 329)"><rect width="171" height="203" rx="10" class="card"/><rect width="171" height="108" rx="10" class="gray"/><use href="#mouse" x="26" y="10" width="120" height="90"/><text x="10" y="102" class="sample">SAMPLE CATALOG</text><text x="12" y="129" class="body">เมาส์ทำงาน Compact</text><text x="12" y="151" class="h2 orangeText">฿—</text><text x="12" y="171" class="small">เบา · เทียบสเปกได้</text><rect x="12" y="181" width="147" height="12" rx="6" fill="#F3F4F6"/></g>
+    <rect x="16" y="548" width="358" height="86" rx="10" class="orangeSoft"/><text x="28" y="573" class="h2">ครบชุดในครั้งเดียว</text><text x="28" y="595" class="small">เลือกของที่ใช้ร่วมกันได้จริงจากแคตตาล็อก</text><rect x="272" y="584" width="88" height="34" rx="7" class="orange"/><text x="294" y="606" style="font:700 12px Arial;fill:#fff">ดูชุด</text>
+    <text x="16" y="663" class="h2">ค้นพบสิ่งใหม่</text><text x="16" y="685" class="small">พื้นที่สำรวจแบบจำกัด ไม่ใช่ฟีดไม่รู้จบ</text>
+    <rect x="16" y="703" width="358" height="48" rx="8" class="gray"/><text x="111" y="732" class="small">คุณดูสิ่งที่เกี่ยวข้องครบแล้ว</text>
+    <use href="#nav" x="0" y="782" width="390" height="62"/>
+  </g>
+
+  <!-- Screen 2 -->
+  <g transform="translate(550 120)">
+    <text x="0" y="-22" class="h2">02 · Budget Student</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="98" rx="26" class="orange"/>
+    <text x="18" y="31" style="font:700 18px Arial;fill:#fff">Shopee <tspan style="font:12px Arial">VALUE MODE</tspan></text>
+    <rect x="16" y="45" width="358" height="40" rx="7" fill="#fff"/><use href="#search" x="28" y="55" width="20" height="20"/><text x="56" y="70" class="small">หูฟังบลูทูธ ราคาคุ้ม</text>
+    <rect x="16" y="116" width="358" height="80" rx="10" class="receipt"/><text x="28" y="140" class="small">BUDGET GUARD</text><text x="28" y="165" class="h2">ยังอยู่ในงบที่คุณตั้งไว้</text><rect x="28" y="177" width="332" height="7" rx="4" fill="#E5E7EB"/><rect x="28" y="177" width="211" height="7" rx="4" class="orange"/>
+    <g transform="translate(16 212)"><rect width="110" height="30" rx="15" class="chip"/><text x="20" y="19" class="small orangeText">คุ้มค่าก่อน</text></g><g transform="translate(135 212)"><rect width="120" height="30" rx="15" class="card"/><text x="18" y="19" class="small">ส่งไว</text></g><g transform="translate(264 212)"><rect width="110" height="30" rx="15" class="card"/><text x="17" y="19" class="small">เทียบ 3 รุ่น</text></g>
+    <text x="16" y="275" class="h2">ตัวเลือกที่คุ้มที่สุด</text>
+    <g transform="translate(16 291)"><rect width="358" height="112" rx="10" class="card"/><rect width="108" height="112" rx="10" class="gray"/><use href="#earbuds" x="0" y="10" width="108" height="82"/><text x="8" y="104" class="sample">SAMPLE</text><text x="124" y="28" class="h2">Everyday Buds</text><text x="124" y="50" class="h2 orangeText">฿—</text><text x="124" y="72" class="small">เหตุผล: คุ้มค่า · ส่งไว</text><rect x="124" y="83" width="110" height="24" rx="6" class="orange"/><text x="148" y="99" style="font:700 11px Arial;fill:#fff">ดูสินค้า</text></g>
+    <g transform="translate(16 415)"><rect width="358" height="94" rx="10" class="card"/><rect width="94" height="94" rx="10" class="gray"/><use href="#earbuds" x="0" y="8" width="94" height="70"/><text x="108" y="28" class="body">Lite Buds</text><text x="108" y="49" class="small">ถูกกว่า · คุณสมบัติหลักครบ</text><text x="108" y="73" class="small orangeText">เปรียบเทียบความต่าง</text></g>
+    <rect x="16" y="527" width="358" height="103" rx="10" class="orangeSoft"/><text x="28" y="551" class="small">ส่งฟรี</text><text x="28" y="577" class="h2">เหลืออีกเล็กน้อยถึงเกณฑ์</text><rect x="28" y="590" width="332" height="8" rx="4" fill="#F4C6BA"/><rect x="28" y="590" width="258" height="8" rx="4" class="orange"/><text x="28" y="617" class="tiny">แสดงของเติมตะกร้าเฉพาะที่ใช้ได้จริง</text>
+    <rect x="16" y="650" width="358" height="84" rx="10" class="gray"/><text x="28" y="676" class="h2">ไม่แนะนำการผ่อนในโหมดนี้</text><text x="28" y="701" class="small">รักษางบและแสดงยอดเต็มก่อนเสมอ</text>
+    <use href="#nav" x="0" y="782" width="390" height="62"/>
+  </g>
+
+  <!-- Screen 3 -->
+  <g transform="translate(1030 120)">
+    <text x="0" y="-22" class="h2">03 · Tech Buyer Compare</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="92" rx="26" fill="#202124"/>
+    <text x="18" y="31" style="font:700 18px Arial;fill:#fff">Shopee <tspan style="font:12px Arial;fill:#F6A08A">SPEC MODE</tspan></text>
+    <rect x="16" y="45" width="358" height="34" rx="7" fill="#fff"/><text x="32" y="67" class="small">gaming mouse</text>
+    <text x="16" y="122" class="h2">เปรียบเทียบ 3 รุ่น</text><text x="301" y="122" class="small orangeText">Why this order?</text>
+    <g transform="translate(16 140)"><rect width="358" height="204" rx="10" class="card"/><rect x="0" y="0" width="112" height="76" class="gray"/><rect x="112" y="0" width="82" height="76" class="orangeSoft"/><rect x="194" y="0" width="82" height="76" class="gray"/><rect x="276" y="0" width="82" height="76" class="gray"/><text x="12" y="28" class="small">สินค้า</text><text x="124" y="24" class="small">Aero X</text><text x="206" y="24" class="small">Swift</text><text x="288" y="24" class="small">Core</text><text x="124" y="48" class="tiny orangeText">อันดับแรก</text><text x="12" y="101" class="small">น้ำหนัก</text><text x="124" y="101" class="mono">catalog</text><text x="206" y="101" class="mono">catalog</text><text x="288" y="101" class="mono">catalog</text><path d="M0 114h358M0 151h358M0 188h358" class="line"/><text x="12" y="139" class="small">แบตเตอรี่</text><text x="124" y="139" class="mono">catalog</text><text x="206" y="139" class="mono">catalog</text><text x="288" y="139" class="mono">catalog</text><text x="12" y="176" class="small">การรับประกัน</text><text x="124" y="176" class="mono">listing</text><text x="206" y="176" class="mono">listing</text><text x="288" y="176" class="mono">listing</text></g>
+    <rect x="16" y="362" width="358" height="168" rx="10" fill="#fff" stroke="#202124" stroke-dasharray="6 5"/><text x="28" y="388" class="small">BIGGEST REASONS FIRST</text><text x="28" y="419" class="body">น้ำหนักเบา</text><rect x="140" y="408" width="204" height="14" rx="7" class="bar"/><text x="28" y="453" class="body">แบตเตอรี่</text><rect x="140" y="442" width="158" height="14" rx="7" class="bar"/><text x="28" y="487" class="body">ความทนทาน</text><rect x="140" y="476" width="108" height="14" rx="7" class="bar"/><text x="28" y="515" class="tiny">ลำดับจากตรรกะการจัดอันดับ ไม่ใช่ข้อความ AI</text>
+    <g transform="translate(16 548)"><rect width="358" height="112" rx="10" class="card"/><rect width="108" height="112" rx="10" fill="#222"/><use href="#mouse" x="0" y="10" width="108" height="85"/><text x="124" y="28" class="h2">Aero X</text><text x="124" y="50" class="h2 orangeText">฿—</text><text x="124" y="73" class="small">Sample catalog · facts locked</text><rect x="124" y="83" width="110" height="25" rx="6" class="orange"/><text x="146" y="100" style="font:700 11px Arial;fill:#fff">เลือกสินค้า</text></g>
+    <rect x="16" y="678" width="358" height="56" rx="8" class="receipt"/><text x="28" y="700" class="small">FACTS CHECK</text><text x="28" y="720" class="body good">ข้อมูลร่วมกันตรงกันทุกมุมมอง</text>
+    <use href="#nav" x="0" y="782" width="390" height="62"/>
+  </g>
+
+  <!-- Screen 4 -->
+  <g transform="translate(1510 120)">
+    <text x="0" y="-22" class="h2">04 · Buying for Mom</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="102" rx="26" class="orange"/>
+    <text x="18" y="34" style="font:700 20px Arial;fill:#fff">Shopee <tspan style="font:13px Arial">COMFORT MODE</tspan></text>
+    <rect x="16" y="49" width="358" height="41" rx="8" fill="#fff"/><text x="30" y="75" style="font:16px Arial;fill:#6B7280">ซื้อหม้อหุงข้าวให้แม่</text>
+    <rect x="16" y="122" width="358" height="66" rx="10" class="chip"/><text x="28" y="148" style="font:700 18px Arial;fill:#EE4D2D">โหมดตัวอักษรใหญ่</text><text x="28" y="174" style="font:15px Arial;fill:#333">เลือกแล้ว · เปลี่ยนกลับได้ทุกเมื่อ</text>
+    <text x="16" y="222" style="font:700 22px Arial;fill:#202124">3 ตัวเลือกที่ใช้ง่าย</text>
+    <g transform="translate(16 240)"><rect width="358" height="134" rx="12" class="card"/><rect width="122" height="134" rx="12" class="gray"/><use href="#rice" x="3" y="18" width="116" height="90"/><text x="9" y="124" class="sample">SAMPLE CATALOG</text><text x="140" y="34" style="font:700 18px Arial;fill:#202124">Simple Cook</text><text x="140" y="61" style="font:700 20px Arial;fill:#EE4D2D">฿—</text><text x="140" y="87" style="font:15px Arial;fill:#333">ปุ่มเดียว · จออ่านง่าย</text><rect x="140" y="99" width="194" height="42" rx="8" class="orange"/><text x="200" y="126" style="font:700 15px Arial;fill:#fff">ดูรายละเอียด</text></g>
+    <g transform="translate(16 388)"><rect width="358" height="112" rx="12" class="card"/><rect width="102" height="112" rx="12" class="gray"/><use href="#rice" x="2" y="16" width="98" height="76"/><text x="120" y="32" style="font:700 18px Arial;fill:#202124">Easy Rice</text><text x="120" y="59" style="font:15px Arial;fill:#333">รับประกันจากรายการสินค้า</text><text x="120" y="88" style="font:15px Arial;fill:#EE4D2D">เปรียบเทียบ</text></g>
+    <g transform="translate(16 514)"><rect width="358" height="112" rx="12" class="card"/><rect width="102" height="112" rx="12" class="gray"/><use href="#rice" x="2" y="16" width="98" height="76"/><text x="120" y="32" style="font:700 18px Arial;fill:#202124">Family Cook</text><text x="120" y="59" style="font:15px Arial;fill:#333">ความจุจากแคตตาล็อก</text><text x="120" y="88" style="font:15px Arial;fill:#EE4D2D">เปรียบเทียบ</text></g>
+    <rect x="16" y="646" width="358" height="52" rx="9" fill="#fff" stroke="#EE4D2D" stroke-width="2"/><text x="122" y="679" style="font:700 16px Arial;fill:#EE4D2D">แชร์ให้ครอบครัว</text>
+    <rect x="16" y="710" width="358" height="42" rx="9" class="gray"/><text x="88" y="737" style="font:15px Arial;fill:#333">ทุกปุ่มสูงอย่างน้อย 48px</text>
+    <use href="#nav" x="0" y="782" width="390" height="62"/>
+  </g>
+
+  <!-- Screen 5 -->
+  <g transform="translate(1990 120)">
+    <text x="0" y="-22" class="h2">05 · Product Detail</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="64" rx="26" class="orange"/><text x="18" y="39" style="font:700 18px Arial;fill:#fff">‹ รายละเอียดสินค้า</text><use href="#heart" x="332" y="20" width="24" height="24"/><use href="#cart" x="360" y="18" width="24" height="24"/>
+    <rect x="16" y="82" width="358" height="220" rx="12" class="gray"/><use href="#mouse" x="95" y="108" width="200" height="150"/><text x="30" y="290" class="sample">SAMPLE CATALOG IMAGE</text>
+    <text x="16" y="332" class="h1">Aero X Gaming Mouse</text><text x="16" y="360" class="h1 orangeText">฿—</text><text x="16" y="385" class="small">ราคาและตัวเลขแสดงจากแคตตาล็อกเท่านั้น</text>
+    <g transform="translate(16 402)"><rect width="358" height="72" rx="10" class="receipt"/><text x="14" y="23" class="small">เหมาะกับคุณเพราะ</text><text x="14" y="47" class="body">เบา · แบตเตอรี่ · ประกันตรวจสอบได้</text><text x="316" y="47" class="small orangeText">ทำไม?</text></g>
+    <text x="16" y="506" class="h2">ข้อมูลสินค้า</text><rect x="16" y="520" width="358" height="98" rx="10" class="card"/><text x="28" y="545" class="small">น้ำหนัก</text><text x="268" y="545" class="mono">catalog value</text><path d="M28 557h334" class="line"/><text x="28" y="580" class="small">แบตเตอรี่</text><text x="268" y="580" class="mono">catalog value</text><path d="M28 592h334" class="line"/><text x="28" y="612" class="small">ประกัน</text><text x="268" y="612" class="mono">listing value</text>
+    <rect x="16" y="636" width="358" height="72" rx="10" class="orangeSoft"/><text x="28" y="659" class="small">HONEST STEP-UP</text><text x="28" y="682" class="body">แสดงรุ่นบนเฉพาะเมื่อดีขึ้นในสิ่งที่คุณเลือก</text><text x="321" y="682" class="small orangeText">ดู</text>
+    <rect x="16" y="720" width="171" height="48" rx="9" fill="#fff" stroke="#EE4D2D" stroke-width="2"/><text x="58" y="750" class="h2 orangeText">ราคาดีที่สุด</text><rect x="203" y="720" width="171" height="48" rx="9" class="orange"/><text x="246" y="750" style="font:700 16px Arial;fill:#fff">ใส่ตะกร้า</text>
+    <use href="#nav" x="0" y="782" width="390" height="62"/>
+  </g>
+
+  <!-- Screen 6 -->
+  <g transform="translate(2470 120)">
+    <text x="0" y="-22" class="h2">06 · Smart Basket</text>
+    <rect width="390" height="844" rx="28" class="phone"/>
+    <rect x="2" y="2" width="386" height="64" rx="26" class="orange"/><text x="18" y="39" style="font:700 18px Arial;fill:#fff">ตะกร้าอัจฉริยะ</text><text x="300" y="39" style="font:12px Arial;fill:#fff">แก้ไข</text>
+    <text x="16" y="94" class="small">ร้าน Sample Tech</text>
+    <g transform="translate(16 108)"><rect width="358" height="102" rx="10" class="card"/><rect width="98" height="102" rx="10" class="gray"/><use href="#mouse" x="2" y="7" width="94" height="76"/><text x="110" y="29" class="body">Aero X Gaming Mouse</text><text x="110" y="54" class="h2 orangeText">฿—</text><text x="110" y="78" class="small">ตัวเลือกจากแคตตาล็อก</text><text x="326" y="78" class="small">×1</text></g>
+    <rect x="16" y="226" width="358" height="92" rx="10" class="orangeSoft"/><text x="28" y="250" class="small">ส่งฟรี</text><text x="28" y="274" class="h2">ใกล้ถึงเกณฑ์แล้ว</text><rect x="28" y="288" width="332" height="8" rx="4" fill="#F4C6BA"/><rect x="28" y="288" width="267" height="8" rx="4" class="orange"/>
+    <text x="16" y="352" class="h2">ใช้ร่วมกันได้จริง</text>
+    <g transform="translate(16 366)"><rect width="358" height="92" rx="10" class="card"/><rect width="92" height="92" rx="10" fill="#EFEFEF"/><rect x="24" y="22" width="44" height="48" rx="8" fill="#D1D5DB"/><text x="106" y="27" class="body">แผ่นรองเมาส์ Sample</text><text x="106" y="50" class="small">ตรวจ compatibility แล้ว</text><rect x="106" y="59" width="96" height="25" rx="6" fill="#fff" stroke="#EE4D2D"/><text x="127" y="76" class="tiny orangeText">เพิ่มเอง</text><text x="312" y="76" class="tiny">ซ่อน</text></g>
+    <g transform="translate(16 474)"><rect width="358" height="214" rx="10" class="receipt"/><text x="16" y="25" class="small">BEST PRICE RECEIPT</text><text x="16" y="55" class="body">ราคาสินค้า</text><path d="M106 51h150" stroke="#9CA3AF" stroke-dasharray="2 4"/><text x="270" y="55" class="mono">catalog</text><text x="16" y="85" class="body">คูปองร้านค้า</text><path d="M116 81h140" stroke="#9CA3AF" stroke-dasharray="2 4"/><text x="270" y="85" class="mono good">applied</text><text x="16" y="115" class="body">คูปองแพลตฟอร์ม</text><path d="M143 111h113" stroke="#9CA3AF" stroke-dasharray="2 4"/><text x="270" y="115" class="mono">not met</text><text x="16" y="145" class="body">Coins</text><path d="M62 141h194" stroke="#9CA3AF" stroke-dasharray="2 4"/><text x="270" y="145" class="mono good">applied</text><path d="M16 166h326" class="strongline"/><text x="16" y="194" class="h2">ยอดชำระทั้งหมด</text><text x="270" y="194" class="h2 orangeText">฿—</text></g>
+    <rect x="16" y="704" width="358" height="56" rx="9" class="gray"/><text x="28" y="727" class="small">คูปองที่ไม่ใช้</text><text x="28" y="748" class="tiny">บอกเหตุผลชัดเจน · ไม่มีค่าธรรมเนียมซ่อน</text>
+    <rect x="16" y="776" width="358" height="52" rx="9" class="orange"/><text x="134" y="808" style="font:700 16px Arial;fill:#fff">ไปชำระเงิน</text>
+  </g>
+
+  <!-- Annotations -->
+  <g transform="translate(70 1000)">
+    <rect width="2790" height="180" rx="16" fill="#fff" stroke="#D1D5DB"/>
+    <text x="28" y="40" class="h1">Adaptive composition rules</text>
+    <g transform="translate(28 64)"><rect width="520" height="86" rx="10" class="orangeSoft"/><text x="18" y="28" class="h2">Fixed shell</text><text x="18" y="52" class="small">Search · navigation · cart · explicit controls</text><text x="18" y="72" class="small">Never removed by personalization</text></g>
+    <g transform="translate(566 64)"><rect width="520" height="86" rx="10" class="blueSoft"/><text x="18" y="28" class="h2">Adaptive modules</text><text x="18" y="52" class="small">Task × moment × constraint × information style</text><text x="18" y="72" class="small">Only hierarchy, density, and modules change</text></g>
+    <g transform="translate(1104 64)"><rect width="520" height="86" rx="10" class="greenSoft"/><text x="18" y="28" class="h2">Facts locked</text><text x="18" y="52" class="small">Prices, specs, ratings, reviews from catalog only</text><text x="18" y="72" class="small">Proof surfaces name their source</text></g>
+    <g transform="translate(1642 64)"><rect width="520" height="86" rx="10" class="gray"/><text x="18" y="28" class="h2">Honest triggers</text><text x="18" y="52" class="small">Relevant · compatible · useful · dismissible</text><text x="18" y="72" class="small">No fake scarcity or preselected extras</text></g>
+    <g transform="translate(2180 64)"><rect width="582" height="86" rx="10" class="receipt"/><text x="18" y="28" class="h2">Visible and reversible</text><text x="18" y="52" class="small">What changed · preference chips · Undo · Reset</text><text x="18" y="72" class="small">User can always return to the standard store</text></g>
+  </g>
+</svg>
