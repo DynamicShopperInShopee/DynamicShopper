@@ -8,7 +8,7 @@ export const variables = defineEnvVars({
 	},
 	OPENAI_MODEL: {
 		schema: (value) => value,
-		description: 'Optional OpenAI model name for the local assistant.'
+		description: 'Optional server-configured OpenAI model for storefront presentation requests.'
 	},
 	OPENAI_LOG_USAGE: {
 		schema: (value) => value,

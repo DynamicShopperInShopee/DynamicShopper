@@ -8,6 +8,14 @@ import { readJson } from './read-json';
 
 const defaultModel = 'gpt-5-mini';
 const modelPattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,79}$/;
+export type ProviderFailure =
+	| 'provider-auth'
+	| 'model-unavailable'
+	| 'provider-limit'
+	| 'provider-request'
+	| 'timeout'
+	| 'runtime'
+	| 'invalid-response';
 export type LiveUsage = {
 	inputTokens: number;
 	cachedInputTokens: number;
@@ -65,21 +73,34 @@ export async function requestLivePatch(
 		model?: string;
 		signal?: AbortSignal;
 		onUsage?: (usage: LiveUsage) => void;
+		onFailure?: (reason: ProviderFailure) => void;
 	},
 	provider: typeof fetch = fetch
 ) {
 	const validatedHints = parseLiveHints(hints);
-	if (!validatedHints?.length || options.signal?.aborted) return null;
+	function fail(reason: ProviderFailure) {
+		options.onFailure?.(reason);
+		return null;
+	}
+	if (!validatedHints?.length) return fail('invalid-response');
+	if (options.signal?.aborted) return fail('timeout');
 	const configuredModel = options.model?.trim();
 	const model =
 		configuredModel && configuredModel !== options.apiKey && modelPattern.test(configuredModel)
 			? configuredModel
 			: defaultModel;
-	const timeout = AbortSignal.timeout(6500);
+	const controller = new AbortController();
+	const abort = () => controller.abort();
+	const timeout = typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(6500) : undefined;
+	const timer = timeout ? undefined : setTimeout(abort, 6500);
+	options.signal?.addEventListener('abort', abort, { once: true });
+	timeout?.addEventListener('abort', abort, { once: true });
+	if (timeout?.aborted) abort();
+	let failure: ProviderFailure = 'runtime';
 	try {
 		const response = await provider('https://api.openai.com/v1/responses', {
 			method: 'POST',
-			redirect: 'error',
+			redirect: 'manual',
 			headers: { Authorization: `Bearer ${options.apiKey}`, 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				model,
@@ -95,13 +116,30 @@ export async function requestLivePatch(
 				...(model === defaultModel ? { reasoning: { effort: 'minimal' } } : {}),
 				text: { format: { type: 'json_schema', name: 'shopper_plan_patch', strict: true, schema } }
 			}),
-			signal: options.signal ? AbortSignal.any([options.signal, timeout]) : timeout
+			signal: controller.signal
 		});
 		if (!response.ok) {
 			void response.body?.cancel().catch(() => {});
-			return null;
+			switch (response.status) {
+				case 401:
+				case 403:
+					return fail('provider-auth');
+				case 404:
+					return fail('model-unavailable');
+				case 429:
+					return fail('provider-limit');
+				case 408:
+				case 504:
+					return fail('timeout');
+				case 400:
+				case 422:
+					return fail('provider-request');
+				default:
+					return fail('runtime');
+			}
 		}
 
+		failure = 'invalid-response';
 		const result = (await readJson(response.body, 32768)) as
 			| {
 					status?: unknown;
@@ -120,16 +158,21 @@ export async function requestLivePatch(
 				}
 			}
 		}
-		if (result?.status !== 'completed' || !Array.isArray(result.output)) return null;
+		if (result?.status !== 'completed' || !Array.isArray(result.output))
+			return fail('invalid-response');
 		const message = result.output.find((item) => item?.type === 'message');
-		if (!Array.isArray(message?.content)) return null;
+		if (!Array.isArray(message?.content)) return fail('invalid-response');
 		const content = message.content.find((part) => part?.type === 'output_text');
-		if (typeof content?.text !== 'string') return null;
+		if (typeof content?.text !== 'string') return fail('invalid-response');
 		const { patch, rejected } = readLiveProposal(JSON.parse(content.text));
 		return Object.keys(patch).length || rejected
 			? { patch, model, ...(rejected ? { rejected } : {}) }
-			: null;
+			: fail('invalid-response');
 	} catch {
-		return null;
+		return fail(controller.signal.aborted ? 'timeout' : failure);
+	} finally {
+		if (timer !== undefined) clearTimeout(timer);
+		options.signal?.removeEventListener('abort', abort);
+		timeout?.removeEventListener('abort', abort);
 	}
 }
