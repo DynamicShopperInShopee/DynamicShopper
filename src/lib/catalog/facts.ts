@@ -1,3 +1,4 @@
+import { getListingDetailFact } from './listing-details.ts';
 import { getProduct } from './products.ts';
 import { getShop } from './shops.ts';
 import { specs } from './specs.ts';
@@ -31,7 +32,9 @@ export function resolveFact(productId: string, field: string): Fact | undefined 
 			return fact(getShop(product.shopId)?.name);
 		default: {
 			const definition = specs[product.category].find(({ key }) => field === `spec.${key}`);
-			return definition && fact(product.specs[definition.key], definition.unit);
+			if (definition) return fact(product.specs[definition.key], definition.unit);
+			const detail = getListingDetailFact(productId, field);
+			return detail && fact(detail.raw, detail.unit);
 		}
 	}
 }
@@ -45,7 +48,11 @@ const units: Readonly<Record<Exclude<FactUnit, 'baht' | null>, Localized>> = {
 	W: { en: 'W', th: 'วัตต์' },
 	L: { en: 'L', th: 'ลิตร' },
 	yr: { en: 'yr', th: 'ปี' },
-	ml: { en: 'ml', th: 'มล.' }
+	ml: { en: 'ml', th: 'มล.' },
+	cm: { en: 'cm', th: 'ซม.' },
+	deg: { en: '°', th: 'องศา' },
+	s: { en: 's', th: 'วินาที' },
+	kg: { en: 'kg', th: 'กก.' }
 };
 
 const numbers = {
@@ -65,5 +72,6 @@ export function formatFact({ field, raw, unit }: Fact, locale: Locale): string {
 
 	if (unit === 'baht') return formatBaht(raw, locale);
 	const amount = numbers[locale].format(raw);
-	return unit ? `${amount} ${units[unit][locale]}` : amount;
+	const separator = unit === 'deg' && locale === 'en' ? '' : ' ';
+	return unit ? `${amount}${separator}${units[unit][locale]}` : amount;
 }

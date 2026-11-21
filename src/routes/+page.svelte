@@ -887,9 +887,15 @@
 							data-category={product.category}
 							data-model={product.id}
 							data-cooker-photo={product.catalogId}
-							aria-hidden={product.id === 'cooker-1' ? undefined : true}
+							aria-hidden={product.id === 'cooker-1' || product.id === 'cooker-2'
+								? undefined
+								: true}
 						>
-							{#if product.id === 'cooker-1'}<CookerPhotoCaption locale={language} compact />{/if}
+							{#if product.id === 'cooker-1' || product.id === 'cooker-2'}<CookerPhotoCaption
+									productId={product.id === 'cooker-2' ? 'cooker-digital' : 'cooker-one-button'}
+									locale={language}
+									compact
+								/>{/if}
 						</div>
 					{:else if activePlan.details.includes('image')}
 						<div class="art"><CategoryGlyph category={product.category} /></div>

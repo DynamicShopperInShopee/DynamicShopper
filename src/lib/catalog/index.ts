@@ -1,4 +1,6 @@
 export { formatBaht, formatFact, resolveFact } from './facts.ts';
+export { getListingDetails } from './listing-details.ts';
+export type { DetailRow, ListingDetails, ListingReviewMedia } from './listing-details.ts';
 export { getProduct, products } from './products.ts';
 export { categories, specs } from './specs.ts';
 export type { SpecDefinition } from './specs.ts';
