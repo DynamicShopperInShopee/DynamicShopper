@@ -49,6 +49,7 @@ Everyone who shapes DynamicShopper, human or AI, should keep these rules. They p
 - Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
 - The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.
 - Before merging, sync with main, resolve conflicts with the affected owner, rerun the affected checks and obtain review from someone other than the author. Record what passed on the combined tree.
+- After a PR merges, you may reuse your assigned branch. Fetch origin, sync the branch with current main and verify its diff against main is clear before starting the next task. Keep each new task in its own PR.
 - Keep keys, private configuration, raw conversations and event access materials out of commits, review evidence and public artifacts. Use synthetic examples for handoffs.
 
 ## Before calling anything done

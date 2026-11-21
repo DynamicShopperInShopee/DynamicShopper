@@ -57,7 +57,7 @@ Owner 4 curates golden messages with expected intent and behavior independently 
 
 ### Repo boundary and release evidence
 
-After the hackathon, keep ownership of the domain with the team member who knows it and open a fresh, short-lived branch for each subsequent change. Start from current main after the previous PR merges. When a bug crosses domains, give one person the failing user journey and let each affected owner review the fix. Update the existing acceptance example and guideline as part of that change. This gives the next developer a reproducible case without having to reconstruct a chat session.
+Keep ownership of the domain with the team member who knows it. After each PR merges, an owner can sync and reuse their assigned branch or start a fresh branch from current main. Check the branch diff against main before beginning the next task. When a bug crosses domains, give one person the failing user journey and let each affected owner review the fix. Update the acceptance example and guideline as part of that change.
 
 Give agents this repo as their only project workspace. Keep other repos, personal account data, credential stores and external document connectors outside the task. Keep secrets in local private configuration. Commit named files after inspecting the staged diff. Use synthetic data for test transcripts, X-ray examples and screenshots. Share only reviewed code changes with this repository's configured remote. Keep the organizer PDF local.
 
