@@ -36,6 +36,13 @@
 			</span>
 			<div class="identity" aria-live="polite">
 				<h2><FactValue productId={matches[0].catalogId} field="shop" locale={language} /></h2>
+				<p class="shop-rating">
+					<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path d="m10 1.8 2.4 5 5.6.8-4 3.9.9 5.5-4.9-2.6-5 2.6 1-5.5-4-3.9 5.5-.8z" />
+					</svg>
+					<FactValue productId={matches[0].catalogId} field="shopRating" locale={language} />
+					{th ? 'คะแนนร้านค้า' : 'Shop rating'}
+				</p>
 			</div>
 			<button
 				class="visit"
@@ -251,5 +258,16 @@
 			border-radius: 12px 12px 0 0;
 			padding-bottom: env(safe-area-inset-bottom);
 		}
+	}
+	.shop-rating {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		color: var(--muted);
+		font-size: var(--small);
+		margin: 0;
+	}
+	.shop-rating :global([data-fact]) {
+		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
 	}
 </style>

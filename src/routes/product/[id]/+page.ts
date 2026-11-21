@@ -22,6 +22,7 @@ export const load: PageLoad = ({ params, url }) => {
 		getProduct(params.id) ??
 		getProduct(catalog.find(({ id }) => id === params.id)?.catalogId ?? '');
 	if (!product) error(404, 'Product not found');
+	const shelfItem = catalog.find((item) => item.catalogId === product.id)!;
 	const language: Locale = url.searchParams.get('lang') === 'th' ? 'th' : 'en';
 	const requestedTheme = url.searchParams.get('theme');
 	const theme =
@@ -43,6 +44,8 @@ export const load: PageLoad = ({ params, url }) => {
 		receiptQuery,
 		id: product.id,
 		pathId: params.id,
+		photoModel: shelfItem.id,
+		photoCategory: shelfItem.category,
 		category: product.category,
 		language,
 		theme,
@@ -56,6 +59,13 @@ export const load: PageLoad = ({ params, url }) => {
 		reviews: [fact('review.0'), fact('review.1')],
 		summary: fact('summary'),
 		shop: shop && presentFact(shop, language),
+		shopProducts: catalog
+			.filter(
+				(item) =>
+					item.catalogId !== product.id && getProduct(item.catalogId)?.shopId === product.shopId
+			)
+			.sort((a, b) => b.sold - a.sold)
+			.map(({ id, catalogId, category }) => ({ id, catalogId, category })),
 		specs: specs[product.category].flatMap(({ key, label }) => {
 			const value = resolveFact(product.id, `spec.${key}`);
 			return value ? [{ label: label[language], ...presentFact(value, language) }] : [];
