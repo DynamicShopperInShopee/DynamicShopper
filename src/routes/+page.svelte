@@ -948,6 +948,15 @@
 	}
 
 	function reset() {
+		if (
+			query ||
+			category !== 'all' ||
+			sort !== 'default' ||
+			maxPrice !== undefined ||
+			freeShipping ||
+			capacity !== undefined
+		)
+			remember();
 		session.cookerDecisions = [];
 		draftQuery = '';
 		query = '';
