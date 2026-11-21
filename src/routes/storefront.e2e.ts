@@ -244,11 +244,16 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 		}))
 	);
 	await expect(page).toHaveURL(/\/product\/cooker-1/);
-	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
-	await page.getByRole('button', { name: 'Specifications' }).click();
+	await expect(
+		page.locator('[data-product-id="cooker-one-button"][data-fact="price"]').first()
+	).toHaveAttribute('data-raw', '690');
+	await page
+		.getByRole('navigation', { name: 'Product actions' })
+		.getByRole('button', { name: 'Specifications' })
+		.click();
 	const sheet = page.getByRole('dialog', { name: 'Specifications' });
 	await expect(sheet).toBeVisible();
-	await expect(page.locator('[data-fact="spec.capacity"]')).toHaveText('1.8 L');
+	await expect(sheet.locator('[data-fact="spec.capacity"]')).toHaveText('1.8 L');
 	await sheet.getByRole('button', { name: 'Done' }).click();
 	await expect(sheet).toBeHidden();
 	await page.getByRole('link', { name: 'ไทย' }).click();
@@ -298,4 +303,39 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await page.getByRole('link', { name: 'Shopping assistant' }).press('Enter');
 	await expect(page.locator('#shopper-assistant')).toBeFocused();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
+});
+
+test('rice cooker filters pin below search and select the catalog capacity', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	const cards = page.locator('.product-grid > li');
+	await expect(strip).toBeVisible();
+	await page.evaluate(() => scrollTo(0, 500));
+	await expect.poll(async () => (await strip.boundingBox())?.y).toBe(56);
+	await strip.getByRole('button', { name: '1.8 L', exact: true }).click();
+	await expect(cards).toHaveCount(2);
+	await page.getByLabel('Sort by').selectOption('price-high');
+	await expect(cards.first()).toHaveAttribute('data-product', 'cooker-steamer');
+	await expect(page.getByRole('heading', { name: 'Price: high to low' })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
+		'href',
+		'/?view=receipt#shopper-assistant'
+	);
+	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toBeVisible();
+	await strip.getByRole('button', { name: 'Filters' }).click();
+	const drawer = page.getByRole('dialog', { name: 'Filters' });
+	await drawer.getByRole('button', { name: 'Clear filters' }).click();
+	await drawer.getByRole('button', { name: 'Close' }).click();
+	await expect(strip.getByRole('button', { name: '1.8 L', exact: true })).toHaveAttribute(
+		'aria-pressed',
+		'false'
+	);
+	await expect(cards).toHaveCount(6);
+	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toHaveCount(0);
+	await strip.getByLabel('Categories').selectOption('skin');
+	await expect(strip).toHaveCount(0);
+	await expect(page.getByRole('region', { name: 'Matching shops' })).toBeVisible();
+	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
 });

@@ -2,7 +2,7 @@
 
 DynamicShopper is a bilingual shopping prototype for the hackathon. Shoppers can ask for a different layout, a spec-first comparison, or a simpler Thai view for a family member. They can also select a preset, change their preferences, and undo changes directly. The same catalog supplies the product facts across all views, and the same optimizer calculates the voucher and coin total.
 
-- **Demo on `/`.** Browse the mobile storefront and open **Shopping assistant** from the results heading.
+- **Demo on `/`.** Browse the mobile storefront and open **Shopping assistant** from the results heading or rice cooker filters.
 - **Try two views.** In `/?view=receipt`, search for rice cookers and open **Compare views** to check shared product facts across different layouts. Open **Best price** to see the pricing calculation.
 - **Test the model locally.** The deployed storefront works offline. Local development can optionally use OpenAI to propose presentation changes from a limited set of hints.
 
@@ -27,7 +27,7 @@ See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.m
 
 ## Running the storefront
 
-The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open `/`. **Shopping assistant** in the results heading opens the adaptive receipt view and takes you to the message field area. To enter the receipt view directly, open `/?view=receipt`.
+The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open `/`. **Shopping assistant** opens the adaptive receipt view and takes you to the message field area. To enter the receipt view directly, open `/?view=receipt`.
 
 Use **Shopper views** to try the four presets, **Compare views** to check shared facts side by side, and **Best price** to open an optimizer receipt. **Undo** restores the previous store state. The assistant, comparison, and receipts work offline.
 
