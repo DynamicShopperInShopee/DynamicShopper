@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { reviewedCatalog } from './reviewed-catalog';
+import { listings } from '../mobile/shop-data';
 import { render } from 'svelte/server';
-import { CATALOG_CACHE_KEY, decodeCatalogSnapshot, pageListings, readCatalogCache } from './client';
+import { decodeCatalogSnapshot, pageListings, readCatalogCache } from './client';
 import type { CatalogSnapshot } from './types';
+import { validateCatalogSnapshot } from '../server/catalog/validate';
 import { initialView, visibleListings, applyInterview } from '../mobile/engine';
 import ShopShelf from '../mobile/ShopShelf.svelte';
 
@@ -36,16 +39,22 @@ function fixture(count = 1): CatalogSnapshot {
 	};
 }
 
-describe('backend catalog and offline cache boundary', () => {
+describe('catalog validation and display', () => {
+	it('starts offline with the seven original listings, source links and their available images', () => {
+		expect(reviewedCatalog.items).toEqual(listings);
+		expect(reviewedCatalog.snapshot.total).toBe(7);
+		for (const group of reviewedCatalog.categories)
+			expect(group.count).toBe(listings.filter((item) => item.category === group.id).length);
+	});
+	it('rejects a structurally valid but unverified saved catalog', async () => {
+		const saved = JSON.stringify(fixture());
+		expect(await readCatalogCache({ getItem: () => saved })).toBeNull();
+	});
 	it('revalidates a complete snapshot without changing its source facts', () => {
 		const input = fixture(1500);
 		expect(decodeCatalogSnapshot(input)).toEqual(input);
-		const saved = JSON.stringify(input);
-		expect(
-			readCatalogCache({ getItem: (key) => (key === CATALOG_CACHE_KEY ? saved : null) })
-		).toEqual(input);
 	});
-	it('rejects forged saved facts, unsafe links, duplicates and mismatched metadata', () => {
+	it('rejects malformed facts, unsafe links, duplicates and mismatched metadata', () => {
 		const original = fixture();
 		for (const change of [
 			{ price: -1 },
@@ -80,14 +89,6 @@ describe('backend catalog and offline cache boundary', () => {
 		expect(
 			decodeCatalogSnapshot({ ...original, categories: [{ ...original.categories[0], count: 2 }] })
 		).toBeNull();
-		expect(readCatalogCache({ getItem: () => '{broken' })).toBeNull();
-		expect(
-			readCatalogCache({
-				getItem: () => {
-					throw new Error('disabled');
-				}
-			})
-		).toBeNull();
 	});
 	it('accepts only source links and image provenance bound to the listing', () => {
 		const input = fixture();
@@ -96,6 +97,18 @@ describe('backend catalog and offline cache boundary', () => {
 			items: [{ ...input.items[0], source: 'https://shopee.co.th/observed-title-i.1.1' }]
 		};
 		expect(decodeCatalogSnapshot(slug)).toEqual(slug);
+	});
+	it('accepts only reviewed provenance hosts at import and display', () => {
+		const original = fixture();
+		for (const source of ['https://example.test/store', 'https://shopee.co.th:8443/store']) {
+			for (const changed of [
+				{ ...original, snapshot: { ...original.snapshot, source } },
+				{ ...original, items: [{ ...original.items[0], priceSource: source }] }
+			]) {
+				expect(decodeCatalogSnapshot(changed)).toBeNull();
+				expect(() => validateCatalogSnapshot(changed)).toThrow();
+			}
+		}
 	});
 	it('keeps unavailable prices unknown and excludes them from a budget result', () => {
 		const source = fixture(3);
@@ -132,6 +145,27 @@ describe('backend catalog and offline cache boundary', () => {
 		expect(visited).toEqual(source.items);
 		expect(pageListings(source.items, 999).items).toHaveLength(12);
 	});
+	it.each(['en', 'th'] as const)(
+		'attributes shelf names and product groups to their catalog values in %s',
+		(locale) => {
+			const source = fixture();
+			const item = source.items[0];
+			for (const layout of ['grid', 'list', 'table'] as const) {
+				const html = render(ShopShelf, {
+					props: {
+						plan: { ...initialView().plan, layout, locale },
+						rows: source.items,
+						categories: source.categories,
+						onopen: () => {}
+					}
+				}).body;
+				expect(html).toContain(`data-fact-key="${item.id}:name" data-raw="${item.name[locale]}"`);
+				expect(html).toContain(
+					`data-fact-key="${item.id}:category" data-raw="${item.category}" data-print="${source.categories[0].name[locale]}"`
+				);
+			}
+		}
+	);
 	it('renders only one shared page in grid, list and table with exact raw prices', () => {
 		const source = fixture(1500);
 		for (const layout of ['grid', 'list', 'table'] as const) {

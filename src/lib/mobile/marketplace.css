@@ -1370,20 +1370,20 @@ body {
 	margin-bottom: 12px;
 }
 
-.phone .inference-note {
+.phone .interview-note {
 	margin: 8px 0;
 	font-size: 14px;
 	color: var(--muted);
 }
-.phone .inference-note summary {
+.phone .interview-note summary {
 	min-height: 48px;
 	display: flex;
 	align-items: center;
 	cursor: pointer;
 }
-.phone .inference-note p {
+.phone .interview-note p {
 	margin: 8px 0;
 }
-.phone.large .inference-note {
+.phone.large .interview-note {
 	font-size: 20px;
 }

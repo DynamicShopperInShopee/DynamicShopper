@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import ReadingControls from './ReadingControls.svelte';
 	import { resolve } from '$app/paths';
+	import ReadingControls from './ReadingControls.svelte';
+	import { presetListingHref } from './listing-link';
 	import {
 		categories,
 		products,
@@ -23,10 +23,12 @@
 		recipe,
 		locale,
 		dataState = 'ready',
+		theme,
 		onready
 	}: {
 		recipe: Recipe;
 		locale: Locale;
+		theme: string;
 		dataState?: 'ready' | 'empty' | 'loading' | 'error';
 		onready: () => void;
 	} = $props();
@@ -64,24 +66,25 @@
 			: undefined
 	);
 	const listingHref = (id: string) =>
-		`${resolve('/product/[id]', { id })}?${new URLSearchParams({ lang: locale, theme: reading })}`;
+		presetListingHref(id, locale, reading === 'large' ? 'large-print' : theme);
 	function clear() {
 		query = '';
 		ceiling = undefined;
 		onready();
 	}
+	function resetCanvas() {
+		clear();
+		saved = [];
+	}
 </script>
 
 <ReadingControls
 	{locale}
-	bind:reading
 	separateApply={recipe.blocks.includes('apply')}
-	onreset={() => {
-		clear();
-		saved = [];
-	}}
+	{resetCanvas}
+	bind:reading
 >
-	{#snippet children(readingControls: Snippet<[string]>)}
+	{#snippet children(controls)}
 		<div
 			class="canvas {recipe.arrangement}"
 			class:readable={reading === 'large'}
@@ -230,7 +233,6 @@
 									'การตรวจแบบนี้ใช้ชุดข้อมูลแค็ตตาล็อกร่วม และรอฐานสินค้าเวอร์ชันอัปเดต'
 								)}
 							</p>
-							<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
 						{:else if block === 'saved'}
 							{#if saved.length}<ul>
 									{#each saved as id (id)}{@const name = resolveCatalogFact(
@@ -253,7 +255,7 @@
 										</button>{/each}
 								</div>{/if}
 						{:else if block === 'preferences' || block === 'apply' || block === 'undo'}
-							{@render readingControls(block)}
+							{@render controls(block)}
 						{:else if block === 'question'}
 							<p>{t('What would help you choose?', 'ข้อมูลแบบไหนช่วยให้คุณเลือกได้ง่ายขึ้น?')}</p>
 							<a href={resolve('/?view=receipt#assistant')}>
@@ -283,6 +285,10 @@
 					</div>{/if}
 			{/if}
 		</div>
+
+		{#if recipe.availability === 'ready' && dataState === 'ready' && recipe.blocks.includes('source')}
+			<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
+		{/if}
 	{/snippet}
 </ReadingControls>
 

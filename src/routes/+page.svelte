@@ -1,13 +1,6 @@
 <script lang="ts">
 	import DecisionShelf from '../lib/storefront/DecisionShelf.svelte';
 	import SmartBasket from '../lib/storefront/SmartBasket.svelte';
-	let decisionMode = $state('');
-	let decisionHistory = $state<string[]>([]);
-	function chooseDecision(mode: string) {
-		if (mode === decisionMode) return;
-		decisionHistory = [...decisionHistory, decisionMode];
-		decisionMode = mode;
-	}
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
 	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
@@ -45,6 +38,7 @@
 	import {
 		defaultPlan,
 		interpretOffline,
+		personaPlan,
 		rankProducts,
 		validateProposal,
 		type ShopperPlan,
@@ -109,12 +103,19 @@
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	const session = getStoreSession();
+	const decisionMode = $derived(session.cookerDecisions.at(-1));
+	function chooseDecision(mode: 'easy' | 'compare') {
+		if (mode !== decisionMode)
+			session.cookerDecisions = [...session.cookerDecisions.slice(-19), mode];
+	}
+
 	let undoStack = $state<ShelfState[]>([]);
 	let interviewAnswers = $state<Answers | null>(null);
-	let interviewDirectOnly = $state(false);
 	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
+	let personasOpen = $state(false);
+	let personaTrigger = $state<HTMLButtonElement>();
 	let traceOpen = $state(false);
 	let traceTrigger = $state<HTMLButtonElement>();
 	let traceMerge = $state<'applied' | 'unchanged'>();
@@ -242,6 +243,7 @@
 		return session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
 	}
 	const a = $derived(assistantCopy[language]);
+	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
 
 	let restoredFields = $state<(keyof ShopperPlan)[]>([]);
 	let cartRestored = $state(false);
@@ -256,8 +258,7 @@
 			freeShipping,
 			capacity,
 			locks: [...locks],
-			interviewAnswers: $state.snapshot(interviewAnswers),
-			interviewDirectOnly
+			interviewAnswers: $state.snapshot(interviewAnswers)
 		};
 	}
 	function remember() {
@@ -336,9 +337,9 @@
 		capacity = previous.capacity;
 		locks = previous.locks;
 		interviewAnswers = previous.interviewAnswers;
-		interviewDirectOnly = previous.interviewDirectOnly;
 	}
 	function restoreDefaults(keepReply = false) {
+		session.cookerDecisions = [];
 		session.conversation.clear();
 		usedLocalSettings = false;
 		quoteInput = undefined;
@@ -356,18 +357,14 @@
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		interviewAnswers = null;
-		interviewDirectOnly = false;
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
 		capacity = undefined;
 		changes = [];
 	}
-	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
-		const result = interviewProposal(answers, activePlan, {
-			directOnly: true,
-			lockedFields: locks
-		});
+	async function applyInterviewAnswers(answers: Answers) {
+		const result = interviewProposal(answers, activePlan);
 		const previous = $state.snapshot(activePlan);
 		const fields = Object.entries(result.patch).filter(
 			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
@@ -377,7 +374,6 @@
 			if (interviewAnswers !== null || Object.keys(result.answers).length) {
 				interviewAnswers = result.answers;
 			}
-			interviewDirectOnly = directOnly;
 			return;
 		}
 		cancelPending();
@@ -385,18 +381,17 @@
 		storeReady = true;
 		remember();
 		for (const field of Object.keys(result.patch) as (keyof ShopperPlan)[]) {
-			if (result.sources[field] === 'answer') register(field);
+			register(field);
 		}
 		writePlan({ ...previous, ...result.patch });
 		changes = fields.map(([key]) => key as keyof ShopperPlan);
 		interviewAnswers = result.answers;
-		interviewDirectOnly = directOnly;
 		adapted = true;
 		turn = undefined;
 		await tick();
-		const receipt = document.getElementById('store-change-receipt');
-		receipt?.scrollIntoView({ block: 'start', behavior: 'instant' });
-		receipt?.focus({ preventScroll: true });
+		const shelf = document.getElementById('products');
+		shelf?.scrollIntoView({ block: 'start', behavior: 'instant' });
+		shelf?.focus({ preventScroll: true });
 	}
 	async function focusAssistant() {
 		await tick();
@@ -406,6 +401,33 @@
 		const previous = [...locks];
 		changePlan({ [key]: structuredClone(defaultPlan[key]) }, false);
 		locks = previous.filter((item) => item !== key);
+	}
+	function selectPersona(persona: (typeof personas)[number]) {
+		changePlan(
+			{
+				...personaPlan(persona, language),
+				query,
+				category: activePlan.category,
+				maxPrice: activePlan.maxPrice
+			},
+			false
+		);
+		for (const field of [
+			'theme',
+			'layout',
+			'density',
+			'details',
+			'simplified',
+			'sections',
+			'priorities'
+		] as const)
+			register(field);
+		if (persona === 'mom') register('locale');
+	}
+	function closePersonasOnEscape(event: KeyboardEvent) {
+		if (event.key !== 'Escape' || !personasOpen) return;
+		personasOpen = false;
+		personaTrigger?.focus();
 	}
 	function listingHref(id: string) {
 		return resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, { id });
@@ -493,7 +515,7 @@
 		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
-	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category']) {
+	function applyTurn(next: Turn, requestedCategory?: ShopperPlan['category'], respectLocks = true) {
 		const previous = $state.snapshot(activePlan);
 		turn = next;
 		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
@@ -501,7 +523,7 @@
 		changes = [];
 		switch (next.intent) {
 			case 'change':
-				changePlan(next.patch, true, requestedCategory);
+				changePlan(next.patch, respectLocks, requestedCategory);
 				break;
 			case 'undo':
 				undo();
@@ -557,6 +579,20 @@
 					focus
 				)
 			: interpretOffline(message, activePlan, focus);
+		if (
+			!simulating &&
+			interviewAnswers &&
+			local.intent === 'change' &&
+			local.patch.layout &&
+			/^(?:(?:list|grid|table) view|show as a (?:list|grid|table)|แบบรายการ|แบบตารางการ์ด|แบบตาราง)$/iu.test(
+				message.trim()
+			)
+		) {
+			// A direct layout command changes just that setting. Keep the shopper's other choices.
+			applyTurn({ ...local, patch: { layout: local.patch.layout } }, undefined, false);
+			return;
+		}
+
 		if (
 			simulating ||
 			!dev ||
@@ -627,7 +663,6 @@
 				locks,
 				undoStack,
 				interviewAnswers,
-				interviewDirectOnly,
 				turn,
 				liveModel,
 				liveFallback,
@@ -758,6 +793,7 @@
 					maxPrice,
 					freeShipping,
 					capacity,
+					cookerDecisions: [...session.cookerDecisions],
 					scrollY: Math.max(0, Math.round(window.scrollY))
 				}
 			: undefined;
@@ -773,6 +809,7 @@
 			changes = visit.changes;
 			draftQuery = visit.draftQuery;
 		} else if (eventDemo && selection) {
+			session.cookerDecisions = selection.cookerDecisions ?? [];
 			({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } =
 				selection);
 			draftPrice = maxPrice;
@@ -911,6 +948,7 @@
 	}
 
 	function reset() {
+		session.cookerDecisions = [];
 		draftQuery = '';
 		query = '';
 		category = 'all';
@@ -1192,17 +1230,12 @@
 					>
 						{a.compare}
 					</a>
-					<button
-						type="button"
-						lang={language === 'th' ? 'en' : 'th'}
-						disabled={!interactive}
-						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
-						}}
-					>
-						{language === 'th' ? 'English' : 'ไทย'}
-					</button>
+					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
+						{#each themes as option (option)}
+							<option value={option}>{t[option]}</option>
+						{/each}
+					</select>
+					{@render languageSwitch()}
 					<CartControls locale={language} onBestPrice={() => openBasket()} />
 					<button
 						type="button"
@@ -1323,9 +1356,7 @@
 		{#snippet interviewEntry(triggerOnly: boolean)}
 			<InterviewEntry
 				plan={activePlan}
-				lockedFields={locks}
 				answers={interviewAnswers}
-				directOnly={interviewDirectOnly}
 				applied={interviewAnswers !== null && adapted}
 				disabled={!interactive}
 				compact={eventDemo}
@@ -1650,7 +1681,7 @@
 					</div>
 				{/if}
 				{#if changes.length}
-					<div id="store-change-receipt" tabindex="-1" class="assistant-reply" role="status">
+					<div class="assistant-reply" role="status">
 						<strong>{a.changed}</strong>
 						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
 					</div>
@@ -1673,16 +1704,53 @@
 					largePrint={theme === 'large'}
 					{theme}
 				/>
-				<div class="shopper-actions">
-					<button
-						type="button"
-						aria-expanded={compareOpen}
-						onclick={() => (compareOpen = !compareOpen)}
-					>
-						{compareOpen ? a.closeCompare : a.compare}
-					</button>
-					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
-					<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
+				<div class="shopper-toolbar">
+					<div class="shopper-actions shopper-views">
+						<button
+							type="button"
+							aria-expanded={compareOpen}
+							onclick={() => (compareOpen = !compareOpen)}
+						>
+							{compareOpen ? a.closeCompare : a.compare}
+						</button>
+						<button
+							type="button"
+							disabled={!interactive}
+							aria-expanded={personasOpen}
+							aria-controls="shopper-presets"
+							bind:this={personaTrigger}
+							onclick={() => (personasOpen = !personasOpen)}
+							onkeydown={closePersonasOnEscape}
+						>
+							{a.persona}
+							<svg class="disclosure" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+								<path d="m2 4 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+							</svg>
+						</button>
+						<div
+							id="shopper-presets"
+							class="shopper-actions shopper-presets"
+							hidden={!personasOpen}
+						>
+							{#each personas as persona (persona)}
+								<button
+									type="button"
+									id={`persona-${persona}`}
+									disabled={!interactive}
+									onclick={() => selectPersona(persona)}
+									onkeydown={closePersonasOnEscape}
+								>
+									{a[persona]}
+								</button>
+							{/each}
+						</div>
+					</div>
+					<div class="shopper-actions shelf-utilities">
+						{#if !adapted || !interviewAnswers}
+							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{/if}
+						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
+					</div>
 				</div>
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
@@ -1770,15 +1838,20 @@
 					{language === 'th' ? 'เทียบก่อนซื้อ' : 'Compare before buying'}
 				</button>
 				<button
-					disabled={!decisionHistory.length}
-					onclick={() => {
-						decisionMode = decisionHistory.at(-1) ?? '';
-						decisionHistory = decisionHistory.slice(0, -1);
-					}}
+					disabled={!session.cookerDecisions.length}
+					onclick={() => (session.cookerDecisions = session.cookerDecisions.slice(0, -1))}
 				>
 					{language === 'th' ? 'ย้อนกลับการช่วยเลือก' : 'Undo decision view'}
 				</button>
 			</div>{/if}
+		{#if cookerSearch && decisionMode === 'easy'}
+			<DecisionShelf
+				ids={products.map((product) => product.catalogId)}
+				locale={language}
+				mode="easy"
+				{listingHref}
+			/>
+		{/if}
 		<SmartBasket locale={language} />
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div
@@ -1808,7 +1881,7 @@
 						<p>{t.emptyHint}</p>
 						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
 					</div>
-				{:else if cookerSearch && decisionMode}
+				{:else if cookerSearch && decisionMode === 'compare'}
 					<DecisionShelf
 						ids={products.map((p) => p.catalogId)}
 						locale={language}
@@ -2136,6 +2209,53 @@
 		align-items: center;
 		margin-block: 0.55rem;
 	}
+	.shopper-toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		column-gap: 1rem;
+		row-gap: 0.15rem;
+		margin-block-start: 0.65rem;
+	}
+	.shopper-toolbar .shopper-actions {
+		margin-block: 0;
+	}
+	.shopper-views,
+	.shelf-utilities {
+		min-inline-size: 0;
+		align-content: start;
+	}
+	.shopper-toolbar button[aria-expanded='true'] {
+		border-color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.disclosure {
+		margin-inline-start: 0.25rem;
+		vertical-align: middle;
+	}
+	button[aria-expanded='true'] .disclosure {
+		rotate: 180deg;
+	}
+	.shelf-utilities button {
+		border-color: transparent;
+		background: transparent;
+	}
+	.shelf-utilities button:not(:disabled):hover {
+		border-color: var(--seam);
+	}
+	.shelf-utilities button:disabled {
+		color: var(--muted);
+		cursor: not-allowed;
+	}
+	.shopper-presets:not([hidden]) {
+		flex-basis: 100%;
+		padding-block-start: 0.55rem;
+		border-block-start: 1px dashed var(--seam);
+	}
+	.shopper-presets[hidden] {
+		display: none;
+	}
 	.assistant-reply {
 		border: 1px dashed var(--seam);
 		padding: 0.6rem 0.75rem;
@@ -2416,6 +2536,11 @@
 		color: var(--ink);
 		z-index: 1;
 	}
+	.event-demo:not(.category-search) .search-icon {
+		background: var(--accent);
+		color: #fff;
+	}
+
 	.event-demo .filter-trigger {
 		background: white;
 		border: 0;
@@ -2713,35 +2838,5 @@
 		.event-demo.category-search:not([data-theme='large']) .price :global(s) {
 			font-size: 0.75rem;
 		}
-	}
-
-	/* Fixed brand chrome is deliberately outside theme tokens. */
-	.store .masthead,
-	.store .marketplace-brand,
-	.store .search {
-		background: #ee4d2d;
-		color: #30160f;
-	}
-	.store .search {
-		padding: 0.5rem;
-	}
-	.store .brand,
-	.store .marketplace-identity {
-		color: #fff;
-		font-size: 1.25rem;
-		font-weight: 750;
-	}
-	.store .search button[type='submit'],
-	.store .search button[type='submit']:hover {
-		background: #b5321a;
-		color: #fff;
-		border-color: #b5321a;
-	}
-	.store .search input {
-		background: #fff;
-		color: #16161a;
-	}
-	.store .masthead .compare-link {
-		color: #30160f;
 	}
 </style>

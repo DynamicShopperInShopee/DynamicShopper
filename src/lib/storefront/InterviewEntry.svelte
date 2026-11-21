@@ -6,9 +6,7 @@
 	import { tick } from 'svelte';
 	let {
 		plan,
-		lockedFields,
 		answers,
-		directOnly,
 		applied,
 		disabled,
 		compact = false,
@@ -18,14 +16,12 @@
 		onundo
 	}: {
 		plan: ShopperPlan;
-		lockedFields: (keyof ShopperPlan)[];
 		answers: Answers | null;
-		directOnly: boolean;
 		applied: boolean;
 		disabled: boolean;
 		compact?: boolean;
 		triggerOnly?: boolean;
-		onapply: (answers: Answers, directOnly: boolean) => void;
+		onapply: (answers: Answers) => void;
 		onchat: () => void;
 		onundo?: () => void;
 	} = $props();
@@ -113,11 +109,10 @@
 		onclose={() => (open = false)}
 	>
 		<InterviewWizard
-			view={{ plan, lockedFields, interview: answers ? { answers } : null }}
-			initialDirectOnly={directOnly}
-			onapply={(next: Answers, direct: boolean) => {
+			view={{ plan, interview: answers ? { answers } : null }}
+			onapply={(next: Answers) => {
 				open = false;
-				onapply(next, direct);
+				onapply(next);
 			}}
 		/>
 	</InterviewSheet>

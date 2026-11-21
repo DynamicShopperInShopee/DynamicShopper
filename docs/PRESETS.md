@@ -5,11 +5,11 @@ inventory authority. It replaces the earlier incorrect twelve-by-twelve inventor
 The separate twenty presentation presets are **inspection examples only**: they cannot
 apply a view to the shop. No database, API, model, shared ranker or Svelte implementation
 is changed by these registries.
-The rejected local1500 catalog is not imported. Wait for the updated upload; existing
-catalog-backed designs use shared catalog fixtures in the meantime.
+The inspection route uses the storefront's simulated catalog and shared pricing
+logic. An original photograph is shown only when the module has a matching asset.
 
-Original product photographs await the sourced catalog. Image blocks state this
-dependency, and these previews do not substitute category illustrations for photographs.
+Image blocks identify any missing original photography. Category illustrations
+remain identified as illustrations.
 
 ## Availability means design support, not feature completion
 
@@ -395,14 +395,12 @@ presentation, not a newly implemented shared cart or collaborative shortlist.
 1. Render one inventory from `parts`; read each recipe's availability and dependency.
    Service modules remain inspectable designs with clear missing-data copy.
 2. Read `shopPresets` only for the separate inspection demo. Keep example state isolated
-   from the active store. There is no example-to-shop Apply action and no manual
-   preset/theme chooser in the main shopping flow.
-3. The main journey is store first, an optional four-step needs interview, automatic
-   application of one validated proposal on completion, then explanation, Undo and
-   chat refinement. Draft answers do not restyle the shop; there is no separate
-   preview/Apply gate. Use one atomic change transaction; a no-op creates no history
-   or locks. Preserve explicit controls against inference.
-4. Keep one interview entry and shared history when consolidating PR14/PR15. Use
+   from the active store. Each example selects display fields from the fixed library.
+   Its product links retain the active language and reading theme.
+3. On the canonical storefront, the optional interview ends in Review. Apply
+   commits a validated change in one Undo step; Cancel discards the draft.
+   Existing direct controls and accessibility settings remain available. The optional sourced storefront preview defines its own explicitly labeled Finish action.
+4. Keep the canonical storefront’s interview entry and shared Undo history. Use
    DynamicShopper's orange identity without Shopee marks or affiliation claims.
    This inventory creates neither a second interview nor a new main-flow chooser.
 5. Keep all facts and deal amounts on canonical catalog/optimizer paths. Do not send
@@ -417,5 +415,5 @@ reference. They verify the 177 count, per-group counts, module order/IDs, biling
 metadata, supported block vocabulary and conservative service classification. The
 unchanged plan tests verify twenty unique workflows, allowed keys, mandatory price and
 products, invalid IDs, returned-array isolation and unchanged plans/catalog records.
-They do not assert identical product ordering across renderer changes. UI review and
+Browser checks compare leading example links against the shared ranker and retain the selected listing language and reading size. UI review and
 browser behavior remain separate from these pure server checks.

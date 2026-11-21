@@ -2,18 +2,9 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted shopping flow
+## Marketplace interview and preset inspection
 
-Accepted on 2026-11-21 at the user's explicit request: keep the familiar orange
-marketplace baseline with DynamicShopper identity and no Shopee marks. The store
-opens first, followed by an optional four-question needs interview. Finishing or
-skipping its last question automatically applies one validated, undoable proposal.
-Draft answers never restyle the shop. Explain the change, provide Undo and chat
-refinement. There is no separate preview/Apply gate or manual preset, persona or
-theme chooser in the main shopping flow. Comparison examples and `/presets` are
-inspection-only and cannot apply a view to the shop. This flow supersedes earlier
-preview-and-Apply guidance. Sourced catalog publication remains the data owner's
-explicit action; no automatic refresh, agent write access or checkout claim is added.
+The four optional interview questions map the shopper’s answers directly to a validated view. Review shows the proposed changes before Apply. The shopper can edit the answers, use explicit controls, refine the view in chat, undo or reset. The preset library is for inspection. Its examples keep the current shop and catalog facts intact.
 
 ## Product rules
 
@@ -345,12 +336,3 @@ Use schema-derived types such as `$inferSelect` and `$inferInsert` instead of du
 Propagate database failures to the server layer and translate them there using the project's custom error classes. Do not silently swallow or disguise constraint errors.
 
 Use Drizzle transactions for operations that must succeed or fail together, after confirming the operation is supported by both the local SQLite driver and D1. For bulk inserts, pass an array of typed rows to `.values(...)`. Keep database-specific behavior behind repository functions so callers do not depend on the selected SQLite driver.
-
-## Brand and presentation update
-
-The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
-white and large/bold, and the search action stays dark orange (#b5321a) with white
-foreground in every theme. Chat changes the body and product presentation only.
-The root storefront passes directOnly:true to its validated interview mapping; CNN
-inference is not used by this route. Existing model experiments remain archival.
-The current main chat uses its bounded live adapter with offline fallback.

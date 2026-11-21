@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { Locale } from '../catalog/index.ts';
 	import { resolveCatalogFact } from './catalogFact';
 
@@ -32,6 +33,10 @@
 
 	let feedback = $state<{ productId: string; status: Status }>();
 	let pending = $state(false);
+	let ready = $state(false);
+	onMount(() => {
+		ready = true;
+	});
 	const t = $derived(copy[locale]);
 	const name = $derived(resolveCatalogFact(productId, 'name', locale)?.text);
 
@@ -54,7 +59,7 @@
 		class="inline-flex min-h-[var(--tap,44px)] cursor-pointer items-center justify-center rounded-[var(--radius,4px)] border border-[var(--accent,#16161a)] bg-[var(--accent,#16161a)] px-[0.7rem] py-[0.35rem] text-start font-semibold text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
 		type="button"
 		aria-label={name ? `${t.add} ${name}` : t.add}
-		disabled={pending}
+		disabled={!ready || pending}
 		onclick={add}
 	>
 		{t.add}

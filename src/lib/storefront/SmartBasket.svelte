@@ -12,8 +12,8 @@
 </script>
 
 {#if offer}
-	<section aria-label="Smart Basket" class="basket">
-		<h2>Smart Basket</h2>
+	<section aria-labelledby="companion-title" class="basket">
+		<h2 id="companion-title">{locale === 'th' ? 'ตะกร้าแนะนำ' : 'Smart Basket'}</h2>
 		<p>
 			{locale === 'th'
 				? 'ของใช้ต่อเนื่องในกิจวัตร ดูสภาพผิวที่ระบุไว้ก่อนเลือก'
