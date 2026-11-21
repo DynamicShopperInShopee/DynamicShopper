@@ -3,11 +3,12 @@ import { defineEnvVars } from '@sveltejs/kit/env';
 export const variables = defineEnvVars({
 	OPENAI_API_KEY: {
 		schema: (value) => value,
-		description: 'Optional private OpenAI API key for the local development assistant.'
+		description:
+			'Server-only OpenAI API key for the production preference interview and optional local assistant.'
 	},
 	OPENAI_MODEL: {
 		schema: (value) => value,
-		description: 'Optional model name for the local development assistant.'
+		description: 'Optional OpenAI model name for the preference interview and local assistant.'
 	},
 	OPENAI_LOG_USAGE: {
 		schema: (value) => value,
