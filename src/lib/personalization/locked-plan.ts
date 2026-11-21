@@ -14,14 +14,13 @@ export function reconcilePlanPatch(
 		)
 	);
 	const { category } = accepted;
+	const query = accepted.query ?? current.query;
 	if (
 		category &&
 		category !== current.category &&
-		current.query &&
-		locks.includes('query') &&
-		!products.some(
-			(product) => product.category === category && matchesQuery(product, current.query)
-		)
+		query &&
+		(locks.includes('query') || category === requestedCategory) &&
+		!products.some((product) => product.category === category && matchesQuery(product, query))
 	) {
 		if (category === requestedCategory) accepted.query = '';
 		else delete accepted.category;

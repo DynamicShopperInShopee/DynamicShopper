@@ -46,6 +46,19 @@ describe('reconcilePlanPatch', () => {
 		expect(patch).toEqual({ category: 'mouse' });
 	});
 
+	it('clears only incompatible search terms when the shopper edits the category directly', () => {
+		const current = { ...defaultPlan, query: 'gaming mouse' };
+		expect(reconcilePlanPatch(current, { category: 'rice-cooker' }, [], 'rice-cooker')).toEqual({
+			category: 'rice-cooker',
+			query: ''
+		});
+		expect(reconcilePlanPatch(current, { category: 'mouse' }, [], 'mouse')).toEqual({
+			category: 'mouse'
+		});
+		const replacement = { category: 'rice-cooker', query: 'rice cooker' } as const;
+		expect(reconcilePlanPatch(current, replacement, [], 'rice-cooker')).toEqual(replacement);
+	});
+
 	it('preserves locks if the category is locked, unchanged, or absent from the patch', () => {
 		const current: ShopperPlan = { ...defaultPlan, category: 'mouse', query: 'rice cooker' };
 		expect(

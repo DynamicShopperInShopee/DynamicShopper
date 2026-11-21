@@ -1,5 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+test('changing category in Shopping criteria keeps compatible searches and undoes an incompatible switch', async ({
+	page,
+	context
+}) => {
+	await page.goto('/?view=receipt');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await context.setOffline(true);
+	const criteria = page.getByRole('region', { name: 'Shopping criteria' });
+	await criteria.locator('summary').filter({ hasText: 'Requirements' }).click();
+	const terms = criteria.getByRole('textbox', { name: 'Search terms' });
+	await terms.fill('gaming mouse');
+	await criteria.getByRole('button', { name: 'Apply search' }).click();
+	const category = criteria.getByRole('combobox', { name: 'Product category' });
+	await category.selectOption('mouse');
+	await expect(terms).toHaveValue('gaming mouse');
+	const cards = page.locator('#products [data-product]');
+	await expect(cards.first()).toBeVisible();
+	const original = await cards.evaluateAll((items) =>
+		items.map((item) => item.getAttribute('data-product'))
+	);
+	await category.selectOption('rice-cooker');
+	await expect(terms).toHaveValue('');
+	await expect(page.getByRole('searchbox')).toHaveValue('');
+	await expect(
+		cards.filter({ has: page.locator('[data-product-id="cooker-one-button"]') }).first()
+	).toBeVisible();
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(category).toHaveValue('mouse');
+	await expect(terms).toHaveValue('gaming mouse');
+	await expect
+		.poll(() =>
+			cards.evaluateAll((items) => items.map((item) => item.getAttribute('data-product')))
+		)
+		.toEqual(original);
+});
+
 for (const lang of ['en', 'th'] as const) {
 	test(`a shopper corrects criteria, changes the view and undoes each edit offline in ${lang}`, async ({
 		page,

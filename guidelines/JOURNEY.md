@@ -6,6 +6,8 @@ Open **Shopping assistant** from the results heading on `/`, or go directly to `
 
 A cooker capacity selected on the public storefront stays active when the shopper opens **Shopping assistant**, restyles the shelf, or opens **Compare views**. Both views use the same capacity and shipping filters. The shopper can remove the capacity chip or reset the store, then use Undo to restore it. Choosing a new category clears the cooker capacity and any incompatible cooker search.
 
+Changing the category under **Shopping criteria → Requirements** keeps a matching search and clears an incompatible one. Undo restores the previous category, search and shelf together.
+
 After applying an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
 
 ## The arc
