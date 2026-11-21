@@ -13,6 +13,8 @@ node_modules
 Thumbs.db
 
 # Env
+.dev.vars
+.dev.vars.*
 .env
 .env.*
 !.env.example
@@ -23,6 +25,9 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
 test-results
+/.playwright-mcp/
+# Local copies for testing combinations of open PRs
+/.worktrees/
 # SQLite
 *.db
 

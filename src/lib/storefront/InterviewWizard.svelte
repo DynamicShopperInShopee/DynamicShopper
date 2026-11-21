@@ -105,8 +105,8 @@
 			<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
 			<p>
 				{t(
-					'A model on this device suggests a view when you finish. Your reading settings take priority. If the model is unavailable or you skip questions, direct answers still work.',
-					'โมเดลในอุปกรณ์นี้เสนอรูปแบบเมื่อตอบเสร็จ โดยยึดการตั้งค่าการอ่านของคุณเป็นหลัก หากโมเดลใช้งานไม่ได้หรือข้ามคำถาม ยังใช้คำตอบโดยตรงได้'
+					'Your answers select a validated presentation directly. Chat can refine your view.',
+					'คำตอบของคุณเลือกรูปแบบที่ผ่านการตรวจสอบโดยตรง และปรับต่อผ่านแชทได้'
 				)}
 			</p>
 			<label class="direct">

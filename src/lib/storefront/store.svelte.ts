@@ -11,6 +11,8 @@ import { PricingClock } from './clock.svelte';
 import { readSavedStore, writeSavedStore } from './browserState';
 import type { Sort } from '../store-search';
 
+export type ShelfChange = keyof ShopperPlan | 'capacityRemoved';
+
 export interface ShelfState {
 	interviewAnswers: Answers | null;
 	interviewDirectOnly: boolean;
@@ -27,7 +29,7 @@ interface StoreVisit extends ShelfState {
 	turn?: Turn;
 	liveModel?: string;
 	liveFallback: boolean;
-	changes: (keyof ShopperPlan)[];
+	changes: ShelfChange[];
 	focusedProduct?: string;
 	draftQuery: string;
 	search: string;
@@ -64,6 +66,7 @@ export class StoreSession {
 	readonly listing = new ListingSession(this.conversation);
 	visit = $state<StoreVisit>();
 	offlineReady = $state(false);
+	compareCandidates = $state({ first: '', second: '' });
 	cart = $state.raw<readonly CartItem[]>([]);
 	savedPlan?: ShopperPlan;
 	#storage?: StoreStorage;

@@ -13,17 +13,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isAuthApi = pathname === '/api/auth' || pathname.startsWith('/api/auth/');
 	if (!isAuthDemo && !isAuthApi) return resolve(event);
 
-	const platformEnv = event.platform?.env;
-  const database = platformEnv?.DB;
-  const databaseUrl = platformEnv?.DATABASE_URL ?? DATABASE_URL;
-  const origin = platformEnv?.ORIGIN ?? ORIGIN;
-  const secret = platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET;
+	const platformEnv =
+		event.platform?.env ??
+		(import.meta.env.D1_WORKER ? (await import('cloudflare:workers')).env : undefined);
+	const database = platformEnv?.DB;
+	const databaseUrl = platformEnv?.DATABASE_URL ?? DATABASE_URL;
+	const origin = platformEnv?.ORIGIN ?? ORIGIN;
+	const secret = platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET;
 
-  if ((!database && !databaseUrl?.trim()) || !origin?.trim() || !secret?.trim()) {
-    error(503, 'Authentication demo is unavailable');
-  }
+	if ((!database && !databaseUrl?.trim()) || !origin?.trim() || !secret?.trim()) {
+		error(503, 'Authentication demo is unavailable');
+	}
 
-  const db = await createDatabase(database, databaseUrl);
+	const db = await createDatabase(database, databaseUrl);
 	const auth = createAuth(db, origin, secret);
 	event.locals.auth = auth;
 

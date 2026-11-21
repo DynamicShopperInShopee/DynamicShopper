@@ -119,3 +119,4 @@ optimizer context and coin balance. Add is explicit, rejection hides the offer f
 this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
 The catalog remains simulated; this is not a clinical compatibility guarantee or a
 new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
+Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.

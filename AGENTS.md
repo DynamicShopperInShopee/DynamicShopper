@@ -51,6 +51,7 @@ explicit action; no automatic refresh, agent write access or checkout claim is a
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
 - **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
+- **Check both storefront entry points.** Verify the public `/` route, its **Shopping assistant** link, and the adaptive `/?view=receipt` route. Keep provider credentials out of production and run the local assistant browser suite with credentials cleared.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
 - **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).
@@ -59,6 +60,7 @@ explicit action; no automatic refresh, agent write access or checkout claim is a
 
 ## Team workflow
 
+- Follow the [team development checklist](docs/team-setup.md#from-assignment-to-main) for branch sync, verification, review and release handoffs.
 - Pick one [team assignment](README.md#choose-your-team-assignment) per coding session. Work in this repository on your own task branch. Start from the team's agreed baseline. Commit and push small, reviewable increments to that branch.
 - Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
 - The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.
@@ -343,3 +345,12 @@ Use schema-derived types such as `$inferSelect` and `$inferInsert` instead of du
 Propagate database failures to the server layer and translate them there using the project's custom error classes. Do not silently swallow or disguise constraint errors.
 
 Use Drizzle transactions for operations that must succeed or fail together, after confirming the operation is supported by both the local SQLite driver and D1. For bulk inserts, pass an array of typed rows to `.values(...)`. Keep database-specific behavior behind repository functions so callers do not depend on the selected SQLite driver.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.

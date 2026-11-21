@@ -2,12 +2,11 @@
 
 ## Browser interview integration
 
-The optional storefront interview runs exported Conv1d and dense weights locally.
-Only allowlisted answer IDs enter inference; product facts never enter the network.
-Independent categorical heads expand to fixed layout, details and section recipes;
-invalid heads retain their direct-answer fallback independently. The existing
-proposal validator checks the final patch. A complete interview may also suggest
-an unlocked theme; explicit reading settings and priorities remain deterministic.
+The root storefront uses deterministic answer mappings through the existing
+proposal validator, with directOnly forced on at its application boundary. It does
+not execute CNN inference. The historical Conv1d experiments remain in the repository
+for research; they do not select the active root presentation. Chat uses the merged
+bounded live adapter with the existing offline fallback.
 
 Interview completion preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
@@ -137,7 +136,7 @@ When to use tools: for vague or multi-need requests ("something for my mom", "a 
 
 ## Offline parity: the keyword fallback
 
-The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
+The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. X-ray identifies the responding model and states when local settings determine every applied change. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
 
 The keyword fallback answers whenever the AI cannot: no key, forced offline, an error, a timeout, or unusable output. It produces exactly the same kind of answer as the AI, so everything after "Understand" is identical online and offline.
 
@@ -181,6 +180,8 @@ Every input from outside the system's own logic is treated as untrusted and vali
 
 Credentials never leave the server. The only configuration value the shopper can ever see is the name of the AI model, in X-ray.
 
+Cloudflare production builds exclude local environment files from both the intermediate server output and the assembled Worker. The deployed Worker receives its authentication configuration through runtime bindings.
+
 ## How the system degrades
 
 | Failure | What the shopper sees |
@@ -206,3 +207,12 @@ sections through the existing validator. `/presets` holds selections locally wit
 store mutation callback, agent write path, new pricing logic or product ranking.
 Missing services and original photographs remain unavailable. The sourced catalog
 handoff and cloud publication belong to the data owner and are outside this change.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.

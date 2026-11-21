@@ -105,6 +105,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('#products')).toBeFocused();
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });

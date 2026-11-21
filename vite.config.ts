@@ -5,11 +5,24 @@ import cloudflare from '@sveltejs/adapter-cloudflare';
 import node from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 
-const adapter = process.env.DEPLOY_TARGET === 'cloudflare' ? cloudflare() : node();
+const workerBuild = process.env.DEPLOY_TARGET === 'cloudflare';
+const adapter = workerBuild ? cloudflare() : node();
 
 export default defineConfig({
+	define: { 'import.meta.env.D1_WORKER': JSON.stringify(workerBuild) },
 	plugins: [
 		tailwindcss(),
+		workerBuild && {
+			name: 'exclude-local-worker-vars',
+			apply: 'build',
+			generateBundle: {
+				order: 'post',
+				handler(_options, bundle) {
+					// Wrangler emits local preview bindings here before the adapter copies the server.
+					delete bundle['.dev.vars'];
+				}
+			}
+		},
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
