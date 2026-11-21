@@ -26,6 +26,8 @@
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
 	import { getStoreOpenedAt } from '../lib/storefront/clock';
+	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
+	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
@@ -69,6 +71,25 @@
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
 	let poisonArmed = $state(false);
+	let liveEnabled = $state(false);
+	let livePending = $state(false);
+	let liveFallback = $state(false);
+	let liveModel = $state<string>();
+	let liveRequest: AbortController | undefined;
+	let pendingLocalTurn: Turn | undefined;
+
+	function cancelLive() {
+		liveRequest?.abort();
+		liveRequest = undefined;
+		pendingLocalTurn = undefined;
+		livePending = false;
+	}
+	function toggleLive() {
+		const fallback = pendingLocalTurn;
+		cancelLive();
+		liveEnabled = !liveEnabled;
+		if (fallback) applyTurn(fallback);
+	}
 	let turn = $state<Turn>();
 	let changes = $state<(keyof ShopperPlan)[]>([]);
 	let focusedProduct = $state<string>();
@@ -126,6 +147,7 @@
 		];
 	}
 	function register(key: keyof ShopperPlan) {
+		cancelLive();
 		if (!locks.includes(key)) locks = [...locks, key];
 	}
 	function writePlan(next: ShopperPlan) {
@@ -137,6 +159,7 @@
 		maxPrice = draftPrice = next.maxPrice ?? undefined;
 	}
 	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
+		cancelLive();
 		const previous = $state.snapshot(activePlan);
 		const entries = Object.entries(patch).filter(
 			([key, value]) =>
@@ -151,6 +174,7 @@
 		adapted = true;
 	}
 	function undo() {
+		cancelLive();
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
@@ -162,6 +186,7 @@
 		changes = [];
 	}
 	function restoreDefaults() {
+		cancelLive();
 		remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
@@ -229,27 +254,12 @@
 		quote = undefined;
 		quoteTrigger?.focus();
 	}
-	function send(message: string) {
-		const focus = products.some((product) => product.catalogId === focusedProduct)
-			? focusedProduct
-			: products[0]?.catalogId;
-		turn =
-			dev && poisonArmed
-				? validateProposal(
-						{
-							intent: 'change',
-							patch: { price: 1, layout: 'foreign', sections: ['unknown'] },
-							reply: '฿1'
-						},
-						activePlan,
-						focus
-					)
-				: interpretOffline(message, activePlan, focus);
-		poisonArmed = false;
+	function applyTurn(next: Turn) {
+		turn = next;
 		changes = [];
-		switch (turn.intent) {
+		switch (next.intent) {
 			case 'change':
-				changePlan(turn.patch, true);
+				changePlan(next.patch, true);
 				break;
 			case 'undo':
 				undo();
@@ -257,12 +267,82 @@
 			case 'reset':
 				restoreDefaults();
 				break;
-			case 'deal': {
-				if (turn.productIds.length) openBasket(turn.productIds);
+			case 'deal':
+				if (next.productIds.length) openBasket(next.productIds);
 				break;
-			}
 		}
 	}
+
+	function send(message: string) {
+		cancelLive();
+		liveModel = undefined;
+		liveFallback = false;
+		const focus = products.some((product) => product.catalogId === focusedProduct)
+			? focusedProduct
+			: products[0]?.catalogId;
+		const simulating = dev && poisonArmed;
+		poisonArmed = false;
+		const local = simulating
+			? validateProposal(
+					{
+						intent: 'change',
+						patch: { price: 1, layout: 'foreign', sections: ['unknown'] },
+						reply: '฿1'
+					},
+					activePlan,
+					focus
+				)
+			: interpretOffline(message, activePlan, focus);
+		if (
+			simulating ||
+			!dev ||
+			!liveEnabled ||
+			(local.intent !== 'chat' && local.intent !== 'change')
+		) {
+			applyTurn(local);
+			return;
+		}
+		const hints = projectLiveHints(message);
+		if (!hints.length) {
+			applyTurn(local);
+			return;
+		}
+		const request = new AbortController();
+		liveRequest = request;
+		pendingLocalTurn = local;
+		livePending = true;
+		turn = undefined;
+		changes = [];
+		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
+			(result) => {
+				if (liveRequest !== request) return;
+				liveRequest = undefined;
+				pendingLocalTurn = undefined;
+				livePending = false;
+				if (!result) {
+					liveFallback = true;
+					applyTurn(local);
+					return;
+				}
+				const proposed = validateProposal(
+					{ intent: 'change', patch: result.patch },
+					activePlan,
+					focus
+				);
+				const additions = fillPresentationGaps(local.patch, proposed.patch, activePlan, locks);
+				const dropped = result.rejected
+					? [...new Set([...proposed.dropped, 'unknown-field'])]
+					: proposed.dropped;
+				if (!Object.keys(additions).length) {
+					applyTurn({ ...local, dropped });
+					return;
+				}
+				liveModel = result.model;
+				applyTurn({ ...proposed, patch: { ...local.patch, ...additions }, dropped });
+			}
+		);
+	}
+
 	async function shareLook() {
 		const link = new SvelteURL(page.url.href);
 		link.search = '';
@@ -280,7 +360,10 @@
 		const timer = window.setInterval(() => {
 			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
 		}, 60_000);
-		return () => window.clearInterval(timer);
+		return () => {
+			cancelLive();
+			window.clearInterval(timer);
+		};
 	});
 	onMount(() => {
 		const look = page.url.searchParams.get('look');
@@ -353,6 +436,7 @@
 	}
 
 	function clearFilters() {
+		cancelLive();
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
 		maxPrice = undefined;
@@ -737,13 +821,25 @@
 					</button>
 					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
 					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
-					<button type="button" aria-expanded={traceOpen} onclick={() => (traceOpen = !traceOpen)}>
+					<button
+						type="button"
+						disabled={!interactive}
+						aria-expanded={traceOpen}
+						onclick={() => (traceOpen = !traceOpen)}
+					>
 						{a.trace}
 					</button>
 				</div>
+				{#if livePending}
+					<p class="assistant-reply" role="status">
+						{language === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
+					</p>
+				{/if}
 				{#if turn}
 					<div class="assistant-reply" aria-live="polite">
-						<span class="mode-label">{a.offline}</span>
+						<span class="mode-label">
+							{liveModel ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
+						</span>
 						<p>{turn.reply}</p>
 						{#if turn.citations.length}
 							<strong>{a.fromListing}</strong>
@@ -797,7 +893,27 @@
 				{/if}
 				{#if traceOpen}
 					<div class="assistant-reply" aria-label={a.trace}>
-						<p>{a.offline}</p>
+						<p>
+							{liveModel
+								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${liveModel}`
+								: a.offline}
+						</p>
+						{#if liveFallback}<p>
+								{language === 'th'
+									? 'ใช้การตอบแบบออฟไลน์แทน'
+									: 'Live model unavailable. Used offline mode.'}
+							</p>{/if}
+						{#if dev}
+							<button type="button" onclick={toggleLive} aria-pressed={liveEnabled}>
+								{liveEnabled
+									? language === 'th'
+										? 'บังคับโหมดออฟไลน์'
+										: 'Force offline'
+									: language === 'th'
+										? 'ลองใช้โมเดลสด'
+										: 'Try live model'}
+							</button>
+						{/if}
 						{#if turn?.guarded}<p>{a.guard}</p>{/if}
 						{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
 						{#if !changes.length}<p>{a.noChange}</p>{/if}

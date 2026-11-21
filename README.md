@@ -15,9 +15,21 @@ See the [team setup and security guide](docs/team-setup.md) for required tools, 
 
 See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.md) for the two-shopper rehearsal and the [contributor rules](AGENTS.md) for review and merge ownership.
 
-## Database configuration
+## Running the storefront
 
 The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The event-demo layout is available at `/?demo=shopee`.
+
+## Optional local OpenAI test
+
+Put your API key in the ignored `.env` file as `OPENAI_API_KEY`. Keep the tracked example blank. `OPENAI_MODEL` can select a model available to your API project and defaults to `gpt-5-mini`.
+
+Run `bun run dev --host 127.0.0.1` and open the printed loopback URL. In **X-ray**, choose **Try live model** and send a presentation request such as “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. X-ray identifies live and offline results, and **Force offline** switches subsequent turns back to the fallback. A production build runs the storefront offline.
+
+The local model receives a short list of allowlisted presentation hints. Product facts, prices, raw messages, and conversation history stay in the app. The model may propose a theme, layout, density or language. Listing questions and deal math use the existing deterministic paths.
+
+Run `bun run scripts/evaluate-local-assistant.ts` to compare the model and fallback on five fixed synthetic presentation cases. This opt-in command makes billable API requests and prints per-case matches without printing keys or provider payloads. Treat the results as smoke-test evidence.
+
+## Database configuration
 
 The separate authentication demo uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1. Its routes must be configured before use.
 

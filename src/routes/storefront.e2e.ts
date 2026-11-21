@@ -202,3 +202,14 @@ test('serves the storefront without credentials and isolates unconfigured demo a
 	const auth = await request.get('/api/auth/get-session', { failOnStatusCode: false });
 	expect(auth.status()).toBe(503);
 });
+
+test('disables live experimentation on the production storefront', async ({ page, request }) => {
+	await page.goto('/');
+	await page.getByRole('button', { name: 'X-ray' }).click();
+	await expect(page.getByRole('button', { name: 'Try live model' })).toHaveCount(0);
+	const result = await request.post('/api/local-assistant', {
+		headers: { origin: new URL(page.url()).origin },
+		data: { hints: ['playful'] }
+	});
+	expect(result.status()).toBe(404);
+});

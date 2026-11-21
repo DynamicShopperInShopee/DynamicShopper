@@ -1,6 +1,14 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 
 export const variables = defineEnvVars({
+	OPENAI_API_KEY: {
+		schema: (value) => value,
+		description: 'Optional private OpenAI API key for the local development assistant.'
+	},
+	OPENAI_MODEL: {
+		schema: (value) => value,
+		description: 'Optional model name for the local development assistant.'
+	},
 	DATABASE_URL: {
 		schema: (value) => value,
 		description: 'Local SQLite connection string for the auth demo when a D1 binding is absent.'
