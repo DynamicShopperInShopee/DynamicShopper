@@ -37,6 +37,16 @@ The AI never sees a price. Its view of the world is:
 
 Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in its context would tempt it to repeat it.
 
+## Explicit interview entry
+
+The root storefront can also obtain a presentation proposal from the optional
+four-question interview. The browser model receives answer IDs only and feeds
+the same proposal validator. Draft answers are isolated; one Apply passes the
+validated patch to the existing root change function and undo stack. Catalog
+facts, deterministic ranking and the optimizer stay on their existing paths.
+Model failure falls back to direct answers. See
+[the integration contract](../docs/INTERVIEW-INTEGRATION.md).
+
 ## The conversation pipeline
 
 Every message travels the same path, online or offline.

@@ -48,6 +48,9 @@
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
+	import PersonalizeShop from '../lib/storefront/PersonalizeShop.svelte';
+	import MarketplaceBrand from '../lib/storefront/MarketplaceBrand.svelte';
+	import type { ProposalSources } from '../lib/personalization/interview';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
@@ -83,13 +86,16 @@
 	let filterDialog = $state<HTMLDialogElement>();
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
 	const validLook = $derived(isValidLook(sharedLook));
-	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	let adapted = $state(false);
+	const marketplaceBrand = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	const eventDemo = $derived(
+		page.url.searchParams.get('view') !== 'receipt' && !validLook && !adapted
+	);
 	const originQuery = $derived(
-		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
+		marketplaceBrand ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
-	let adapted = $state(false);
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
 	let locks = $state<(keyof ShopperPlan)[]>([]);
@@ -586,7 +592,7 @@
 		openSharedLook();
 	}
 	afterNavigate(({ from, to }) => {
-		if (eventDemo) return;
+		if (eventDemo && !(session.visit?.adapted && session.visit.search === page.url.search)) return;
 		if (page.url.hash === '#xray') traceOpen = true;
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
@@ -614,7 +620,7 @@
 		}
 	});
 	$effect(() => {
-		if (!storeReady || eventDemo) return;
+		if (!storeReady) return;
 		const current = $state.snapshot(activePlan);
 		untrack(() => session.savePlan(current));
 	});
@@ -661,7 +667,7 @@
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
 	);
 	function captureSearch() {
-		return eventDemo
+		return marketplaceBrand
 			? {
 					category,
 					language,
@@ -677,7 +683,7 @@
 	}
 	function restoreSearch(input: unknown) {
 		const selection = readSearchSelection(input);
-		if (!eventDemo || !selection) return;
+		if (!marketplaceBrand || !selection) return;
 		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
 		draftPrice = maxPrice;
 		draftShipping = freeShipping;
@@ -1076,13 +1082,52 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:marketplace-brand={marketplaceBrand}
 	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
 >
 	<a class="skip" href="#products">{t.skip}</a>
-	{#if !eventDemo}
+	{#if marketplaceBrand}
+		<MarketplaceBrand
+			locale={language}
+			showControls={!eventDemo}
+			enabled={interactive}
+			{theme}
+			themes={themes.map((value) => ({ value, label: t[value] }))}
+			ontheme={(value: string) => {
+				theme = value as Theme;
+				register('theme');
+			}}
+			onlocale={() => {
+				register('locale');
+				language = language === 'th' ? 'en' : 'th';
+			}}
+		>
+			<div class="brand-store-actions">
+				<a
+					class="compare-link"
+					data-offline-ready={session.offlineReady}
+					href={resolve(`/compare?${compareParams}`)}
+				>
+					{a.compare}
+				</a>
+				<CartControls locale={language} onBestPrice={() => openBasket()} />
+				<button
+					type="button"
+					bind:this={traceTrigger}
+					disabled={!interactive}
+					aria-expanded={traceOpen}
+					aria-controls={traceOpen ? 'store-xray' : undefined}
+					aria-keyshortcuts="X"
+					onclick={toggleTrace}
+				>
+					{a.trace}
+				</button>
+			</div>
+		</MarketplaceBrand>
+	{:else if !eventDemo}
 		<header class="masthead">
 			<div class="wrap masthead-inner">
 				<a class="brand" href={resolve('/')} aria-label="DynamicShopper">
@@ -1212,6 +1257,28 @@
 				<button class="primary" type="submit">{t.submit}</button>
 			{/if}
 		</form>
+
+		<PersonalizeShop
+			plan={activePlan}
+			themeLocked={locks.includes('theme')}
+			enabled={interactive}
+			onapply={(patch: Partial<ShopperPlan>, sources: ProposalSources) => {
+				// A no-op must not silently add locks without an undo snapshot.
+				if (
+					!Object.entries(patch).some(
+						([key, value]) =>
+							JSON.stringify(activePlan[key as keyof ShopperPlan]) !== JSON.stringify(value)
+					)
+				)
+					return;
+				session.restoreBrowser();
+				storeReady = true;
+				changePlan(patch, false);
+				for (const field of Object.keys(patch) as (keyof ShopperPlan)[]) {
+					if (sources[field] === 'answer') register(field);
+				}
+			}}
+		/>
 
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
@@ -1717,6 +1784,19 @@
 		--paper: #fff;
 		--seam: #ecebe6;
 		--radius: 0;
+	}
+	.store.marketplace-brand[data-theme='standard'] {
+		--paper: #f5f5f5;
+		--accent: #b63113;
+	}
+	.brand-store-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem;
+		background: var(--surface);
+		color: var(--ink);
 	}
 	.store[data-theme='vibrant'] {
 		--accent: #2f3ccf;
