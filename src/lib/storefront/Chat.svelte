@@ -112,7 +112,7 @@
 
 	async function send(text: string) {
 		const message = text.trim();
-		if (pending || !message || message.length > 1000) return;
+		if (!message || message.length > 1000) return;
 		const originalDraft = draft;
 		try {
 			const result = await onSend(message);
@@ -199,7 +199,7 @@
 					class="min-h-[var(--tap,44px)] rounded-[999px] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 					type="button"
 					lang={suggestion.locale}
-					disabled={!ready || pending}
+					disabled={!ready}
 					onclick={() => send(suggestion.text)}
 				>
 					{suggestion.text}
@@ -227,7 +227,7 @@
 		<button
 			class="min-h-[var(--tap,44px)] self-end rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 			type="submit"
-			disabled={!ready || pending || !draft.trim()}
+			disabled={!ready || !draft.trim()}
 		>
 			{t.send}
 		</button>

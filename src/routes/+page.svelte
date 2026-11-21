@@ -553,7 +553,7 @@
 	}
 
 	async function send(message: string): Promise<void | 'superseded'> {
-		if (pendingPhase || !message.trim()) return 'superseded';
+		if (!message.trim()) return 'superseded';
 		cancelPending();
 		const generation = requestGeneration;
 		pendingPhase = 'cart';
