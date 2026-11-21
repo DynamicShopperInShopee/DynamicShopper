@@ -116,13 +116,9 @@ for (const lang of ['en', 'th'] as const) {
 
 		await view.locator('summary').click();
 		const layout = view.getByRole('combobox', { name: th ? 'การจัดวาง' : 'Layout', exact: true });
-		const theme = view.getByRole('combobox', {
-			name: th ? 'ธีมหน้าร้าน' : 'Storefront theme',
-			exact: true
-		});
 		await layout.selectOption('table');
 		await expect(layout).toHaveValue('table');
-		await expect(theme).toHaveValue('standard');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
 		await expect(requirements.locator('summary')).toContainText('1,000');
 		const undo = page.getByRole('button', { name: th ? 'ย้อนกลับ' : 'Undo', exact: true }).first();
@@ -133,7 +129,11 @@ for (const lang of ['en', 'th'] as const) {
 		await expect(weight).toHaveValue('lower');
 		await undo.click();
 		await expect(budget).toHaveValue('1500');
-		await theme.selectOption('large-print');
+		if (th) await page.getByRole('button', { name: 'แชตกับผู้ช่วย' }).click();
+		await message.fill(th ? 'ตัวหนังสือใหญ่' : 'large print');
+		await message.press('Enter');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
+		if (th) await page.keyboard.press('Escape');
 		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
 		await expect(layout).toHaveValue('grid');
@@ -152,9 +152,9 @@ for (const lang of ['en', 'th'] as const) {
 			.first()
 			.click();
 		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
-		await expect(theme).toHaveValue('large-print');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 		await undo.click();
-		await expect(theme).toHaveValue('standard');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 		await expect
 			.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
 			.toBe(true);

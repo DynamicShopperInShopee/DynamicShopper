@@ -14,13 +14,7 @@
 		type ShopId,
 		type SpecKey
 	} from '../catalog';
-	import {
-		densities,
-		layouts,
-		priorities,
-		themes,
-		type ShopperPlan
-	} from '../personalization/plan';
+	import { densities, layouts, priorities, type ShopperPlan } from '../personalization/plan';
 	import { matchesQuery } from '../personalization/ranking';
 	import { rankingTerms, storefrontCopy } from './copy';
 	import FactValue from './FactValue.svelte';
@@ -362,20 +356,6 @@
 							onChange({ locale: event.currentTarget.value === 'th' ? 'th' : 'en' })}
 					>
 						<option value="en" lang="en">English</option><option value="th" lang="th">ไทย</option>
-					</select>
-				</label>
-				<label>
-					{th ? 'ธีมหน้าร้าน' : 'Storefront theme'}
-					<select
-						value={plan.theme}
-						onchange={(event) => {
-							const theme = themes.find((key) => key === event.currentTarget.value);
-							if (theme) onChange({ theme });
-						}}
-					>
-						{#each themes as theme (theme)}<option value={theme}>
-								{store[theme === 'large-print' ? 'large' : theme]}
-							</option>{/each}
 					</select>
 				</label>
 				<label>

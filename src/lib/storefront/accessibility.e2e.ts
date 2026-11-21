@@ -139,7 +139,13 @@ async function assertReadable(scope: Locator, large: boolean) {
 					frame && image
 						? await captionContrast(node, element, { frame, image }, foreground)
 						: contrast(foreground, background(element));
-				if (ratio < 4.5) problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
+				// WCAG 1.4.3: 18pt regular or 14pt bold text uses the 3:1 threshold.
+				// https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+				const weight = Number.parseFloat(style(element).fontWeight);
+				const largeText = font >= 24 || (font >= (14 * 96) / 72 && weight >= 700);
+				const minimumContrast = largeText ? 3 : 4.5;
+				if (ratio < minimumContrast)
+					problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
 			}
 
 			for (const element of root.querySelectorAll<HTMLElement>(
@@ -212,13 +218,11 @@ for (const theme of themes) {
 			}) => {
 				await page.emulateMedia({ reducedMotion: 'reduce' });
 				await page.setViewportSize({ width, height });
-				await page.goto('/?view=receipt');
+				await page.goto(`/?view=receipt&look=${theme}.grid.${lang}`);
 				const store = page.locator('.store');
 				const search = page.getByRole('searchbox');
 				await expect(search).toBeEnabled();
 
-				if (lang === 'th') await page.getByRole('button', { name: 'ไทย', exact: true }).click();
-				await page.getByLabel(lang === 'th' ? 'ธีม' : 'Theme', { exact: true }).selectOption(theme);
 				await expect(store).toHaveAttribute('lang', lang);
 				await expect(store).toHaveAttribute('data-theme', theme);
 				await search.fill(lang === 'th' ? 'หม้อหุงข้าว' : 'rice cooker');

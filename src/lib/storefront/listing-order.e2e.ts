@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { personaPlan } from '../personalization/plan';
 
 const cooker = '/product/cooker-one-button';
@@ -9,10 +9,16 @@ function look(details: string[]) {
 	return Buffer.from(JSON.stringify({ details })).toString('base64url');
 }
 
+async function changeView(page: Page, message: string, theme: string) {
+	const input = page.getByRole('textbox', { name: 'Ask the store' });
+	await input.fill(message);
+	await input.press('Enter');
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', theme);
+}
+
 test('uses the tech storefront plan for the receipt listing', async ({ page }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+	await changeView(page, 'minimal', 'minimal');
 	const link = page.locator('a[href*="/product/"][href*="view=receipt"]').first();
 	await link.click();
 	await expect(page.locator('[data-listing-section]')).toHaveCount(3);
@@ -27,8 +33,7 @@ test('takes the copied URL order over a conflicting visit and preserves fact pro
 	page
 }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+	await changeView(page, 'minimal', 'minimal');
 	const href = receipt + '&look=' + look(['reviews', 'specs', 'summary']) + '&lang=th&theme=large';
 	await page.evaluate((href) => {
 		const link = document.createElement('a');
@@ -80,8 +85,7 @@ test('real comparison links use their pane orders and preserve the store undo st
 	page
 }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Mom mode', exact: true }).click();
+	await changeView(page, 'mom mode', 'large');
 	await page.locator('a[href^="/compare?"]').click();
 	const panes = page.locator('.panes > .pane');
 	for (const [index, order] of [
@@ -110,8 +114,7 @@ test('real shelf links follow presentation changes from a shared store and prese
 	page
 }) => {
 	await page.goto('/?view=receipt&look=' + look(['specs', 'reviews', 'summary']));
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
+	await changeView(page, 'visual style', 'vibrant');
 	const link = page.locator('#products a[href*="/product/"]').first();
 	await link.click();
 	await expect
@@ -137,8 +140,7 @@ test('real shelf links follow presentation changes from a shared store and prese
 
 test('inline comparison links use their pane orders', async ({ page }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
+	await changeView(page, 'visual style', 'vibrant');
 	await page.getByRole('button', { name: 'Compare views', exact: true }).click();
 	for (const [index, order] of [
 		[0, ['specs', 'summary', 'reviews']],

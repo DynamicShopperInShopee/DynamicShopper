@@ -107,23 +107,16 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'Compare views' })).toBeEnabled();
 	await context.setOffline(true);
-	const views = page.getByRole('button', { name: 'Shopper views' });
-	const tech = page.getByRole('button', { name: 'Tech minimal' });
-	await expect(tech).toBeHidden();
-	await views.press('Space');
-	await expect(views).toHaveAttribute('aria-expanded', 'true');
-	await page.keyboard.press('Tab');
-	await expect(page.locator('#shopper-presets button').first()).toBeFocused();
-	await page.keyboard.press('Escape');
-	await expect(tech).toBeHidden();
-	await expect(views).toBeFocused();
-	await views.press('Enter');
-	await tech.click();
+	await expect(page.getByRole('button', { name: 'Shopper views' })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Chat with the assistant' }).press('Enter');
+	const assistant = page.getByRole('textbox', { name: 'Ask the store' });
+	await expect(assistant).toBeFocused();
+	await assistant.fill('minimal');
+	await assistant.press('Enter');
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
-	await page.getByRole('button', { name: 'Undo' }).click();
+	await page.keyboard.press('Escape');
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
-	await views.click();
-	await expect(tech).toBeHidden();
 	await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
 	await page.getByRole('button', { name: 'Send' }).click();
@@ -177,14 +170,30 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 	await page.getByRole('button', { name: 'Clear filters' }).click();
 	await expect(cards).toHaveCount(8);
 
-	for (const [languageButton, themeLabel, heading] of [
-		['ไทย', 'ธีม', 'เลือกดูสินค้า'],
-		['English', 'Theme', 'Browse products']
-	]) {
+	for (const [languageButton, heading, thai] of [
+		['ไทย', 'เลือกดูสินค้า', true],
+		['English', 'Browse products', false]
+	] as const) {
 		await page.getByRole('button', { name: languageButton, exact: true }).click();
 		await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-		for (const theme of ['standard', 'minimal', 'vibrant', 'large']) {
-			await page.getByLabel(themeLabel, { exact: true }).selectOption(theme);
+		const chat = page.getByRole('button', {
+			name: thai ? 'แชตกับผู้ช่วย' : 'Chat with the assistant'
+		});
+		const input = page.getByRole('textbox', { name: thai ? 'ถามหน้าร้าน' : 'Ask the store' });
+		for (const [theme, message] of [
+			['standard', ''],
+			['minimal', 'minimal'],
+			['vibrant', 'visual style'],
+			['large', 'large print']
+		]) {
+			await page.setViewportSize({ width: 390, height: 844 });
+			if (message) {
+				await chat.click();
+				await input.fill(message);
+				await input.press('Enter');
+				await expect(page.locator('.store')).toHaveAttribute('data-theme', theme);
+				await page.keyboard.press('Escape');
+			}
 			await expect(page.locator('.store')).toHaveAttribute('data-theme', theme);
 			for (const [width, height] of [
 				[390, 844],
@@ -193,6 +202,8 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 				await page.setViewportSize({ width, height });
 				expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
 			}
+			if (message)
+				await page.getByRole('button', { name: thai ? 'ย้อนกลับ' : 'Undo', exact: true }).click();
 		}
 	}
 	await expect(cards).toHaveCount(8);
@@ -345,6 +356,42 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await strip.getByLabel('Categories').selectOption('skin');
 	await expect(strip).toHaveCount(0);
 	await expect(page.getByRole('region', { name: 'Matching shops' })).toBeVisible();
+	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
+});
+
+test('compacts the cooker controls without displacing the product shelf', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.evaluate(() => document.fonts.ready);
+	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	const shelf = page.locator('.product-grid');
+	const position = () =>
+		shelf.evaluate((element) => Math.round(element.getBoundingClientRect().top + window.scrollY));
+
+	await page.evaluate(() => scrollTo(0, 179));
+	await expect(strip).not.toHaveClass(/condensed/);
+	const expandedPosition = await position();
+	const expandedHeight = (await strip.boundingBox())!.height;
+	await page.evaluate(() => scrollTo(0, 181));
+	await expect(strip).toHaveClass(/condensed/);
+	expect((await strip.boundingBox())!.height).toBeLessThan(expandedHeight);
+	await expect.poll(position).toBe(expandedPosition);
+});
+
+test('opens the interview from the category results quick controls', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Skincare', exact: true }).click();
+	const strip = page.getByRole('navigation', { name: 'Skincare filters' });
+	const interview = strip.getByRole('button', { name: 'Start a quick interview' });
+	await interview.click();
+	const dialog = page.getByRole('dialog', { name: 'Make the shop fit you' });
+	await expect(dialog).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(interview).toBeFocused();
 	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
 });
 

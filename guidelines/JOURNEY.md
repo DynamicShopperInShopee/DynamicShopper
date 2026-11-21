@@ -8,7 +8,7 @@ A cooker capacity selected on the public storefront stays active when the shoppe
 
 Changing the category under **Shopping criteria → Requirements** keeps a matching search and clears an incompatible one. Undo restores the previous category, search and shelf together.
 
-After applying an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
+After completing an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
 
 ## The arc
 
@@ -42,7 +42,7 @@ The product always offers a direct path to the same result:
 | If | The shopper can |
 | --- | --- |
 | A reply does not reshape as expected | Use the matching suggestion chip, or Reset and send again |
-| Mom mode does not trigger | Open **Shopper views**, pick **Mom mode**, then search "หม้อหุงข้าว" |
+| Mom mode does not trigger | Switch to Thai, search "หม้อหุงข้าว", and choose the shortlist goal and large text in the quick interview |
 | The answer is "I can't confirm that from the listing" | Ask about something the listing covers, such as weight; the refusal is the honest answer |
 | A deal does not appear | Press "Best price" on a card |
 | The compare check says "Nothing to compare yet" | Search "rice cooker" on the compare page |

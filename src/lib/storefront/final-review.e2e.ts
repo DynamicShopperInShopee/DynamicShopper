@@ -168,10 +168,10 @@ test('clearing incompatible saved shop filters recovers products and has one Und
 	await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled();
 });
 
-test('direct language and theme each own one Undo step', async ({ page }) => {
+test('direct language and a chat theme each own one Undo step', async ({ page }) => {
 	await page.goto(store);
 	const undo = page.getByRole('button', { name: 'Undo', exact: true });
-	await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption('vibrant');
+	await send(page, 'visual style');
 	await expect(undo).toBeEnabled();
 	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
 	await page.getByRole('button', { name: 'ย้อนกลับ', exact: true }).click();
@@ -240,8 +240,8 @@ test('a mentioned product link from a compare listing retains the pane look over
 	page
 }) => {
 	await page.goto(store);
-	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
+	await send(page, 'visual style');
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'vibrant');
 	const search = page.getByRole('searchbox');
 	await search.fill('rice cooker');
 	await search.press('Enter');

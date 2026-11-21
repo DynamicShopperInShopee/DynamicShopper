@@ -11,7 +11,7 @@ for (const method of ['browser Back', 'listing Back', 'listing Search']) {
 		await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
 		await dialog.getByRole('button', { name: 'Next', exact: true }).click();
 		for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
-		await dialog.getByRole('button', { name: 'Apply my view' }).click();
+		await expect(dialog).toHaveCount(0);
 		const table = page.getByRole('region', { name: 'Product table' });
 		await table.getByRole('link').first().click();
 		await expect(page.getByRole('link', { name: 'Back to store' })).toBeVisible();
@@ -47,7 +47,6 @@ test('an interview listing return keeps the reply proof and focused product', as
 	await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
 	await dialog.getByRole('button', { name: 'Next', exact: true }).click();
 	for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
 	const table = page.getByRole('region', { name: 'Product table' });
 	const focusProduct = table.locator('tr[data-product="cooker-one-button"]');
 	await focusProduct.getByRole('button', { name: 'Best price', exact: true }).click();
@@ -94,7 +93,6 @@ test('an interview listing returns to the receipt URL and its shared look', asyn
 	await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
 	await dialog.getByRole('button', { name: 'Next', exact: true }).click();
 	for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
 	await page.getByRole('region', { name: 'Product table' }).getByRole('link').first().click();
 	const back = page.getByRole('link', { name: 'Back to store' });
 	await expect(back).toHaveAttribute('href', origin);
@@ -114,8 +112,7 @@ test('the harness keeps marketplace filters after a no-op interview', async ({ p
 	const dialog = page.getByRole('dialog');
 	for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
 	await dialog.getByRole('radio', { name: 'Balanced', exact: true }).check();
-	await dialog.getByRole('button', { name: 'Preview my view' }).click();
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
+	await dialog.getByRole('button', { name: 'Finish interview' }).click();
 	await expect(page.getByRole('button', { name: 'Edit my answers' })).toBeVisible();
 	await page.getByRole('link', { name: 'Explore the agent harness' }).click();
 	await expect(page).toHaveURL(/\/harness#assistant$/);
@@ -133,7 +130,6 @@ test('a comparison listing without a checkpoint retains its receipt return', asy
 	await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
 	await dialog.getByRole('button', { name: 'Next', exact: true }).click();
 	for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
 	await page.getByRole('link', { name: 'Compare views', exact: true }).click();
 	await page
 		.getByRole('region', { name: 'Left view' })

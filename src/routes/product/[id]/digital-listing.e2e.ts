@@ -17,7 +17,10 @@ test('the digital alias shows catalog modes, package items and extended specific
 	await expect(details.locator('#digital-preset [data-fact="detail.presetHours"]')).toHaveText(
 		'24 h'
 	);
-	await expect(details.locator('[data-fact="detail.depth"]')).toHaveAttribute('data-raw', '24.5');
+	await expect(details.locator('#digital-dimensions [data-fact="detail.depth"]')).toHaveAttribute(
+		'data-raw',
+		'24.5'
+	);
 	await expect(
 		details.locator('[data-fact^="detail."]:not([data-product-id="cooker-digital"])')
 	).toHaveCount(0);
@@ -79,6 +82,67 @@ test('a copied digital receipt keeps its section order and illustrated catalog f
 	await expect(page.locator('main > [data-proof]')).toHaveAttribute('data-proof', 'verified');
 });
 
+test('dimension values stay beside the cooker diagram and carry their catalog facts', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/product/cooker-2?lang=th');
+	const dimensions = page.locator('#digital-dimensions');
+	const information = page.getByRole('region', { name: 'ข้อมูลสินค้า' });
+	const photo = dimensions.locator('img');
+	await photo.scrollIntoViewIfNeeded();
+	const bounds = (await photo.boundingBox())!;
+	for (const [field, raw, formatted] of [
+		['detail.width', '20', '20 ซม.'],
+		['detail.depth', '24.5', '24.5 ซม.'],
+		['detail.height', '21', '21 ซม.']
+	]) {
+		const measurement = dimensions.locator(`[data-fact="${field}"]`);
+		await expect(measurement).toHaveAttribute('data-product-id', 'cooker-digital');
+		await expect(measurement).toHaveAttribute('data-raw', raw);
+		await expect(measurement).toHaveText(formatted);
+		await expect(measurement).toHaveCSS('font-family', /IBM Plex Mono/);
+		await expect(information.locator(`[data-fact="${field}"]`)).toHaveText(formatted);
+		const label = (await measurement.boundingBox())!;
+		if (field === 'detail.height') {
+			expect(label.x).toBeLessThan(bounds.x);
+			expect(label.y).toBeGreaterThan(bounds.y + bounds.height * 0.25);
+			expect(label.y + label.height).toBeLessThan(bounds.y + bounds.height * 0.75);
+		} else {
+			expect(label.y).toBeGreaterThan(bounds.y + bounds.height * 0.8);
+		}
+	}
+	await expect(dimensions.locator('[data-fact="detail.voltage"]')).toHaveText('220–240 โวลต์');
+	await expect(information.locator('[data-fact="detail.weight"]')).toHaveText('1.7 กก.');
+	await expect(page.locator('[data-proof]')).toHaveAttribute('data-proof', 'verified');
+});
+
+for (const lang of ['en', 'th']) {
+	test(`large-print description captions fit the portrait panels in ${lang}`, async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await page.goto(`/product/cooker-digital?theme=large&lang=${lang}`);
+		await page.evaluate(() => document.fonts.ready);
+		for (const panel of ['digital-intro', 'digital-serving', 'digital-nonstick']) {
+			const caption = page.locator(`#${panel} figcaption`);
+			await expect(caption).toBeVisible();
+			const fits = await caption.evaluate((node) => {
+				const panel = node.parentElement!.getBoundingClientRect();
+				return Array.from(node.querySelectorAll('h3, p')).every((text) => {
+					const range = document.createRange();
+					range.selectNodeContents(text);
+					return (
+						Number.parseFloat(getComputedStyle(text).fontSize) >= 20 &&
+						Array.from(range.getClientRects()).every(
+							(line) => line.left >= panel.left - 1 && line.right <= panel.right + 1
+						)
+					);
+				});
+			});
+			expect(fits).toBe(true);
+		}
+	});
+}
+
 for (const theme of ['standard', 'minimal', 'vibrant', 'large']) {
 	for (const viewport of [
 		{ width: 390, height: 844 },
@@ -92,8 +156,10 @@ for (const theme of ['standard', 'minimal', 'vibrant', 'large']) {
 			const story = page.locator('#digital-description');
 			const photos = story.locator('img');
 			await expect(story).toBeVisible();
-			await expect(story.locator('figure img')).toHaveCount(8);
-			await expect(story.locator('#digital-package img')).toHaveCount(6);
+			await expect(story.locator('figure img')).toHaveCount(7);
+			await expect(story.locator('#digital-preset svg')).toBeVisible();
+			await expect(story.locator('#digital-preset img')).toHaveCount(0);
+			await expect(story.locator('#digital-package img')).toHaveCount(1);
 			for (const photo of await photos.all()) {
 				await photo.scrollIntoViewIfNeeded();
 				await expect

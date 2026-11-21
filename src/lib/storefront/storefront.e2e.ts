@@ -156,14 +156,21 @@ for (const layout of ['grid', 'table'] as const) {
 	}) => {
 		await page.setViewportSize({ width: 1440, height: 900 });
 		await page.goto(storefrontUrl + '/?view=receipt');
+		if (layout === 'table') {
+			await page.getByRole('button', { name: 'Start a quick interview' }).click();
+			const dialog = page.getByRole('dialog', { name: 'Make the shop fit you' });
+			await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
+			await dialog.getByRole('button', { name: 'Next', exact: true }).click();
+			for (let step = 0; step < 2; step++)
+				await dialog.getByRole('button', { name: /Skip/ }).click();
+			await dialog.getByRole('radio', { name: 'Large text', exact: true }).check();
+			await dialog.getByRole('button', { name: 'Finish interview', exact: true }).click();
+			await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
+		}
 		await page.getByRole('button', { name: 'X-ray', exact: true }).click();
 		const live = page.getByRole('button', { name: 'Try live model' });
 		await live.click();
 		await page.getByRole('button', { name: 'Close X-ray' }).click();
-		if (layout === 'table') {
-			await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
-			await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
-		}
 		await page
 			.getByRole('button', { name: /^Add to cart/ })
 			.first()
@@ -200,7 +207,7 @@ for (const layout of ['grid', 'table'] as const) {
 			if (layout === 'table') {
 				await page.getByRole('button', { name: 'ไทย', exact: true }).click();
 				await expect(page.locator('.store')).toHaveAttribute('lang', 'th');
-				await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+				await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 				await expect(
 					page.locator('#products').getByRole('button', { name: 'ราคาดีที่สุด', exact: true }).first()
 				).toBeEnabled();
@@ -213,7 +220,7 @@ for (const layout of ['grid', 'table'] as const) {
 			await expect(page.getByRole('log').getByText('What changed', { exact: true })).toBeVisible();
 			await expect(quotes.first()).toBeEnabled();
 		} else {
-			await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+			await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 		}
 	});
 }
