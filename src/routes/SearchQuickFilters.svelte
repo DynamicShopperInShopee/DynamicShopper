@@ -41,7 +41,7 @@
 	let strip: HTMLDivElement;
 	let previousMode: boolean | undefined;
 	$effect(() => {
-		if (previousMode !== cooker) strip.scrollLeft = 0;
+		if (strip && previousMode !== cooker) strip.scrollLeft = 0;
 		previousMode = cooker;
 	});
 	const sizes = new SvelteMap<number, string>();

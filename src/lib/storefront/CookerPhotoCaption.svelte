@@ -26,9 +26,10 @@
 		position: absolute;
 		inset-inline-start: 16%;
 		top: var(--gallery-caption-top, 4.5%);
-		padding: var(--gallery-caption-padding, 0);
-		background: var(--gallery-caption-background, transparent);
 		max-width: 51%;
+		background: var(--gallery-caption-surface, transparent);
+		color: var(--gallery-caption-ink, inherit);
+		padding: var(--gallery-caption-padding, 0);
 		font-size: max(var(--action-font-floor, 12px), clamp(14px, 4cqi, 24px));
 		font-weight: 600;
 	}

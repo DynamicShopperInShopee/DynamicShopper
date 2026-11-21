@@ -236,3 +236,5 @@ Skincare results lead with the shop panel, sort tabs and a single row of working
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
+
+The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.

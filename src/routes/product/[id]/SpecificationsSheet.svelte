@@ -92,10 +92,7 @@
 				{/each}
 			</dl>
 		</div>
-		<form method="dialog">
-			<!-- svelte-ignore a11y_autofocus (Native dialog autofocus belongs on its close button.) -->
-			<button autofocus>{th ? 'ตกลง' : 'Done'}</button>
-		</form>
+		<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
 	</dialog>
 {/if}
 

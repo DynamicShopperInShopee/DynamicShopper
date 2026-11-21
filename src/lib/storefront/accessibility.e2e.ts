@@ -296,7 +296,7 @@ for (const theme of themes) {
 					lang === 'th' ? '1.8 ลิตร' : '1.8 L'
 				);
 				await expect(
-					sheet.getByRole('button', { name: lang === 'th' ? 'ตกลง' : 'Done' })
+					sheet.getByRole('region', { name: lang === 'th' ? 'คุณลักษณะสินค้า' : 'Product attributes' })
 				).toBeFocused();
 				await assertReadable(sheet, theme === 'large');
 				await page.keyboard.press('Escape');

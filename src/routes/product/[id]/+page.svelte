@@ -118,8 +118,9 @@
 	@media (max-width: 699px) {
 		main[data-theme='large'] {
 			--gallery-caption-top: 68px;
-			--gallery-caption-background: #0d0d10;
-			--gallery-caption-padding: 0 0.35em;
+			--gallery-caption-surface: #fff;
+			--gallery-caption-ink: #16161a;
+			--gallery-caption-padding: 0.125em 0.25em;
 		}
 		main {
 			padding-bottom: calc(var(--listing-actions-height, 60px) + 1rem);

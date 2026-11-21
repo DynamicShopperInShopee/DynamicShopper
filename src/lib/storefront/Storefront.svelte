@@ -1526,6 +1526,12 @@
 						</p>
 					</div>
 				{/if}
+				{#if changes.length}
+					<div class="assistant-reply" role="status">
+						<strong>{a.changed}</strong>
+						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
+					</div>
+				{/if}
 				{#if sharedLookOpened}<p role="status">
 						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
 					</p>{/if}

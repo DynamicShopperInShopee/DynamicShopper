@@ -18,7 +18,7 @@ test('shares only the canonical listing and safe display parameters', async ({ p
 	await page.getByRole('button', { name: 'แชร์สินค้า', exact: true }).click();
 	const expected = new URL('/product/cooker-one-button?lang=th&theme=large', page.url()).href;
 	await expect(page.locator('html')).toHaveAttribute('data-copied-link', expected);
-	await expect(page.getByRole('status')).toHaveText('คัดลอกลิงก์แล้ว');
+	await expect(page.locator('header').getByRole('status')).toHaveText('คัดลอกลิงก์แล้ว');
 });
 
 test('offers a selectable link when sharing and clipboard are unavailable', async ({ page }) => {
