@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import PresetReading from './PresetReading.svelte';
+	import ReadingControls from './ReadingControls.svelte';
 	import { presetListingHref } from './listing-link';
 	import {
 		categories,
@@ -78,7 +78,7 @@
 
 </script>
 
-<PresetReading {locale} separateApply={recipe.blocks.includes('apply')} {resetCanvas} bind:reading>
+<ReadingControls {locale} separateApply={recipe.blocks.includes('apply')} {resetCanvas} bind:reading>
 {#snippet children(controls)}
 <div
 	class="canvas {recipe.arrangement}"
@@ -283,7 +283,7 @@
 	<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
 {/if}
 {/snippet}
-</PresetReading>
+</ReadingControls>
 
 <style>
 	.canvas {

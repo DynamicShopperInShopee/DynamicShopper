@@ -80,6 +80,7 @@
 		font: inherit;
 		min-height: var(--tap, 44px);
 		box-sizing: border-box;
+		max-width: 100%;
 		border: 1px solid var(--muted);
 		background: var(--surface);
 		color: var(--ink);

@@ -86,7 +86,7 @@ test('every registered module and authored example can be inspected', async ({ p
 			await expect(page.locator('[data-preset]')).toHaveAttribute('data-preset', recipe.id);
 		}
 	}
-	const examples = page.getByLabel('Example', { exact: true });
+	const examples = page.getByRole('combobox', { name: 'Example', exact: true });
 	await expect(examples.locator('option')).toHaveCount(shopPresets.length);
 	for (const preset of shopPresets) {
 		await examples.selectOption(preset.id);
@@ -95,4 +95,17 @@ test('every registered module and authored example can be inspected', async ({ p
 			preset.patch.theme!
 		);
 	}
+});
+
+test('examples use ranked choices and retain language and large print in listing links', async ({
+	page
+}) => {
+	await page.goto('/presets');
+	await page.getByRole('button', { name: 'English', exact: true }).click();
+	await page
+		.getByRole('combobox', { name: 'Example', exact: true })
+		.selectOption({ label: 'Large-print comparison' });
+	const links = page.locator('.example-shelf a[href*="/product/"]');
+	await expect(links.first()).toHaveAttribute('href', /lang=en&theme=large/);
+	await expect(links.first()).toHaveAttribute('href', /cooker-ih/);
 });
