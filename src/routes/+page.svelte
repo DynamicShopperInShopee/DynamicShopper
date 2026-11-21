@@ -660,7 +660,7 @@
 						label={t.sort}
 						bind:sort={
 							() => sort,
-							(value) => {
+							(value: Sort) => {
 								cancelLive();
 								remember();
 								sort = value;
@@ -770,7 +770,7 @@
 				{category}
 				bind:capacity={
 					() => capacity,
-					(value) => {
+					(value: number | undefined) => {
 						cancelLive();
 						remember();
 						capacity = value;
@@ -784,7 +784,7 @@
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value) => {
+				changeCategory={(value: Category | 'all') => {
 					if (query) {
 						draftQuery = query = '';
 					}
