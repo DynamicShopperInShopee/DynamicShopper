@@ -7,6 +7,8 @@
 	import { SvelteURL } from 'svelte/reactivity';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
+	import SearchShopPreview from './SearchShopPreview.svelte';
+	import '../lib/assets/products/shelf-photos.css';
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
 	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
 	import { formatBaht, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
@@ -52,8 +54,13 @@
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
-	const eventDemo = $derived(
-		page.url.searchParams.get('demo') === 'shopee' || page.url.searchParams.get('view') === 'event'
+	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
+	const validLook = $derived(
+		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(sharedLook)
+	);
+	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	const originQuery = $derived(
+		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
@@ -781,7 +788,7 @@
 								{#each turn.citations as citation (`${citation.productId}:${citation.field}`)}
 									<li>
 										<a
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, {
+											href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
 												id: citation.productId
 											})}
 										>
@@ -902,9 +909,17 @@
 				</div>
 			{/if}
 		{/if}
+		{#if eventDemo && products.length && products.every((product) => product.category === 'cooker')}
+			<SearchShopPreview {products} {language} {theme} />
+		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div class="results-header">
 				<h2 id="products-heading">{t.products}</h2>
+				{#if eventDemo}
+					<a class="assistant-link" href={resolve('/?view=receipt')}>
+						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
+					</a>
+				{/if}
 				<p aria-live="polite">
 					<span class="visually-hidden">{t.products} </span>
 					<span class="figure" data-fact="resultCount" data-raw={products.length}>
@@ -953,7 +968,7 @@
 										class="art demo-photo"
 										data-category={product.category}
 										data-model={product.id}
-									data-cooker-photo={product.catalogId}
+										data-cooker-photo={product.catalogId}
 										aria-hidden="true"
 									></div>
 								{:else}
@@ -963,7 +978,7 @@
 									<h3>
 										<a
 											class="product-link"
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, {
+											href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
 												id: product.id
 											})}
 										>
@@ -1401,8 +1416,10 @@
 	.art {
 		display: grid;
 		place-items: center;
-		background: #e9e6dc;
 		color: var(--accent);
+	}
+	.art:not(.demo-photo) {
+		background: #e9e6dc;
 	}
 	.card-body {
 		display: flex;
@@ -1646,44 +1663,6 @@
 	.event-demo .art {
 		aspect-ratio: 1;
 	}
-	.demo-photo:where(.art) {
-		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
-	}
-	.demo-photo[data-model='cooker-1'] {
-		background: #d0dce6 url('../lib/assets/products/cooker-one-button.jpg') center / cover no-repeat;
-	}
-	.demo-photo[data-category='earbuds'] {
-		background-position: 50% 0;
-	}
-	.demo-photo[data-category='power'] {
-		background-position: 100% 0;
-	}
-	.demo-photo[data-category='cooker']:not([data-model='cooker-1']) {
-		background-image: var(--cooker-image, url('../lib/assets/products/demo-categories.jpg'));
-		background-position: var(--cooker-position, 0 100%);
-		background-size: var(--cooker-size, 300% 200%);
-	}
-	.demo-photo[data-category='skin'] {
-		background-position: 50% 100%;
-	}
-	.demo-photo[data-category='mouse'] {
-		background-image: url('../lib/assets/products/demo-mice.jpg');
-	}
-	.demo-photo:is([data-model='mouse-2'], [data-model='mouse-8']) {
-		background-position: 50% 0;
-	}
-	.demo-photo[data-model='mouse-3'] {
-		background-position: 100% 0;
-	}
-	.demo-photo[data-model='mouse-4'] {
-		background-position: 0 100%;
-	}
-	.demo-photo[data-model='mouse-5'] {
-		background-position: 50% 100%;
-	}
-	.demo-photo[data-model='mouse-6'] {
-		background-position: 100% 100%;
-	}
 
 	.event-demo .card-body {
 		padding: 0.4rem;
@@ -1770,5 +1749,14 @@
 		.event-demo .product-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
+	}
+	.assistant-link {
+		margin-inline-start: auto;
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--tap);
+		font-size: var(--small);
+		color: var(--ink);
+		text-decoration: underline;
 	}
 </style>

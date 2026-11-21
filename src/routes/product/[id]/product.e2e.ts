@@ -53,3 +53,23 @@ test('prices a canonical product offline and renders its category specs', async 
 	await expect(page.locator('[data-deal-fact="total"]')).toHaveAttribute('data-raw', '1193');
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
 });
+
+test('mobile listing places navigation over the photo and keeps the specification footer in view', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/product/cooker-one-button');
+	const hero = page.locator('.art');
+	expect((await hero.boundingBox())?.y).toBe(0);
+	const search = page.getByRole('link', { name: 'Search products' });
+	await expect(search).toBeInViewport();
+	await page.getByRole('link', { name: 'Details', exact: true }).click();
+	await expect(search).toBeInViewport();
+	await expect(search.getByText('Search products')).toBeVisible();
+	await page.getByRole('button', { name: 'Specifications', exact: true }).click();
+	const sheet = page.getByRole('dialog');
+	expect((await sheet.boundingBox())!.height).toBeGreaterThan(844 * 0.8);
+	await expect(sheet.getByRole('button', { name: 'Done' })).toBeInViewport();
+	await page.keyboard.press('Escape');
+	await expect(page.getByRole('button', { name: 'Specifications', exact: true })).toBeFocused();
+});

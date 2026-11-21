@@ -17,7 +17,7 @@ See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.m
 
 ## Running the storefront
 
-The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The event-demo layout is available at `/?demo=shopee`.
+The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The mobile storefront is the default at `/`. Its shopping assistant link opens the adaptive receipt view at `/?view=receipt`.
 
 ## Optional local OpenAI test
 
