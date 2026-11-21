@@ -46,7 +46,7 @@ function matchesRaw(serialized: string | null, expected: FactValue): boolean {
 }
 
 function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: FactLocale) {
-	const nodes = root.querySelectorAll<HTMLElement>('[data-fact]');
+	const nodes = root.querySelectorAll<HTMLElement>('[data-fact], .catalog-fact');
 	const result: FactCheck = { checked: 0, mismatches: [] };
 	const identities = new Map<string, PrintedFact>();
 
@@ -64,6 +64,7 @@ function inspectFacts(root: ParentNode, resolve: ResolvePrintedFact, locale: Fac
 
 		result.checked++;
 		const previousMismatchCount = result.mismatches.length;
+		if (!node.hasAttribute('data-fact')) report('identity');
 		if (source !== fact.source) report('source');
 		if (!matchesRaw(node.getAttribute('data-raw'), fact.raw)) report('raw');
 		if (node.innerText !== fact.text) report('text');

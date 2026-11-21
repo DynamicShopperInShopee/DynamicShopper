@@ -63,4 +63,36 @@ describe('mounted catalog facts', () => {
 		await expect.element(receipt.getByText('No facts to check yet')).toBeVisible();
 		await expect.element(stamp).not.toBeInTheDocument();
 	});
+
+	it('checks a printed value whose main fact marker was removed', async () => {
+		const shelf = await render(Fact, { fact });
+		const node = shelf.getByText(fact.text).element();
+		shelf.container.append(node.cloneNode(true));
+		node.removeAttribute('data-fact');
+		node.textContent = '฿1';
+
+		const result = verifyFacts(shelf.container, resolve);
+		expect(result.checked).toBe(2);
+		expect(result.mismatches.map(({ reason }) => reason)).toEqual(['identity', 'text']);
+	});
+
+	it('refreshes when an ancestor hides or reveals the observed shelf', async () => {
+		const shelf = await render(Fact, { fact });
+		const wrapper = document.createElement('div');
+		shelf.container.before(wrapper);
+		wrapper.append(shelf.container);
+		try {
+			const receipt = await render(FactsSlip, { scope: shelf.container, locale: 'en', resolve });
+			const stamp = receipt.getByText('1 Facts re-checked against the catalog');
+			await expect.element(stamp).toBeVisible();
+
+			wrapper.hidden = true;
+			await expect.element(receipt.getByText('No facts to check yet')).toBeVisible();
+			wrapper.hidden = false;
+			await expect.element(stamp).toBeVisible();
+		} finally {
+			wrapper.before(shelf.container);
+			wrapper.remove();
+		}
+	});
 });

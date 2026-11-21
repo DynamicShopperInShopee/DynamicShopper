@@ -5,6 +5,7 @@
 </script>
 
 <span
+	class="catalog-fact"
 	data-fact
 	data-product={fact.productId}
 	data-field={fact.field}
