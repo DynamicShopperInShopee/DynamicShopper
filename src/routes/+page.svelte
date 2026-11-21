@@ -1,4 +1,13 @@
 <script lang="ts">
+	import DecisionShelf from '../lib/storefront/DecisionShelf.svelte';
+	import SmartBasket from '../lib/storefront/SmartBasket.svelte';
+	let decisionMode = $state('');
+	let decisionHistory = $state<string[]>([]);
+	function chooseDecision(mode: string) {
+		if (mode === decisionMode) return;
+		decisionHistory = [...decisionHistory, decisionMode];
+		decisionMode = mode;
+	}
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
 	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
@@ -1729,6 +1738,24 @@
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
+		{#if cookerSearch}<div class="decision-actions">
+				<button onclick={() => chooseDecision('easy')}>
+					{language === 'th' ? 'ซื้อให้แม่ ใช้ง่าย' : 'For mum, easy to use'}
+				</button>
+				<button onclick={() => chooseDecision('compare')}>
+					{language === 'th' ? 'เทียบก่อนซื้อ' : 'Compare before buying'}
+				</button>
+				<button
+					disabled={!decisionHistory.length}
+					onclick={() => {
+						decisionMode = decisionHistory.at(-1) ?? '';
+						decisionHistory = decisionHistory.slice(0, -1);
+					}}
+				>
+					{language === 'th' ? 'ย้อนกลับการช่วยเลือก' : 'Undo decision view'}
+				</button>
+			</div>{/if}
+		<SmartBasket locale={language} />
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
 			<div
 				class="results-header"
@@ -1757,6 +1784,13 @@
 						<p>{t.emptyHint}</p>
 						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
 					</div>
+				{:else if cookerSearch && decisionMode}
+					<DecisionShelf
+						ids={products.map((p) => p.catalogId)}
+						locale={language}
+						mode={decisionMode}
+						{listingHref}
+					/>
 				{:else if eventDemo}
 					{@render shelf(
 						products.map((product) => product.catalogId),
@@ -1793,6 +1827,20 @@
 </div>
 
 <style>
+	.decision-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-block: 1rem;
+	}
+	.decision-actions button {
+		font: inherit;
+		min-height: 48px;
+		padding: 0.5rem 1rem;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid currentColor;
+	}
 	:global(body) {
 		margin: 0;
 	}

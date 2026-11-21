@@ -141,6 +141,7 @@
 							<th scope="col" class="number">{column.label[locale]}</th>
 						{/each}
 						{#if details.includes('rating')}<th scope="col" class="number">{t.rating}</th>{/if}
+						{#if extras}<th>{locale === 'th' ? 'เลือกสินค้า' : 'Choose product'}</th>{/if}
 					</tr>
 				</thead>
 				<tbody>
@@ -173,6 +174,7 @@
 									{/each}
 								</td>
 							{/if}
+							{#if extras}<td>{@render extras(row.id)}</td>{/if}
 						</tr>
 					{/each}
 				</tbody>
