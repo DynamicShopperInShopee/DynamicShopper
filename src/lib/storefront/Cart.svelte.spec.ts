@@ -15,15 +15,17 @@ const resolve: ResolvePrintedFact = (id, field) => {
 
 it('restores valid distinct items with bounded quantities and allows repeats at the cap', () => {
 	const allowed = (id: string) => /^item-\d+$/.test(id);
+	const mayPrice = () => true;
 	const input = Array.from({ length: 21 }, (_, i) => ({ productId: `item-${i}`, quantity: 1 }));
 	const cart = restoreCart(
 		[{ productId: 'bogus', quantity: 1 }, { productId: 'item-0', quantity: -1 }, ...input],
-		allowed
+		allowed,
+		mayPrice
 	);
 	expect(cart).toHaveLength(20);
 	if (!cart) throw new Error('Expected valid restored cart');
-	expect(addCartItem(cart, 'item-20', allowed)).toEqual({ status: 'full', cart });
-	const repeat = addCartItem(cart, 'item-0', allowed);
+	expect(addCartItem(cart, 'item-20', allowed, mayPrice)).toEqual({ status: 'full', cart });
+	const repeat = addCartItem(cart, 'item-0', allowed, mayPrice);
 	expect(repeat.status).toBe('added');
 	expect(repeat.cart[0]).toEqual({ productId: 'item-0', quantity: 2 });
 });
@@ -41,4 +43,19 @@ it('shows canonical unit prices, removes explicitly and closes before requesting
 	await screen.getByRole('button', { name: 'Best price for my cart' }).click();
 	expect(onBestPrice).toHaveBeenCalledExactlyOnceWith(items);
 	expect(screen.container.querySelector(':popover-open')).toBeNull();
+});
+
+it('keeps the priceable portion of saved items and rejects additions outside the pricing bounds', () => {
+	const known = (id: string) => ['cooker', 'mouse', 'earbuds'].includes(id);
+	const mayPrice = (items: readonly { quantity: number }[]) =>
+		items.reduce((total, { quantity }) => total + quantity, 0) <= 3;
+	const saved = [
+		{ productId: 'cooker', quantity: 2 },
+		{ productId: 'mouse', quantity: Number.MAX_SAFE_INTEGER },
+		{ productId: 'earbuds', quantity: 1 }
+	];
+	const cart = restoreCart(saved, known, mayPrice);
+	expect(cart).toEqual([saved[0], saved[2]]);
+	expect(addCartItem(cart!, 'cooker', known, mayPrice)).toEqual({ status: 'invalid', cart });
+	expect(addCartItem(cart!, 'mouse', known, mayPrice)).toEqual({ status: 'invalid', cart });
 });
