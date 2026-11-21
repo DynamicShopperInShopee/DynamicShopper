@@ -1,8 +1,8 @@
-# Claude harness integrated into the PR #9 storefront
+# Agent harness integrated into the PR #9 storefront
 
 Baseline: merged PR #9, commit `63f9345`. Branch: `codex/website-agent-harness`. Rebased onto `e248361` after PR #11 landed during validation, preserving its cooker filters, photo captions and listing updates.
 
-The photographic storefront at `/` now opens the assistant in place. Claude's delivered harness lives under `src/lib/harness`; a narrow adapter bridges the existing storefront plan. The original catalog, optimizer, product pages, photos and search previews remain the fact sources.
+The photographic storefront at `/` now opens the assistant in place. The agent harness lives under `src/lib/harness`; a narrow adapter bridges the existing storefront plan. The original catalog, optimizer, product pages, photos and search previews remain the fact sources.
 
 ## Decisions and review
 
