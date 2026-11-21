@@ -3,11 +3,11 @@ import { expect, it } from 'vitest';
 import RankingReasons from './RankingReasons.svelte';
 
 const terms = [
-	{ label: { en: 'Longer battery life', th: 'แบตเตอรี่อึดขึ้น' }, contribution: 0.8 },
-	{ label: { en: 'Lower weight', th: 'น้ำหนักเบาลง' }, contribution: 0.55 },
-	{ label: { en: 'Lower price', th: 'ราคาต่ำลง' }, contribution: 0.2 },
-	{ label: { en: 'Higher rating', th: 'คะแนนสูงขึ้น' }, contribution: 0.1 }
-];
+	{ kind: 'spec', key: 'battery', direction: 'higher', strength: 'high' },
+	{ kind: 'spec', key: 'weight', direction: 'lower', strength: 'medium' },
+	{ kind: 'priority', key: 'price', strength: 'low' },
+	{ kind: 'priority', key: 'rating', strength: 'low' }
+] as const;
 
 it('prints the supplied reasons in order with discrete bars and no numeric copy', async () => {
 	const view = await render(RankingReasons, { terms, locale: 'en', productCount: 3 });
@@ -21,7 +21,7 @@ it('prints the supplied reasons in order with discrete bars and no numeric copy'
 		[...view.container.querySelectorAll('[data-width]')].map((bar) =>
 			bar.getAttribute('data-width')
 		)
-	).toEqual(['full', 'wide', 'short']);
+	).toEqual(['high', 'medium', 'low']);
 	expect(view.container.textContent).not.toMatch(/\p{Nd}/u);
 });
 

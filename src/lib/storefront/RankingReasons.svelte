@@ -1,6 +1,39 @@
 <script lang="ts">
 	import type { FactLocale, LocalizedText } from './verifyFacts';
 
+	const priorities = {
+		price: { en: 'Lower price', th: 'ราคาต่ำลง' },
+		performance: { en: 'Better performance', th: 'ประสิทธิภาพดีขึ้น' },
+		durability: { en: 'Better durability', th: 'ทนทานขึ้น' },
+		design: { en: 'Better design', th: 'ดีไซน์ดีขึ้น' },
+		rating: { en: 'Higher rating', th: 'คะแนนสูงขึ้น' },
+		value: { en: 'Better value', th: 'คุ้มค่าขึ้น' }
+	} satisfies Record<string, LocalizedText>;
+	const numericSpecs = {
+		dpi: { en: 'pointer sensitivity', th: 'ความไวเมาส์' },
+		weight: { en: 'weight', th: 'น้ำหนัก' },
+		battery: { en: 'battery life', th: 'อายุแบตเตอรี่' },
+		pollingRate: { en: 'polling rate', th: 'อัตราส่งสัญญาณ' },
+		latency: { en: 'latency', th: 'ความหน่วง' },
+		capacity: { en: 'capacity', th: 'ความจุ' },
+		output: { en: 'power output', th: 'กำลังจ่ายไฟ' },
+		power: { en: 'power', th: 'กำลังไฟ' },
+		programs: { en: 'program count', th: 'จำนวนโปรแกรม' },
+		warranty: { en: 'warranty length', th: 'ระยะประกัน' },
+		volume: { en: 'volume', th: 'ปริมาตร' },
+		spf: { en: 'sun protection factor', th: 'ค่าป้องกันแสงแดด' }
+	} satisfies Record<string, LocalizedText>;
+	const strengths = ['full', 'high', 'medium', 'low'] as const;
+
+	type RankTerm = Readonly<
+		(
+			| { kind: 'priority'; key: string }
+			| { kind: 'spec'; key: string; direction: 'higher' | 'lower' }
+		) & {
+			strength: (typeof strengths)[number];
+		}
+	>;
+
 	let {
 		terms,
 		locale,
@@ -8,7 +41,7 @@
 		simplified = false,
 		comparePane = false
 	}: {
-		terms: readonly { label: LocalizedText; contribution: number }[];
+		terms: readonly RankTerm[];
 		locale: FactLocale;
 		productCount: number;
 		simplified?: boolean;
@@ -19,26 +52,36 @@
 		en: { title: 'Why this order?', lead: 'Biggest reasons first' },
 		th: { title: 'ทำไมถึงเรียงแบบนี้?', lead: 'เหตุผลที่มีผลมากที่สุดก่อน' }
 	};
-	const widths = ['short', 'medium', 'wide', 'full'] as const;
 	const t = $derived(copy[locale]);
+
+	function labelFor(term: RankTerm, language: FactLocale): string | undefined {
+		if (term.kind === 'priority') {
+			if (!Object.hasOwn(priorities, term.key)) return;
+			return priorities[term.key as keyof typeof priorities][language];
+		}
+		if (!Object.hasOwn(numericSpecs, term.key)) return;
+		if (term.key === 'battery' && term.direction === 'higher') {
+			return language === 'en' ? 'Longer battery life' : 'แบตเตอรี่อึดขึ้น';
+		}
+		if (term.key === 'weight' && term.direction === 'lower' && language === 'th') {
+			return 'น้ำหนักเบาลง';
+		}
+		const spec = numericSpecs[term.key as keyof typeof numericSpecs][language];
+		return language === 'en'
+			? `${term.direction === 'higher' ? 'Higher' : 'Lower'} ${spec}`
+			: `${spec}${term.direction === 'higher' ? 'สูงขึ้น' : 'ลดลง'}`;
+	}
 
 	const reasons = $derived(
 		terms
-			.filter(
-				({ label, contribution }) =>
-					Number.isFinite(contribution) &&
-					contribution > 0 &&
-					Boolean(label[locale].trim()) &&
-					!/\p{N}|\p{Sc}/u.test(label[locale])
-			)
+			.flatMap((term) => {
+				const label = labelFor(term, locale);
+				return label && strengths.includes(term.strength)
+					? [{ label, strength: term.strength }]
+					: [];
+			})
 			.slice(0, 3)
 	);
-	const largest = $derived(Math.max(...reasons.map(({ contribution }) => contribution)));
-
-	function width(contribution: number) {
-		const step = Math.max(0, Math.ceil((contribution / largest) * widths.length) - 1);
-		return widths[step];
-	}
 </script>
 
 {#if productCount > 1 && !simplified && !comparePane && reasons.length}
@@ -48,9 +91,9 @@
 		<ul>
 			{#each reasons as reason}
 				<li>
-					<span>{reason.label[locale]}</span>
+					<span>{reason.label}</span>
 					<span class="track" aria-hidden="true">
-						<span class="bar" data-width={width(reason.contribution)}></span>
+						<span class="bar" data-width={reason.strength}></span>
 					</span>
 				</li>
 			{/each}
@@ -93,13 +136,13 @@
 		height: 0.375rem;
 		background: currentColor;
 	}
-	[data-width='short'] {
+	[data-width='low'] {
 		width: 25%;
 	}
 	[data-width='medium'] {
 		width: 50%;
 	}
-	[data-width='wide'] {
+	[data-width='high'] {
 		width: 75%;
 	}
 	[data-width='full'] {
