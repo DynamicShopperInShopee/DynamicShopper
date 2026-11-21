@@ -12,6 +12,12 @@ supersedes the earlier branding exception and does not permit invented promotion
 stock, ratings, review counts or shipping promises. Proof and price details keep
 receipt styling.
 
+The orange shopping header and search action keep their brand colors across
+standard, minimal, vibrant and large-print views. Interview or chat theme changes
+must not turn this chrome black or recolor it. These fixed brand tokens stay
+outside model-controlled presentation choices; DynamicShopper identity and
+the no-Shopee-marks rule still apply.
+
 ## Accepted sourced catalog and interview completion
 
 The user-requested sourced shopping surface uses 1,500 dated Shopee Thailand

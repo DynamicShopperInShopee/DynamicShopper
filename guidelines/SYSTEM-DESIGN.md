@@ -21,6 +21,25 @@ seven-record starter fallback is explicitly labeled when both API and saved
 catalog are unavailable. Images require the cloud/local image service or an
 existing browser image cache. See [the dataset](../catalogs/shopee-2026-11-21/README.md).
 
+## Browser interview integration
+
+The optional storefront interview runs exported Conv1d and dense weights locally.
+Only allowlisted answer IDs enter inference; product facts never enter the network.
+Independent categorical heads expand to fixed layout, details and section recipes;
+invalid heads retain their direct-answer fallback independently. The existing
+proposal validator checks the final patch. A complete interview may also suggest
+an unlocked theme; explicit reading settings and priorities remain deterministic.
+
+Completing the interview preserves current filters and records one atomic change,
+then focuses its receipt with Undo and chat refinement. Undo restores both plan
+and interview metadata; equivalent settings create no extra Undo step. There is
+no separate preview/Apply gate. The fixture-backed renderer retains its existing
+catalog, deterministic ranking and optimizer. The sourced adapter uses its
+read-only catalog snapshot and does not invent unsupported ranking or deal facts
+or transfer synthetic product references into the sourced shelf. The optional
+local live assistant remains development-only, while the interview and chat
+fallback work without network access after loading.
+
 ## The central decision: split presentation from facts
 
 Everything in the system follows from one split.

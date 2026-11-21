@@ -1,3 +1,4 @@
+import type { Answers } from '../personalization/interview';
 import { Conversation } from './conversation.svelte';
 import { ListingSession } from './listingSession';
 import { createContext } from 'svelte';
@@ -11,6 +12,8 @@ import { readSavedStore, writeSavedStore } from './browserState';
 import type { Sort } from '../store-search';
 
 export interface ShelfState {
+	interviewAnswers: Answers | null;
+	interviewDirectOnly: boolean;
 	plan: ShopperPlan;
 	adapted: boolean;
 	sort: Sort;

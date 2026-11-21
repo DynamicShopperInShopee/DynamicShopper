@@ -97,7 +97,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. The accepted marketplace baseline is Shopee-inspired and retains its orange shopping header across interview completion, under DynamicShopper's identity. Do not use Shopee marks or imply affiliation. Disclose simulation for fixtures and dated observations for the sourced catalog. The exception does not introduce promotions or branded coin mechanics.
+- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. The accepted Shopee-inspired baseline keeps its orange shopping header and search action across every theme under DynamicShopper's identity; personalized receipt themes retain the neutral proof system. Disclose simulation for fixtures and dated observations for the sourced catalog. The presentation exception does not permit invented promotions or product facts.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like

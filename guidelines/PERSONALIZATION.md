@@ -17,11 +17,27 @@ prices or product facts. Synthetic training accuracy does not establish real
 shopper preference accuracy. Missing scores, reviews or specifications cannot
 be invented to satisfy an answer.
 
+Completion records the prior interview answers and explicit locks with the plan.
+Undo also restores the saved presentation; equivalent settings create no new
+lock or Undo step. Search, category, budget and explicit sorting remain intact;
+the fixture storefront also retains its cooker-capacity filter. Reset removes
+the interview and restores the default view.
+
+The local synthetic-trained CNN chooses allowlisted layout, information and
+section recipes and may suggest an unlocked theme. Reading density, explicit
+large text and ranking priorities follow answers directly. Existing explicit
+theme choices remain protected. Later chat requests can refine CNN-suggested
+fields through the existing interpretation and validation pipeline. Answer-sourced
+fields retain the shopper's explicit choice until edited or removed.
+
 Three example views remain an editable inspection demo. They share the sourced
 catalog and shelf renderer but cannot apply a view to the shop. Existing
 explicit locks, filters and saved products remain intact during ordinary
 interview personalization. Personas below describe fixed plan recipes; they do
 not require a manual picker in the accepted sourced-shop flow.
+
+Proposed: evaluate interview completion, corrections and task success with shoppers
+before treating learned suggestions as an improvement over direct controls.
 
 ## The plan
 
@@ -130,3 +146,5 @@ What the shopper sets explicitly is applied as-is and can always be seen and rem
 ## Sharing a store
 
 A shopper can share their store's look as a link. The link carries the plan and nothing else: no cart, no conversation, nothing personal. Opening one is treated as untrusted input: it is validated exactly like an AI proposal, opened as one undoable step with a "Shared store opened" note, and ignored silently if it is invalid or oversized. The intended use is the family case: set up mom mode with rice cookers, then send it to the parent over LINE.
+
+Both comparison views opened from the shelf use its active capacity, free shipping, price ceiling and shop filters. The standalone comparison keeps those selections within the shopper’s open tab.

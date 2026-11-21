@@ -95,11 +95,19 @@ Prices in baht. "Free" means free shipping.
 | Product | Shop | Price | Was | Rating | Sold | Shipping | Specs |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | 1.8L one-button electric rice cooker | บ้านครัว HomeKrua | 690 | 890 | 4.8 | 32,000 | 50 | 1.8 L, power 700 W, programs 2, warranty 2 yr |
-| 1.0L digital rice cooker with timer | บ้านครัว HomeKrua | 1,290 | — | 4.7 | 9,200 | 50 | 1 L, power 450 W, programs 8, warranty 3 yr |
+| 2 L digital rice cooker with 9 programs | บ้านครัว HomeKrua | 1,290 | — | 4.7 | 9,200 | 50 | 2 L, power 450 W, programs 9, warranty 3 yr |
 | 2.2L family rice cooker, 3-year warranty | บ้านครัว HomeKrua | 1,590 | 1,990 | 4.8 | 5,300 | Free | 2.2 L, power 900 W, programs 4, warranty 3 yr |
 | 0.8L mini rice cooker for 1-2 people | TechHub Official Store | 450 | — | 4.5 | 18,000 | 50 | 0.8 L, power 350 W, programs 2, warranty 1 yr |
 | 1.5L IH rice cooker, restaurant-quality rice | TechHub Official Store | 3,290 | 3,990 | 4.9 | 1,800 | Free | 1.5 L, power 1,000 W, programs 12, warranty 5 yr |
 | 1.8L rice cooker with steamer tray | บ้านครัว HomeKrua | 890 | — | 4.6 | 11,000 | 50 | 1.8 L, power 750 W, programs 3, warranty 2 yr |
+
+#### Digital rice cooker listing details
+
+The simulated `cooker-digital` listing adds model DS-D2, 220–240 V, a preset timer up to 24 h, a non-stick inner pot, 360° heating, automatic keep-warm and overheat protection with a 3 s warning. It measures 20 cm wide, 24.5 cm deep and 21 cm high and weighs 1.7 kg.
+
+Its modes are boil, quick cook, steam, porridge, soup, stew, yogurt, cake and keep warm. The box contains the cooker, inner pot, rice paddle, measuring cup, power cord and manual. Review images are illustrative and carry a simulated-media caption in both languages.
+
+Capacity and program count use the category specs. The extended listing uses bilingual `detail.*` fields resolved by exact key for this product. These fields are for the listing renderer and fact verifier. The model's listing context and supported citation fields continue to use the category specs, summary and reviews.
 
 ### Skincare
 
@@ -129,4 +137,4 @@ Prices in baht. "Free" means free shipping.
 - Every product uses only the spec keys of its category, and has all of them.
 - Prices are positive whole baht; an original price, when present, is higher than the price.
 - Scores are between 0 and 1; ratings between 0 and 5.
-- Product images are drawn category glyphs, the same for every product in a category.
+- Product imagery uses category glyphs and illustrative cooker media. Review imagery carries a simulation disclosure.

@@ -6,7 +6,9 @@
 	--cooker-size: 200% 200%;
 }
 [data-cooker-photo='cooker-digital'] {
-	--cooker-position: 0 0;
+	--cooker-image: url('./digital-hero.jpg');
+	--cooker-size: cover;
+	--cooker-position: center;
 }
 [data-cooker-photo='cooker-family'] {
 	--cooker-position: 100% 0;

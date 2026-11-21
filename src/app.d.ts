@@ -14,7 +14,7 @@ declare global {
 		// interface Error {}
 		// interface PageData {}
 		interface PageState {
-			storeSearch?: import('./routes/search-navigation').SearchSelection;
+			storeSearch?: import('./routes/search-navigation').SearchSelection | string;
 		}
 		interface Platform {
 			env: {

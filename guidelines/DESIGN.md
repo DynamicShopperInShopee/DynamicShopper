@@ -1,23 +1,37 @@
 # Design system: "The Thermal Receipt"
 
-## Optional interview on the root storefront
+## Default marketplace exception
 
-Accepted on 2026-11-21: keep the current marketplace as the initial view and add
-a compact optional interview entry. Four short steps cover shopping goal,
-preferred evidence, priority and reading. Draft answers stay inside the dialog.
-**Finish interview** / **ตอบเสร็จแล้ว** applies one validated proposal immediately
-and focuses the actual change receipt, with Undo and chat refinement. Final-step
-Skip also completes the interview while preserving skipped settings. Closing an
-unfinished interview is inert. There is no proposed-view chooser, separate Apply
-screen or shopper inference toggle. No full-page onboarding replaces shopping.
+Accepted at the user's explicit request: the default storefront uses a familiar
+orange shopping header, DynamicShopper identity, search, category controls and a
+photo grid. This marketplace-chrome exception covers the `event-demo` template
+and accepted sourced-shop baseline; personalized receipt themes retain their
+existing tokens and proof surfaces. No Shopee marks, affiliation claims, invented
+promotion, urgency or shopping facts are permitted. It supersedes the earlier
+branding exception. In `event-demo`, header orange `#ee4d2d` carries only large
+bold white brand text; the darker action/price ink `#b5321a` supports normal text
+on white. The interview entry remains a compact optional strip. No device frame
+or full-page onboarding replaces shopping.
 
-The latest accepted baseline retains a Shopee-inspired orange shopping header
-before and after interview completion, under DynamicShopper's identity. No
-Shopee marks or affiliation claims are permitted. This scoped marketplace-chrome
-exception supersedes the earlier branding exception; proof slips and catalog
-facts remain unchanged. No device frame is used.
-The existing default storefront is owned separately. This integration adds no
-promotion, seller metric or new catalog values. See
+The shopping header and search CTA retain their orange brand colors across all
+themes, including minimal and large print. CNN and chat may change shelf layout,
+density and content-theme tokens, but cannot recolor this fixed chrome or turn
+the header black. Keep accessible foreground contrast and DynamicShopper's
+identity; this invariant does not authorize Shopee marks or affiliation claims.
+
+## Interview transition
+
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip. Four short
+steps cover shopping goal, preferred evidence, priority and reading. Draft answers
+stay inside the dialog. **Finish interview** / **ตอบเสร็จแล้ว** validates and
+applies one proposal immediately, closes the dialog and focuses the actual change
+receipt with Undo and chat refinement. Final-step Skip also completes the interview
+while preserving skipped settings. Close/Escape before completion leaves the store
+unchanged. There is no proposed-view chooser, separate Apply screen or shopper
+inference toggle. Desktop centers the dialog; phones use a bottom sheet. The
+chat-refinement button focuses the existing assistant. No animation is required.
+Large print keeps single-column answers, 20px text and 48px targets. See
 [the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
 
 ## Sourced shopping and comparison inspection
@@ -277,4 +291,8 @@ The cooker capacity panel uses a locally bundled serving scene with its catalog 
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
 
-The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
+
+Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
+
+The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
