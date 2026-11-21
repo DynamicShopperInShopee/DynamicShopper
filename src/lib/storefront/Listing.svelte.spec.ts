@@ -1,0 +1,81 @@
+import { render } from 'vitest-browser-svelte';
+import { expect, it } from 'vitest';
+import CitationSlip from './CitationSlip.svelte';
+import DealSlip from './DealSlip.svelte';
+import type { FactLocale, ResolvePrintedFact } from './verifyFacts';
+
+const productId = 'cooker-one-button';
+const resolve: ResolvePrintedFact = (id, field, locale) =>
+	id === productId && field === 'spec.capacity'
+		? {
+				productId: id,
+				field,
+				source: 'catalog',
+				raw: 1.8,
+				text: locale === 'th' ? '1.8 ลิตร' : '1.8 L'
+			}
+		: undefined;
+
+it('links only canonical citations and declines when no citation survives', async () => {
+	const screen = await render(CitationSlip, {
+		locale: 'th',
+		citations: [
+			{ productId, field: 'spec.capacity' },
+			{ productId, field: 'price' }
+		],
+		resolve,
+		listingHref: (id: string) => `/product/${id}`
+	});
+	const link = screen.getByRole('link', { name: '1.8 ลิตร' });
+	await expect.element(link).toHaveAttribute('href', '/product/cooker-one-button');
+	expect(screen.container.querySelectorAll('a')).toHaveLength(1);
+	const fact = link.element().querySelector('[data-fact]');
+	expect(fact?.getAttribute('data-source')).toBe('catalog');
+	expect(fact?.getAttribute('data-raw')).toBe('1.8');
+	await screen.rerender({ citations: [{ productId, field: 'price' }] });
+	await expect.element(screen.getByText('ยืนยันจากรายการสินค้าไม่ได้')).toBeVisible();
+});
+
+it('renders the supplied optimizer result consistently from any entry point', async () => {
+	const receipt = {
+		items: [{ productId, quantity: 1, unitPrice: 690, subtotal: 690 }],
+		subtotal: 690,
+		shipping: 50,
+		baseline: 740,
+		appliedVouchers: [{ code: 'SAVE', kind: 'platform' as const, amount: 50, expiresSoon: false }],
+		coinsUsed: 25,
+		total: 665,
+		savings: 75,
+		unusedVouchers: [
+			{
+				code: 'MIN',
+				kind: 'shop' as const,
+				reason: 'minimum-spend' as const,
+				gap: 10,
+				expiresSoon: false
+			}
+		]
+	};
+	const props = {
+		receipt,
+		locale: 'en' as const,
+		formatMoney: (amount: number, locale: FactLocale) =>
+			locale === 'th' ? `${amount} บาท` : `฿${amount}`,
+		productName: (id: string) => (id === productId ? 'One-button rice cooker' : undefined),
+		addOns: [{ productId, extraCost: 15, voucherCode: 'MIN' }]
+	};
+	const first = await render(DealSlip, props);
+	const second = await render(DealSlip, props);
+	const facts = (root: HTMLElement) =>
+		[...root.querySelectorAll('[data-source="pricing"]')].map((node) => [
+			node.getAttribute('data-field'),
+			node.getAttribute('data-raw'),
+			node.textContent?.trim()
+		]);
+	expect(facts(first.container)).toEqual(facts(second.container));
+	expect(facts(first.container)).toContainEqual(['total', '665', '฿665']);
+	expect(facts(first.container)).toContainEqual(['addOn.extraCost', '15', '฿15']);
+	expect(first.container.textContent).toContain('Minimum spend not met');
+	await second.rerender({ receipt: undefined });
+	expect(second.container.querySelector('[data-proof="calculated"]')).toBeNull();
+});
