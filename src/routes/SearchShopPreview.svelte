@@ -171,6 +171,7 @@
 	}
 	.strip li {
 		flex: 0 0 clamp(5.75rem, 25vw, 8rem);
+		min-inline-size: calc(var(--small) * 7);
 	}
 	.strip a {
 		position: relative;
@@ -192,6 +193,7 @@
 		color: white;
 		padding: 0 0.4rem;
 		font-size: var(--small);
+		white-space: nowrap;
 	}
 	.price :global([data-fact='price']),
 	.inventory :global([data-fact='price']) {
