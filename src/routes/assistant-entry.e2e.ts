@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { formatFact, resolveFact } from '../lib/catalog';
 
 test('a cooker capacity follows the shopper into the offline assistant and is reversible', async ({
 	page,
@@ -46,6 +47,8 @@ test('a cooker capacity follows the shopper into the offline assistant and is re
 	await expect(capacity).toBeVisible();
 });
 
+const digitalCapacity = formatFact(resolveFact('cooker-digital', 'spec.capacity')!, 'en');
+
 for (const control of ['category tab', 'assistant']) {
 	test(`a new category in the ${control} clears a capacity selected from cooker search results`, async ({
 		page
@@ -55,10 +58,10 @@ for (const control of ['category tab', 'assistant']) {
 		const search = page.getByRole('searchbox');
 		await search.fill('rice cooker');
 		await search.press('Enter');
-		await page.getByRole('button', { name: '1 L', exact: true }).click();
+		await page.getByRole('button', { name: digitalCapacity, exact: true }).click();
 		await page.getByRole('link', { name: 'Shopping assistant' }).click();
 		if (control === 'category tab') {
-			await page.getByRole('button', { name: 'Capacity 1 L' }).click();
+			await page.getByRole('button', { name: `Capacity ${digitalCapacity}` }).click();
 			await page.getByRole('button', { name: 'Earbuds', exact: true }).click();
 		} else {
 			await page.getByRole('textbox', { name: 'Ask the store' }).fill('Show me earbuds');
@@ -67,11 +70,11 @@ for (const control of ['category tab', 'assistant']) {
 		}
 		await expect(page.locator('#products [data-fact="resultCount"]')).toHaveText('7');
 		await expect(search).toHaveValue('');
-		await expect(page.getByRole('button', { name: 'Capacity 1 L' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: `Capacity ${digitalCapacity}` })).toHaveCount(0);
 		await page.getByRole('button', { name: 'Undo', exact: true }).click();
 		await expect(search).toHaveValue('rice cooker');
 		if (control === 'assistant') {
-			await expect(page.getByRole('button', { name: 'Capacity 1 L' })).toBeVisible();
+			await expect(page.getByRole('button', { name: `Capacity ${digitalCapacity}` })).toBeVisible();
 		}
 	});
 }
