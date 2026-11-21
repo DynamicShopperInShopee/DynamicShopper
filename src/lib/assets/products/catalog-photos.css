@@ -1,0 +1,73 @@
+.catalog-photo {
+	background: white url('./demo-categories.jpg') no-repeat 0 0 / 300% 200%;
+}
+
+.catalog-photo[data-category='earbuds'] {
+	background-position: 50% 0;
+}
+
+.catalog-photo[data-category='power'] {
+	background-position: 100% 0;
+}
+
+.catalog-photo[data-category='cooker'] {
+	background-position: 0 100%;
+}
+
+.catalog-photo[data-category='skin'] {
+	background-position: 50% 100%;
+}
+
+.catalog-photo[data-category='mouse'] {
+	background-image: url('./demo-mice.jpg');
+}
+
+.catalog-photo:is([data-model='mouse-2'], [data-model='mouse-8']) {
+	background-position: 50% 0;
+}
+
+.catalog-photo[data-model='mouse-3'] {
+	background-position: 100% 0;
+}
+
+.catalog-photo[data-model='mouse-4'] {
+	background-position: 0 100%;
+}
+
+.catalog-photo[data-model='mouse-5'] {
+	background-position: 50% 100%;
+}
+
+.catalog-photo[data-model='mouse-6'] {
+	background-position: 100% 100%;
+}
+
+.catalog-photo[data-model='cooker-1'] {
+	background: #d0dce6 url('./cooker-one-button.jpg') center / cover no-repeat;
+}
+
+.catalog-photo:is(
+	[data-model='cooker-2'],
+	[data-model='cooker-3'],
+	[data-model='cooker-4'],
+	[data-model='cooker-6']
+) {
+	background-image: url('./cooker-variants.jpg');
+	background-size: 200% 200%;
+}
+
+.catalog-photo[data-model='cooker-2'] {
+	background-position: 0 0;
+}
+
+.catalog-photo[data-model='cooker-3'] {
+	background-position: 100% 0;
+}
+
+.catalog-photo[data-model='cooker-4'] {
+	background-position: 100% 100%;
+}
+
+.catalog-photo[data-model='cooker-6'] {
+	background-position: 0 100%;
+}

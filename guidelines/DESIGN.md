@@ -218,3 +218,5 @@ The listing price uses bold, tightly tracked Plex Mono. The listing and specific
 The one-button cooker gallery contains two locally bundled product illustrations. The shopper can swipe between them or choose an image with the controls over the lower corner of the square frame.
 
 The title and shipping row span the summary column, separated by hairlines. On a phone, the shipping amount sits below its label beside the truck icon. When a review excerpt is available, the rating leads its section below shipping. Other listings show the rating in the summary. The seller and product details follow, with catalog specifications also available in the sheet. The bottom action bar links to reviews and product details and opens the specification sheet when that data exists.
+
+The seller section includes a horizontally scrollable shelf of other products from the same catalog shop, ordered by units sold. Each card links to the listing in the current language and uses the same local illustration as the storefront. The shelf disappears when there are no other items from that shop.

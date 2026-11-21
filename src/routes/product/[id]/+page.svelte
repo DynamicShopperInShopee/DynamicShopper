@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import '../../../lib/assets/fonts/plex.css';
+	import '../../../lib/assets/products/catalog-photos.css';
 	import { riceCookerReviews, riceCookerSpecs } from '../../../lib/store-catalog';
 	import type { PageProps } from './$types';
 	import ProductDescription from './ProductDescription.svelte';
@@ -72,6 +73,7 @@
 	<div class="listing">
 		<div
 			class="art"
+			class:catalog-photo={product.id !== 'cooker-1'}
 			bind:this={hero}
 			data-category={product.category}
 			data-model={product.id}
@@ -83,7 +85,13 @@
 		</div>
 		<ProductSummary {product} language={data.language} {specs} hasReview={Boolean(review)} />
 	</div>
-	<ProductDescription {product} language={data.language} {review} {specs} />
+	<ProductDescription
+		{product}
+		language={data.language}
+		shopProducts={data.shopProducts}
+		{review}
+		{specs}
+	/>
 	{#if specs}
 		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} />
 	{/if}
@@ -137,23 +145,9 @@
 	.art {
 		width: 100%;
 		aspect-ratio: 1;
-		background: white url('../../../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300%
-			200%;
 	}
-	.art[data-category='earbuds'] {
-		background-position: 50% 0;
-	}
-	.art[data-category='power'] {
-		background-position: 100% 0;
-	}
-	.art[data-category='cooker'] {
-		background-position: 0 100%;
-	}
-	.art[data-model='cooker-1'] {
+	.art:not(.catalog-photo) {
 		background: #d0dce6;
-	}
-	.art[data-category='skin'] {
-		background-position: 50% 100%;
 	}
 
 	@media (max-width: 699px) {

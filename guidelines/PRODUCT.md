@@ -97,7 +97,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Honesty
 
-- Products, shops and vouchers are simulated. Product images are simple drawn category glyphs, not photos.
+- Products, shops and vouchers are simulated. Product artwork is locally bundled and includes category glyphs and illustrative catalog photography for the event storefront.
 - There are no real users, testimonials or metrics, and none may be invented.
 
 ## Ideas for later

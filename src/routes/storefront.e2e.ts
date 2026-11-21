@@ -125,14 +125,15 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	const actionBox = await actions.boundingBox();
 	expect((actionBox?.y ?? 0) + (actionBox?.height ?? 0)).toBe(844);
 
-	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
+	const listing = page.locator('.listing');
+	await expect(listing.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
 	const shipping = page.locator('[data-fact="shipping"]');
 	await expect(shipping).toHaveText('฿50');
 	const shippingLabel = page.getByText('Shipping', { exact: true });
 	const labelBox = await shippingLabel.boundingBox();
 	const feeBox = await shipping.boundingBox();
 	expect(feeBox?.y ?? 0).toBeGreaterThan(labelBox?.y ?? 0);
-	await expect(page.locator('[data-fact="rating"]')).toHaveCount(1);
+	await expect(listing.locator('[data-fact="rating"]')).toHaveCount(0);
 	const reviews = page.getByRole('region', { name: 'Product reviews' });
 	await expect(reviews.locator('[data-fact="rating"]')).toHaveText('4.8');
 	await page.getByRole('button', { name: 'Specifications' }).click();
@@ -156,4 +157,27 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await expect(page.locator('[data-fact="review"]')).toHaveText('แม่ใช้เองได้โดยไม่ต้องมีคนช่วย');
 	await page.getByRole('link', { name: 'รีวิว', exact: true }).click();
 	await expect(page).toHaveURL(/#reviews$/);
+});
+
+test('browses items from the same seller and opens one in the current language', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/product/cooker-1?lang=th');
+	const more = page.getByRole('region', { name: 'สินค้าอื่นจากร้านนี้' });
+	await expect(more.getByRole('link')).toHaveCount(3);
+	await expect(more.locator('[data-fact="sold"]')).toHaveText(['11,000', '9,200', '5,300']);
+	const steamer = more.getByRole('link', { name: /หม้อหุงข้าวพร้อมถาดนึ่ง/ });
+	await expect(steamer.locator('[data-fact="price"]')).toHaveText('฿890');
+	await expect(steamer.locator('[data-fact="sold"]')).toHaveAttribute('data-raw', '11000');
+	const shelf = more.getByRole('list');
+	await shelf.hover();
+	await page.mouse.wheel(140, 0);
+	await expect.poll(() => shelf.evaluate((list) => list.scrollLeft)).toBeGreaterThan(0);
+	const family = more.getByRole('link', { name: /หม้อหุงข้าวสำหรับครอบครัว/ });
+	await family.focus();
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/product\/cooker-3\?lang=th$/);
+	await expect(page.getByRole('heading', { level: 1 })).toContainText('หม้อหุงข้าวสำหรับครอบครัว');
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });

@@ -7,6 +7,9 @@ export const load: PageLoad = ({ params, url }) => {
 	if (!product) error(404, 'Product not found');
 	return {
 		product,
+		shopProducts: catalog
+			.filter((item) => item.shop === product.shop && item.id !== product.id)
+			.sort((a, b) => b.sold - a.sold),
 		language: url.searchParams.get('lang') === 'th' ? ('th' as const) : ('en' as const)
 	};
 };

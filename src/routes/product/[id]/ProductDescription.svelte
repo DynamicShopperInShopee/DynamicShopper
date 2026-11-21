@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { formatNumber } from '../../../lib/store-search';
+	import ShopProducts from './ShopProducts.svelte';
 	import SpecificationRows from './SpecificationRows.svelte';
 	import type { catalog, Language, riceCookerSpecs } from '../../../lib/store-catalog';
 
 	let {
 		product,
 		language,
+		shopProducts,
 		review,
 		specs
 	}: {
 		product: (typeof catalog)[number];
 		language: Language;
+		shopProducts: typeof catalog;
 		review?: string;
 		specs?: (typeof riceCookerSpecs)[string];
 	} = $props();
@@ -27,10 +30,7 @@
 	</section>
 {/if}
 
-<section aria-labelledby="seller-title">
-	<h2 id="seller-title">{th ? 'ร้านค้า' : 'Shop'}</h2>
-	<p data-fact="shop" data-raw={product.shop}>{product.shop}</p>
-</section>
+<ShopProducts shop={product.shop} products={shopProducts} {language} />
 
 <section id="details" aria-labelledby="details-title">
 	<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>

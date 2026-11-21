@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import '../lib/assets/fonts/plex.css';
+	import '../lib/assets/products/catalog-photos.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import { categories, type Category, type Language } from '../lib/store-catalog';
 	import { formatBaht, formatNumber, searchProducts, type Sort } from '../lib/store-search';
@@ -486,7 +487,7 @@
 						<li class="product" data-product={product.id}>
 							{#if eventDemo}
 								<div
-									class="art demo-photo"
+									class="art catalog-photo"
 									data-category={product.category}
 									data-model={product.id}
 									aria-hidden="true"
@@ -827,8 +828,10 @@
 	.art {
 		display: grid;
 		place-items: center;
-		background: #e9e6dc;
 		color: var(--accent);
+	}
+	.art:not(.catalog-photo) {
+		background: #e9e6dc;
 	}
 	.card-body {
 		display: flex;
@@ -1071,42 +1074,6 @@
 	}
 	.event-demo .art {
 		aspect-ratio: 1;
-	}
-	.demo-photo:where(.art) {
-		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
-	}
-	.demo-photo[data-model='cooker-1'] {
-		background: #d0dce6 url('../lib/assets/products/cooker-one-button.jpg') center / cover no-repeat;
-	}
-	.demo-photo[data-category='earbuds'] {
-		background-position: 50% 0;
-	}
-	.demo-photo[data-category='power'] {
-		background-position: 100% 0;
-	}
-	.demo-photo[data-category='cooker'] {
-		background-position: 0 100%;
-	}
-	.demo-photo[data-category='skin'] {
-		background-position: 50% 100%;
-	}
-	.demo-photo[data-category='mouse'] {
-		background-image: url('../lib/assets/products/demo-mice.jpg');
-	}
-	.demo-photo:is([data-model='mouse-2'], [data-model='mouse-8']) {
-		background-position: 50% 0;
-	}
-	.demo-photo[data-model='mouse-3'] {
-		background-position: 100% 0;
-	}
-	.demo-photo[data-model='mouse-4'] {
-		background-position: 0 100%;
-	}
-	.demo-photo[data-model='mouse-5'] {
-		background-position: 50% 100%;
-	}
-	.demo-photo[data-model='mouse-6'] {
-		background-position: 100% 100%;
 	}
 
 	.event-demo .card-body {
