@@ -9,15 +9,13 @@ test('keeps legacy links and shows the canonical cooker in both languages', asyn
 	);
 	await expect(page.locator('[data-fact="review.0"]')).toHaveText('แม่ใช้เองได้ ไม่ต้องคอยช่วย');
 	await expect(page.locator('[data-fact="review.1"]')).toBeVisible();
-	await expect(page.locator('#details .text-summary')).toBeVisible();
+	await expect(page.locator('#details [data-fact="summary"]')).toBeVisible();
 	await expect(page.locator('[data-fact="reviewCount"]')).toHaveText('2,840');
 	await expect(page.locator('[data-fact="reviewCount"]')).toHaveAttribute('data-raw', '2840');
 	await page.getByRole('button', { name: 'สเปกสินค้า' }).click();
-	await expect(
-		page
-			.getByRole('dialog', { name: /Specifications|สเปกสินค้า/ })
-			.locator('[data-fact="spec.capacity"]')
-	).toHaveText('1.8 ลิตร');
+	await expect(page.getByRole('dialog').locator('[data-fact="spec.capacity"]')).toHaveText(
+		'1.8 ลิตร'
+	);
 	await page.keyboard.press('Escape');
 	await page.getByRole('link', { name: 'English' }).click();
 	await expect(page).toHaveURL(/\/product\/cooker-1\?lang=en$/);
@@ -51,9 +49,7 @@ test('prices a canonical product offline and renders its category specs', async 
 	await expect(page.locator('main')).toHaveAttribute('data-product', 'pixel-mini');
 	await context.setOffline(true);
 	await page.getByRole('button', { name: 'Specifications' }).click();
-	await expect(
-		page.getByRole('dialog', { name: /Specifications|สเปกสินค้า/ }).locator('[data-fact="spec.dpi"]')
-	).toHaveText('12,000');
+	await expect(page.getByRole('dialog').locator('[data-fact="spec.dpi"]')).toHaveText('12,000');
 	await page.getByRole('button', { name: 'Done' }).click();
 	await page.getByRole('button', { name: 'Best price' }).click();
 	await expect(page.getByRole('heading', { name: 'Best deal' })).toBeVisible();
@@ -75,7 +71,7 @@ test('mobile listing places navigation over the photo and keeps the specificatio
 	await expect(search).toBeInViewport();
 	await expect(search.getByText('Search products')).toBeVisible();
 	await page.getByRole('button', { name: 'Specifications', exact: true }).click();
-	const sheet = page.getByRole('dialog', { name: /Specifications|สเปกสินค้า/ });
+	const sheet = page.getByRole('dialog');
 	expect((await sheet.boundingBox())!.height).toBeGreaterThan(844 * 0.8);
 	await expect(sheet.getByRole('button', { name: 'Done' })).toBeInViewport();
 	await page.keyboard.press('Escape');

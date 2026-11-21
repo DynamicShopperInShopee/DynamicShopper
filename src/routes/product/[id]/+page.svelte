@@ -43,7 +43,7 @@
 			<ProductSummary {data} />
 		</div>
 		<ProductDescription {data} {openSpecifications} />
-		<SpecificationsSheet {data} {th} bind:sheet />
+		<SpecificationsSheet specs={data.specs} {th} bind:sheet />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />
 </main>
@@ -83,11 +83,8 @@
 	}
 
 	@media (max-width: 699px) {
-		main[data-theme='large'] {
-			--gallery-caption-top: 68px;
-		}
 		main {
-			padding-bottom: calc(var(--listing-actions-height, 60px) + 1rem);
+			padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 		}
 	}
 	@media (min-width: 700px) {

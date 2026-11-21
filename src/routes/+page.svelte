@@ -1,8 +1,6 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { afterNavigate, snapshot } from '$app/navigation';
-	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick } from 'svelte';
@@ -10,7 +8,7 @@
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
-	import SearchQuickFilters from './SearchQuickFilters.svelte';
+	import CookerQuickFilters from './CookerQuickFilters.svelte';
 	import CookerPhotoCaption from '../lib/storefront/CookerPhotoCaption.svelte';
 	import SearchShopPreview from './SearchShopPreview.svelte';
 	import '../lib/assets/products/shelf-photos.css';
@@ -414,49 +412,6 @@
 			(category === 'cooker' ||
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
 	);
-	const skinSearch = $derived(
-		eventDemo &&
-			(category === 'skin' ||
-				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
-	);
-	function captureSearch() {
-		return eventDemo
-			? {
-					category,
-					language,
-					sort,
-					query,
-					draftQuery,
-					maxPrice,
-					freeShipping,
-					capacity,
-					scrollY: Math.max(0, Math.round(window.scrollY))
-				}
-			: undefined;
-	}
-	function restoreSearch(input: unknown) {
-		const selection = readSearchSelection(input);
-		if (!eventDemo || !selection) return;
-		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
-		draftPrice = maxPrice;
-		draftShipping = freeShipping;
-		if (selection.scrollY !== undefined) {
-			const offset = selection.scrollY;
-			void tick().then(async () => {
-				await document.fonts.ready;
-				await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-				if (page.route.id !== '/') return;
-				const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-				window.scrollTo({ top: Math.min(offset, maxScroll), behavior: 'instant' });
-			});
-		}
-	}
-	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
-	carrySearchToListing(captureSearch);
-	afterNavigate(({ from, type }) => {
-		if (type !== 'popstate' && from?.route.id === '/product/[id]')
-			restoreSearch(page.state.storeSearch);
-	});
 	const selectedCapacityProduct = $derived(
 		cookerSearch && capacity !== undefined
 			? canonical.find(
@@ -605,7 +560,7 @@
 
 	<main class="wrap">
 		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
-		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
+		<form class="search" role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
 					<svg
@@ -624,7 +579,6 @@
 			<label class="visually-hidden" for="search">{t.search}</label>
 			<input
 				id="search"
-				maxlength={eventDemo ? searchLimit : undefined}
 				type="search"
 				placeholder={category !== 'all' ? categories[category][language] : t.searchHint}
 				bind:value={draftQuery}
@@ -675,7 +629,7 @@
 			{/if}
 		</form>
 
-		{#if skinSearch && products.length > 0}
+		{#if eventDemo && products.length > 0 && (category === 'skin' || (query && products.every((item) => item.category === 'skin')))}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		{#if eventDemo && !cookerSearch}
@@ -725,9 +679,8 @@
 			</div>
 		{/if}
 
-		{#if cookerSearch || skinSearch}
-			<SearchQuickFilters
-				cooker={cookerSearch}
+		{#if cookerSearch}
+			<CookerQuickFilters
 				{language}
 				{category}
 				bind:capacity
@@ -1121,12 +1074,9 @@
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
-			<div
-				class="results-header"
-				class:visually-hidden={skinSearch || (cookerSearch && sort === 'default')}
-			>
+			<div class="results-header" class:visually-hidden={cookerSearch && sort === 'default'}>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
-				{#if eventDemo && !cookerSearch && !skinSearch}
+				{#if eventDemo && !cookerSearch}
 					<a class="assistant-link" href={resolve('/?view=receipt')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
@@ -1237,7 +1187,7 @@
 												/><circle cx="18" cy="18" r="2" />
 											</svg>
 										{/if}
-										<span class:visually-hidden={eventDemo}>{t.shipping}</span>
+										<span>{t.shipping}</span>
 										<span class="leader" aria-hidden="true"></span>
 										<FactValue
 											class="figure"
@@ -1245,14 +1195,6 @@
 											field="shipping"
 											locale={language}
 										/>
-										{#if eventDemo}
-											<FactValue
-												class="shipping-shop"
-												productId={product.catalogId}
-												field="shop"
-												locale={language}
-											/>
-										{/if}
 									</div>
 									<div class="metadata">
 										<span>
@@ -1287,15 +1229,13 @@
 											/>
 										</span>
 									</div>
-									{#if !eventDemo}
-										<FactValue
-											tag="p"
-											class="shop"
-											productId={product.catalogId}
-											field="shop"
-											locale={language}
-										/>
-									{/if}
+									<FactValue
+										tag="p"
+										class="shop"
+										productId={product.catalogId}
+										field="shop"
+										locale={language}
+									/>
 									{#if !eventDemo}
 										{@const reasons =
 											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
@@ -1793,8 +1733,6 @@
 	}
 
 	.event-demo {
-		/* The sticky filters change height after scrolling. Keep the shelf offset stable. */
-		overflow-anchor: none;
 		--paper: #f5f5f5;
 
 		--seam: #e4e4e4;
@@ -1911,7 +1849,7 @@
 	}
 
 	.event-demo .card-body h3 {
-		font-size: max(0.9375rem, var(--small));
+		font-size: var(--size);
 		line-height: 1.35;
 		font-weight: 400;
 	}
@@ -1999,7 +1937,7 @@
 	}
 
 	.event-demo .card-body {
-		gap: 0.25rem;
+		gap: 0.32rem;
 		padding: 0.45rem 0.5rem 0.6rem;
 	}
 	.event-demo .card-body h3 {
@@ -2033,36 +1971,5 @@
 	}
 	.event-demo .card-body :global(.shop) {
 		order: 3;
-	}
-	.shipping :global(.shipping-shop) {
-		flex: 1;
-		min-width: 0;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		border-inline-start: 1px solid var(--seam);
-		padding-inline-start: 0.35rem;
-	}
-	@media (max-width: 699px) {
-		.event-demo .cooker-search {
-			display: grid;
-			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
-			padding-inline: 0.125rem;
-			gap: 0.125rem;
-		}
-		.cooker-search .search-back {
-			grid-area: 1 / 1;
-		}
-		.event-demo .cooker-search input {
-			grid-area: 1 / 2;
-			width: 100%;
-			padding-inline: var(--tap) 0.5rem;
-		}
-		.event-demo .cooker-search .search-icon {
-			grid-area: 1 / 2;
-			justify-self: start;
-			width: var(--tap);
-			margin: 0;
-		}
 	}
 </style>

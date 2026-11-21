@@ -25,7 +25,7 @@
 	.merchant {
 		position: absolute;
 		inset-inline-start: 16%;
-		top: var(--gallery-caption-top, 4.5%);
+		top: 4.5%;
 		max-width: 51%;
 		font-size: max(var(--action-font-floor, 12px), clamp(14px, 4cqi, 24px));
 		font-weight: 600;
