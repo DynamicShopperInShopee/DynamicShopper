@@ -1,59 +1,52 @@
 <script lang="ts">
 	import type { Locale } from '../catalog/index.ts';
-	import { inspectFacts } from './verify';
+	import { resolveCatalogFact } from './catalogFact';
+	import { observeMountedFacts } from './observeMountedFacts';
+	import { compareFacts, verifyFacts, type FactCheck } from './verifyFacts';
 
 	let { root, locale, compare }: { root?: HTMLElement; locale: Locale; compare?: true } = $props();
-	let checked = $state(0);
-	let mismatches = $state(0);
-	let shared = $state(0);
-	let ready = $state(false);
+	let result = $state<FactCheck>();
+	const reasons = {
+		en: {
+			identity: 'Unrecognized fact',
+			source: 'Incorrect source',
+			raw: 'Incorrect stored value',
+			text: 'Incorrect printed value'
+		},
+		th: {
+			identity: 'ไม่รู้จักข้อมูลนี้',
+			source: 'แหล่งข้อมูลไม่ถูกต้อง',
+			raw: 'ค่าที่บันทึกไม่ถูกต้อง',
+			text: 'ค่าที่แสดงไม่ถูกต้อง'
+		}
+	};
 
-	$effect(() => {
-		if (!root) return;
+	$effect.pre(() => {
 		const target = root;
 		const activeLocale = locale;
 		const comparePanes = compare;
-		function refresh() {
-			ready = true;
-			if (!comparePanes) {
-				const result = inspectFacts(target, activeLocale);
-				checked = result.checked;
-				mismatches = result.mismatches;
-				return;
+		return observeMountedFacts<FactCheck>(
+			[target],
+			() => {
+				if (!target) return { checked: 0, mismatches: [] };
+				if (!comparePanes) return verifyFacts(target, resolveCatalogFact, activeLocale);
+				const [left, right] = target.querySelectorAll<HTMLElement>('[data-compare-pane]');
+				if (!left || !right) return { checked: 0, mismatches: [] };
+				return compareFacts(
+					{ root: left, locale: left.lang === 'th' ? 'th' : 'en' },
+					{ root: right, locale: right.lang === 'th' ? 'th' : 'en' },
+					resolveCatalogFact
+				);
+			},
+			(value) => {
+				result = value;
 			}
-			const panes = [...target.querySelectorAll<HTMLElement>('[data-compare-pane]')];
-			const [left, right] = panes.map((pane) =>
-				inspectFacts(pane, pane.lang === 'th' ? 'th' : 'en')
-			);
-			shared =
-				left && right
-					? [...left.facts].filter(([key, raw]) => right.facts.get(key) === raw).length
-					: 0;
-			mismatches = (left?.mismatches ?? 0) + (right?.mismatches ?? 0);
-		}
-		refresh();
-		const observer = new MutationObserver(refresh);
-		observer.observe(target, {
-			subtree: true,
-			childList: true,
-			characterData: true,
-			attributes: true,
-			attributeFilter: [
-				'data-fact-node',
-				'data-product-id',
-				'data-raw',
-				'data-fact',
-				'lang',
-				'hidden',
-				'open'
-			]
-		});
-		return () => observer.disconnect();
+		);
 	});
 
-	const count = $derived(compare ? shared : checked);
+	const count = $derived(result?.checked ?? 0);
 	const status = $derived(
-		!ready ? 'checking' : mismatches ? 'failed' : count ? 'verified' : 'empty'
+		!result ? 'checking' : result.mismatches.length ? 'failed' : count ? 'verified' : 'empty'
 	);
 </script>
 
@@ -76,6 +69,11 @@
 		<strong>
 			{locale === 'th' ? 'พบข้อมูลที่ไม่ตรงกับแค็ตตาล็อก' : 'Displayed facts differ from the catalog'}
 		</strong>
+		<ul>
+			{#each result?.mismatches ?? [] as { reason }, index (index)}
+				<li>{reasons[locale][reason]}</li>
+			{/each}
+		</ul>
 	{:else if status === 'checking'}
 		<span>{locale === 'th' ? 'กำลังตรวจสอบข้อมูล' : 'Checking facts'}</span>
 	{:else}
@@ -107,5 +105,11 @@
 	}
 	[data-proof='failed'] strong {
 		color: #a11725;
+	}
+	ul {
+		flex-basis: 100%;
+		margin: 0;
+		padding-inline-start: 1.25em;
+		list-style: disc;
 	}
 </style>

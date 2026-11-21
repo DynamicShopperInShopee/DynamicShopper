@@ -38,3 +38,26 @@ test('digital media belongs to the digital cooker and plays locally on demand', 
 	).toBeFocused();
 	await expect(page.locator('[data-proof]')).toHaveAttribute('data-proof', 'verified');
 });
+
+for (const lang of ['en', 'th']) {
+	test(`phone digital gallery caption clears navigation in ${lang}`, async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await page.goto(`/product/cooker-2?lang=${lang}`);
+		await expect(page.locator('[data-proof]')).toHaveAttribute('data-proof', 'verified');
+		const caption = await page.locator('.gallery [data-fact="shop"]').boundingBox();
+		expect(caption).not.toBeNull();
+		for (const control of await page.locator('header a, header button').all()) {
+			if (!(await control.isVisible())) continue;
+			const box = await control.boundingBox();
+			if (!box || !caption) continue;
+			const width =
+				Math.min(caption.x + caption.width, box.x + box.width) - Math.max(caption.x, box.x);
+			const height =
+				Math.min(caption.y + caption.height, box.y + box.height) - Math.max(caption.y, box.y);
+			expect(
+				width <= 0 || height <= 0,
+				(await control.getAttribute('aria-label')) ?? (await control.innerText())
+			).toBe(true);
+		}
+	});
+}

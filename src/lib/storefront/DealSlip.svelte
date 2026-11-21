@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { formatBaht, getProduct, getShop, type Locale } from '../catalog/index.ts';
-	import type { AddOn, DealReceipt, UnusedVoucher } from '../pricing/index.ts';
+	import { formatBaht, getProduct, getShop } from '../catalog/index.ts';
+	import type { AddOn, DealReceipt, Locale, UnusedVoucher } from '#lib/contracts.ts';
 
 	let {
 		receipt,
@@ -11,6 +11,8 @@
 		en: {
 			title: 'Best deal',
 			verified: 'Calculated from catalog',
+			subtotal: 'Item subtotal',
+			baseline: 'Before discounts',
 			shipping: 'Shipping',
 			coins: 'Coins',
 			total: 'Total',
@@ -26,6 +28,8 @@
 		th: {
 			title: 'ดีลที่คุ้มที่สุด',
 			verified: 'คำนวณจากแค็ตตาล็อกแล้ว',
+			subtotal: 'รวมราคาสินค้า',
+			baseline: 'ก่อนหักส่วนลด',
 			shipping: 'ค่าจัดส่ง',
 			coins: 'เหรียญ',
 			total: 'ยอดชำระ',
@@ -54,9 +58,9 @@
 	}
 </script>
 
-<div class="receipt" aria-label={t.title}>
+<div class="receipt" aria-label={t.title} lang={locale}>
 	<h3>{t.title}</h3>
-	<p class="confirmed">{t.verified}</p>
+	<p class="confirmed" data-proof="calculated">{t.verified}</p>
 	{#each receipt.shops as shop (shop.shopId)}
 		<div class="shop">
 			<strong>{getShop(shop.shopId)?.name[locale]}</strong>
@@ -64,6 +68,9 @@
 				<div class="line">
 					<span>
 						{getProduct(item.productId)?.name[locale]}
+						<span class="number" data-deal-fact="unitPrice" data-raw={item.unitPrice}>
+							{formatBaht(item.unitPrice, locale)}
+						</span>
 						<span data-deal-fact="quantity" data-raw={item.quantity}>×{item.quantity}</span>
 					</span>
 					<span class="number" data-deal-fact="itemSubtotal" data-raw={item.subtotal}>
@@ -74,12 +81,24 @@
 		</div>
 	{/each}
 	<div class="line">
+		<span>{t.subtotal}</span>
+		<span class="number" data-deal-fact="subtotal" data-raw={receipt.subtotal}>
+			{formatBaht(receipt.subtotal, locale)}
+		</span>
+	</div>
+	<div class="line">
 		<span>{t.shipping}</span><span
 			class="number"
 			data-deal-fact="shipping"
 			data-raw={receipt.shipping}
 		>
 			{formatBaht(receipt.shipping, locale)}
+		</span>
+	</div>
+	<div class="line">
+		<span>{t.baseline}</span>
+		<span class="number" data-deal-fact="baseline" data-raw={receipt.baseline}>
+			{formatBaht(receipt.baseline, locale)}
 		</span>
 	</div>
 	{#each receipt.appliedVouchers as voucher (voucher.code)}

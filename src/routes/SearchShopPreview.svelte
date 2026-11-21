@@ -59,13 +59,7 @@
 		<ul class="strip">
 			{#each matches as item (item.id)}
 				<li data-product={item.id}>
-					<a
-						href={resolve('/product/[id]', { id: item.id }) +
-							'?lang=' +
-							language +
-							'&theme=' +
-							theme}
-					>
+					<a href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, { id: item.id })}>
 						<span
 							class="demo-photo"
 							data-cooker-photo={item.catalogId}
@@ -103,13 +97,7 @@
 		<ul class="inventory">
 			{#each inventory as item (item.id)}
 				<li data-product={item.id}>
-					<a
-						href={resolve('/product/[id]', { id: item.id }) +
-							'?lang=' +
-							language +
-							'&theme=' +
-							theme}
-					>
+					<a href={resolve(`/product/[id]?lang=${language}&theme=${theme}`, { id: item.id })}>
 						<span
 							class="demo-photo"
 							data-cooker-photo={item.catalogId}

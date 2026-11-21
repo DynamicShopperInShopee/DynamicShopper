@@ -9,7 +9,7 @@
 		openSpecifications
 	}: {
 		data: PageData;
-		openSpecifications: (trigger: HTMLButtonElement) => void;
+		openSpecifications?: (trigger: HTMLButtonElement) => void;
 	} = $props();
 </script>
 

@@ -9,9 +9,9 @@
 		) ?? []
 	);
 	const scenes = {
-		rice: { src: digitalMedia.pot, anchor: '#digital-nonstick' },
-		controls: { src: digitalMedia.controls, anchor: '#digital-preset' },
-		serving: { src: digitalMedia.serving, anchor: '#digital-serving' }
+		rice: { src: digitalMedia.pot, anchor: 'digital-nonstick' },
+		controls: { src: digitalMedia.controls, anchor: 'digital-preset' },
+		serving: { src: digitalMedia.serving, anchor: 'digital-serving' }
 	};
 </script>
 
@@ -29,7 +29,7 @@
 		{#if !reviewField}<h3>{th ? 'ภาพรีวิวจำลอง' : 'Simulated review photos'}</h3>{/if}
 		<div class="photos">
 			{#each items as item (item.mediaId)}
-				<a href={scenes[item.mediaId].anchor} aria-label={item.caption.text}>
+				<a href={'#' + scenes[item.mediaId].anchor} aria-label={item.caption.text}>
 					<img src={scenes[item.mediaId].src} alt="" width="160" height="160" loading="lazy" />
 					<span class="visually-hidden" {...item.caption.attributes}>{item.caption.text}</span>
 				</a>

@@ -1,7 +1,13 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
+	import ProductChat from '#lib/storefront/ProductChat.svelte';
+	import { getStoreSession } from '#lib/storefront/store.svelte.ts';
 	import ListingHeader from './ListingHeader.svelte';
 	import '../../../lib/assets/fonts/plex.css';
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
+	import CartControls from '../../../lib/storefront/CartControls.svelte';
+	import AddToCart from '../../../lib/storefront/AddToCart.svelte';
+	import ProductDeal from '../../../lib/storefront/ProductDeal.svelte';
 	import ProductSummary from './ProductSummary.svelte';
 	import ProductGallery from './ProductGallery.svelte';
 	import '../../../lib/assets/products/cooker-photos.css';
@@ -10,11 +16,14 @@
 	import SpecificationsSheet from './SpecificationsSheet.svelte';
 	import type { PageProps } from './$types';
 
+	const session = getStoreSession();
 	let { data }: PageProps = $props();
 	let hero = $state<HTMLDivElement>();
 	let sheet = $state<HTMLDialogElement>();
 	let proofRoot = $state<HTMLElement>();
+	let productDeal = $state<{ showCart: () => Promise<void> }>();
 	const th = $derived(data.language === 'th');
+	afterNavigate(() => session.listing.record(data.id));
 
 	function openSpecifications(trigger: HTMLButtonElement) {
 		if (!sheet || sheet.open) return;
@@ -26,7 +35,13 @@
 <svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
 
 <main lang={data.language} data-product={data.id} data-theme={data.theme}>
-	<ListingHeader {data} {hero} />
+	<ListingHeader
+		{data}
+		backQuery={data.receiptQuery ? session.visit?.search.slice(1) || data.receiptQuery : ''}
+		{hero}
+	>
+		<CartControls locale={data.language} onBestPrice={() => void productDeal?.showCart()} />
+	</ListingHeader>
 	<div bind:this={proofRoot}>
 		<div class="listing">
 			<div
@@ -44,12 +59,23 @@
 					{#key data.id}<ProductGallery {th} productId={data.id} />{/key}
 				{/if}
 			</div>
-			<ProductSummary {data} />
+			<ProductSummary {data}>
+				{#key data.id}
+					<ProductDeal bind:this={productDeal} productId={data.id} locale={data.language}>
+						<AddToCart productId={data.id} locale={data.language} onAdd={session.addProduct} />
+					</ProductDeal>
+				{/key}
+			</ProductSummary>
 		</div>
-		<ProductDescription {data} {openSpecifications} />
+		<ProductDescription {data} openSpecifications={sheet ? openSpecifications : undefined} />
 		<SpecificationsSheet {data} {th} bind:sheet />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />
+	{#if data.receiptQuery}<ProductChat
+			productId={data.id}
+			locale={data.language}
+			theme={data.theme}
+		/>{/if}
 </main>
 
 <style>
@@ -87,8 +113,13 @@
 	}
 
 	@media (max-width: 699px) {
-		main[data-theme='large'] {
+		main {
 			--gallery-caption-top: 68px;
+		}
+		main[data-theme='large'] {
+			--gallery-caption-surface: #fff;
+			--gallery-caption-ink: #16161a;
+			--gallery-caption-padding: 0.125em 0.25em;
 		}
 		main {
 			padding-bottom: calc(var(--listing-actions-height, 60px) + 1rem);

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 
 	let {
@@ -16,6 +17,10 @@
 			{ label: th ? 'เกี่ยวกับสินค้า' : 'About this item', ...data.summary }
 		];
 		return [...new Map(all.map((row) => [row.attributes['data-fact'], row])).values()];
+	});
+	let ready = $state(false);
+	onMount(() => {
+		ready = true;
 	});
 </script>
 
@@ -56,6 +61,7 @@
 	{#if data.specs.length}
 		<button
 			type="button"
+			disabled={!ready}
 			aria-controls="product-specifications"
 			aria-haspopup="dialog"
 			onclick={(event) => {

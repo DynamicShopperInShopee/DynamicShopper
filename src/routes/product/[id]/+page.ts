@@ -8,6 +8,7 @@ import {
 } from '../../../lib/catalog';
 import type { DetailRow, Fact, Locale } from '../../../lib/catalog';
 import { catalog } from '../../../lib/store-catalog';
+import { isValidLook } from '#lib/storefront/sharedLook.ts';
 import { rawAttribute } from '../../../lib/storefront/verify';
 import type { PageLoad } from './$types';
 
@@ -18,6 +19,7 @@ function presentFact(fact: Fact, locale: Locale) {
 			'data-fact-node': '',
 			'data-product-id': fact.productId,
 			'data-fact': fact.field,
+			'data-source': 'catalog',
 			'data-raw': rawAttribute(fact.raw)
 		}
 	};
@@ -67,10 +69,7 @@ export const load: PageLoad = ({ params, url }) => {
 	const look = url.searchParams.get('look') ?? '';
 	const receiptQuery =
 		url.searchParams.get('view') === 'receipt'
-			? 'view=receipt' +
-				(/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(look)
-					? '&look=' + look
-					: '')
+			? 'view=receipt' + (isValidLook(look) ? '&look=' + look : '')
 			: '';
 	return {
 		receiptQuery,

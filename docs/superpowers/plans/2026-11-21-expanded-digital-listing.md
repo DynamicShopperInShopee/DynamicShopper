@@ -55,7 +55,15 @@ Files: digital assets and manifest under `src/lib/assets/products`, route-local 
 
 ## Task 4: Integration and review
 
-- [ ] Run affected catalog/pricing tests, all route E2E, build, type check and formatting checks.
-- [ ] Inspect every new section in Thai/English and all four themes at both supported sizes. Inspect rendered fact metadata and offline playback.
-- [ ] Obtain independent producer/consumer and final visual review, resolve concrete findings, update DESIGN and CATALOG together.
+- [x] Run affected catalog/pricing tests, all route E2E, build, type check and formatting checks.
+- [x] Inspect every new section in Thai/English and all four themes at both supported sizes. Inspect rendered fact metadata and offline playback.
+- [x] Obtain independent producer/consumer and final visual review, resolve concrete findings, update DESIGN and CATALOG together.
 - [ ] Commit and update the reviewable PR/branch preview, verify deployed behavior and report completion limits honestly.
+
+## Integration decisions and evidence
+
+- Accepted: keep the already merged cart, interview, session and fact-verification flow from main `50a9171`; the expansion adds only catalog detail data, fixed listing sections and local media.
+- Resolved: restore Thai timer search with a catalog tag; correct scene alt text; use mono for the voltage range; distinguish simulated video navigation labels from photo captions; explicitly identify simulated review search.
+- Resolved: move the phone gallery shop caption below the combined header/cart controls in every theme, with a bilingual overlap regression test.
+- Independent design, producer/consumer, media, conflict-resolution and visual reviews were completed. All sixteen locale/theme/viewport combinations loaded their images and verified the rendered facts.
+- Production build passed; server unit tests: 107 passed with the same five pre-existing personalization contract failures; client unit tests: 78 passed. Type checking reports only the same two unresolved imports in `personalization/contract.spec.ts`, with no warnings. Production E2E passed 112 with the development-only poisoned-model case skipped; that case passed separately in development.
