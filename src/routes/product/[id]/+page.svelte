@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { onMount } from 'svelte';
 	import '../../../lib/assets/fonts/plex.css';
 	import { riceCookerReviews, riceCookerSpecs } from '../../../lib/store-catalog';
 	import { formatBaht, formatNumber } from '../../../lib/store-search';
@@ -12,12 +13,26 @@
 	import SpecificationsSheet from './SpecificationsSheet.svelte';
 	import ProductDescription from './ProductDescription.svelte';
 	const review = $derived(riceCookerReviews[product.id]?.[data.language]);
+	let hero = $state<HTMLDivElement>();
+	let overHero = $state(true);
+
+	onMount(() => {
+		if (!hero) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				overHero = entry.isIntersecting;
+			},
+			{ rootMargin: '-60px 0px 0px' }
+		);
+		observer.observe(hero);
+		return () => observer.disconnect();
+	});
 </script>
 
 <svelte:head><title>{product.name[data.language]} · DynamicShopper</title></svelte:head>
 
 <main class:with-actions={Boolean(specs)} lang={data.language} data-product={product.id}>
-	<header>
+	<header data-over-hero={overHero}>
 		<a class="back" href={resolve('/')} aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}>
 			<svg
 				viewBox="0 0 24 24"
@@ -56,6 +71,7 @@
 	<div class="listing">
 		<div
 			class="art"
+			bind:this={hero}
 			data-category={product.category}
 			data-model={product.id}
 			aria-hidden="true"
@@ -131,7 +147,7 @@
 			</dl>
 		</section>
 	</div>
-	<ProductDescription {product} language={data.language} {review} />
+	<ProductDescription {product} language={data.language} {review} {specs} />
 	{#if specs}
 		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} />
 	{/if}
@@ -358,6 +374,27 @@
 		.language {
 			padding-inline: 0.55rem;
 			font-size: 0.875rem;
+		}
+		header[data-over-hero='false'] {
+			background: #fff;
+			border-bottom: 1px solid #e9e6dc;
+		}
+		header[data-over-hero='false'] .hero-shop {
+			display: none;
+		}
+		header[data-over-hero='false'] a {
+			color: #16161a;
+			background: #fff;
+		}
+		header[data-over-hero='false'] .header-search {
+			flex: 1 1 auto;
+			justify-content: flex-start;
+			padding-inline: 0.65rem;
+			background: #f4f4f4;
+			border-radius: 4px;
+		}
+		header[data-over-hero='false'] .header-search span {
+			display: inline;
 		}
 		section {
 			padding-inline: 0.8rem;

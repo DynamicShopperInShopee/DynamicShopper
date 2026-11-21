@@ -119,6 +119,12 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	await expect(sheet.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
 	await sheet.getByRole('button', { name: 'Done' }).click();
 	await expect(sheet).toBeHidden();
+	await actions.getByRole('link', { name: 'Details' }).click();
+	const details = page.getByRole('region', { name: 'Product details' });
+	await expect(details.locator('[data-fact="power"]')).toHaveText('700 W');
+	await expect(page.locator('main header')).toHaveAttribute('data-over-hero', 'false');
+	await page.evaluate(() => window.scrollTo(0, 0));
+	await expect(page.locator('main header')).toHaveAttribute('data-over-hero', 'true');
 	await page.getByRole('link', { name: 'ไทย' }).click();
 	await expect(page.getByRole('heading', { level: 1 })).toContainText('หม้อหุงข้าว');
 	await expect(page.locator('[data-fact="review"]')).toHaveText('แม่ใช้เองได้โดยไม่ต้องมีคนช่วย');

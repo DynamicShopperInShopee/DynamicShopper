@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { formatNumber } from '../../../lib/store-search';
-	import type { catalog, Language } from '../../../lib/store-catalog';
+	import SpecificationRows from './SpecificationRows.svelte';
+	import type { catalog, Language, riceCookerSpecs } from '../../../lib/store-catalog';
 
 	let {
 		product,
 		language,
-		review
+		review,
+		specs
 	}: {
 		product: (typeof catalog)[number];
 		language: Language;
 		review?: string;
+		specs?: (typeof riceCookerSpecs)[string];
 	} = $props();
 	const th = $derived(language === 'th');
 </script>
@@ -33,6 +36,13 @@
 <section id="details" aria-labelledby="details-title">
 	<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>
 	<p data-fact="name" data-raw={product.name[language]}>{product.name[language]}</p>
+	{#if product.id === 'cooker-1'}
+		<div class="detail-photo" aria-hidden="true"></div>
+	{/if}
+	{#if specs}
+		<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
+		<SpecificationRows {specs} {th} />
+	{/if}
 </section>
 
 <style>
@@ -47,6 +57,17 @@
 	}
 	p {
 		margin: 0;
+	}
+	.detail-photo {
+		margin-block: 0.85rem 1rem;
+		aspect-ratio: 1;
+		width: min(100%, 32rem);
+		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
+			no-repeat;
+	}
+	h3 {
+		font-size: 1rem;
+		margin-block: 1rem 0.25rem;
 	}
 	.rating {
 		display: flex;

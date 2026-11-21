@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatNumber } from '../../../lib/store-search';
+	import SpecificationRows from './SpecificationRows.svelte';
 
 	let {
 		specs,
@@ -8,16 +8,6 @@
 	}: { specs: readonly [number, number, number, number]; th: boolean; hasReview: boolean } =
 		$props();
 	let sheet = $state<HTMLDialogElement>();
-	const fields = $derived([
-		{ key: 'capacity', label: th ? 'ความจุ' : 'Capacity', unit: th ? 'ลิตร' : 'L' },
-		{ key: 'power', label: th ? 'กำลังไฟ' : 'Power', unit: th ? 'วัตต์' : 'W' },
-		{ key: 'programs', label: th ? 'โปรแกรมหุง' : 'Cooking programs', unit: '' },
-		{
-			key: 'warranty',
-			label: th ? 'การรับประกัน' : 'Warranty',
-			unit: th ? 'ปี' : specs[3] === 1 ? 'year' : 'years'
-		}
-	]);
 </script>
 
 <nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>
@@ -58,16 +48,7 @@
 
 <dialog bind:this={sheet} aria-labelledby="specs-title">
 	<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
-	<dl>
-		{#each fields as field, index (field.key)}
-			<div>
-				<dt>{field.label}</dt>
-				<dd data-fact={field.key} data-raw={specs[index]}>
-					{formatNumber(specs[index])}{field.unit ? ` ${field.unit}` : ''}
-				</dd>
-			</div>
-		{/each}
-	</dl>
+	<SpecificationRows {specs} {th} />
 	<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
 </dialog>
 
@@ -134,17 +115,6 @@
 		margin: 0;
 		padding-bottom: 0.75rem;
 		border-bottom: 1px solid #e9e6dc;
-	}
-	dl div {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-		padding: 0.75rem 0;
-		border-bottom: 1px solid #e9e6dc;
-	}
-	dd {
-		margin: 0;
-		font-family: 'IBM Plex Mono', ui-monospace, monospace;
 	}
 	@media (max-width: 699px) {
 		.actions {
