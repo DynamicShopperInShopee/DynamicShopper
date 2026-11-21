@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('persona and shared-look changes explain themselves and clear on Undo', async ({ page }) => {
 	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
 	const notice = page
 		.getByRole('status')

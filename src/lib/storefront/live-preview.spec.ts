@@ -25,11 +25,24 @@ it('sends only projected hints and ignores any unapproved fields in the returned
 	expect(transport.mock.calls[0]?.[1]?.body).toBe('{"hints":["playful"]}');
 });
 
+it('keeps rejected-field evidence even when the live response contributes no patch', async () => {
+	const transport = vi
+		.fn<typeof fetch>()
+		.mockResolvedValue(Response.json({ model: 'gpt-5-mini', patch: {}, rejected: true }));
+	const result = await requestLivePreview(
+		'/api/local-assistant',
+		projectLiveHints('จอยๆ'),
+		new AbortController().signal,
+		transport
+	);
+	expect(result).toEqual({ model: 'gpt-5-mini', patch: {}, rejected: true });
+});
+
 it('fills only genuine gaps and preserves explicit local or previously locked choices', () => {
 	expect(
 		fillPresentationGaps(
 			{ theme: 'large-print', maxPrice: 1500 },
-			{ theme: 'vibrant', locale: 'th', layout: 'grid', density: 'compact' },
+			{ theme: 'vibrant', locale: 'th', layout: 'grid', density: 'compact', query: 'bad' },
 			defaultPlan,
 			['locale']
 		)

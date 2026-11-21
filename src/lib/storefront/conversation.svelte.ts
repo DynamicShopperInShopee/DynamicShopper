@@ -14,6 +14,7 @@ export interface ChatDeal {
 interface ReplyDetails {
 	locale: Locale;
 	offline: boolean;
+	usedLocalSettings?: boolean;
 	changes: readonly string[];
 	deal?: ChatDeal;
 }
@@ -24,6 +25,7 @@ export interface ChatMessage {
 	text: string;
 	locale?: Locale;
 	offline?: boolean;
+	usedLocalSettings?: boolean;
 	error?: boolean;
 	citations?: Turn['citations'];
 	productIds?: readonly string[];
@@ -34,6 +36,10 @@ export interface ChatMessage {
 export class Conversation {
 	messages = $state.raw<readonly ChatMessage[]>([]);
 	private sequence = 0;
+
+	clear() {
+		this.messages = [];
+	}
 
 	shopper(text: string, locale: Locale) {
 		this.append({ role: 'shopper', text, locale });
