@@ -36,6 +36,7 @@ export function interviewProposal(raw: unknown, plan: ShopperPlan) {
 	if (answers.reading) {
 		patch.density = answers.reading === 'large' ? 'spacious' : answers.reading;
 		if (answers.reading === 'large') patch.theme = 'large-print';
+		else if (plan.theme === 'large-print') patch.theme = 'standard';
 	}
 	if ((patch.theme ?? plan.theme) === 'large-print' && patch.density) patch.density = 'spacious';
 	const turn = validateProposal({ intent: 'change', patch }, plan);

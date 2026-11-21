@@ -2,7 +2,7 @@
 
 ## Browser interview integration
 
-The storefront interview maps recognized answer IDs to fixed presentation settings, validates the patch, and previews it for the shopper. Each question is optional. Only choosing large text changes the theme.
+The storefront interview maps recognized answer IDs to fixed presentation settings, validates the patch, and previews it for the shopper. Each question is optional. Large text selects the large-print theme. An explicit non-large reading answer leaves large-print mode for standard; skipped answers preserve the current mode.
 
 Apply preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
