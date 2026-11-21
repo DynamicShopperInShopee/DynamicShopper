@@ -37,6 +37,8 @@
 	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
+	import PersonalizeShop from '../lib/storefront/PersonalizeShop.svelte';
+	import type { ProposalSources } from '../lib/personalization/interview';
 	import { getStoreOpenedAt } from '../lib/storefront/clock';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
@@ -69,13 +71,15 @@
 	const validLook = $derived(
 		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(sharedLook)
 	);
-	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	let adapted = $state(false);
+	const eventDemo = $derived(
+		page.url.searchParams.get('view') !== 'receipt' && !validLook && !adapted
+	);
 	const originQuery = $derived(
 		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
-	let adapted = $state(false);
 	let undoStack = $state<
 		{
 			plan: ShopperPlan;
@@ -142,7 +146,11 @@
 	const ranked = $derived(
 		adapted
 			? rankProducts(
-					freeShipping ? canonical.filter(({ shipping }) => shipping === 0) : canonical,
+					canonical.filter(
+						(product) =>
+							(!freeShipping || product.shipping === 0) &&
+							(!cookerContext || capacity === undefined || product.specs.capacity === capacity)
+					),
 					activePlan
 				)
 			: []
@@ -406,14 +414,14 @@
 
 	const t = $derived(storefrontCopy[language]);
 	let capacity = $state<number>();
-	const queryMatches = $derived(eventDemo && query ? searchProducts({ query, category }) : []);
-	const cookerSearch = $derived(
-		eventDemo &&
-			(category === 'cooker' ||
-				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
+	const queryMatches = $derived(query ? searchProducts({ query, category }) : []);
+	const cookerContext = $derived(
+		category === 'cooker' ||
+			(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker'))
 	);
+	const cookerSearch = $derived(eventDemo && cookerContext);
 	const selectedCapacityProduct = $derived(
-		cookerSearch && capacity !== undefined
+		cookerContext && capacity !== undefined
 			? canonical.find(
 					(item) => item.category === 'rice-cooker' && item.specs.capacity === capacity
 				)
@@ -421,10 +429,12 @@
 	);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const products = $derived.by(() => {
-		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping });
-		if (cookerSearch && capacity !== undefined) {
-			return matched.filter((item) => getProduct(item.catalogId)?.specs.capacity === capacity);
-		}
+		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping }).filter(
+			(item) =>
+				!cookerContext ||
+				capacity === undefined ||
+				getProduct(item.catalogId)?.specs.capacity === capacity
+		);
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
@@ -629,6 +639,26 @@
 			{/if}
 		</form>
 
+		<PersonalizeShop
+			plan={activePlan}
+			themeLocked={locks.includes('theme')}
+			enabled={interactive}
+			onapply={(patch: Partial<ShopperPlan>, sources: ProposalSources) => {
+				// A no-op must not silently add locks without an undo snapshot.
+				if (
+					!Object.entries(patch).some(
+						([key, value]) =>
+							JSON.stringify(activePlan[key as keyof ShopperPlan]) !== JSON.stringify(value)
+					)
+				)
+					return;
+				changePlan(patch, false);
+				for (const field of Object.keys(patch) as (keyof ShopperPlan)[]) {
+					if (sources[field] === 'answer') register(field);
+				}
+			}}
+		/>
+
 		{#if eventDemo && products.length > 0 && (category === 'skin' || (query && products.every((item) => item.category === 'skin')))}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
@@ -690,7 +720,7 @@
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value) => {
+				changeCategory={(value: Category | 'all') => {
 					if (query) {
 						draftQuery = query = '';
 					}
