@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolveCatalogFact } from './catalogFact';
 	import type { Snippet } from 'svelte';
 	import type { Category } from '#lib/store-catalog.js';
 	import Fact from './Fact.svelte';
@@ -14,7 +15,7 @@
 		layout,
 		locale,
 		columns,
-		resolve,
+		resolve = resolveCatalogFact,
 		listingHref,
 		categoryFor,
 		reasons,
@@ -30,7 +31,7 @@
 		layout: Layout;
 		locale: FactLocale;
 		columns: readonly { field: string; label: LocalizedText }[];
-		resolve: ResolvePrintedFact;
+		resolve?: ResolvePrintedFact;
 		listingHref: (id: string) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		reasons?: Snippet<[string]>;

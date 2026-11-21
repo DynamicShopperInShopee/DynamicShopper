@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolveCatalogFact } from './catalogFact';
 	import './theme.css';
 	import type { Category } from '#lib/store-catalog.js';
 	import CompareSlip from './CompareSlip.svelte';
@@ -28,14 +29,14 @@
 	let {
 		productIds,
 		columns,
-		resolve,
+		resolve = resolveCatalogFact,
 		listingHref,
 		categoryFor,
 		locale
 	}: {
 		productIds: readonly string[];
 		columns: readonly { field: string; label: LocalizedText }[];
-		resolve: ResolvePrintedFact;
+		resolve?: ResolvePrintedFact;
 		listingHref: (id: string) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		locale: FactLocale;

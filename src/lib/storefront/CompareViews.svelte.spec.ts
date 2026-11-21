@@ -20,7 +20,6 @@ it('switches one pane from Visual vibrant to Mom mode and checks both localized 
 	const screen = await render(CompareViews, {
 		productIds: [cooker],
 		columns: [{ field: 'spec.capacity', label: { en: 'Capacity', th: 'ความจุ' } }],
-		resolve,
 		listingHref: (id: string) => `/product/${id}`,
 		locale: 'en'
 	});
@@ -32,6 +31,8 @@ it('switches one pane from Visual vibrant to Mom mode and checks both localized 
 	await right.getByRole('combobox').selectOptions('mom');
 	await expect.element(left.getByText('฿690')).toBeVisible();
 	await expect.element(right.getByText('690 บาท')).toBeVisible();
+	await expect.element(right.getByText('690 บาท')).toHaveAttribute('data-raw', '690');
+	await expect.element(left.getByText('฿690')).toHaveAttribute('data-product', cooker);
 	await expect.element(right.getByText('1.8 ลิตร')).toBeVisible();
 	await expect.element(screen.getByText('Facts identical (3 checked)')).toBeVisible();
 });

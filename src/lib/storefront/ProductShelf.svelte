@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolveCatalogFact } from './catalogFact';
 	import type { Snippet } from 'svelte';
 	import CategoryGlyph from '#lib/CategoryGlyph.svelte';
 	import type { Category } from '#lib/store-catalog.js';
@@ -20,7 +21,7 @@
 		layout,
 		locale,
 		columns,
-		resolve,
+		resolve = resolveCatalogFact,
 		listingHref,
 		categoryFor,
 		extras
@@ -29,7 +30,7 @@
 		layout: 'table' | 'grid' | 'large-print';
 		locale: FactLocale;
 		columns: readonly SpecColumn[];
-		resolve: ResolvePrintedFact;
+		resolve?: ResolvePrintedFact;
 		listingHref: (id: string) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		extras?: Snippet<[string]>;

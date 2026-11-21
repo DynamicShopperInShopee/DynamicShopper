@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolveCatalogFact } from './catalogFact';
 	import type { Snippet } from 'svelte';
 	import Fact from './Fact.svelte';
 	import FactsSlip from './FactsSlip.svelte';
@@ -10,7 +11,7 @@
 	let {
 		productId,
 		locale,
-		resolve,
+		resolve = resolveCatalogFact,
 		storeHref,
 		specs,
 		order = detailOrder,
@@ -23,7 +24,7 @@
 	}: {
 		productId: string;
 		locale: FactLocale;
-		resolve: ResolvePrintedFact;
+		resolve?: ResolvePrintedFact;
 		storeHref: string;
 		specs: readonly { field: string; label: LocalizedText }[];
 		order?: readonly Detail[];
