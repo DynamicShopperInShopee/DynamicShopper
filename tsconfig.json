@@ -11,6 +11,8 @@
 		"prettier.config.js",
 		"eslint.config.js",
 		"playwright.config.ts",
-		"drizzle.config.ts"
-	]
+		"drizzle.config.ts",
+		"preview"
+	],
+	"exclude": ["node_modules", "preview/dist", "deploy/catalog/dist", ".svelte-kit", "build"]
 }

@@ -1,5 +1,26 @@
 # System design
 
+## Sourced catalog backend and cloud delivery
+
+The sourced shop loads one validated `CatalogSnapshot` from a read-only API.
+Local SQLite and the separate Cloudflare catalog Worker/D1 runtime use the same
+catalog DTO and query validation. `catalog_items` and `catalog_meta` persist the
+observed listing facts; unrelated authentication tables are preserved. Metadata
+is published only after imported items, and Worker reads batch metadata and
+items consistently. There is no public import or product-write endpoint.
+The cloud package contains the built shopping frontend and original image
+assets, not the Node/auth scaffold, raw observations or database files. See
+[cloud delivery](../deploy/catalog/README.md).
+
+The versioned snapshot contains 1,500 records observed on 2026-11-21, with source
+URLs, exact whole-baht amounts and per-listing timestamps. Publication does not
+refresh observations, complete checkout integration or run a background ingestion
+agent. All layouts and comparison examples share the same fetched snapshot. A
+validated browser copy supports offline search and CNN personalization; the
+seven-record starter fallback is explicitly labeled when both API and saved
+catalog are unavailable. Images require the cloud/local image service or an
+existing browser image cache. See [the dataset](../catalogs/shopee-2026-11-21/README.md).
+
 ## The central decision: split presentation from facts
 
 Everything in the system follows from one split.
@@ -41,10 +62,15 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 
 The root storefront can also obtain a presentation proposal from the optional
 four-question interview. The browser model receives answer IDs only and feeds
-the same proposal validator. Draft answers are isolated; one Apply passes the
-validated patch to the existing root change function and undo stack. Catalog
-facts, deterministic ranking and the optimizer stay on their existing paths.
-Model failure falls back to direct answers. See
+the same proposal validator. Draft answers are isolated. Completing the fourth
+step immediately passes one validated patch to the change function and undo stack,
+closes the sheet and focuses the change receipt with Undo and chat refinement.
+There is no separate review/Apply gate or manual UI chooser. Full answers use
+the browser CNN; skipped/partial answers and model failure use the deterministic
+answer mapping. Skipped settings are preserved and closing an unfinished draft
+is inert. Comparison examples cannot mutate the shop. Catalog facts stay on
+their existing paths, and unsupported sourced facts or ranking inputs are not
+invented. See
 [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline
@@ -144,7 +170,7 @@ A deal request prices "this": the products the AI named, else the product in foc
 
 ## Where state lives
 
-- **No server state.** The server is a pure function of the message, the static catalog and the clock. No accounts, no database.
+- **Catalog server state only.** Local SQLite and cloud D1 persist sourced observations through explicit imports. The read-only catalog API does not store shopper accounts, interview answers or cross-device preferences; agents have no catalog write path.
 - **The browser holds the store:** the plan, undo history, conversation, cart and recently viewed products. Only the plan and the cart are saved between visits, as a convenience. A saved store that differs from the standard one explains itself on return ("Restored your saved store", with the differences).
 - **Debug switches are never saved:** X-ray open, force offline and the armed poisoned model reset on reload.
 - **Time-dependent facts wait for the clock:** voucher expiry depends on "now", so anything that depends on it appears only once the page knows the time, and the clock refreshes every minute.

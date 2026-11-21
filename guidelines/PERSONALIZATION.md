@@ -1,5 +1,28 @@
 # Personalization
 
+## Accepted interview completion flow
+
+The sourced shop starts with the ordinary marketplace. Its optional four-question
+interview gathers shopping needs; the system chooses the presentation. Completing
+the last step validates and applies one proposal immediately, closes the sheet,
+and focuses the change receipt with Undo and chat refinement. Drafts remain inert
+until completion; Back retains answers, Skip preserves skipped settings, and
+Close/Escape cancels an unfinished draft. No separate preview/Apply screen,
+manual UI chooser or production inference toggle is required.
+
+Full answers use the exported browser CNN; skipped/partial answers and inference
+failure use deterministic mappings. Each predicted head is allowlisted and an
+invalid part falls back independently. The model receives answer IDs, never
+prices or product facts. Synthetic training accuracy does not establish real
+shopper preference accuracy. Missing scores, reviews or specifications cannot
+be invented to satisfy an answer.
+
+Three example views remain an editable inspection demo. They share the sourced
+catalog and shelf renderer but cannot apply a view to the shop. Existing
+explicit locks, filters and saved products remain intact during ordinary
+interview personalization. Personas below describe fixed plan recipes; they do
+not require a manual picker in the accepted sourced-shop flow.
+
 ## The plan
 
 The plan is the complete description of how one shopper's store looks. It is small, readable and fully enumerable, which is what makes it safe to hand to an AI.

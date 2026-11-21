@@ -1,0 +1,20 @@
+{
+  "schema": "CatalogSnapshot",
+  "snapshotId": "shopee-observed-c05f48b8d07bd8f5",
+  "recordCount": 1500,
+  "groupCount": 122,
+  "currency": "THB",
+  "observedAtStart": "2026-11-21T07:22:40.572000Z",
+  "observedAtEnd": "2026-11-21T07:32:18.336000Z",
+  "importedAt": "2026-11-21T07:33:23.267700Z",
+  "catalogFile": "catalog.json",
+  "catalogFileSha256": "5e06cd16c0449cce516214f3b5e2ed07daab2969817a48f9df3638463c85c969",
+  "validatedSnapshotChecksum": "ff5cfb032f9a497e191700de474892924e290ef763a8fe4637dd8af4a93cf653",
+  "source": "https://shopee.co.th/",
+  "collectionMethod": "Visible public listing observations; price captured from its separate price element.",
+  "cloudBaseUrl": "https://dynamic-shopper-catalog.nattawin-ya.workers.dev",
+  "cloudSnapshotUrl": "https://dynamic-shopper-catalog.nattawin-ya.workers.dev/api/catalog/snapshot",
+  "imageCount": 1500,
+  "imageFilesIncluded": false,
+  "priceMeaning": "Observed listing price; selected variant and buyer eligibility conditions may apply. Not a guaranteed checkout price or continuous synchronization."
+}

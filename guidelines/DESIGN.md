@@ -4,19 +4,37 @@
 
 Accepted on 2026-11-21: keep the current marketplace as the initial view and add
 a compact optional interview entry. Four short steps cover shopping goal,
-preferred evidence, priority and reading. Draft answers stay inside the dialog;
-the final receipt explains the proposal before one Apply. Apply uses the existing
-adaptive storefront, change chips and Undo. Closing an unapplied interview returns
-focus to its trigger. No full-page onboarding replaces shopping.
+preferred evidence, priority and reading. Draft answers stay inside the dialog.
+**Finish interview** / **ตอบเสร็จแล้ว** applies one validated proposal immediately
+and focuses the actual change receipt, with Undo and chat refinement. Final-step
+Skip also completes the interview while preserving skipped settings. Closing an
+unfinished interview is inert. There is no proposed-view chooser, separate Apply
+screen or shopper inference toggle. No full-page onboarding replaces shopping.
 
-The user's later instruction explicitly retains Shopee branding on the root
-before and after Apply. A stable orange brand header surrounds the existing
-responsive template and the adapted product content. This scoped branding
-exception supersedes the earlier no-mark/no-orange guidance for this requested
-surface; proof slips and catalog facts remain unchanged. No device frame is used.
+The latest accepted baseline retains a Shopee-inspired orange shopping header
+before and after interview completion, under DynamicShopper's identity. No
+Shopee marks or affiliation claims are permitted. This scoped marketplace-chrome
+exception supersedes the earlier branding exception; proof slips and catalog
+facts remain unchanged. No device frame is used.
 The existing default storefront is owned separately. This integration adds no
 promotion, seller metric or new catalog values. See
 [the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+
+## Sourced shopping and comparison inspection
+
+The sourced shopping surface uses original photographs and observed listing
+facts. Missing facts or images require honest empty states, not fabricated
+promotions, stock, shipping or ratings. All shelf layouts show the same page of
+up to 24 catalog records; comparison products occupy rows. The UI exposes the
+observed date, source links and backend/cache/fallback status. Cloud delivery
+uses the same presentation and source facts as the local catalog.
+
+The three-view comparison workspace demonstrates how different interview answers
+affect presentation. Examples can be edited independently, but there is no
+**Use this view** action or mutation of the live shop. The main shopping flow
+uses an interview entry instead of manual UI preset/theme selection. Actual
+changes remain visible, explained and reversible. Receipt styling governs
+change explanations and price provenance.
 
 ## North star
 
@@ -26,7 +44,7 @@ The world is a Thai convenience-store thermal slip: warm off-white paper, carbon
 
 The density is calm and even: a header strip, underline category tabs, a row of what the shopper asked for, then the shelf. When the AI changes the store, the change prints in as a slip with a torn edge, and a green stamp appears only where a real check ran.
 
-The system deliberately refuses the orange marketplace grid with badges, banners, countdowns and shouty sale chrome. Trust is the product, and the look should feel like a receipt, not an advert.
+Outside the accepted marketplace baseline, the system uses receipt styling. Unsupported promotional badges, banners, countdowns and urgency remain excluded everywhere.
 
 **Story:** the shopper sees a calm shop, chats, watches the shelves rearrange, and reads a printed slip of exactly what changed and what they will pay, then believes the numbers.
 
@@ -225,7 +243,7 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 - Use green or red for anything but state: no red sale prices, no green promos.
 - Add shadows, gradients or glossy fills.
 - Stamp a slip unless a check ran on it.
-- Add marketplace chrome: badges, banners, countdown urgency, orange sale styling, or any Shopee mark.
+- Add marketplace chrome outside the accepted baseline, unsupported promotional badges or countdown urgency, or any Shopee mark.
 - Use Unicode glyphs for icons.
 - Animate anything under reduced motion.
 

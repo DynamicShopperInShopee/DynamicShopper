@@ -2,14 +2,41 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted storefront branding scope
+## Accepted marketplace baseline
 
-The user explicitly requested on 2026-11-21 that the current main template retain
-Shopee branding before and after the CNN interview, followed by agent refinement
-through fixed UI presets. For the root marketplace flow, the orange Shopee header
-is an accepted exception to the no-mark/no-marketplace guidance below. Keep the
-DynamicShopper project attribution and the existing catalog simulation disclosure.
-The exception changes presentation only; all fact, pricing and control rules apply.
+Accepted on 2026-11-21: the sourced shop starts with a familiar Shopee-inspired
+shopping page, including an orange search header, gray ground, shop navigation,
+filters and product grids. Keep DynamicShopper's identity; do not imply Shopee
+affiliation or use Shopee marks. This scoped marketplace-chrome exception
+supersedes the earlier branding exception and does not permit invented promotions,
+stock, ratings, review counts or shipping promises. Proof and price details keep
+receipt styling.
+
+## Accepted sourced catalog and interview completion
+
+The user-requested sourced shopping surface uses 1,500 dated Shopee Thailand
+observations and original photographs, with local SQLite and a separate
+Cloudflare catalog Worker backed by D1. The cloud package exposes read-only
+catalog APIs and serves the shopping frontend; it does not publish the Node/auth
+scaffold or give an agent a catalog write path. Catalog-only imports preserve
+unrelated tables. See [cloud delivery](deploy/catalog/README.md) and the
+[versioned snapshot](catalogs/shopee-2026-11-21/README.md). Simulated fixtures
+retain their simulation disclosure; the sourced shop identifies its observation
+date and original listing links instead. Do not invent missing product facts or
+describe observed prices as continuously synchronized or guaranteed at checkout.
+Keep original URLs and collection times, reject stale observations at ingestion,
+and validate API and saved browser snapshots as untrusted input. Imports and
+publication are explicit operator actions; there is no automatic price refresh.
+
+The accepted shopping flow is store first, an optional four-step interview,
+automatic application of one validated proposal on completion, then a change
+receipt, Undo and chat refinement. Draft answers do not change the shop; closing
+an unfinished draft is inert. The shopper describes needs and the system chooses
+presentation. The main flow has no separate preview/Apply gate or manual UI
+preset/theme chooser. Comparison examples are inspection-only and cannot apply
+a view to the shop. This scoped flow supersedes the earlier interview Apply step.
+Cloud publication does not establish learned shopper-preference accuracy,
+continuous ingestion, checkout or completed production-agent integration.
 
 ## Product rules
 
@@ -37,7 +64,7 @@ The exception changes presentation only; all fact, pricing and control rules app
 - Thai and English are equal: every string exists in both, written for each language.
 - The store stays usable after any message: readable, navigable, never blank.
 - Green and red mean state only. A stamp appears only where a check ran and passed.
-- New proof surfaces look like receipt slips. No shadows, gradients, badges, banners or marketplace chrome. No Shopee marks.
+- New proof surfaces look like receipt slips. No shadows, gradients or unsupported promotional badges and banners. Marketplace chrome is limited to the accepted baseline above. No Shopee marks.
 - Every theme meets WCAG AA; large print keeps 20px text and 48px targets; reduced motion means no motion.
 - Every screen works at laptop (1440×900) and phone (390×844) size with no sideways scroll.
 

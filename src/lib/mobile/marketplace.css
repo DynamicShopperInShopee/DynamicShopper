@@ -1,0 +1,1390 @@
+/* Shopee-inspired shopping baseline, accepted for this prototype by the user.
+   Theme changes use presentation tokens; catalog facts stay in ShopShelf. */
+body {
+	margin: 0;
+	background: #f5f5f5;
+}
+* {
+	box-sizing: border-box;
+}
+.phone {
+	--paper: #f5f5f5;
+	--surface: #fff;
+	--ink: #262626;
+	--muted: #656565;
+	--line: #e5e5e5;
+	--accent: #b63113;
+	--header: #ee4d2d;
+	--header-copy: #482016;
+	--tint: #fff3ef;
+	min-height: 100dvh;
+	color: var(--ink);
+	background: var(--paper);
+	font-family: 'IBM Plex Sans Thai', Arial, sans-serif;
+	font-size: 16px;
+	line-height: 1.5;
+}
+.phone.minimal {
+	--header-copy: #fff;
+	--paper: #f8f8f8;
+	--accent: #252525;
+	--header: #252525;
+	--tint: #eee;
+}
+.phone.vibrant {
+	--header-copy: #fff;
+	--paper: #f5f6fd;
+	--accent: #2f3ccf;
+	--header: #2f3ccf;
+	--tint: #eceeff;
+	--line: #dfe2f1;
+}
+.phone.large-print {
+	--header-copy: #fff;
+	--paper: #fbfbf8;
+	--ink: #0d0d10;
+	--muted: #3d3d42;
+	--line: #858172;
+	--accent: #16161a;
+	--header: #16161a;
+	--tint: #efefe9;
+	font-size: 20px;
+}
+.phone button,
+.phone input,
+.phone select,
+.phone textarea {
+	font: inherit;
+	color: inherit;
+}
+.phone button,
+.phone a {
+	-webkit-tap-highlight-color: transparent;
+}
+.phone button {
+	cursor: pointer;
+	min-height: 44px;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	border-radius: 3px;
+	padding: 8px 14px;
+}
+.phone button:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+.phone input,
+.phone select,
+.phone textarea {
+	min-height: 44px;
+	min-width: 0;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	padding: 8px 12px;
+	border-radius: 3px;
+}
+.phone :focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}
+.phone a {
+	color: inherit;
+	text-underline-offset: 4px;
+}
+.phone .primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 44px;
+	background: var(--accent);
+	color: white;
+	border: 1px solid var(--accent);
+	padding: 10px 18px;
+	text-decoration: none;
+}
+.phone .wrap {
+	width: min(1200px, calc(100% - 48px));
+	margin-inline: auto;
+}
+.phone .market-header {
+	background: var(--header);
+	color: white;
+}
+.phone .utility {
+	color: var(--header-copy);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	min-height: 34px;
+	font-size: 12px;
+}
+.phone .utility > div {
+	display: flex;
+	gap: 18px;
+	align-items: center;
+}
+.phone .utility a {
+	text-decoration: none;
+}
+.phone .utility button {
+	background: transparent;
+	border: 0;
+	color: var(--header-copy);
+	padding: 0 8px;
+	min-height: 34px;
+}
+.phone .search-row {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	padding: 12px 0 6px;
+}
+.phone .brand {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	color: white;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.6px;
+	white-space: nowrap;
+}
+.phone .brand-light {
+	font-weight: 400;
+}
+.phone form.search {
+	display: flex;
+	flex: 1;
+	margin: 0;
+	gap: 0;
+	padding: 3px;
+	border: 0;
+	border-radius: 3px;
+	background: white;
+}
+.phone .search input {
+	flex: 1;
+	width: 100%;
+	border: 0;
+	color: #333;
+	background: white;
+	padding: 8px 14px;
+}
+.phone .search button {
+	display: grid;
+	place-items: center;
+	min-width: 62px;
+	border: 0;
+	background: var(--accent);
+	color: white;
+}
+.phone .header-icon {
+	border: 0;
+	color: white;
+	background: transparent;
+	padding: 8px;
+	display: grid;
+	place-items: center;
+}
+.phone .search-hints {
+	padding: 0 0 10px 264px;
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	font-size: 12px;
+}
+.phone .search-hints button {
+	padding: 0;
+	min-height: 30px;
+	font-size: 12px;
+	color: var(--header-copy);
+	background: transparent;
+	border: 0;
+}
+.phone .breadcrumb {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	font-size: 12px;
+	color: var(--muted);
+	padding: 18px 0;
+}
+.phone .breadcrumb span {
+	color: #aaa;
+}
+.phone .shop-banner {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	display: grid;
+	grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.5fr);
+	align-items: start;
+	padding: 24px 28px;
+	gap: 20px;
+}
+.phone .shop-facts {
+	grid-column: 2;
+	grid-row: 1 / 3;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 22px;
+	padding-left: 32px;
+	border-left: 1px solid var(--line);
+	margin: 0;
+	font-size: 14px;
+}
+.phone .shop-facts dt {
+	color: var(--muted);
+	margin-bottom: 6px;
+}
+.phone .shop-facts dd {
+	margin: 0;
+}
+.phone .shop-facts time {
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 13px;
+}
+.phone .search-scope {
+	color: #656565;
+	border-left: 1px solid #e5e5e5;
+	margin: 7px 12px;
+	padding: 4px 12px;
+	font-size: 13px;
+	white-space: nowrap;
+	align-self: center;
+}
+.phone .skip-link {
+	position: absolute;
+	left: 16px;
+	top: -100px;
+	z-index: 10;
+	background: white;
+	padding: 12px;
+	color: #262626;
+}
+.phone .skip-link:focus {
+	top: 16px;
+}
+.phone .department-shelves {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 20px;
+}
+.phone .department-shelves > button {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	text-align: left;
+	padding: 20px 24px;
+	gap: 16px;
+}
+.phone .department-shelves > button > span {
+	display: grid;
+	gap: 12px;
+}
+.phone .department-shelves small {
+	color: var(--muted);
+	font-size: 12px;
+}
+.phone .department-shelves strong {
+	font-size: 24px;
+	font-weight: 600;
+}
+.phone .department-shelves span > span {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	color: var(--accent);
+}
+.phone .department-shelves img {
+	width: 125px;
+	height: 125px;
+	object-fit: contain;
+}
+.phone .catalog-sort {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	font-size: 14px;
+}
+.phone .catalog-sort > span {
+	color: var(--muted);
+}
+.phone .catalog-sort [aria-pressed='true'] {
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+}
+.phone .category-pills.mobile-categories {
+	display: none;
+}
+.phone .footer-links {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 24px;
+	padding: 4px 0 28px;
+}
+.phone .footer-links > div {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+.phone .footer-links strong {
+	color: var(--ink);
+	font-size: 14px;
+}
+.phone .footer-links button,
+.phone .footer-links a {
+	border: 0;
+	background: transparent;
+	padding: 8px 0;
+	text-align: left;
+	min-height: 44px;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+}
+.phone .market-header :focus-visible {
+	outline-color: white;
+}
+.phone .market-header .search :focus-visible {
+	outline-color: var(--accent);
+}
+.phone .shop-identity {
+	display: flex;
+	gap: 18px;
+	align-items: center;
+	min-width: 0;
+}
+.phone .shop-avatar {
+	border: 1px solid var(--line);
+	border-radius: 50%;
+	background: var(--tint);
+	color: var(--accent);
+	width: 64px;
+	height: 64px;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+}
+.phone h1 {
+	font-size: 21px;
+	font-weight: 600;
+	margin: 0 0 4px;
+	overflow-wrap: anywhere;
+}
+.phone .shop-identity p {
+	margin: 0;
+	font-size: 14px;
+	color: var(--muted);
+}
+.phone .shop-actions {
+	grid-column: 1;
+	display: flex;
+	gap: 10px;
+	flex-shrink: 0;
+}
+.phone .shop-actions a,
+.phone .shop-actions button {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	align-items: center;
+	text-decoration: none;
+	padding: 9px 15px;
+	border: 1px solid var(--accent);
+	color: var(--accent);
+	font-size: 14px;
+	min-height: 44px;
+}
+.phone .store-tabs {
+	display: flex;
+	background: var(--surface);
+	border-bottom: 1px solid var(--line);
+	padding-inline: 24px;
+	gap: 22px;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+}
+.phone .store-tabs button {
+	border: 0;
+	border-bottom: 3px solid transparent;
+	border-radius: 0;
+	background: transparent;
+	min-height: 54px;
+	font-size: 14px;
+}
+.phone .store-tabs .active {
+	border-bottom-color: var(--accent);
+	color: var(--accent);
+	font-weight: 600;
+}
+.phone .discovery {
+	display: grid;
+	grid-template-columns: 1.65fr 1fr;
+	gap: 16px;
+	margin-bottom: 22px;
+}
+.phone .shop-feature {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: #ffebd7;
+	color: #542813;
+	overflow: hidden;
+	padding: 22px 30px;
+	min-height: 228px;
+}
+.phone .shop-feature > div {
+	position: relative;
+	z-index: 1;
+}
+.phone .shop-feature span {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 1px;
+}
+.phone .shop-feature h2 {
+	font-size: 31px;
+	line-height: 1.35;
+	letter-spacing: -0.7px;
+	white-space: pre-line;
+	margin: 8px 0 14px;
+}
+.phone .shop-feature button {
+	background: #a83213;
+	color: white;
+	border: 0;
+	font-size: 14px;
+	padding-inline: 20px;
+}
+.phone .shop-feature img {
+	width: 200px;
+	height: 210px;
+	object-fit: contain;
+	mix-blend-mode: multiply;
+}
+.phone .interview-invite {
+	border: 1px solid var(--line);
+	background: var(--surface);
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+}
+.phone .interview-invite > svg {
+	color: var(--accent);
+}
+.phone .interview-invite h2 {
+	font-size: 22px;
+	margin: 10px 0 6px;
+}
+.phone .interview-invite p {
+	color: var(--muted);
+	font-size: 14px;
+	margin: 0 0 16px;
+	max-width: 29em;
+}
+.phone .interview-invite .primary {
+	font-size: 14px;
+}
+.phone .personalize-strip {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 10px 16px;
+	background: var(--surface);
+	margin-bottom: 20px;
+	border: 1px solid var(--line);
+}
+.phone .personalize-strip > div {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.phone .personalize-strip button {
+	color: var(--accent);
+	border-color: var(--accent);
+}
+.phone .shop-content {
+	display: grid;
+	grid-template-columns: 190px minmax(0, 1fr);
+	gap: 24px;
+	align-items: start;
+}
+.phone .filter-sidebar {
+	padding: 0 4px;
+}
+.phone .filter-sidebar h2 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 16px;
+	border-bottom: 1px solid var(--line);
+	padding: 15px 0;
+	margin: 0 0 20px;
+}
+.phone .filter-sidebar h3 {
+	font-size: 14px;
+	margin: 0 0 8px;
+}
+.phone .filter-sidebar > button {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding-left: 0;
+	border: 0;
+	background: transparent;
+	text-align: left;
+	font-size: 14px;
+}
+.phone .filter-sidebar > button.active {
+	color: var(--accent);
+	font-weight: 600;
+}
+.phone .budget {
+	border-top: 1px solid var(--line);
+	padding-top: 20px;
+}
+.phone .budget input {
+	width: 100%;
+}
+.phone .budget label {
+	font-size: 14px;
+}
+.phone .sidebar-help {
+	border-top: 1px solid var(--line);
+	padding-top: 24px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 10px;
+	font-size: 14px;
+}
+.phone .sidebar-help > svg {
+	color: var(--accent);
+}
+.phone .sidebar-help p {
+	color: var(--muted);
+	margin: 0;
+}
+.phone .sidebar-help button {
+	background: transparent;
+	border-color: var(--accent);
+	color: var(--accent);
+	width: 100%;
+}
+.phone .shelf-area {
+	min-width: 0;
+	container-type: inline-size;
+}
+.phone .heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	scroll-margin-top: 20px;
+	min-height: 54px;
+}
+.phone .heading h2 {
+	font-size: 20px;
+	margin: 0 0 12px;
+}
+.phone .sort-bar {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	justify-content: space-between;
+	background: #eaeaea;
+	padding: 10px 12px;
+	margin-bottom: 14px;
+}
+.phone .category-pills {
+	display: flex;
+	gap: 6px;
+}
+.phone .catalog-status {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+	margin: 12px 0;
+	color: var(--muted);
+	font-size: 14px;
+}
+.phone .category-pills label {
+	display: grid;
+	gap: 4px;
+	min-width: 0;
+	width: 100%;
+	font-size: 13px;
+}
+.phone .category-pills select {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+}
+.phone .category-pills.mobile-categories {
+	min-width: 0;
+	max-width: 100%;
+}
+.phone.large .catalog-status,
+.phone.large .category-pills label {
+	font-size: 20px;
+}
+.phone .category-pills button {
+	font-size: 14px;
+	border: 0;
+	min-height: 40px;
+}
+.phone .category-pills [aria-pressed='true'] {
+	background: var(--accent);
+	color: white;
+}
+.phone .sort-label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+}
+.phone .sort-label select {
+	font-size: 14px;
+	min-height: 40px;
+	max-width: 190px;
+}
+.phone .mobile-adjust,
+.phone .mobile-filter {
+	display: none;
+}
+.phone .products.grid {
+	gap: 10px;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.phone .products.list {
+	grid-template-columns: 1fr;
+}
+.phone .products article {
+	border-radius: 2px;
+}
+.phone .products .body {
+	padding: 10px 12px;
+}
+.phone .products .category {
+	font-size: 12px;
+}
+.phone .products h3 {
+	font-size: 14px;
+	font-weight: 400;
+}
+.phone .products h3 button {
+	min-height: 42px;
+	font-weight: 400;
+	line-height: 1.5;
+}
+.phone .products .price {
+	color: var(--accent);
+	font-size: 22px;
+	letter-spacing: -0.5px;
+}
+.phone .products p {
+	font-size: 12px;
+	line-height: 1.5;
+}
+.phone .products .open {
+	font-size: 13px;
+	min-height: 40px;
+}
+.phone .products .open span {
+	display: none;
+}
+.phone .products .save {
+	width: 32px;
+	min-height: 36px;
+	padding: 6px;
+}
+.phone .products .body > small {
+	font-size: 12px;
+}
+.phone .spacious .body {
+	padding: 20px;
+}
+.phone .products.grid.spacious {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.phone .interview-receipt {
+	border: 1px dashed var(--muted);
+	background: var(--surface);
+	padding: 18px 20px;
+	margin-bottom: 20px;
+}
+.phone .receipt-top {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+.phone .receipt-top h3 {
+	margin: 0 0 12px;
+	font-size: 16px;
+}
+.phone .receipt-top > span {
+	font-size: 13px;
+	color: var(--muted);
+}
+.phone .preference-chips,
+.phone .receipt-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.phone .preference-chips button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	border-radius: 24px;
+	min-height: 40px;
+}
+.phone .receipt-actions {
+	margin-top: 12px;
+}
+.phone .receipt-actions button {
+	font-size: 14px;
+}
+.phone .receipt-actions .chat-next {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-left: auto;
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+}
+.phone .change {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	border: 1px dashed var(--line);
+	background: var(--surface);
+	padding: 10px 14px;
+	margin-bottom: 14px;
+	font-size: 14px;
+}
+.phone .change button {
+	border: 0;
+	text-decoration: underline;
+}
+.phone .availability {
+	font-size: 13px;
+	color: var(--muted);
+	padding: 12px 0;
+}
+.phone .empty {
+	padding: 60px 24px;
+	text-align: center;
+	background: var(--surface);
+	border: 1px solid var(--line);
+}
+.phone .empty > svg {
+	color: var(--muted);
+}
+.phone .source-note {
+	border-top: 1px solid var(--line);
+	margin-top: 36px;
+	padding: 24px 0 80px;
+	font-size: 12px;
+	color: var(--muted);
+}
+.phone .source-note p {
+	margin: 8px 0;
+}
+.phone .chat-launch {
+	position: fixed;
+	bottom: 22px;
+	right: 24px;
+	background: var(--accent);
+	color: white;
+	border: 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	z-index: 5;
+	padding: 12px 20px;
+}
+.phone .bottom {
+	display: none;
+}
+.phone .options {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	margin: 20px 0;
+}
+.phone .options button {
+	text-align: left;
+}
+.phone form {
+	display: grid;
+	gap: 12px;
+	margin: 24px 0;
+}
+.phone textarea {
+	width: 100%;
+	min-height: 92px;
+}
+.phone .conversation {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12px;
+}
+.phone .conversation p {
+	padding: 12px 16px;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	margin: 0;
+	max-width: 92%;
+}
+.phone .conversation p.user {
+	align-self: flex-end;
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+}
+.phone .show-shop {
+	width: 100%;
+	margin-top: 20px;
+	color: var(--accent);
+	border-color: var(--accent);
+}
+.phone .answer {
+	border: 1px dashed var(--muted);
+	padding: 16px;
+	margin: 20px 0;
+}
+.phone .answer a {
+	display: block;
+	margin-top: 12px;
+}
+.phone .detail-photo {
+	width: 100%;
+	max-height: 300px;
+	object-fit: contain;
+	background: white;
+}
+.phone .receipt {
+	border-block: 1px dashed var(--muted);
+	padding: 20px 0;
+}
+.phone .receipt > strong {
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 32px;
+	display: block;
+}
+.phone .receipt > span,
+.phone .overline {
+	font-size: 12px;
+	color: var(--muted);
+}
+.phone .receipt p {
+	color: var(--muted);
+	font-size: 14px;
+}
+.phone .external,
+.phone .reset {
+	margin-top: 24px;
+}
+.phone.large .products.grid {
+	grid-template-columns: 1fr;
+}
+.phone.large .products .body {
+	padding: 24px;
+}
+.phone.large
+	:is(
+		p,
+		span,
+		small,
+		a,
+		button,
+		label,
+		legend,
+		summary,
+		dt,
+		dd,
+		h3,
+		select,
+		input,
+		textarea,
+		time,
+		strong
+	) {
+	font-size: 20px !important;
+}
+.phone.large :is(button, input, select, textarea, a) {
+	min-height: 48px;
+}
+.phone.large input:is([type='radio'], [type='checkbox']) {
+	min-height: 0;
+}
+.phone.large .shop-content {
+	grid-template-columns: 220px minmax(0, 1fr);
+}
+.phone.large .search-hints {
+	display: none;
+}
+.phone.large .sort-bar {
+	flex-wrap: wrap;
+}
+@media (min-width: 701px) {
+	.phone dialog {
+		width: min(560px, calc(100% - 48px));
+		inset: 50% auto auto 50%;
+		transform: translate(-50%, -50%);
+		margin: 0;
+		border-radius: 8px;
+		max-height: 88dvh;
+	}
+}
+@media (max-width: 1000px) {
+	.phone .shop-banner {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	}
+	.phone .shop-facts {
+		grid-template-columns: 1fr;
+		padding-left: 20px;
+		gap: 10px;
+	}
+	.phone .search-scope {
+		display: none;
+	}
+	.phone .products.grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.phone .brand {
+		font-size: 19px;
+	}
+	.phone .search-hints {
+		padding-left: 220px;
+	}
+	.phone .sort-label > span {
+		display: none;
+	}
+	.phone .shop-actions {
+		flex-direction: column;
+	}
+	.phone .shop-feature img {
+		width: 145px;
+	}
+	.phone .shop-feature {
+		padding: 20px;
+	}
+	.phone .shop-feature h2 {
+		font-size: 26px;
+	}
+}
+@media (max-width: 700px) {
+	.phone .shop-banner {
+		display: block;
+	}
+	.phone .shop-facts {
+		display: none;
+	}
+	.phone .catalog-sort {
+		display: none;
+	}
+	.phone .category-pills.mobile-categories {
+		display: flex;
+	}
+	.phone .department-shelves {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+	.phone .department-shelves > button {
+		padding: 14px;
+	}
+	.phone .department-shelves strong {
+		font-size: 20px;
+	}
+	.phone .department-shelves img {
+		width: 90px;
+		height: 90px;
+	}
+	.phone .footer-links {
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+	}
+	.phone .wrap {
+		width: calc(100% - 24px);
+	}
+	.phone .utility {
+		font-size: 12px;
+		min-height: 30px;
+	}
+	.phone .utility a {
+		display: none;
+	}
+	.phone .utility button {
+		min-height: 30px;
+		font-size: 12px;
+	}
+	.phone .search-row {
+		gap: 8px;
+		padding: 2px 0 10px;
+		flex-wrap: nowrap;
+	}
+	.phone .brand {
+		display: none;
+	}
+	.phone .search input {
+		font-size: 14px;
+		padding: 7px 10px;
+	}
+	.phone .search button {
+		min-width: 40px;
+		min-height: 38px;
+		padding: 6px;
+	}
+	.phone .header-icon {
+		min-width: 34px;
+		padding: 4px;
+	}
+	.phone .header-icon svg {
+		width: 23px;
+	}
+	.phone .search-hints {
+		display: none;
+	}
+	.phone .breadcrumb {
+		display: none;
+	}
+	.phone .shop-banner {
+		margin-top: 12px;
+		padding: 16px 12px;
+		gap: 10px;
+	}
+	.phone .shop-avatar {
+		width: 42px;
+		height: 42px;
+	}
+	.phone .shop-avatar svg {
+		width: 23px;
+	}
+	.phone .shop-identity {
+		gap: 10px;
+	}
+	.phone h1 {
+		font-size: 15px;
+	}
+	.phone .shop-identity p {
+		font-size: 12px;
+	}
+	.phone .shop-actions {
+		display: none;
+	}
+	.phone .store-tabs {
+		padding: 0;
+		gap: 0;
+		justify-content: flex-start;
+		margin-bottom: 12px;
+	}
+	.phone .store-tabs button {
+		font-size: 12px;
+		min-height: 44px;
+		padding: 8px;
+	}
+	.phone .discovery {
+		grid-template-columns: 1fr;
+		gap: 10px;
+		margin-bottom: 16px;
+	}
+	.phone .shop-feature {
+		min-height: 160px;
+		padding: 16px 20px;
+	}
+	.phone .shop-feature h2 {
+		font-size: 24px;
+		margin: 5px 0 10px;
+	}
+	.phone .shop-feature > div > span {
+		font-size: 11px;
+	}
+	.phone .shop-feature img {
+		width: 140px;
+		height: 146px;
+	}
+	.phone .shop-feature button {
+		font-size: 12px;
+		min-height: 36px;
+	}
+	.phone .interview-invite {
+		padding: 14px 16px;
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 4px 10px;
+	}
+	.phone .interview-invite > svg {
+		width: 22px;
+		grid-row: 1/3;
+		align-self: start;
+		margin-top: 3px;
+	}
+	.phone .interview-invite h2 {
+		font-size: 16px;
+		margin: 0;
+	}
+	.phone .interview-invite p {
+		font-size: 12px;
+		margin: 0 0 7px;
+	}
+	.phone .interview-invite .primary {
+		grid-column: 2;
+		justify-self: start;
+		font-size: 13px;
+		min-height: 40px;
+		padding: 7px 12px;
+	}
+	.phone .shop-content,
+	.phone.large .shop-content {
+		display: block;
+	}
+	.phone .filter-sidebar {
+		display: none;
+	}
+	.phone .mobile-adjust,
+	.phone .mobile-filter {
+		display: block;
+	}
+	.phone .mobile-adjust {
+		font-size: 13px;
+		border: 0;
+		background: transparent;
+		color: var(--accent);
+	}
+	.phone .heading h2 {
+		font-size: 18px;
+		margin: 0;
+	}
+	.phone .heading {
+		margin-bottom: 8px;
+		min-height: 44px;
+		scroll-margin-top: 12px;
+	}
+	.phone .sort-bar {
+		gap: 6px;
+		padding: 8px;
+		flex-wrap: wrap;
+	}
+	.phone .category-pills {
+		flex: 1;
+		gap: 3px;
+	}
+	.phone .category-pills button {
+		padding: 7px 9px;
+		font-size: 12px;
+		min-height: 38px;
+	}
+	.phone .sort-label {
+		flex: 0 1 auto;
+		max-width: calc(100% - 50px);
+	}
+	.phone .sort-label select {
+		font-size: 12px;
+		padding: 6px;
+		min-height: 38px;
+		max-width: 150px;
+	}
+	.phone .mobile-filter {
+		padding: 6px 8px;
+		min-height: 38px;
+	}
+	.phone .products.grid,
+	.phone .products.grid.spacious {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+	}
+	.phone .products .body {
+		padding: 9px;
+	}
+	.phone .products h3 {
+		font-size: 14px;
+	}
+	.phone .products .price {
+		font-size: 22px;
+	}
+	.phone .products p {
+		font-size: 12px;
+	}
+	.phone .products .category {
+		font-size: 12px;
+	}
+	.phone .products .body > small {
+		font-size: 12px;
+	}
+	.phone .products .line {
+		gap: 3px;
+	}
+	.phone .products .save {
+		width: 32px;
+		padding: 5px;
+	}
+	.phone .products.list {
+		grid-template-columns: 1fr;
+	}
+	.phone .personalize-strip {
+		padding: 12px;
+		gap: 8px;
+		font-size: 14px;
+	}
+	.phone .personalize-strip button {
+		font-size: 12px;
+	}
+	.phone .interview-receipt {
+		padding: 14px;
+	}
+	.phone .receipt-top > span {
+		font-size: 12px;
+	}
+	.phone .receipt-actions {
+		gap: 5px;
+	}
+	.phone .receipt-actions button {
+		padding: 7px 10px;
+		font-size: 13px;
+	}
+	.phone .receipt-actions .chat-next {
+		margin-left: 0;
+	}
+	.phone .preference-chips button {
+		font-size: 12px;
+		padding: 7px 10px;
+	}
+	.phone .chat-launch {
+		display: none;
+	}
+	.phone .source-note {
+		padding-bottom: 110px;
+	}
+	.phone .bottom {
+		position: fixed;
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background: var(--surface);
+		padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+		border-top: 1px solid var(--line);
+		z-index: 5;
+	}
+	.phone .bottom button {
+		display: grid;
+		justify-items: center;
+		gap: 3px;
+		min-height: 52px;
+		padding: 4px;
+		border: 0;
+		font-size: 11px;
+		color: var(--muted);
+	}
+	.phone .bottom [aria-pressed='true'] {
+		color: var(--accent);
+	}
+	.phone.large .products.grid {
+		grid-template-columns: 1fr;
+	}
+	.phone.large .bottom {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.phone.large .source-note {
+		padding-bottom: 180px;
+	}
+	.phone.large .store-tabs {
+		flex-wrap: wrap;
+	}
+	.phone.large .search-row {
+		flex-wrap: wrap;
+	}
+	.phone.large .search {
+		flex-basis: 100%;
+	}
+	.phone.large .header-icon {
+		display: none;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.phone * {
+		animation: none !important;
+		transition: none !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* Target floors apply after responsive variants as well. */
+.phone button {
+	min-height: 44px !important;
+}
+.phone .products .save {
+	width: 44px;
+	min-width: 44px;
+}
+.phone.large :is(button, input, select, textarea) {
+	min-height: 48px !important;
+}
+.phone.large button {
+	min-width: 48px;
+}
+.phone.large :is(h1, h2, h3) {
+	font-size: max(20px, 1em);
+}
+.phone.large input:is([type='radio'], [type='checkbox']) {
+	min-height: 0 !important;
+}
+@media (max-width: 700px) {
+	.phone.large .category-pills {
+		flex-basis: 100%;
+		width: 100%;
+	}
+	.phone.large .category-pills button {
+		flex: 1;
+		white-space: nowrap;
+	}
+}
+
+.phone .group-select {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	margin-bottom: 12px;
+}
+
+.phone .inference-note {
+	margin: 8px 0;
+	font-size: 14px;
+	color: var(--muted);
+}
+.phone .inference-note summary {
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+.phone .inference-note p {
+	margin: 8px 0;
+}
+.phone.large .inference-note {
+	font-size: 20px;
+}

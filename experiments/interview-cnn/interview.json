@@ -1,0 +1,54 @@
+{
+	"version": "interview-v1",
+	"questions": [
+		{
+			"id": "goal",
+			"en": "What are you here to do?",
+			"th": "วันนี้อยากเลือกซื้อแบบไหน?",
+			"options": [
+				{ "id": "browse", "en": "Browse", "th": "ดูก่อน" },
+				{ "id": "compare", "en": "Compare", "th": "เปรียบเทียบ" },
+				{ "id": "shortlist", "en": "Help me choose", "th": "ช่วยคัดให้" },
+				{ "id": "gift", "en": "Find a gift", "th": "หาของขวัญ" }
+			]
+		},
+		{
+			"id": "evidence",
+			"en": "What helps you choose?",
+			"th": "ดูอะไรแล้วตัดสินใจง่ายขึ้น?",
+			"options": [
+				{ "id": "photos", "en": "Pictures", "th": "รูปสินค้า" },
+				{ "id": "specs", "en": "Specs", "th": "สเปก" },
+				{ "id": "reviews", "en": "Buyer reviews", "th": "รีวิวผู้ซื้อ" },
+				{ "id": "summary", "en": "Short summaries", "th": "สรุปสั้น ๆ" }
+			]
+		},
+		{
+			"id": "priority",
+			"en": "What matters most?",
+			"th": "ให้ความสำคัญกับอะไรมากที่สุด?",
+			"options": [
+				{ "id": "value", "en": "Value", "th": "ความคุ้มค่า" },
+				{ "id": "performance", "en": "Performance", "th": "ประสิทธิภาพ" },
+				{ "id": "durability", "en": "Durability", "th": "ความทนทาน" },
+				{ "id": "rating", "en": "Buyer ratings", "th": "คะแนนจากผู้ซื้อ" }
+			]
+		},
+		{
+			"id": "reading",
+			"en": "How should the page feel?",
+			"th": "อยากให้อ่านหน้าแบบไหน?",
+			"options": [
+				{ "id": "comfortable", "en": "Balanced", "th": "พอดี ๆ" },
+				{ "id": "compact", "en": "Compact", "th": "กระชับ" },
+				{ "id": "spacious", "en": "More space", "th": "เว้นระยะมากขึ้น" },
+				{ "id": "large", "en": "Large text", "th": "ตัวอักษรใหญ่" }
+			]
+		}
+	],
+	"skip": { "en": "Skip — keep my current settings", "th": "ข้าม — ใช้การตั้งค่าปัจจุบัน" },
+	"instruction": {
+		"en": "Choose one per question. You can skip any question or change your answers later.",
+		"th": "เลือกคำตอบเดียวในแต่ละข้อ ข้ามข้อไหนก็ได้ และเปลี่ยนคำตอบภายหลังได้"
+	}
+}

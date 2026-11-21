@@ -1,0 +1,44 @@
+.shop-theme {
+	--paper: #fbfbf8;
+	--surface: #fff;
+	--ink: #16161a;
+	--muted: #5d5d63;
+	--line: #e9e6dc;
+	--accent: #16161a;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: 'IBM Plex Sans Thai', Arial, sans-serif;
+	font-size: 16px;
+	line-height: 1.55;
+}
+.shop-theme.minimal {
+	--paper: #fff;
+	--line: #ecebe6;
+}
+.shop-theme.vibrant {
+	--accent: #2f3ccf;
+	--muted: #4f5068;
+	--line: #e3e3ef;
+}
+.shop-theme.large-print {
+	--ink: #0d0d10;
+	--muted: #3d3d42;
+	--line: #858172;
+	font-size: 20px;
+}
+.shop-theme button,
+.shop-theme select {
+	font: inherit;
+}
+.shop-theme button {
+	min-height: 44px;
+	cursor: pointer;
+}
+.shop-theme.large-print button,
+.shop-theme.large-print select {
+	min-height: 48px;
+}
+.shop-theme :focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}

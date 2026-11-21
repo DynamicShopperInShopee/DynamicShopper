@@ -27,3 +27,10 @@ test-results
 *.db
 
 *.pdf
+# Sourced catalog runtime data and build output
+/data/catalog.sqlite*
+/data/shopee/
+/preview/dist/
+__pycache__/
+*.pyc
+/data
