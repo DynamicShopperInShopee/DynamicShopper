@@ -41,7 +41,22 @@ export type Product = Readonly<{
 	scores: Scores;
 }>;
 
-export type FactUnit = 'baht' | 'g' | 'h' | 'Hz' | 'ms' | 'mAh' | 'W' | 'L' | 'yr' | 'ml' | null;
+export type FactUnit =
+	| 'baht'
+	| 'g'
+	| 'h'
+	| 'Hz'
+	| 'ms'
+	| 'mAh'
+	| 'W'
+	| 'L'
+	| 'yr'
+	| 'ml'
+	| 'cm'
+	| 'deg'
+	| 's'
+	| 'kg'
+	| null;
 
 export type Fact = Readonly<{
 	productId: Product['id'];

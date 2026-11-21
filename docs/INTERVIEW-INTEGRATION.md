@@ -27,3 +27,24 @@ through an opaque tab-local key.
 The regression suite exercises every complete or skipped answer combination,
 independent rejection of invalid model output, unchanged catalog facts, locale,
 focus, cart controls, capacity, navigation, chat, and Undo.
+
+
+## Integration validation against current main
+
+Status: accepted integration update — sync PR #14 with main `81ec69a`, retaining
+its digital-cooker listing, harness acceptance checks and the authored interview
+flow. This extends the branch's earlier harness sync at `0202ca4`.
+
+- Keyless Node and Cloudflare builds pass. Wrangler deployment dry-run passes;
+  no live deployment is performed.
+- Full offline unit/component suite: 364 passed; the opt-in live API test is skipped.
+- Full production browser suite: 133 passed; the development-only poison test is
+  skipped there and passes in a separate development run.
+- Type checking reports zero errors and zero warnings. Scoped integration lint,
+  formatting and `git diff --check` pass.
+- Checks used the locked dependencies and cached Chromium 1223. Temporary runner
+  configs and build artifacts are excluded from the commit.
+
+Status: proposed UI decision — this branch replaces the previously selected
+`codex/cnn-interview-main` branded header and interview UI. The PR remains draft
+until that choice is reconciled; synchronization does not approve that design change.

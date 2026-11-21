@@ -260,4 +260,8 @@ The cooker capacity panel uses a locally bundled serving scene with its catalog 
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
 
-The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
+
+Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
+
+The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
