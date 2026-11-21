@@ -2,13 +2,7 @@ import { parseLiveHints } from '../../personalization/live';
 import { requestLivePatch } from './openai';
 import { readJson } from './read-json';
 
-const loopback = ['localhost', '127.0.0.1', '[::1]'];
-const loopbackPeers = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
-const headers = { 'cache-control': 'no-store' };
-
-function error(status: number, reason: string) {
-	return Response.json({ error: reason }, { status, headers });
-}
+import { localJsonGuard, headers, error } from '../utils/local-json';
 
 export async function handleLocalAssistant(
 	request: Request,
@@ -16,14 +10,8 @@ export async function handleLocalAssistant(
 	options: { enabled: boolean; peer: string; apiKey?: string; model?: string },
 	provider: typeof fetch = fetch
 ) {
-	if (!options.enabled || !loopback.includes(url.hostname) || !loopbackPeers.includes(options.peer))
-		return error(404, 'unavailable');
-	if (request.headers.get('origin') !== url.origin) return error(403, 'invalid-request');
-	if (
-		request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json'
-	) {
-		return error(415, 'invalid-request');
-	}
+	const denied = localJsonGuard(request, url, options.enabled, options.peer);
+	if (denied) return denied;
 
 	let body: unknown;
 	try {

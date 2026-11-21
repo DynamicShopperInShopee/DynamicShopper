@@ -173,6 +173,10 @@ White, 1px ink border, theme radius, tap height; the caret is the accent; placeh
 
 Theme radius, white on paper, 1px seam border, no shadow. The art tile runs full-bleed at the top (about 120px tall in a grid) or on the left (list). Contents in order: name (Title), price (Price), the receipt strip between dashed rules with Price / Was (struck in red) / Shipping on dotted leaders, the rating line with a drawn star, the shop with an optional Mall tag, then Add to cart and Best price side by side.
 
+Adaptive cards keep the catalog name and Best price action available. Between them, the validated ordered card-field subset controls every optional block, including the image. Omitted blocks leave no label, blank image tile or reserved space. Grid, list and Top picks share this card component and inherit theme and density tokens. In list layout each card spans the shelf width; its illustration is bounded so large-print text stays easy to scan.
+
+The specs block leads with highlighted catalog keys, then the remaining available keys without duplication. The rating block includes the catalog rating, review count and units sold. Reviews show the available catalog excerpts. The voucher block is a plain receipt fragment showing only vouchers chosen by the shared optimizer for that product and the shared store clock; it waits for that clock before appearing. Coupon codes and amounts carry pricing fact metadata. The unchanged initial photographic shelf remains the default before adaptation.
+
 ### Receipt slip (signature)
 
 The proof surface: What changed, the deal, citations, the facts check, a restored or shared store.
