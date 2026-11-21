@@ -223,4 +223,158 @@ const components = () => {
   s+='</svg>'; writeFileSync(join(out,'adaptive-v2-05-components.svg'),s);
 };
 components();
-console.log('Generated five DynamicShopper Figma SVG boards.');
+
+const owner2Focus = () => {
+  const fixture = {
+    id: 'cooker-1',
+    en: '1.8L one-button electric rice cooker',
+    th: 'หม้อหุงข้าวไฟฟ้าปุ่มเดียว 1.8 ลิตร',
+    priceEn: '฿690',
+    priceTh: '690 บาท',
+    capacityEn: '1.8 L',
+    capacityTh: '1.8 ลิตร',
+    warrantyEn: '2 yr',
+    warrantyTh: '2 ปี',
+    shippingEn: '฿50',
+    shippingTh: '50 บาท'
+  };
+
+  const tornSlip = (x,y,w,title,rows=[]) => {
+    const h=42+rows.length*25+18;
+    const teeth=[];
+    for(let xx=x+w;xx>x;xx-=12){teeth.push(`${xx},${y+h-6}`,`${Math.max(x,xx-6)},${y+h}`);}
+    const points=[`${x},${y}`,`${x+w},${y}`,...teeth,`${x},${y+h-6}`].join(' ');
+    let g=`<polygon points="${points}" fill="${white}" stroke="${seam}"/>`+label(x+14,y+22,title);
+    rows.forEach((r,i)=>{
+      const yy=y+48+i*25;
+      g+=txt(x+14,yy,r[0],11,500,r[2]||ink)+line(x+105,yy-4,x+w-100,yy-4,muted,1,'2 4')+txt(x+w-14,yy,r[1],11,600,r[2]||ink,'end','IBM Plex Mono,monospace');
+    });
+    return g;
+  };
+  const miniRow = (x,y,w,name,capacity,warranty,anchor=false) =>
+    rect(x,y,w,66,white,anchor?ink:seam,0,anchor?'stroke-width="2"':'')+
+    txt(x+12,y+23,name,12,600)+
+    txt(x+12,y+47,`Capacity  ${capacity}`,11,500,muted,'start','IBM Plex Mono,monospace')+
+    txt(x+w-12,y+47,`Warranty  ${warranty}`,11,500,muted,'end','IBM Plex Mono,monospace');
+  const enHeader = (title='DynamicShopper',subtitle='STANDARD') =>
+    rect(0,0,W,52,paper,seam,0)+txt(16,31,title,20,700)+label(218,29,subtitle)+txt(374,31,'ไทย',12,600,ink,'end');
+  const enNav = (active='Shop') => {
+    const items=[['Shop',40],['Search',118],['Compare',198],['Cart',278],['Me',350]];
+    return rect(0,782,W,62,white,seam,0)+items.map(([s,x])=>`<circle cx="${x}" cy="801" r="8" fill="none" stroke="${s===active?ink:muted}" stroke-width="1.6"/>`+txt(x,829,s,10,s===active?600:400,s===active?ink:muted,'middle')).join('');
+  };
+  const enPhone = (title,body,active='Shop',mode='standard') => `<g>${txt(0,-18,title,15,600,ink)}${rect(0,0,W,H,mode==='minimal'?white:paper,ink,24,'stroke-width="2"')}${body}${enNav(active)}</g>`;
+  const sameStore = (title='DynamicShopper',subtitle='STANDARD') =>
+    enHeader(title,subtitle)+search(62,'rice cooker')+chip(16,118,'Rice cookers',true)+chip(132,118,'Same query');
+  const threeRows = (y=174) =>
+    miniRow(16,y,358,fixture.en,fixture.capacityEn,fixture.warrantyEn,true)+
+    miniRow(16,y+76,358,'1.0L digital rice cooker with timer','1.0 L','3 yr')+
+    miniRow(16,y+152,358,'2.2L family rice cooker, 3-year warranty','2.2 L','3 yr');
+
+  const sharedStart = enPhone('01 · Same starting state',
+    sameStore()+dividerTitle(184,'One catalog truth')+threeRows(210)+
+    rect(16,452,358,76,white,seam,0)+label(30,478,'shopper a')+txt(30,506,'Compare capacity and warranty',14,600)+
+    rect(16,540,358,76,white,seam,0)+label(30,566,'shopper b')+txt(30,594,'ซื้อให้แม่ ขอแบบอ่านง่าย',16,600)+
+    txt(16,652,'No inferred change yet. Reset remains available.',12,500,muted)+
+    button(16,688,171,'Reset')+button(203,688,171,'Open assistant',true)
+  );
+
+  const shopperA = enPhone('02 · Shopper A change',
+    sameStore('DynamicShopper','MINIMAL')+
+    tornSlip(16,172,358,'what changed',[['Theme','Minimal'],['Layout','Comparison'],['Fields','Capacity / warranty']])+
+    txt(16,330,'Capacity and warranty',18,600)+threeRows(350)+
+    chip(16,592,'Minimal',true)+chip(104,592,'Comparison',true)+
+    button(16,646,171,'Undo')+button(203,646,171,'Reset')+
+    txt(16,712,'Each patch part validates independently.',12,500,muted)
+  ,'Compare','minimal');
+
+  const undoReapply = enPhone('03 · Undo and reapply',
+    sameStore()+
+    rect(16,174,358,86,white,ink,0,'stroke-dasharray="6 4"')+label(30,200,'undo')+txt(30,230,'Previous plan and explicit choices restored',13,600)+
+    rect(16,278,358,86,white,seam,0)+label(30,304,'reapply')+txt(30,334,'One effective change creates one history item',13,600)+
+    rect(16,382,358,86,white,seam,0)+label(30,408,'no-op')+txt(30,438,'No effective change creates no history',13,600)+
+    threeRows(494)+button(16,724,171,'Undo')+button(203,724,171,'Reset')
+  );
+
+  const largeFixtures = [
+    {id:'cooker-1',line1:'หม้อหุงข้าวไฟฟ้าปุ่มเดียว',line2:'1.8 ลิตร',price:'690 บาท',shipping:'50 บาท'},
+    {id:'cooker-2',line1:'หม้อหุงข้าวดิจิทัลตั้งเวลาได้',line2:'1.0 ลิตร',price:'1,290 บาท',shipping:'50 บาท'},
+    {id:'cooker-3',line1:'หม้อหุงข้าวสำหรับครอบครัว',line2:'2.2 ลิตร รับประกัน 3 ปี',price:'1,590 บาท',shipping:'ส่งฟรี'}
+  ];
+  const largeCard = (y,item,anchor=false) =>
+    rect(16,y,358,136,white,anchor?ink:'#858172',6,anchor?'stroke-width="2"':'')+
+    art(28,y+18,72,76,'rice')+txt(116,y+30,item.line1,20,600,'#0D0D10')+txt(116,y+56,item.line2,20,600,'#0D0D10')+
+    txt(116,y+88,item.price,20,700,'#0D0D10','start','IBM Plex Mono,monospace')+
+    txt(362,y+88,item.shipping,20,500,'#3D3D42','end','IBM Plex Mono,monospace')+
+    txt(116,y+119,'ยังไม่มีสรุปในแคตตาล็อก',20,500,'#3D3D42');
+  const shopperB = `<g>${txt(0,-18,'04 · Shopper B large-print Thai',15,600)}${rect(0,0,W,H,paper,ink,24,'stroke-width="2"')}`+
+    rect(0,0,390,72,paper,'#858172',0)+txt(16,43,'DynamicShopper',20,700,'#0D0D10')+txt(374,43,'ไทย',20,600,'#0D0D10','end')+
+    rect(16,84,358,48,white,'#0D0D10',6)+txt(32,116,'หม้อหุงข้าว',20,400,'#3D3D42')+
+    rect(16,146,358,92,white,'#858172',6)+txt(28,178,'สิ่งที่เปลี่ยน',20,600,'#3D3D42')+txt(28,215,'ตัวอักษรใหญ่ · ภาษาไทย · รายการสั้น',20,600,'#0D0D10')+
+    largeCard(244,largeFixtures[0],true)+largeCard(386,largeFixtures[1])+largeCard(528,largeFixtures[2])+
+    rect(16,678,171,48,white,'#858172',6)+txt(101,710,'ย้อนกลับ',20,600,'#0D0D10','middle')+
+    rect(203,678,171,48,'#0D0D10','#0D0D10',6)+txt(288,710,'รีเซ็ต',20,600,white,'middle')+
+    txt(16,760,'ข้อความ ≥ 20px · เป้าสัมผัส ≥ 48px',20,500,'#3D3D42')+
+    rect(0,772,390,72,white,'#858172',0)+txt(48,816,'ร้าน',20,600,'#0D0D10','middle')+txt(146,816,'ค้นหา',20,500,'#3D3D42','middle')+txt(244,816,'เทียบ',20,500,'#3D3D42','middle')+txt(342,816,'ฉัน',20,500,'#3D3D42','middle')+'</g>';
+
+  const citedAsk = enPhone('05 · Ask stays in the store',
+    sameStore()+threeRows(174)+
+    tornSlip(16,410,358,'listing answer',[['Product',fixture.id],['Field','spec.warranty'],['Rendered',fixture.warrantyEn]])+
+    rect(16,554,358,70,white,ink,0,'stroke-dasharray="6 4"')+txt(30,582,'Plan · rank · explicit choices · history',12,600)+txt(30,608,'unchanged after the question',12,500,muted)+
+    rect(16,640,358,62,white,seam,0)+txt(30,666,`No citation → “I can't confirm from the listing.”`,11,600)+
+    button(16,714,358,'Continue in the same store',true)
+  );
+
+  const dealTurn = enPhone('06 · Deal stays in the store',
+    sameStore()+threeRows(174)+
+    tornSlip(16,410,358,'illustrative optimizer fixture',[
+      ['Item','฿690'],['Shipping','฿50'],['SAVE50','−฿50'],['SHIP40','−฿40'],
+      ['Coins','−฿65'],['TOTAL','฿585'],['Savings','฿155'],['FLASH100','Expired']
+    ])+
+    rect(16,676,358,58,white,ink,0,'stroke-dasharray="6 4"')+txt(30,701,'Same store · plan · rank · history',12,600)+txt(30,722,'Optimizer supplies every line at runtime',11,500,muted)+
+    txt(16,758,'Illustrative only — not a successful calculation.',11,600,red)
+  );
+
+  const safeFallback = enPhone('07 · Offline and poisoned model',
+    sameStore('DynamicShopper','DEVELOPMENT')+
+    tornSlip(16,172,358,'sanitized trace',[['Attempted','model'],['Outcome','offline fallback'],['Reason','timeout'],['Merge','safe fields only']])+
+    rect(16,348,358,152,white,red,0)+label(30,376,'poisoned output',red)+
+    txt(30,408,'Unknown theme',13,500)+txt(344,408,'DROP',12,700,red,'end')+
+    txt(30,440,'Invented product',13,500)+txt(344,440,'DROP',12,700,red,'end')+
+    txt(30,472,'Digit-bearing reply',13,500)+txt(344,472,'REPLACE',12,700,red,'end')+
+    rect(16,518,358,112,white,seam,0)+label(30,546,'bounded')+txt(30,576,'Two read-only tools · limited rounds',12,600)+txt(30,602,'Hard deadline · public route unavailable',12,600)+
+    txt(30,626,'No raw prompt, reply, key, or transcript',11,500,muted)+
+    button(16,690,358,'Continue with local fallback',true)
+  );
+
+  const width=2860,height=2140;
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><title>Owner 2 personalization and agent UX contract</title><desc>Static design rehearsal for two shoppers using one catalog truth. Illustrative only; runtime checks own verification.</desc><rect width="100%" height="100%" fill="#EEEDE7"/>`;
+  s+=txt(60,58,'Owner 2 · Personalization and agent UX contract',32,700)+txt(60,88,'Static rehearsal, not runtime proof • catalog and optimizer remain authoritative',14,600,muted)+label(2440,58,'PRIMARY REVIEW BOARD · V5');
+  [sharedStart,shopperA,undoReapply,shopperB,citedAsk,dealTurn,safeFallback].forEach((screen,i)=>{s+=`<g transform="translate(${60+i*400} 140)">${screen}</g>`;});
+
+  // Exact laptop acceptance frame.
+  s+=rect(60,1080,1440,900,paper,ink,0,'stroke-width="2"')+txt(84,1118,'1440 × 900 rehearsal · fixed query “rice cooker”',22,700)+txt(1474,1118,'NO HORIZONTAL PAGE SCROLL',11,700,muted,'end')+line(84,1134,1476,1134,ink,2);
+  s+=rect(84,1156,650,680,white,seam,0)+label(108,1184,'shopper a · minimal comparison')+txt(108,1218,'rice cooker',16,600)+txt(710,1218,'Reset',14,600,ink,'end');
+  s+=miniRow(108,1250,602,fixture.en,fixture.capacityEn,fixture.warrantyEn,true)+miniRow(108,1328,602,'1.0L digital rice cooker with timer','1.0 L','3 yr')+miniRow(108,1406,602,'2.2L family rice cooker, 3-year warranty','2.2 L','3 yr');
+  s+=tornSlip(108,1502,602,'what changed',[['Theme','Minimal'],['Layout','Comparison'],['Fields','Capacity / warranty']])+button(108,1646,286,'Undo')+button(424,1646,286,'Reset');
+  const desktopLargeCard=(y,item,anchor=false)=>rect(782,y,670,128,white,anchor?ink:'#858172',6,anchor?'stroke-width="2"':'')+art(798,y+16,92,96,'rice')+txt(908,y+34,item.line1,20,600,'#0D0D10')+txt(908,y+64,item.line2,20,600,'#0D0D10')+txt(908,y+98,item.price,20,700,'#0D0D10','start','IBM Plex Mono,monospace')+txt(1436,y+98,item.shipping,20,500,'#3D3D42','end','IBM Plex Mono,monospace');
+  s+=rect(758,1156,718,680,white,'#858172',6)+txt(782,1190,'ผู้ซื้อ B · ตัวอักษรใหญ่',20,700,'#0D0D10')+rect(1312,1170,140,48,white,'#858172',6)+txt(1382,1202,'รีเซ็ต',20,600,'#0D0D10','middle')+txt(782,1234,'หม้อหุงข้าว',20,600,'#0D0D10');
+  s+=desktopLargeCard(1250,largeFixtures[0],true)+desktopLargeCard(1390,largeFixtures[1])+desktopLargeCard(1530,largeFixtures[2]);
+  s+=rect(782,1680,670,116,white,'#858172',6)+txt(798,1714,'สิ่งที่เปลี่ยน',20,600,'#3D3D42')+txt(798,1750,'ตัวอักษรใหญ่ · ภาษาไทย · รายการสั้น',20,600,'#0D0D10')+txt(798,1780,'ย้อนกลับและรีเซ็ตได้เสมอ',20,500,'#3D3D42');
+  s+=rect(84,1856,1392,96,white,ink,0,'stroke-dasharray="6 4"')+label(104,1884,'expected runtime compare receipt')+txt(104,1916,'productId · fieldId · raw value · rendered text · nonempty overlap · separate anchor price check',13,600)+txt(104,1940,'No green stamp in this static board. The implementation may stamp only after the real check passes.',12,600,red);
+
+  // Handoff and review gates.
+  s+=rect(1540,1080,1260,900,white,ink,0,'stroke-width="2"')+txt(1568,1120,'Owner 2 handoff and review gates',24,700)+line(1568,1138,2772,1138,ink,2);
+  s+=label(1568,1174,'synchronous exports')+txt(1568,1208,'rankProducts(products, plan)',15,600,ink,'start','IBM Plex Mono,monospace')+txt(1568,1238,'interpretOffline(message, state)',15,600,ink,'start','IBM Plex Mono,monospace')+txt(1568,1268,'applyTurn(state, turn)',15,600,ink,'start','IBM Plex Mono,monospace');
+  s+=label(1568,1316,'invariants shown by the flow')+tornSlip(1568,1336,570,'change',[['Patch','allowlisted fields'],['History','effective changes only'],['Undo / reset','store commands']])+tornSlip(2170,1336,602,'ask and deal',[['Ask','citation or decline'],['Deal','product refs only'],['Store / rank','inert']]);
+  s+=label(1568,1518,'must be proven in code, not by this board')+rect(1568,1538,1204,246,paper,seam,0)+
+    txt(1590,1572,'□ Mixed-validity patch keeps valid siblings',14,600)+txt(1590,1606,'□ Stable tie-breaks and ranking edge cases',14,600)+
+    txt(1590,1640,'□ Reply guard and price-free serialized model requests',14,600)+txt(1590,1674,'□ Timeout deadline, tool limits, fallback accounting',14,600)+
+    txt(1590,1708,'□ Ask/deal invariance and identical optimizer receipts',14,600)+txt(1590,1742,'□ Four themes, Thai/English, keyboard, reduced motion, WCAG AA',14,600);
+  s+=rect(1568,1812,1204,108,ink,ink,0)+txt(1592,1844,'BOUNDARY',11,700,'#C9C9CD')+txt(1592,1876,'AI proposes presentation only.',18,700,white)+txt(1592,1904,'Catalog, formatter, verifier, and optimizer own every fact.',15,600,white);
+  s+=txt(1568,1950,'Conflict to resolve with Owner 4: sanitized X-ray wording must supersede raw-output guidance.',12,600,red);
+  s+='</svg>';
+  writeFileSync(join(out,'adaptive-v5-owner2-contract-rehearsal.svg'),s);
+};
+
+owner2Focus();
+console.log('Generated DynamicShopper Figma SVG boards.');
