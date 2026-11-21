@@ -941,6 +941,20 @@
 	}
 </script>
 
+{#snippet languageSwitch()}
+	<button
+		type="button"
+		lang={language === 'th' ? 'en' : 'th'}
+		disabled={!interactive}
+		onclick={() => {
+			register('locale');
+			language = language === 'th' ? 'en' : 'th';
+		}}
+	>
+		{language === 'th' ? 'English' : 'ไทย'}
+	</button>
+{/snippet}
+
 {#snippet harnessLink()}
 	<a
 		class="assistant-link"
@@ -1203,17 +1217,7 @@
 							<option value={option}>{t[option]}</option>
 						{/each}
 					</select>
-					<button
-						type="button"
-						lang={language === 'th' ? 'en' : 'th'}
-						disabled={!interactive}
-						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
-						}}
-					>
-						{language === 'th' ? 'English' : 'ไทย'}
-					</button>
+					{@render languageSwitch()}
 					<CartControls locale={language} onBestPrice={() => openBasket()} />
 					<button
 						type="button"
@@ -1249,6 +1253,7 @@
 					</svg>
 					<span>DynamicShopper</span>
 				</a>
+				{@render languageSwitch()}
 			</header>
 		{/if}
 
@@ -1334,6 +1339,7 @@
 				compact={eventDemo}
 				onapply={applyInterviewAnswers}
 				onchat={focusAssistant}
+				onundo={undoStack.length ? undo : undefined}
 			/>
 		{/snippet}
 		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
@@ -1412,16 +1418,7 @@
 					freeShipping = !freeShipping;
 					draftShipping = freeShipping;
 				}}
-				changeCategory={(value: Category | 'all') => {
-					if (query) {
-						draftQuery = query = '';
-					}
-					chooseCategory(value, true);
-				}}
-				toggleLanguage={() => {
-					register('locale');
-					language = language === 'th' ? 'en' : 'th';
-				}}
+				changeCategory={(value) => chooseCategory(value, true)}
 			/>
 		{:else}
 			<nav class="categories" aria-label={t.categories}>
@@ -1468,19 +1465,6 @@
 						{categories[key][language]}
 					</button>
 				{/each}
-				{#if eventDemo}
-					<button
-						type="button"
-						lang={language === 'th' ? 'en' : 'th'}
-						disabled={!interactive}
-						onclick={() => {
-							register('locale');
-							language = language === 'th' ? 'en' : 'th';
-						}}
-					>
-						{language === 'th' ? 'English' : 'ไทย'}
-					</button>
-				{/if}
 			</nav>
 		{/if}
 
@@ -1732,7 +1716,9 @@
 						</div>
 					</div>
 					<div class="shopper-actions shelf-utilities">
-						<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{#if !adapted || !interviewAnswers}
+							<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
+						{/if}
 						<button type="button" onclick={() => restoreDefaults()}>{a.reset}</button>
 					</div>
 				</div>
@@ -2416,6 +2402,9 @@
 		--muted: #585858;
 	}
 	.marketplace-brand {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		padding: 0.75rem 1rem 0.2rem;
 		background: var(--marketplace-orange);
 		color: white;

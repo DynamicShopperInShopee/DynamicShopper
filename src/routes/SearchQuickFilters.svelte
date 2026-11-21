@@ -28,7 +28,7 @@
 		toggleShipping: () => void;
 		openFilters: (trigger: HTMLButtonElement) => void;
 		changeCategory: (value: Category | 'all') => void;
-		toggleLanguage: () => void;
+		toggleLanguage?: () => void;
 		shoppingTasks?: Snippet;
 		harnessLink?: Snippet;
 	} = $props();
@@ -112,9 +112,11 @@
 				</button>
 			{/each}
 		{/if}
-		<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
-			{th ? 'English' : 'ไทย'}
-		</button>
+		{#if toggleLanguage}
+			<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
+				{th ? 'English' : 'ไทย'}
+			</button>
+		{/if}
 		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
 		{@render shoppingTasks?.()}
 		{@render harnessLink?.()}
