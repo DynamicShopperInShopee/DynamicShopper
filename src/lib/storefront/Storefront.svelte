@@ -988,7 +988,7 @@
 	function selectSort(value: Sort) {
 		cancelPending();
 		if (sort === value) return;
-		remember();
+		if (!eventDemo) remember();
 		sort = value;
 	}
 
@@ -1023,7 +1023,7 @@
 
 	function updateShipping(value: boolean) {
 		if (freeShipping === value) return;
-		remember();
+		if (!eventDemo) remember();
 		cancelPending();
 		freeShipping = draftShipping = value;
 	}

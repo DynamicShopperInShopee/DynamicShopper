@@ -46,17 +46,30 @@ function matchesRaw(serialized: string | null, expected: FactValue, legacy: bool
 	}
 }
 
+function isInClosedDisclosureBody(node: HTMLElement): boolean {
+	for (
+		let disclosure = node.closest('details:not([open])');
+		disclosure;
+		disclosure = disclosure.parentElement?.closest('details:not([open])') ?? null
+	) {
+		const summary = [...disclosure.children].find((child) => child.localName === 'summary');
+		if (!summary?.contains(node)) return true;
+	}
+	return false;
+}
+
 function isVisibleFact(node: HTMLElement): boolean {
 	const style = getComputedStyle(node);
 	if (style.visibility !== 'visible') return false;
-	if (node.localName !== 'option') return node.getClientRects().length > 0;
+	if (!(node instanceof HTMLOptionElement)) return node.getClientRects().length > 0;
 
 	// Native picker options are painted by the select without independent layout boxes.
 	const select = node.closest('select');
 	return Boolean(
 		style.display !== 'none' &&
 		select?.getClientRects().length &&
-		getComputedStyle(select).visibility === 'visible'
+		getComputedStyle(select).visibility === 'visible' &&
+		!isInClosedDisclosureBody(select)
 	);
 }
 
@@ -99,7 +112,8 @@ function inspectFacts(
 		if (!markerPresent) report('identity');
 		if (node.dataset.source !== fact.source) report('source');
 		if (!matchesRaw(node.getAttribute('data-raw'), fact.raw, legacy)) report('raw');
-		if (node.innerText !== fact.text) report('text');
+		const printedText = node instanceof HTMLOptionElement ? node.label : node.innerText;
+		if (printedText !== fact.text) report('text');
 		if (result.mismatches.length === previousMismatchCount) {
 			identities.set(JSON.stringify([product, field]), fact);
 		}

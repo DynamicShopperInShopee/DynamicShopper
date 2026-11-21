@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test';
 
+test('checks the painted capacity option while Requirements is open', async ({ page }) => {
+	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	const criteria = page.getByRole('region', { name: 'Shopping criteria' });
+	const requirements = criteria.locator('summary').filter({ hasText: 'Requirements' });
+	await requirements.click();
+	const picker = criteria.getByRole('combobox', { name: 'Cooker capacity' });
+	await picker.selectOption('1.8');
+	const proof = page.locator('#products [data-proof]');
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
+	const selected = picker.locator('option[value="1.8"]');
+	await selected.evaluate((node) => node.setAttribute('label', '1 L'));
+	await expect(proof).toHaveAttribute('data-proof', 'failed');
+	await requirements.click();
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
+	const summaryCapacity = requirements.locator('[data-fact="spec.capacity"]');
+	await summaryCapacity.evaluate((node) => (node.textContent = '1 L'));
+	await expect(proof).toHaveAttribute('data-proof', 'failed');
+	await summaryCapacity.evaluate((node) => (node.textContent = '1.8 L'));
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
+	await requirements.click();
+	await expect(proof).toHaveAttribute('data-proof', 'failed');
+	await selected.evaluate((node) => node.removeAttribute('label'));
+	await expect(proof).toHaveAttribute('data-proof', 'verified');
+});
+
 test('changing category in Shopping criteria keeps compatible searches and undoes an incompatible switch', async ({
 	page,
 	context
