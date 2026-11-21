@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { carrySearchToListing, readSearchSelection } from '../../search-navigation';
 	import { readInterviewVisit } from '../../interview-navigation';
 	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
-	let { data, hero }: { data: PageData; hero?: HTMLElement } = $props();
+	let {
+		data,
+		hero,
+		backQuery,
+		children
+	}: { data: PageData; hero?: HTMLElement; backQuery: string; children?: Snippet } = $props();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
 	let backLink: HTMLAnchorElement;
@@ -76,7 +82,7 @@
 	<a
 		class="back"
 		bind:this={backLink}
-		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		href={resolve(backQuery ? `/?${backQuery}` : '/')}
 		onclick={returnToShelf}
 		aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
 	>
@@ -95,7 +101,7 @@
 	<span class="hero-space" aria-hidden="true"></span>
 	<a
 		class="header-search"
-		href={resolve('/') + (data.receiptQuery ? '?' + data.receiptQuery : '')}
+		href={resolve(backQuery ? `/?${backQuery}` : '/')}
 		onclick={returnToShelf}
 		aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}
 	>
@@ -126,6 +132,7 @@
 	>
 		{th ? 'English' : 'ไทย'}
 	</a>
+	{#if children}<div class="header-actions">{@render children()}</div>{/if}
 </header>
 {#if !overHero}
 	<button
@@ -186,6 +193,10 @@
 		gap: 0.5rem;
 		padding-inline: 0.65rem;
 		background: #f4f4f4;
+	}
+	.language {
+		min-inline-size: var(--tap, 44px);
+		justify-content: center;
 	}
 	.back-to-top {
 		display: none;
@@ -250,6 +261,16 @@
 		.language {
 			padding-inline: 0.55rem;
 			font-size: inherit;
+		}
+		.header-actions {
+			pointer-events: auto;
+		}
+		header[data-over-hero='true'] .header-actions :global(button[popovertarget]) {
+			min-inline-size: var(--tap, 44px);
+			border-color: transparent;
+			border-radius: 999px;
+			background: #27394e;
+			color: #fff;
 		}
 		header[data-over-hero='false'] {
 			background: #fff;

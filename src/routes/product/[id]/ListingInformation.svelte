@@ -10,7 +10,7 @@
 		openSpecifications
 	}: {
 		data: PageData;
-		openSpecifications: (trigger: HTMLButtonElement) => void;
+		openSpecifications?: (trigger: HTMLButtonElement) => void;
 	} = $props();
 	const th = $derived(data.language === 'th');
 	const capacity = $derived(
@@ -26,7 +26,8 @@
 			aria-label={th ? 'ดูคุณลักษณะสินค้า' : 'View attributes'}
 			aria-controls="product-specifications"
 			aria-haspopup="dialog"
-			onclick={(event) => openSpecifications(event.currentTarget)}
+			disabled={!openSpecifications}
+			onclick={(event) => openSpecifications?.(event.currentTarget)}
 		>
 			<strong>{th ? 'คุณลักษณะ' : 'Attributes'}</strong>
 			<span>{data.specs.map((spec) => spec.label).join(', ')}</span>

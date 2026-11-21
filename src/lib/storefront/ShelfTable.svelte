@@ -1,23 +1,32 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import type { addCartItem } from './cart';
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
-	import FactValue from './FactValue.svelte';
+	import AddToCart from './AddToCart.svelte';
 	import ProductEvidence from './ProductEvidence.svelte';
 	import type { ShopperPlan } from '../personalization';
-	import { assistantCopy } from './copy';
+	import FactValue from './FactValue.svelte';
 
 	let {
 		products,
 		locale,
 		onDeal,
-		explain,
+		onAdd,
+		listingHref,
+		reasons,
 		highlightedSpecs = [],
 		interviewDetails = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
+		listingHref?: (productId: string) => string;
+		reasons?: Snippet<[string]>;
 		onDeal: (productId: string, locale: Locale) => void;
-		explain?: (productId: string) => readonly string[];
+		onAdd?: (
+			id: string
+		) =>
+			ReturnType<typeof addCartItem>['status'] | Promise<ReturnType<typeof addCartItem>['status']>;
 		highlightedSpecs?: readonly SpecKey[];
 		interviewDetails?: ShopperPlan['details'];
 	} = $props();
@@ -58,33 +67,25 @@
 					{/each}
 					<th scope="col" class="figure">{th ? 'ราคา' : 'Price'}</th>
 					<th scope="col" class="figure">{th ? 'คะแนน' : 'Rating'}</th>
-					<th scope="col">{th ? 'ดีล' : 'Deal'}</th>
+					<th scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each products as product (product.id)}
-					{@const reasons = explain?.(product.id) ?? []}
 					<tr data-product={product.id}>
 						<th scope="row">
-							<a href={resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}>
+							<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller's resolved URL preserves the active look and theme. -->
+							<a
+								href={listingHref?.(product.id) ??
+									resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}
+							>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							{#if writtenEvidence.length}
 								<ProductEvidence productId={product.id} {locale} details={writtenEvidence} />
 							{/if}
-							{#if reasons.length}
-								<details>
-									<summary>{assistantCopy[locale].rank}</summary>
-									<div class="ranking-reasons">
-										<p>{th ? 'เหตุผลสำคัญเรียงก่อน' : 'Biggest reasons first'}</p>
-										<ul role="list">
-											{#each reasons as reason (reason)}
-												<li>{reason}</li>
-											{/each}
-										</ul>
-									</div>
-								</details>
-							{/if}
+							{@render reasons?.(product.id)}
 						</th>
 						{#each columns as column (column.key)}
 							<td class="figure">
@@ -109,6 +110,7 @@
 						<td class="figure"><FactValue productId={product.id} field="price" {locale} /></td>
 						<td class="figure"><FactValue productId={product.id} field="rating" {locale} /></td>
 						<td>
+							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
 							<button type="button" onclick={() => onDeal(product.id, locale)}>
 								{th ? 'ราคาดีที่สุด' : 'Best price'}
 							</button>
@@ -146,17 +148,13 @@
 		text-align: start;
 	}
 	a,
-	button,
-	summary {
+	button {
 		min-block-size: var(--tap, 44px);
+		display: inline-flex;
+		align-items: center;
 		color: inherit;
 		text-decoration: underline;
 		text-underline-offset: 0.18em;
-	}
-	a,
-	button {
-		display: inline-flex;
-		align-items: center;
 	}
 	a {
 		min-inline-size: 8rem;
@@ -164,45 +162,6 @@
 	button {
 		white-space: nowrap;
 		cursor: pointer;
-	}
-	summary {
-		align-content: center;
-		cursor: pointer;
-	}
-	.ranking-reasons {
-		border: 1px dashed var(--ink);
-		padding: 0.5rem;
-		font-weight: normal;
-	}
-	.ranking-reasons p {
-		margin: 0 0 0.25rem;
-		font-weight: 600;
-	}
-	.ranking-reasons ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.ranking-reasons li {
-		display: grid;
-		grid-template-columns: 1fr 2.5rem;
-		align-items: center;
-		gap: 0.4rem;
-	}
-	.ranking-reasons li::after {
-		content: '';
-		block-size: 0.2rem;
-		inline-size: 100%;
-		background: var(--ink);
-	}
-	.ranking-reasons li:nth-child(2)::after {
-		inline-size: 75%;
-	}
-	.ranking-reasons li:nth-child(3)::after {
-		inline-size: 50%;
-	}
-	.ranking-reasons li:nth-child(n + 4)::after {
-		inline-size: 25%;
 	}
 	.figure {
 		text-align: end;

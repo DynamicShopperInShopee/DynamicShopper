@@ -68,15 +68,22 @@ test('applies finite model hints without sharing the budget or overriding explic
 
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 	await expect(page.locator('#products .list-layout')).toBeVisible();
-	await expect(page.getByText('Live model · gpt-5-mini', { exact: true })).toBeVisible();
-	await expect(page.getByText('Invalid proposal fields dropped')).toBeVisible();
+	await expect(page.locator('#store-xray').getByText('gpt-5-mini', { exact: true })).toBeVisible();
+	await expect(
+		page.locator('#store-xray').getByText('Invalid proposal fields dropped')
+	).toBeVisible();
 	expect(requests).toEqual(['{"hints":["playful","large-text"]}']);
 
 	const picker = page.locator('#products [data-product="cooker-one-button"] [data-fact="price"]');
 	await expect(picker).toHaveText('฿690');
 	await expect(picker).toHaveAttribute('data-raw', '690');
 	await expect(page.getByText('raw-model-text')).toHaveCount(0);
-	await expect(page.getByText('synthetic-private-marker')).toHaveCount(0);
+	const conversation = page.getByRole('log', { name: 'Conversation' });
+	await expect(conversation.locator('article.shopper')).toContainText('synthetic-private-marker');
+	await expect(conversation.locator('article:not(.shopper)')).not.toContainText(
+		'synthetic-private-marker'
+	);
+	await expect(page.locator('#store-xray')).not.toContainText('synthetic-private-marker');
 
 	await input.fill('best deal for cooker-one-button');
 	await page.getByRole('button', { name: 'Send' }).click();
@@ -110,11 +117,11 @@ test('applies the local result when the shopper switches offline during a pendin
 		await page.getByRole('button', { name: 'Send' }).click();
 		await requested;
 		await expect(page.getByText('Testing the live model', { exact: true })).toBeVisible();
-		await page.getByRole('button', { name: 'Force offline' }).click();
+		await page.locator('#store-xray').getByRole('checkbox', { name: 'Force offline' }).check();
 		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
 		release();
 		await expect(page.getByText('Offline mode', { exact: true }).first()).toBeVisible();
-		await expect(page.getByText('Live model · gpt-5-mini', { exact: true })).toHaveCount(0);
+		await expect(page.locator('#store-xray')).not.toContainText('gpt-5-mini');
 		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
 	} finally {
 		release();
@@ -131,6 +138,8 @@ test('shows a rejection in X-ray when every model field is unusable', async ({ p
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('minimal spec table');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
-	await expect(page.getByText('Invalid proposal fields dropped')).toBeVisible();
-	await expect(page.getByText('Live model · gpt-5-mini', { exact: true })).toHaveCount(0);
+	await expect(
+		page.locator('#store-xray').getByText('Invalid proposal fields dropped')
+	).toBeVisible();
+	await expect(page.locator('#store-xray')).not.toContainText('gpt-5-mini');
 });

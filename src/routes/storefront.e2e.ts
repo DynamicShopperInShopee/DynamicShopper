@@ -124,11 +124,13 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await views.click();
 	await expect(tech).toBeHidden();
+	await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'th');
 	await expect(page.locator('#products [data-product]')).toHaveCount(3);
+	await page.keyboard.press('Escape');
 	await page.getByRole('button', { name: 'ย้อนกลับ' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await page.getByRole('searchbox').fill('rice cooker');
@@ -306,7 +308,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await expect(page).toHaveURL(/\/product\/cooker-/);
 	await page.getByRole('link', { name: 'Back to store' }).click();
 	await page.getByRole('link', { name: 'Shopping assistant' }).press('Enter');
-	await expect(page.locator('#shopper-assistant')).toBeFocused();
+	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeFocused();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });
 
@@ -327,7 +329,7 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await expect(page.getByRole('heading', { name: 'Price: high to low' })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
 		'href',
-		'/?view=receipt#shopper-assistant'
+		'/?view=receipt#assistant'
 	);
 	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toBeVisible();
 	await strip.getByRole('button', { name: 'Filters' }).click();
@@ -424,7 +426,7 @@ test('keeps category search controls ahead of the mobile results', async ({ page
 	expect(firstRow!.y - strip!.y - strip!.height).toBeLessThan(12);
 	await expect(filters.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
 		'href',
-		'/?view=receipt#shopper-assistant'
+		'/?view=receipt#assistant'
 	);
 	await filters.getByLabel('Categories').selectOption('cooker');
 	const search = page.getByRole('search');

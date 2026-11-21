@@ -41,7 +41,7 @@
 	let strip: HTMLDivElement;
 	let previousMode: boolean | undefined;
 	$effect(() => {
-		if (previousMode !== cooker) strip.scrollLeft = 0;
+		if (strip && previousMode !== cooker) strip.scrollLeft = 0;
 		previousMode = cooker;
 	});
 	const sizes = new SvelteMap<number, string>();
@@ -110,9 +110,7 @@
 		<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
 			{th ? 'English' : 'ไทย'}
 		</button>
-		<a href={resolve('/?view=receipt#shopper-assistant')}>
-			{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
-		</a>
+		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
 	</div>
 	{#if cooker}
 		<button

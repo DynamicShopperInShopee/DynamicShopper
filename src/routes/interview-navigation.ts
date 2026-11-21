@@ -1,22 +1,9 @@
-import type { ShopperPlan } from '../lib/personalization';
-import type { Answers } from '../lib/personalization/interview';
-import type { Sort } from '../lib/store-search';
-
-export type ShelfCheckpoint = {
-	plan: ShopperPlan;
-	adapted: boolean;
-	sort: Sort;
-	freeShipping: boolean;
-	capacity?: number;
-	locks: (keyof ShopperPlan)[];
-	interviewAnswers: Answers | null;
-	interviewDirectOnly: boolean;
-};
+import type { ShelfState, ShelfChange } from '../lib/storefront/store.svelte';
 
 type InterviewVisit = {
-	current: ShelfCheckpoint;
-	undo: ShelfCheckpoint[];
-	changes: (keyof ShopperPlan | 'capacityRemoved')[];
+	current: ShelfState;
+	undo: ShelfState[];
+	changes: ShelfChange[];
 	draftQuery: string;
 	search: string;
 	scrollY: number;

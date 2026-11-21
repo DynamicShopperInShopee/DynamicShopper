@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import ProductDeal from './ProductDeal.svelte';
+	import type { Snippet } from 'svelte';
 
-	let { data }: { data: PageData } = $props();
+	let { data, children }: { data: PageData; children: Snippet } = $props();
 	const th = $derived(data.language === 'th');
 	const highlights = $derived(
 		data.category === 'rice-cooker'
@@ -43,9 +43,7 @@
 		</dl>
 	{/if}
 	<div class="deal">
-		{#key data.id}
-			<ProductDeal productId={data.id} locale={data.language} />
-		{/key}
+		{@render children()}
 		<svg
 			class="deal-arrow"
 			aria-hidden="true"
@@ -141,8 +139,8 @@
 		background: var(--deal-ground, #fbfbf8);
 		border-block: 1px solid var(--summary-seam);
 	}
-	.deal :global(> button) {
-		width: 100%;
+	.deal :global(.actions > button) {
+		flex: 1;
 		padding: 0.5rem 1.7rem 0.5rem 0;
 		text-align: start;
 		border: 0;

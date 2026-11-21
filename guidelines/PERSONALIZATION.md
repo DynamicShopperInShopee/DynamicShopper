@@ -125,3 +125,5 @@ What the shopper sets explicitly is applied as-is and can always be seen and rem
 ## Sharing a store
 
 A shopper can share their store's look as a link. The link carries the plan and nothing else: no cart, no conversation, nothing personal. Opening one is treated as untrusted input: it is validated exactly like an AI proposal, opened as one undoable step with a "Shared store opened" note, and ignored silently if it is invalid or oversized. The intended use is the family case: set up mom mode with rice cookers, then send it to the parent over LINE.
+
+Both comparison views opened from the shelf use its active capacity, free shipping, price ceiling and shop filters. The standalone comparison keeps those selections within the shopper’s open tab.

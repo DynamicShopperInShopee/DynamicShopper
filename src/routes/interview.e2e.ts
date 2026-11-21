@@ -16,6 +16,7 @@ async function answerInterview(page: import('@playwright/test').Page, labels: st
 
 test('the shortlist and specification choices appear on the applied shelf', async ({ page }) => {
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const dialog = await answerInterview(page, ['Help me choose', 'Specs', 'Durability', 'Balanced']);
 	await dialog.getByText('How this view is chosen', { exact: true }).click();
@@ -34,6 +35,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	const before = await page
 		.locator('#products [data-fact="price"]')
@@ -73,6 +75,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await expect(input).toBeFocused();
 	await input.fill('list view');
 	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await page.getByRole('button', { name: 'Close chat' }).click();
 	await expect(page.locator('.list-layout')).toBeVisible();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
@@ -84,6 +87,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 
 test('cancelling a draft is inert; partial answers preserve explicit filters', async ({ page }) => {
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	await page
 		.getByRole('navigation', { name: 'Rice cooker filters' })
@@ -113,6 +117,7 @@ test('cancelling a draft is inert; partial answers preserve explicit filters', a
 
 test('an empty interview proposal does not consume the next Undo', async ({ page }) => {
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const skipped = page.getByRole('dialog', { name: 'Make the shop fit you' });
 	for (let i = 0; i < 4; i++)
@@ -139,6 +144,7 @@ test('an empty interview proposal does not consume the next Undo', async ({ page
 
 test('direct-only choice survives a no-op Apply without consuming Undo', async ({ page }) => {
 	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
 	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();

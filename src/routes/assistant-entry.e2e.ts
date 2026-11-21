@@ -13,6 +13,7 @@ test('a cooker capacity follows the shopper into the offline assistant and is re
 	await expect(count).toHaveText('2');
 	await page.getByRole('link', { name: 'Shopping assistant' }).press('Enter');
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
+	await page.keyboard.press('Escape');
 	await context.setOffline(true);
 	await expect(count).toHaveText('2');
 	const capacity = page.getByRole('button', { name: 'Capacity 1.8 L' });
@@ -20,8 +21,10 @@ test('a cooker capacity follows the shopper into the offline assistant and is re
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	await expect(capacity).toBeVisible();
 
+	await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ขอแบบเรียบๆ ดูสเปกก่อน');
 	await page.getByRole('button', { name: 'Send' }).click();
+	await page.keyboard.press('Escape');
 	const rows = page.locator('#products tbody tr');
 	await expect(rows).toHaveCount(2);
 	await expect(rows.locator('[data-fact="spec.capacity"]')).toHaveText(['1.8 L', '1.8 L']);
