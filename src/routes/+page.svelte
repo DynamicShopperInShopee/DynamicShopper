@@ -45,6 +45,7 @@
 	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
 	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
+	import { eligibleShelfProducts } from '../lib/storefront/compare';
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
@@ -212,19 +213,8 @@
 			lang: language
 		}).toString()
 	);
-	const ranked = $derived(
-		adapted
-			? rankProducts(
-					canonical.filter(
-						(product) =>
-							(!freeShipping || product.shipping === 0) &&
-							(capacity === undefined ||
-								(product.category === 'rice-cooker' && product.specs.capacity === capacity))
-					),
-					activePlan
-				)
-			: []
-	);
+	const eligibleProducts = $derived(eligibleShelfProducts(freeShipping, capacity));
+	const ranked = $derived(adapted ? rankProducts(eligibleProducts, activePlan) : []);
 	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
 
 	function quantityInCart(productId: string) {
@@ -715,7 +705,7 @@
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
-				rankProducts(canonical, { ...activePlan, simplified: false }).map(
+				rankProducts(eligibleProducts, { ...activePlan, simplified: false }).map(
 					({ product }) => product.id
 				)
 			);
@@ -1605,7 +1595,7 @@
 			</XrayDrawer>
 			{#if compareOpen}
 				<div class="comparison-area">
-					<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+					<CompareShelves plan={activePlan} locale={language} {eligibleProducts} onDeal={openDeal} />
 				</div>
 			{/if}
 			{#if quote}
