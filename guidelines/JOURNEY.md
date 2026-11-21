@@ -46,3 +46,5 @@ The product always offers a direct path to the same result:
 | The compare check says "Nothing to compare yet" | Search "rice cooker" on the compare page |
 | The network or the AI is unavailable | Carry on: the store answers in Offline mode |
 | The store is in a confusing state | **Reset store** restores the default shelf and clears the previous reply and deal receipt |
+
+For the research workflow, ask for lightweight gaming mice under a budget. Open Shopping criteria, adjust the budget, remove a ranking preference, change the layout or reading settings, and Undo each change. Compare two chosen products, then calculate one product’s deal. The selected fields and receipt read from the catalog and optimizer. The same controls work in English and Thai offline.

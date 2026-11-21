@@ -261,3 +261,5 @@ Returning from a listing to the default storefront restores the originating sear
 The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf heading receives focus and the bilingual chat action sits beside the updated shelf. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.
 
 The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+Shopping criteria use three compact disclosures listing active settings. Product comparison and deal calculation open on demand and return focus to their respective buttons. The comparison fits the phone viewport, labels missing catalog facts and lets shoppers choose which fields to inspect.

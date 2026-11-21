@@ -5,14 +5,16 @@
 Accepted: the default marketplace offers an optional short interview, followed by
 chat refinement. Every question is optional; drafts never alter the shelf. Apply
 uses the existing validated plan and records one undo step, including the prior
-interview answers. Search, category, budget, cooker capacity and explicit sorting
+interview answers and locks. Undo also restores the saved presentation. Applying
+equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
 remain intact. Reset removes the interview and restores the default view.
 
 The local synthetic-trained CNN chooses allowlisted layout, information and section
 recipes and may suggest an unlocked theme. Reading density, an explicit large-text
 choice and ranking priorities follow the answers directly. Theme-picker selections
-remain protected. Later chat requests can refine the applied proposal through the
-existing interpretation and validation pipeline. Missing answers or failed model
+remain protected. Later chat requests can refine CNN-suggested fields through the
+existing interpretation and validation pipeline. Answer-sourced fields retain
+the shopper’s explicit choice until edited or removed. Missing answers or failed model
 inference use direct mappings. No real shopper preference accuracy is claimed.
 
 Proposed: evaluate interview completion, corrections and task success with shoppers
@@ -127,3 +129,5 @@ What the shopper sets explicitly is applied as-is and can always be seen and rem
 A shopper can share their store's look as a link. The link carries the plan and nothing else: no cart, no conversation, nothing personal. Opening one is treated as untrusted input: it is validated exactly like an AI proposal, opened as one undoable step with a "Shared store opened" note, and ignored silently if it is invalid or oversized. The intended use is the family case: set up mom mode with rice cookers, then send it to the parent over LINE.
 
 Both comparison views opened from the shelf use its active capacity, free shipping, price ceiling and shop filters. The standalone comparison keeps those selections within the shopper’s open tab.
+
+Adaptive list and grid cards follow the validated detail order and omit unselected fields. Direct criteria edits use the store’s standard Undo history and protect the edited field against later inference. Shopper-selected comparison products stay independent of model ranking.

@@ -369,8 +369,6 @@
 		);
 		// No-op answers leave the current surface and Undo history unchanged.
 		if (!fields.length) {
-			if (result.answers.reading === 'large') register('theme');
-			// Remember explicit interview controls without adding a phantom Undo step.
 			if (interviewAnswers !== null || Object.keys(result.answers).length) {
 				interviewAnswers = result.answers;
 			}
@@ -381,13 +379,13 @@
 		session.restoreBrowser();
 		storeReady = true;
 		remember();
-		if (result.answers.reading === 'large') register('theme');
+		for (const field of Object.keys(result.patch) as (keyof ShopperPlan)[]) {
+			if (result.sources[field] === 'answer') register(field);
+		}
 		writePlan({ ...previous, ...result.patch });
 		changes = fields.map(([key]) => key as keyof ShopperPlan);
 		interviewAnswers = result.answers;
 		interviewDirectOnly = directOnly;
-		// The reviewed proposal may be refined by later chat requests. A theme chosen
-		// with the explicit theme picker remains protected from inferred suggestions.
 		adapted = true;
 		turn = undefined;
 		await tick();
@@ -709,7 +707,7 @@
 		}
 	});
 	$effect(() => {
-		if (!storeReady || eventDemo) return;
+		if (!storeReady) return;
 		const current = $state.snapshot(activePlan);
 		untrack(() => session.savePlan(current));
 	});
@@ -826,7 +824,7 @@
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
-				rankProducts(canonical, { ...activePlan, simplified: false }).map(
+				rankProducts(eligibleProducts, { ...activePlan, simplified: false }).map(
 					({ product }) => product.id
 				)
 			);
