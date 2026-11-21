@@ -147,15 +147,20 @@ export function interpretOffline(message: string, plan: ShopperPlan, focus?: str
 			patch.theme = 'large-print';
 			patch.density = 'spacious';
 		}
-		if (/\b(?:specs? first|spec table|technical specs)\b|สเป[กค]ก่อน|ดูสเป[กค]/u.test(text)) {
+		if (
+			/\b(?:specs? first|spec table|technical specs|compare specs?|readable specs?)\b|สเป[กค]ก่อน|ดูสเป[กค]|เทียบสเป[กค]/u.test(text)
+		) {
 			patch.layout = 'table';
 			patch.details = ['specs', 'price', 'rating', 'shop'];
+		}
+		if (/\b(?:durable|durability|built to last|long-lasting)\b|ความทน|ทนทาน|ทนๆ/u.test(text)) {
+			patch.priorities = { ...plan.priorities, durability: 1 };
 		}
 		if (/\b(?:table view|show as a table)\b|แบบตาราง(?!การ์ด)/u.test(text)) patch.layout = 'table';
 		if (/\b(?:list view|show as a list)\b|แบบรายการ/u.test(text)) patch.layout = 'list';
 		if (/\b(?:grid view|show as a grid)\b|แบบตารางการ์ด/u.test(text)) patch.layout = 'grid';
 		if (/\bcompact\b|แบบกะทัดรัด/u.test(text)) patch.density = 'compact';
-		if (/\b(?:compare|top\s*(?:3|three))\b|เปรียบเทียบ|เทียบสาม|เทียบ\s*๓/u.test(text)) {
+		if (/\b(?:compare|top\s*(?:3|three))\b|เปรียบเทียบ|เทียบ(?:สาม|\s*๓|สเป[กค])/u.test(text)) {
 			patch.sections = ['compare', 'reviews', 'products'];
 		} else if (/\bbest value\b|คุ้มที่สุด|คุ้มค่า/u.test(text)) {
 			patch.sections = ['top-picks', 'best-deal', 'products'];

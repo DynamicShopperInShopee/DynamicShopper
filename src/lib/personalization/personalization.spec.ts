@@ -24,6 +24,21 @@ describe('offline shopping', () => {
 		expect(rankProducts(products, { ...defaultPlan, ...turn.patch })).toHaveLength(3);
 	});
 
+	it('turns a natural comparison request into specs-first durable presentation', () => {
+		const turn = interpretOffline(
+			'อยากเทียบสเปก อ่านง่าย และเน้นความทน',
+			defaultPlan
+		);
+
+		expect(turn.intent).toBe('change');
+		expect(turn.patch).toMatchObject({
+			layout: 'table',
+			details: ['specs', 'price', 'rating', 'shop'],
+			sections: ['compare', 'reviews', 'products'],
+			priorities: { rating: 1, value: 0.5, durability: 1 }
+		});
+	});
+
 	it('composes a comparison with reviews for a gym shopper', () => {
 		const turn = interpretOffline('earbuds for the gym, compare the top 3', defaultPlan);
 		expect(turn.patch).toMatchObject({
