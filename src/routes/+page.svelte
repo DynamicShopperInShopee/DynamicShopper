@@ -17,7 +17,6 @@
 	import { parseSharedLook } from '#lib/storefront/browserState.ts';
 	import { isValidLook, lookFields, validateLook } from '#lib/storefront/sharedLook.ts';
 	import '../lib/assets/fonts/plex.css';
-	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
 	import SearchQuickFilters from './SearchQuickFilters.svelte';
 	import CookerPhotoCaption from '../lib/storefront/CookerPhotoCaption.svelte';
@@ -51,6 +50,9 @@
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
 	import { eligibleShelfProducts } from '../lib/storefront/compare';
 	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
+	import CriteriaOverview from '../lib/storefront/CriteriaOverview.svelte';
+	import ShoppingTasks from '../lib/storefront/ShoppingTasks.svelte';
+	import AdaptiveProductCard from '../lib/storefront/AdaptiveProductCard.svelte';
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
@@ -895,6 +897,20 @@
 		capacity = value;
 	}
 
+	function updateCriteria(patch: Partial<ShopperPlan>) {
+		const fields = Object.keys(patch) as (keyof ShopperPlan)[];
+		if (!fields.some((key) => JSON.stringify(activePlan[key]) !== JSON.stringify(patch[key])))
+			return;
+		changePlan(patch, false, patch.category);
+		for (const field of fields) register(field);
+	}
+
+	function updateShipping(value: boolean) {
+		if (freeShipping === value) return;
+		remember();
+		cancelPending();
+		freeShipping = draftShipping = value;
+	}
 	function chooseCategory(value: Category | 'all', clearSearch = false) {
 		const removeQuery =
 			!!query && (clearSearch || !searchProducts({ category: value, query }).length);
@@ -979,8 +995,12 @@
 	{:else}
 		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
 			{#each shelfProducts as product (product.id)}
-				<li class="product" data-product={product.catalogId} data-product-card={product.catalogId}>
-					{#if eventDemo || (interviewAnswers && activePlan.details.includes('image'))}
+				{#if eventDemo}
+					<li
+						class="product"
+						data-product={product.catalogId}
+						data-product-card={product.catalogId}
+					>
 						<div
 							class="art demo-photo"
 							data-category={product.category}
@@ -990,60 +1010,54 @@
 						>
 							{#if product.id === 'cooker-1'}<CookerPhotoCaption locale={language} compact />{/if}
 						</div>
-					{:else if activePlan.details.includes('image')}
-						<div class="art"><CategoryGlyph category={product.category} /></div>
-					{/if}
-					<div class="card-body">
-						<h3>
-							<a
-								class="product-link"
-								href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
-									id: product.id
-								})}
-							>
-								<FactValue productId={product.catalogId} field="name" locale={language} />
-							</a>
-						</h3>
-						<div class="price">
-							<span class="visually-hidden">{t.price} </span>
-							<FactValue
-								tag="strong"
-								class="figure"
-								productId={product.catalogId}
-								field="price"
-								locale={language}
-							/>
-							{#if product.originalPrice !== null}
-								<span class="visually-hidden">{t.was} </span>
+						<div class="card-body">
+							<h3>
+								<a
+									class="product-link"
+									href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
+										id: product.id
+									})}
+								>
+									<FactValue productId={product.catalogId} field="name" locale={language} />
+								</a>
+							</h3>
+							<div class="price">
+								<span class="visually-hidden">{t.price} </span>
 								<FactValue
-									tag="s"
+									tag="strong"
 									class="figure"
 									productId={product.catalogId}
-									field="originalPrice"
+									field="price"
 									locale={language}
 								/>
-							{/if}
-						</div>
-						{#if eventDemo || activePlan.details.includes('shipping')}
-							<div class="shipping">
-								{#if eventDemo}
-									<svg
-										aria-hidden="true"
-										viewBox="0 0 24 24"
-										width="16"
-										height="16"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="1.7"
-									>
-										<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
-											cx="6"
-											cy="18"
-											r="2"
-										/><circle cx="18" cy="18" r="2" />
-									</svg>
+								{#if product.originalPrice !== null}
+									<span class="visually-hidden">{t.was} </span>
+									<FactValue
+										tag="s"
+										class="figure"
+										productId={product.catalogId}
+										field="originalPrice"
+										locale={language}
+									/>
 								{/if}
-								<span class:visually-hidden={eventDemo}>{t.shipping}</span>
+							</div>
+							<div class="shipping">
+								<svg
+									aria-hidden="true"
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.7"
+								>
+									<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle cx="6" cy="18" r="2" /><circle
+										cx="18"
+										cy="18"
+										r="2"
+									/>
+								</svg>
+								<span class="visually-hidden">{t.shipping}</span>
 								<span class="leader" aria-hidden="true"></span>
 								<FactValue
 									class="figure"
@@ -1051,17 +1065,13 @@
 									field="shipping"
 									locale={language}
 								/>
-								{#if eventDemo}
-									<FactValue
-										class="shipping-shop"
-										productId={product.catalogId}
-										field="shop"
-										locale={language}
-									/>
-								{/if}
+								<FactValue
+									class="shipping-shop"
+									productId={product.catalogId}
+									field="shop"
+									locale={language}
+								/>
 							</div>
-						{/if}
-						{#if eventDemo || activePlan.details.includes('rating')}
 							<div class="metadata">
 								<span>
 									<svg
@@ -1095,90 +1105,30 @@
 									/>
 								</span>
 							</div>
-						{/if}
-						{#if !eventDemo && activePlan.details.includes('shop')}
-							<FactValue
-								tag="p"
-								class="shop"
+						</div>
+					</li>
+				{:else}
+					<AdaptiveProductCard
+						{product}
+						plan={activePlan}
+						photos={Boolean(interviewAnswers)}
+						columns={activePlan.details.includes('specs') ? cardSpecs(product.catalogId) : []}
+						vouchers={cardVouchers.get(product.catalogId) ?? []}
+						href={listingHref(product.id)}
+					>
+						<div class="card-actions">
+							<AddToCart
 								productId={product.catalogId}
-								field="shop"
 								locale={language}
-							/>{/if}
-						{#if !eventDemo}
-							{#if adapted && plan.details.includes('summary')}
-								<FactValue
-									tag="p"
-									productId={product.catalogId}
-									field="summary"
-									locale={language}
-								/>
-							{/if}
-							{#if activePlan.details.includes('specs')}
-								<dl class="card-specs">
-									{#each cardSpecs(product.catalogId) as spec (spec.key)}
-										<div>
-											<dt>{spec.label[language]}</dt>
-											<dd>
-												<FactValue
-													productId={product.catalogId}
-													field={`spec.${spec.key}`}
-													locale={language}
-												/>
-											</dd>
-										</div>
-									{/each}
-								</dl>
-							{/if}
-							{#if adapted && plan.details.includes('reviews')}
-								<FactValue
-									tag="p"
-									productId={product.catalogId}
-									field="review.0"
-									locale={language}
-								/>
-							{/if}
-							{#if cardVouchers.get(product.catalogId)?.length}
-								<ul class="card-vouchers" aria-label={language === 'th' ? 'โค้ดส่วนลด' : 'Vouchers'}>
-									{#each cardVouchers.get(product.catalogId) ?? [] as voucher (voucher.code)}
-										<li>
-											<span
-												data-source="pricing"
-												data-product={product.catalogId}
-												data-field="voucher.code"
-												data-raw={JSON.stringify(voucher.code)}
-											>
-												{voucher.code}
-											</span>
-											{#if voucher.expiresSoon}<span
-													data-source="pricing"
-													data-product={product.catalogId}
-													data-field="voucher.expiresSoon"
-													data-raw="true"
-												>
-													· {language === 'th' ? 'ใกล้หมดอายุ' : 'Expires soon'}
-												</span>{/if}
-										</li>
-									{/each}
-								</ul>
-							{/if}
-							<div class="card-actions">
-								<AddToCart
-									productId={product.catalogId}
-									locale={language}
-									onAdd={session.addProduct}
-								/>
-								<button
-									class="best-price"
-									type="button"
-									onclick={() => openDeal(product.catalogId)}
-								>
-									{a.deal}
-								</button>
-							</div>
-							{@render rankingExplanation(product.catalogId)}
-						{/if}
-					</div>
-				</li>
+								onAdd={session.addProduct}
+							/>
+							<button class="best-price" type="button" onclick={() => openDeal(product.catalogId)}>
+								{a.deal}
+							</button>
+						</div>
+						{@render rankingExplanation(product.catalogId)}
+					</AdaptiveProductCard>
+				{/if}
 			{/each}
 		</ul>
 	{/if}
@@ -1366,6 +1316,11 @@
 			/>
 		{/snippet}
 		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
+		<ShoppingTasks
+			locale={language}
+			ids={products.map((product) => product.catalogId)}
+			disabled={!interactive}
+		/>
 
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
@@ -1582,6 +1537,15 @@
 				{@render filterFields()}
 			</form>
 		{/if}
+
+		<CriteriaOverview
+			plan={activePlan}
+			onChange={updateCriteria}
+			{freeShipping}
+			{capacity}
+			onShipping={updateShipping}
+			onCapacity={selectCapacity}
+		/>
 
 		{#if hasFilters}
 			<div class="chips">
@@ -2232,8 +2196,7 @@
 		align-content: center;
 		cursor: pointer;
 	}
-	.rank ul,
-	.card-vouchers {
+	.rank ul {
 		padding: 0;
 		list-style: none;
 	}
@@ -2251,18 +2214,7 @@
 		height: 0.375rem;
 		background: currentColor;
 	}
-	.card-specs {
-		margin-block: 0.5rem;
-	}
-	.card-specs > div {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		justify-content: space-between;
-	}
-	.card-specs dd {
-		margin: 0;
-	}
+
 	.product-link::after {
 		content: '';
 		position: absolute;

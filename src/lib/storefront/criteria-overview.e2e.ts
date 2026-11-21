@@ -1,0 +1,100 @@
+import { expect, test } from '@playwright/test';
+
+for (const lang of ['en', 'th'] as const) {
+	test(`a shopper corrects criteria, changes the view and undoes each edit offline in ${lang}`, async ({
+		page,
+		context
+	}) => {
+		const th = lang === 'th';
+		await page.setViewportSize({ width: th ? 390 : 1440, height: th ? 844 : 900 });
+		await page.goto('/?view=receipt');
+		await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+		if (th) await page.getByRole('button', { name: 'ไทย', exact: true }).click();
+		await context.setOffline(true);
+		if (th) await page.getByRole('button', { name: 'แชตกับผู้ช่วย' }).click();
+		const message = page.getByRole('textbox', { name: th ? 'ถามหน้าร้าน' : 'Ask the store' });
+		await message.fill(
+			th
+				? 'อยากได้เมาส์น้ำหนักเบา งบไม่เกิน 1500 บาท'
+				: 'I need a light weight gaming mouse under 1500 baht'
+		);
+		await message.press('Enter');
+		if (th) await page.keyboard.press('Escape');
+
+		const criteria = page.getByRole('region', {
+			name: th ? 'เกณฑ์การเลือกสินค้า' : 'Shopping criteria'
+		});
+		const requirements = criteria
+			.locator('details')
+			.filter({ has: page.getByRole('heading', { name: th ? 'เงื่อนไข' : 'Requirements' }) });
+		const preferences = criteria
+			.locator('details')
+			.filter({ has: page.getByRole('heading', { name: th ? 'ความต้องการ' : 'Preferences' }) });
+		const view = criteria
+			.locator('details')
+			.filter({ has: page.getByRole('heading', { name: th ? 'มุมมอง' : 'View' }) });
+		await expect(requirements.locator('summary')).toContainText(th ? 'เมาส์เกมมิ่ง' : 'Gaming mice');
+		await expect(requirements.locator('summary')).toContainText('1,500');
+		await requirements.locator('summary').click();
+		const budget = requirements.getByRole('spinbutton', {
+			name: th ? 'งบสูงสุด (บาท)' : 'Maximum budget (baht)'
+		});
+		await expect(budget).toHaveValue('1500');
+		await budget.fill('1000');
+		await budget.press('Enter');
+		await expect(requirements.locator('summary')).toContainText('1,000');
+		await preferences.locator('summary').click();
+		const weight = preferences.getByRole('combobox', {
+			name: th ? 'น้ำหนัก' : 'Weight',
+			exact: true
+		});
+		await expect(weight).toHaveValue('lower');
+		await weight.selectOption('');
+		await expect(weight).toHaveCount(0);
+
+		await view.locator('summary').click();
+		const layout = view.getByRole('combobox', { name: th ? 'การจัดวาง' : 'Layout', exact: true });
+		const theme = view.getByRole('combobox', {
+			name: th ? 'ธีมหน้าร้าน' : 'Storefront theme',
+			exact: true
+		});
+		await layout.selectOption('table');
+		await expect(layout).toHaveValue('table');
+		await expect(theme).toHaveValue('standard');
+		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
+		await expect(requirements.locator('summary')).toContainText('1,000');
+		const undo = page.getByRole('button', { name: th ? 'ย้อนกลับ' : 'Undo', exact: true }).first();
+		await undo.click();
+		await expect(layout).toHaveValue('grid');
+		await expect(weight).toHaveCount(0);
+		await undo.click();
+		await expect(weight).toHaveValue('lower');
+		await undo.click();
+		await expect(budget).toHaveValue('1500');
+		await theme.selectOption('large-print');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
+		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
+		await expect(layout).toHaveValue('grid');
+		const localeControl = view.getByRole('combobox', {
+			name: th ? 'ภาษาที่แสดง' : 'Display language'
+		});
+		await localeControl.selectOption(th ? 'en' : 'th');
+		await expect(page.locator('.store')).toHaveAttribute('lang', th ? 'en' : 'th');
+		await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
+		await expect(page.locator('#criteria-overview [data-preference="maxPrice"]')).toHaveAttribute(
+			'data-raw',
+			'1500'
+		);
+		await page
+			.getByRole('button', { name: th ? 'Undo' : 'ย้อนกลับ', exact: true })
+			.first()
+			.click();
+		await expect(page.locator('.store')).toHaveAttribute('lang', lang);
+		await expect(theme).toHaveValue('large-print');
+		await undo.click();
+		await expect(theme).toHaveValue('standard');
+		await expect
+			.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+			.toBe(true);
+	});
+}

@@ -66,6 +66,7 @@ export class StoreSession {
 	readonly listing = new ListingSession(this.conversation);
 	visit = $state<StoreVisit>();
 	offlineReady = $state(false);
+	compareCandidates = $state({ first: '', second: '' });
 	cart = $state.raw<readonly CartItem[]>([]);
 	savedPlan?: ShopperPlan;
 	#storage?: StoreStorage;
