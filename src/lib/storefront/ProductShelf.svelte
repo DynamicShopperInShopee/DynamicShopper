@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import CategoryGlyph from '#lib/CategoryGlyph.svelte';
+	import type { Category } from '#lib/store-catalog.js';
 	import Fact from './Fact.svelte';
 	import {
 		type FactLocale,
@@ -20,6 +22,7 @@
 		columns,
 		resolve,
 		listingHref,
+		categoryFor,
 		extras
 	}: {
 		productIds: readonly string[];
@@ -28,6 +31,7 @@
 		columns: readonly SpecColumn[];
 		resolve: ResolvePrintedFact;
 		listingHref: (id: string) => string;
+		categoryFor?: (id: string) => Category | undefined;
 		extras?: Snippet<[string]>;
 	} = $props();
 
@@ -42,7 +46,7 @@
 			const price = resolve(id, 'price', locale);
 			if (!name || !price) return [];
 			const specs = columns.map((column) => resolve(id, column.field, locale));
-			return [{ id, name, price, specs }];
+			return [{ id, name, price, specs, category: categoryFor?.(id) }];
 		})
 	);
 </script>
@@ -86,22 +90,27 @@
 		<ul class="cards" class:grid={layout === 'grid'}>
 			{#each rows as row (row.id)}
 				<li>
-					<h3>{@render listing(row.id, row.name)}</h3>
-					<dl>
-						<div>
-							<dt>{t.price}</dt>
-							<dd class="number price"><Fact fact={row.price} /></dd>
-						</div>
-						{#each row.specs as spec, i (columns[i].field)}
-							{#if spec}
-								<div>
-									<dt>{columns[i].label[locale]}</dt>
-									<dd class="number"><Fact fact={spec} /></dd>
-								</div>
-							{/if}
-						{/each}
-					</dl>
-					{@render extras?.(row.id)}
+					{#if row.category}
+						<div class="art"><CategoryGlyph category={row.category} /></div>
+					{/if}
+					<div class="card-content">
+						<h3>{@render listing(row.id, row.name)}</h3>
+						<dl>
+							<div>
+								<dt>{t.price}</dt>
+								<dd class="number price"><Fact fact={row.price} /></dd>
+							</div>
+							{#each row.specs as spec, i (columns[i].field)}
+								{#if spec}
+									<div>
+										<dt>{columns[i].label[locale]}</dt>
+										<dd class="number"><Fact fact={spec} /></dd>
+									</div>
+								{/if}
+							{/each}
+						</dl>
+						{@render extras?.(row.id)}
+					</div>
 				</li>
 			{/each}
 		</ul>
@@ -173,8 +182,29 @@
 		border: 1px solid var(--seam, #858172);
 		border-radius: var(--radius, 6px);
 		background: var(--surface, #fff);
-		padding: 0.75rem 1rem;
 		overflow-wrap: anywhere;
+	}
+	.card-content {
+		min-width: 0;
+		padding: 0.75rem 1rem;
+	}
+	.art {
+		display: grid;
+		place-items: center;
+		min-height: 7.5rem;
+		border-start-start-radius: inherit;
+		border-start-end-radius: inherit;
+		background: var(--tile, #e9e6dc);
+		color: var(--accent, #16161a);
+	}
+	.large .cards li:has(.art) {
+		display: grid;
+		grid-template-columns: minmax(3rem, 25%) minmax(0, 1fr);
+	}
+	.large .art {
+		min-height: auto;
+		border-start-end-radius: 0;
+		border-end-start-radius: inherit;
 	}
 	.cards h3 {
 		margin: 0;

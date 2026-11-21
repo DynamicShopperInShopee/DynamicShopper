@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { Category } from '#lib/store-catalog.js';
 	import Fact from './Fact.svelte';
 	import ProductShelf from './ProductShelf.svelte';
 	import type { FactLocale, LocalizedText, ResolvePrintedFact } from './verifyFacts';
@@ -15,6 +16,7 @@
 		columns,
 		resolve,
 		listingHref,
+		categoryFor,
 		reasons,
 		priorities = [],
 		deal,
@@ -30,6 +32,7 @@
 		columns: readonly { field: string; label: LocalizedText }[];
 		resolve: ResolvePrintedFact;
 		listingHref: (id: string) => string;
+		categoryFor?: (id: string) => Category | undefined;
 		reasons?: Snippet<[string]>;
 		priorities?: readonly LocalizedText[];
 		deal?: Snippet<[string]>;
@@ -131,6 +134,7 @@
 						{columns}
 						{resolve}
 						{listingHref}
+						{categoryFor}
 					/>
 				</section>
 			{:else if section === 'picks' || section === 'compare'}
@@ -143,6 +147,7 @@
 						{columns}
 						{resolve}
 						{listingHref}
+						{categoryFor}
 						extras={section === 'picks' ? reasons : undefined}
 					/>
 				</section>

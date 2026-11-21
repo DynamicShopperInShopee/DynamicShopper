@@ -1,5 +1,6 @@
 <script lang="ts">
 	import './theme.css';
+	import type { Category } from '#lib/store-catalog.js';
 	import CompareSlip from './CompareSlip.svelte';
 	import ProductShelf from './ProductShelf.svelte';
 	import type { FactLocale, LocalizedText, ResolvePrintedFact } from './verifyFacts';
@@ -32,12 +33,14 @@
 		columns,
 		resolve,
 		listingHref,
+		categoryFor,
 		locale
 	}: {
 		productIds: readonly string[];
 		columns: readonly { field: string; label: LocalizedText }[];
 		resolve: ResolvePrintedFact;
 		listingHref: (id: string) => string;
+		categoryFor?: (id: string) => Category | undefined;
 		locale: FactLocale;
 	} = $props();
 
@@ -71,6 +74,7 @@
 					{columns}
 					{resolve}
 					{listingHref}
+					{categoryFor}
 					layout={a.layout}
 					locale={a.locale}
 				/>
@@ -84,6 +88,7 @@
 					{columns}
 					{resolve}
 					{listingHref}
+					{categoryFor}
 					layout={b.layout}
 					locale={b.locale}
 				/>

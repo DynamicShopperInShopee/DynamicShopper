@@ -52,6 +52,7 @@ it.each(matrix)('$theme $locale at $width × $height keeps a legible shelf', asy
 		columns: [],
 		productIds: [cooker],
 		resolve,
+		categoryFor: () => 'cooker',
 		listingHref: () => '/product/cooker-one-button'
 	});
 	view.container.dataset.storefrontTheme = theme;
@@ -65,6 +66,13 @@ it.each(matrix)('$theme $locale at $width × $height keeps a legible shelf', asy
 	}
 	expect(contrast(color('--accent'), color('--tile'))).toBeGreaterThanOrEqual(3);
 	if (large) expect(contrast(color('--seam'), color('--paper'))).toBeGreaterThanOrEqual(3);
+	const glyph = view.container.querySelector('svg[aria-hidden="true"]');
+	expect(glyph).not.toBeNull();
+	expect(glyph?.getBoundingClientRect().width).toBeGreaterThan(0);
+	expect(await document.fonts.load('400 16px "IBM Plex Sans Thai"', name[locale])).not.toHaveLength(
+		0
+	);
+	expect(await document.fonts.load('700 16px "IBM Plex Mono"', '690')).not.toHaveLength(0);
 
 	const link = view.getByRole('link', { name: name[locale] });
 	await expect.element(link).toBeVisible();
