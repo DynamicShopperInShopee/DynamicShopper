@@ -14,15 +14,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (!isAuthDemo && !isAuthApi) return resolve(event);
 
 	const platformEnv = event.platform?.env;
-	const database = platformEnv?.DB;
-	const databaseUrl = platformEnv?.DATABASE_URL ?? DATABASE_URL;
-	const origin = platformEnv?.ORIGIN ?? ORIGIN;
-	const secret = platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET;
-	if ((!database && !databaseUrl?.trim()) || !origin?.trim() || !secret?.trim()) {
-		error(503, 'Authentication demo is unavailable');
-	}
+  const database = platformEnv?.DB;
+  const databaseUrl = platformEnv?.DATABASE_URL ?? DATABASE_URL;
+  const origin = platformEnv?.ORIGIN ?? ORIGIN;
+  const secret = platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET;
 
-	const db = await createDatabase(database, databaseUrl);
+  if ((!database && !databaseUrl?.trim()) || !origin?.trim() || !secret?.trim()) {
+    error(503, 'Authentication demo is unavailable');
+  }
+
+  const db = await createDatabase(database, databaseUrl);
 	const auth = createAuth(db, origin, secret);
 	event.locals.auth = auth;
 
