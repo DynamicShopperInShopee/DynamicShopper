@@ -446,3 +446,28 @@ test('keeps category search controls ahead of the mobile results', async ({ page
 	await search.getByRole('button', { name: 'Search', exact: true }).click();
 	await expect(page.locator('.product-grid > li')).toHaveCount(1);
 });
+
+test('a repeated persona request keeps explicit English and needs only one undo', async ({
+	page,
+	context
+}) => {
+	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
+	await page.getByRole('button', { name: 'English', exact: true }).click();
+	await context.setOffline(true);
+	const store = page.locator('.store');
+	async function send(message: string) {
+		await page.getByRole('textbox', { name: 'Ask the store' }).fill(message);
+		await page.getByRole('button', { name: 'Send', exact: true }).click();
+		await expect(page.getByRole('textbox', { name: 'Ask the store' })).toHaveValue('');
+	}
+	await send('I am shopping for my mom');
+	await expect(store).toHaveAttribute('lang', 'en');
+	await expect(store).toHaveAttribute('data-theme', 'large');
+	await send('I am shopping for my mom');
+	await send('undo');
+	await expect(store).toHaveAttribute('data-theme', 'standard');
+	await send('I am shopping for my mom');
+	await expect(store).toHaveAttribute('data-theme', 'large');
+	await expect(store).toHaveAttribute('lang', 'en');
+});

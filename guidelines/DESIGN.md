@@ -1,5 +1,24 @@
 # Design system: "The Thermal Receipt"
 
+## Default marketplace exception
+
+Accepted at the user's explicit request: the default storefront uses a familiar
+orange shopping header, DynamicShopper identity, search, category controls and a
+photo grid. This styling is scoped to `event-demo`; personalized receipt themes
+retain their existing tokens and proof surfaces. No Shopee mark, invented
+promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries only
+large bold white brand text; the darker action/price ink `#b5321a` supports normal
+text on white. The interview entry remains a compact optional strip.
+
+## Interview transition
+
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip, then a proposed
+view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+the visible chat-refinement button focuses the existing assistant. No animation is
+required. Large print keeps single-column answers, 20px text and 48px targets.
+
 ## North star
 
 > The store may rearrange itself; every number prints like a receipt you can check.
@@ -238,3 +257,5 @@ Skincare results lead with the shop panel, sort tabs and a single row of working
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
+
+The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf heading receives focus and the bilingual chat action sits beside the updated shelf. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.

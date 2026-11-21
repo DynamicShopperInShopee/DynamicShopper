@@ -75,7 +75,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. Shopee-inspired, independent, not affiliated: no Shopee logos, marks, orange marketplace look, or brand names in the copy ("coins", never a branded coin).
+- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. At the user's explicit request, the default storefront uses an orange marketplace shopping header and photo grid; personalized receipt themes retain the neutral system. This presentation exception does not permit invented promotions or product facts.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like

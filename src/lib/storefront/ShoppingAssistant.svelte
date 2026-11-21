@@ -10,6 +10,11 @@
 		th: ['ซื้อให้แม่', 'เปรียบเทียบหม้อหุงข้าว', 'หาราคาดีที่สุด']
 	};
 
+	export function focus() {
+		input?.scrollIntoView({ block: 'center', behavior: 'instant' });
+		input?.focus({ preventScroll: true });
+	}
+
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
 		const message = draft.trim();

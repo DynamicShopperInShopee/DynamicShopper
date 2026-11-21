@@ -57,7 +57,7 @@ export function readSearchSelection(input: unknown): SearchSelection | undefined
 }
 
 // Keep the originating shelf on this tab's listing history entry, including seller and language links.
-export function carrySearchToListing(read: () => SearchSelection | undefined) {
+export function carrySearchToListing(read: () => SearchSelection | string | undefined) {
 	onNavigate(({ to, type }) => {
 		if (type === 'popstate' || to?.route.id !== '/product/[id]') return;
 		const selection = read();
