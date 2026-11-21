@@ -496,7 +496,10 @@
 							{/if}
 							<div class="card-body">
 								<h3 data-fact="name" data-raw={product.name[language]}>
-									<a href={`${resolve('/product/[id]', { id: product.id })}?lang=${language}`}>
+									<a
+										class="product-link"
+										href={`${resolve('/product/[id]', { id: product.id })}?lang=${language}`}
+									>
 										{product.name[language]}
 									</a>
 								</h3>
@@ -801,7 +804,17 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.75rem;
 	}
+	.product-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+	.product:has(.product-link:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
 	.product {
+		position: relative;
 		min-width: 0;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);

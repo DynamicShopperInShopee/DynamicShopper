@@ -89,7 +89,14 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
-	await page.locator('[data-product="cooker-1"]').getByRole('link').click();
+	const photo = page.locator('[data-product="cooker-1"] .art');
+	await photo.scrollIntoViewIfNeeded();
+	await page.mouse.click(
+		...(await photo.evaluate((element) => {
+			const { x, y, width, height } = element.getBoundingClientRect();
+			return [x + width / 2, y + height / 2] as const;
+		}))
+	);
 	await expect(page).toHaveURL(/\/product\/cooker-1/);
 	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
 	await page.getByText('Specifications', { exact: true }).click();
