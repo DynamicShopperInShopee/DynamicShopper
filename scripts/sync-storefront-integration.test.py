@@ -176,6 +176,19 @@ class SyncTest(unittest.TestCase):
         self.prs.clear()
         self.assertEqual(self.sync()["pr_activity"], {"21": ["closed"]})
 
+    def test_main_still_syncs_if_pr_activity_is_temporarily_unavailable(self):
+        self.sync()
+        self.git("switch", "main")
+        current = self.commit("docs/research/shopper-study.md", "research")
+        self.git("push", "origin", "main")
+        baseline = tracker.read_json("complete.json")
+        with patch.object(tracker, "pulls", side_effect=OSError("public reads unavailable")):
+            report = self.sync()
+        self.assertTrue(tracker.ancestor(current, report["owned"]))
+        self.assertEqual(report["pr_activity_error"], "OSError")
+        self.assertEqual(tracker.read_json("complete.json"), baseline)
+        self.assertEqual(report["main_documents"], ["docs/research/shopper-study.md"])
+
     def test_paused_job_performs_no_git_or_network_operations(self):
         with patch.object(tracker, "sync", side_effect=AssertionError("Unexpected sync")):
             self.assertEqual(tracker.run(), 0)

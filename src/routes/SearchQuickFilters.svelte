@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { Snippet } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { products } from '../lib/catalog';
 	import type { Category, Language } from '../lib/store-catalog';
@@ -15,7 +16,8 @@
 		toggleShipping,
 		openFilters,
 		changeCategory,
-		toggleLanguage
+		toggleLanguage,
+		shoppingTasks
 	}: {
 		language: Language;
 		cooker: boolean;
@@ -26,6 +28,7 @@
 		openFilters: (trigger: HTMLButtonElement) => void;
 		changeCategory: (value: Category | 'all') => void;
 		toggleLanguage: () => void;
+		shoppingTasks?: Snippet;
 	} = $props();
 	const th = $derived(language === 'th');
 	const label = $derived(
@@ -111,6 +114,7 @@
 			{th ? 'English' : 'ไทย'}
 		</button>
 		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
+		{@render shoppingTasks?.()}
 	</div>
 	{#if cooker}
 		<button

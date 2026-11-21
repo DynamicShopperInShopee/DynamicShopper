@@ -680,6 +680,8 @@
 			restoreSearch(page.state.storeSearch);
 		if (eventDemo) return;
 		if (page.url.hash === '#xray') traceOpen = true;
+		if (page.url.hash === '#criteria-overview')
+			void tick().then(() => document.getElementById('criteria-overview')?.focus());
 		if (['#assistant', '#shopper-assistant'].includes(page.url.hash)) void focusAssistant();
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
@@ -1314,11 +1316,16 @@
 			/>
 		{/snippet}
 		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
-		<ShoppingTasks
-			locale={language}
-			ids={products.map((product) => product.catalogId)}
-			disabled={!interactive}
-		/>
+		{#snippet shoppingTasks()}
+			<ShoppingTasks
+				locale={language}
+				ids={products.map((product) => product.catalogId)}
+				disabled={!interactive}
+				publicEntry={eventDemo}
+				strip={cookerSearch || skinSearch}
+			/>
+		{/snippet}
+		{#if !cookerSearch && !skinSearch}{@render shoppingTasks()}{/if}
 
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
@@ -1372,6 +1379,7 @@
 
 		{#if cookerSearch || skinSearch}
 			<SearchQuickFilters
+				{shoppingTasks}
 				cooker={cookerSearch}
 				{language}
 				{category}
@@ -1536,14 +1544,16 @@
 			</form>
 		{/if}
 
-		<CriteriaOverview
-			plan={activePlan}
-			onChange={updateCriteria}
-			{freeShipping}
-			{capacity}
-			onShipping={updateShipping}
-			onCapacity={selectCapacity}
-		/>
+		{#if !eventDemo}
+			<CriteriaOverview
+				plan={activePlan}
+				onChange={updateCriteria}
+				{freeShipping}
+				{capacity}
+				onShipping={updateShipping}
+				onCapacity={selectCapacity}
+			/>
+		{/if}
 
 		{#if hasFilters}
 			<div class="chips">

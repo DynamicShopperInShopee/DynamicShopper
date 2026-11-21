@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { getProduct, resolveFact, specs, type Locale } from '../catalog';
 	import { getStoreSession } from './store.svelte';
 	import { quoteBasket } from './quoteBasket';
@@ -6,7 +7,19 @@
 	import FactValue from './FactValue.svelte';
 	import DealSlip from './DealSlip.svelte';
 
-	let { locale, ids, disabled }: { locale: Locale; ids: string[]; disabled: boolean } = $props();
+	let {
+		locale,
+		ids,
+		disabled,
+		publicEntry = false,
+		strip = false
+	}: {
+		locale: Locale;
+		ids: string[];
+		publicEntry?: boolean;
+		strip?: boolean;
+		disabled: boolean;
+	} = $props();
 	const session = getStoreSession();
 	const th = $derived(locale === 'th');
 	let dialog: HTMLDialogElement;
@@ -51,7 +64,7 @@
 	}
 </script>
 
-<div class="actions" role="group" aria-label={th ? 'เครื่องมือเลือกซื้อ' : 'Shopping tasks'}>
+<div class="actions" class:strip role="group" aria-label={th ? 'เครื่องมือเลือกซื้อ' : 'Shopping tasks'}>
 	<button
 		type="button"
 		{disabled}
@@ -68,6 +81,9 @@
 	>
 		{th ? 'คำนวณดีล' : 'Calculate a deal'}
 	</button>
+	{#if publicEntry}<a href={resolve('/?view=receipt#criteria-overview')}>
+			{th ? 'แก้ไขเกณฑ์' : 'Edit criteria'}
+		</a>{/if}
 </div>
 <dialog bind:this={dialog} onclose={() => (showing = false)} aria-labelledby="shopping-task-title">
 	<header>
@@ -182,8 +198,20 @@
 		border: 1px solid var(--seam, currentColor);
 		padding: 0.45em 0.8em;
 		font: inherit;
-		min-height: 2.5em;
+		min-height: max(44px, 2.5em);
 		cursor: pointer;
+	}
+	.strip {
+		flex-wrap: nowrap;
+		margin: 0;
+		white-space: nowrap;
+	}
+	.actions a {
+		display: inline-flex;
+		align-items: center;
+		min-height: max(44px, 2.5em);
+		color: inherit;
+		text-underline-offset: 0.18em;
 	}
 	dialog {
 		color: var(--ink, #17201f);
@@ -222,7 +250,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25em;
-		min-height: 2.5em;
+		min-height: max(44px, 2.5em);
 	}
 	table {
 		width: 100%;

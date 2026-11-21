@@ -16,7 +16,8 @@ bun run dev
 1. Open `/` and choose **Rice cookers**. Select **1.8 L**. Choose **ไทย** to try the same journey in Thai.
 2. Select **Start a quick interview** (**เริ่มตอบคำถามสั้น ๆ**). Answer **Compare** and **Specs**, skip the remaining questions, and review the proposed changes. **Apply my view** opens the filtered comparison table. Closing the draft leaves the shelf as it was.
 3. Open a product, inspect a catalog specification, then choose **Back to store**. The applied interview and capacity selection return. Choose **Refine this view in chat** to ask a question. **Undo** returns to the preceding store state.
-4. For the deterministic demo without the interview, open `/?view=receipt` or choose **Shopping assistant** from the default storefront. Try **Shopper views**, **Compare views**, and **Best price**. The comparison keeps the eligible shelf. Best price shows the optimizer's itemized calculation in whole baht.
+4. On the default storefront, **Compare products** opens a picker for two catalog products and the facts to show. **Calculate a deal** opens the optimizer for a selected item. These actions keep the shelf order.
+5. For direct controls, open `/?view=receipt` or choose **Shopping assistant** from the default storefront. Open **Shopping criteria** to edit a requirement such as the maximum budget, a preference, or the view independently. Try **Shopper views**, **Compare views**, and **Best price**. The comparison keeps the eligible shelf. Best price shows the optimizer's itemized calculation in whole baht.
 
 | Route | What to try |
 | --- | --- |
@@ -74,7 +75,7 @@ The default adapter builds for Node. The Cloudflare adapter and D1 configuration
 
 ## Product and research
 
-The current storefront provides the marketplace interview, preset and direct controls, catalog evidence, deterministic pricing, chat, comparison, sharing and Undo. The research proposes further changes, including a task-first entry, a directly editable criteria overview and a way to carry selected products between views. Those proposals need their own implementation and acceptance checks. See the [product brief](guidelines/PRODUCT.md), [generative UI research report](docs/research/2026-11-21-generative-ui-ux-ui-report.md), [shopping workflow research](research/milestone-2-shopping-workflows.md), and [personas and measurement plan](research/milestone-1-personas-and-measurement.md).
+This branch implements the first research increment through **Shopping criteria**, independent presentation controls, product comparison and deal tasks. These use the existing interview, catalog evidence, pricing, chat and Undo. The report also proposes new compatibility checks and sharing a decision shortlist. Those extensions still need design and implementation. Shared looks currently carry presentation settings only. See the [product brief](guidelines/PRODUCT.md), [generative UI research report](docs/research/2026-11-21-generative-ui-ux-ui-report.md), [shopping workflow research](research/milestone-2-shopping-workflows.md), and [personas and measurement plan](research/milestone-1-personas-and-measurement.md).
 
 ## Choose your team assignment
 

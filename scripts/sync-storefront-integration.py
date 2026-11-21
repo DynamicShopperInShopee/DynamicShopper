@@ -38,7 +38,7 @@ GIT_ENV = {
 }
 # Only PRs touching the storefront or the catalog, pricing and agent paths it consumes.
 PATHS = [
-    "guidelines/", "docs/superpowers/specs/", "docs/superpowers/plans/", "docs/handoff/",
+    "guidelines/", "research/", "docs/research/", "docs/superpowers/specs/", "docs/superpowers/plans/", "docs/handoff/",
     "SPEC.md", "PRODUCT.md", "DESIGN.md", "AGENTS.md",
     "src/routes/+page.svelte", "src/routes/+layout.svelte", "src/routes/layout.css",
     ":(top,glob)src/routes/*.svelte", ":(top,glob)src/routes/*.e2e.ts", "src/routes/product/",
@@ -196,8 +196,17 @@ def sync(report):
     fetch("+refs/heads/main:refs/sync/main", f"+refs/heads/{OWNED}:refs/sync/owned")
     main, owned = tip("refs/sync/main"), tip("refs/sync/owned")
     conflicts = report["conflicts"] = []
-    items = list(pulls())
+    previous_main = read_json("main-observation.json").get("main")
+    documents = []
+    if previous_main and previous_main != main:
+        documents = git("diff", "--name-only", "--no-renames", "-z", previous_main, main,
+                        "--", "docs", "guidelines", "research", "design", "README.md", "AGENTS.md").stdout.split("\0")
+        documents = [name for name in documents if name.lower().endswith((".md", ".pdf", ".docx", ".html"))]
+    report["main_documents"] = documents
+    save_json("main-observation.json", {"main": main})
+    items = None
     try:
+        items = list(pulls())
         observe_pulls(items, report)
     except (OSError, ValueError, KeyError, RuntimeError) as error:
         # Keep the last complete observation and continue safe Git synchronization.
@@ -211,6 +220,9 @@ def sync(report):
         # No force, no wildcard, one hard-coded destination. A concurrent push fails safely.
         git("push", "--no-verify", "--porcelain", REMOTE, f"{merged}:refs/heads/{OWNED}")
     report["owned"] = merged
+    if items is None:
+        report["result"] = "owned branch synced; waiting for PR discovery"
+        return
     included = report["included"] = []
     selected = {}
     for pr in sorted(items, key=lambda item: item["number"]):

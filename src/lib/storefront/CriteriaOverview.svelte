@@ -154,7 +154,7 @@
 	}
 </script>
 
-<section id="criteria-overview" aria-labelledby="criteria-title" tabindex="-1">
+<section id="criteria-overview" tabindex="-1" aria-labelledby="criteria-title">
 	<h2 id="criteria-title">{th ? 'เกณฑ์การเลือกสินค้า' : 'Shopping criteria'}</h2>
 	<div class="groups">
 		<details>
@@ -233,7 +233,7 @@
 							type="checkbox"
 							checked={freeShipping}
 							onchange={(event) => onShipping?.(event.currentTarget.checked)}
-						/>{store.freeOnly}
+						/>{th ? 'เลือกเฉพาะสินค้าที่ส่งฟรี' : 'Require free shipping'}
 					</label>{/if}
 				{#if onCapacity && (focusCategory === 'rice-cooker' || selectedCap)}
 					<label>
