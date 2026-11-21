@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { beforeNavigate } from '$app/navigation';
+	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick } from 'svelte';
@@ -58,15 +60,8 @@
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	let adapted = $state(false);
-	let undoStack = $state<
-		{
-			plan: ShopperPlan;
-			adapted: boolean;
-			sort: Sort;
-			freeShipping: boolean;
-			locks: (keyof ShopperPlan)[];
-		}[]
-	>([]);
+	const session = getStoreSession();
+	let undoStack = $state<ShelfState[]>([]);
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
@@ -121,6 +116,13 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
+	const compareParams = $derived(
+		new URLSearchParams({
+			q: activePlan.query,
+			category: activePlan.category ?? '',
+			lang: language
+		}).toString()
+	);
 	const ranked = $derived(
 		adapted
 			? rankProducts(
@@ -134,18 +136,26 @@
 	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
 	let shareCopied = $state(false);
 
-	function remember() {
-		undoStack = [
-			...undoStack.slice(-19),
-			{
-				plan: structuredClone($state.snapshot(activePlan)),
-				adapted,
-				sort,
-				freeShipping,
-				locks: [...locks]
-			}
-		];
+	function shelfState(): ShelfState {
+		return { plan: $state.snapshot(activePlan), adapted, sort, freeShipping, locks: [...locks] };
 	}
+	function remember() {
+		undoStack = [...undoStack.slice(-19), shelfState()];
+	}
+	beforeNavigate(({ from, to, willUnload }) => {
+		if (willUnload || !to || to.route.id === from?.route.id) return;
+		session.visit = {
+			...shelfState(),
+			search: page.url.search,
+			undoStack: $state.snapshot(undoStack),
+			turn: $state.snapshot(turn),
+			liveModel,
+			liveFallback,
+			changes: [...changes],
+			focusedProduct,
+			draftQuery
+		};
+	});
 	function register(key: keyof ShopperPlan) {
 		cancelLive();
 		if (!locks.includes(key)) locks = [...locks, key];
@@ -366,6 +376,25 @@
 		};
 	});
 	onMount(() => {
+		const saved = session.visit;
+		if (saved && saved.search === page.url.search) {
+			writePlan(saved.plan);
+			({
+				adapted,
+				sort,
+				freeShipping,
+				locks,
+				undoStack,
+				turn,
+				liveModel,
+				liveFallback,
+				changes,
+				focusedProduct,
+				draftQuery
+			} = saved);
+			draftShipping = freeShipping;
+			return;
+		}
 		const look = page.url.searchParams.get('look');
 		if (!look || look.length > 40) return;
 		const [nextTheme, nextLayout, nextLocale] = look.split('.');
@@ -489,6 +518,13 @@
 					DynamicShopper
 				</a>
 				<div class="settings">
+					<a
+						class="compare-link"
+						data-offline-ready={session.offlineReady}
+						href={resolve(`/compare?${compareParams}`)}
+					>
+						{a.compare}
+					</a>
 					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
@@ -529,7 +565,13 @@
 				</button>
 			{/if}
 			<label class="visually-hidden" for="search">{t.search}</label>
-			<input id="search" type="search" placeholder={t.searchHint} bind:value={draftQuery} />
+			<input
+				id="search"
+				disabled={!interactive}
+				type="search"
+				placeholder={t.searchHint}
+				bind:value={draftQuery}
+			/>
 			{#if eventDemo}
 				<button type="submit" class="search-icon" aria-label={t.submit}>
 					<svg
@@ -1221,6 +1263,13 @@
 	.masthead {
 		border-bottom: 1px solid var(--seam);
 		background: var(--surface);
+	}
+	.compare-link {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--tap, 44px);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
 	}
 	.masthead-inner,
 	.settings,

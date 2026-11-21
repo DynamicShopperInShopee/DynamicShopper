@@ -18,7 +18,7 @@ const resolve: ResolvePrintedFact = (productId, field, locale) => {
 
 it('switches one pane from Visual vibrant to Mom mode and checks both localized shelves', async () => {
 	const screen = await render(CompareViews, {
-		productIds: [cooker],
+		productsFor: () => [cooker],
 		columns: [{ field: 'spec.capacity', label: { en: 'Capacity', th: 'ความจุ' } }],
 		listingHref: (id: string) => `/product/${id}`,
 		locale: 'en'
@@ -39,7 +39,7 @@ it('switches one pane from Visual vibrant to Mom mode and checks both localized 
 
 it('keeps the shopper’s Thai in Tech and Visual panes', async () => {
 	const screen = await render(CompareViews, {
-		productIds: [cooker],
+		productsFor: () => [cooker],
 		columns: [],
 		resolve,
 		listingHref: (id: string) => `/product/${id}`,

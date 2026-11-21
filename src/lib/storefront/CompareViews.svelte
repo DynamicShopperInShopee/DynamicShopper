@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolveCatalogFact } from './catalogFact';
 	import './theme.css';
 	import type { Category } from '#lib/store-catalog.js';
@@ -27,25 +28,33 @@
 	const options = Object.keys(presets) as Preset[];
 
 	let {
-		productIds,
+		productsFor,
 		columns,
 		resolve = resolveCatalogFact,
 		listingHref,
 		categoryFor,
 		locale
 	}: {
-		productIds: readonly string[];
+		productsFor: (preset: Preset) => readonly string[];
 		columns: readonly { field: string; label: LocalizedText }[];
 		resolve?: ResolvePrintedFact;
-		listingHref: (id: string) => string;
+		listingHref: (
+			id: string,
+			locale: FactLocale,
+			theme: (typeof presets)[Preset]['theme']
+		) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		locale: FactLocale;
 	} = $props();
 
 	const copy = {
-		en: { heading: 'Compare views', left: 'Left view', right: 'Right view' },
-		th: { heading: 'เทียบมุมมองหน้าร้าน', left: 'มุมมองซ้าย', right: 'มุมมองขวา' }
+		en: { left: 'Left view', right: 'Right view' },
+		th: { left: 'มุมมองซ้าย', right: 'มุมมองขวา' }
 	};
+	let interactive = $state(false);
+	onMount(() => {
+		interactive = true;
+	});
 	const t = $derived(copy[locale]);
 	let leftPreset = $state<Preset>('tech');
 	let rightPreset = $state<Preset>('visual');
@@ -64,16 +73,20 @@
 {/snippet}
 
 <div class="compare" lang={locale}>
-	<h1>{t.heading}</h1>
+	<CompareSlip {left} {right} {leftLocale} {rightLocale} {locale} {resolve} />
 	<div class="panes">
 		<section class="pane" data-storefront-theme={a.theme} aria-label={t.left}>
-			<label>{t.left}<select bind:value={leftPreset}>{@render presetOptions()}</select></label>
+			<label>
+				{t.left}<select disabled={!interactive} bind:value={leftPreset}>
+					{@render presetOptions()}
+				</select>
+			</label>
 			<div bind:this={left}>
 				<ProductShelf
-					{productIds}
+					productIds={productsFor(leftPreset)}
 					{columns}
 					{resolve}
-					{listingHref}
+					listingHref={(id: string) => listingHref(id, leftLocale, a.theme)}
 					{categoryFor}
 					layout={a.layout}
 					locale={leftLocale}
@@ -81,13 +94,17 @@
 			</div>
 		</section>
 		<section class="pane" data-storefront-theme={b.theme} aria-label={t.right}>
-			<label>{t.right}<select bind:value={rightPreset}>{@render presetOptions()}</select></label>
+			<label>
+				{t.right}<select disabled={!interactive} bind:value={rightPreset}>
+					{@render presetOptions()}
+				</select>
+			</label>
 			<div bind:this={right}>
 				<ProductShelf
-					{productIds}
+					productIds={productsFor(rightPreset)}
 					{columns}
 					{resolve}
-					{listingHref}
+					listingHref={(id: string) => listingHref(id, rightLocale, b.theme)}
 					{categoryFor}
 					layout={b.layout}
 					locale={rightLocale}
@@ -95,7 +112,6 @@
 			</div>
 		</section>
 	</div>
-	<CompareSlip {left} {right} {leftLocale} {rightLocale} {locale} {resolve} />
 </div>
 
 <style>
@@ -103,9 +119,6 @@
 		display: grid;
 		gap: 1rem;
 		min-width: 0;
-	}
-	h1 {
-		margin: 0;
 	}
 	.panes {
 		display: grid;

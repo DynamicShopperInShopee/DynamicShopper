@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 	import { resolve } from '$app/paths';
 	import '../../../lib/assets/fonts/plex.css';
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
@@ -7,6 +8,7 @@
 	import SpecificationsSheet from './SpecificationsSheet.svelte';
 	import type { PageProps } from './$types';
 
+	const session = getStoreSession();
 	let { data }: PageProps = $props();
 	let proofRoot = $state<HTMLElement>();
 	const th = $derived(data.language === 'th');
@@ -16,7 +18,11 @@
 
 <main lang={data.language} data-product={data.id} data-theme={data.theme}>
 	<header>
-		<a class="back" href={resolve('/')} aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}>
+		<a
+			class="back"
+			href={resolve(returnToStore(session))}
+			aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
+		>
 			<svg
 				viewBox="0 0 24 24"
 				width="24"
@@ -29,7 +35,7 @@
 				<path d="M21 12H4m7-7-7 7 7 7" />
 			</svg>
 		</a>
-		<a class="header-search" href={resolve('/')}>
+		<a class="header-search" href={resolve(returnToStore(session))}>
 			<svg
 				viewBox="0 0 20 20"
 				width="18"
