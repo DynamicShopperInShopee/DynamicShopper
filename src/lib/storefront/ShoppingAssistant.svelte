@@ -28,6 +28,11 @@
 		theme?: 'standard' | 'minimal' | 'vibrant' | 'large';
 	} = $props();
 
+	let chat = $state<{ focus: () => void }>();
+	export function focus() {
+		chat?.focus();
+	}
+
 	function listingHref(id: string, lang: Locale) {
 		return resolve(`/product/[id]?lang=${lang}&theme=${theme}&view=receipt`, { id });
 	}
@@ -35,6 +40,7 @@
 
 <div class="shopping-assistant">
 	<Chat
+		bind:this={chat}
 		{locale}
 		{pending}
 		{onSend}

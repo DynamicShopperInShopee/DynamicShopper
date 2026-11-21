@@ -4,6 +4,9 @@
 	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
 	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
+	import { readInterviewVisit, saveInterviewVisit } from './interview-navigation';
+	import InterviewEntry from '../lib/storefront/InterviewEntry.svelte';
+	import { interviewProposal, type Answers } from '../lib/personalization/interview';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick, untrack } from 'svelte';
@@ -45,12 +48,10 @@
 	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
 	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
+	import { eligibleShelfProducts } from '../lib/storefront/compare';
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
-	import PersonalizeShop from '../lib/storefront/PersonalizeShop.svelte';
-	import MarketplaceBrand from '../lib/storefront/MarketplaceBrand.svelte';
-	import type { ProposalSources } from '../lib/personalization/interview';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
@@ -84,20 +85,22 @@
 	let capacity = $state<number>();
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
+	let adapted = $state(false);
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
 	const validLook = $derived(isValidLook(sharedLook));
-	let adapted = $state(false);
-	const marketplaceBrand = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
 	const eventDemo = $derived(
-		page.url.searchParams.get('view') !== 'receipt' && !validLook && !adapted
+		!adapted && page.url.searchParams.get('view') !== 'receipt' && !validLook
 	);
 	const originQuery = $derived(
-		marketplaceBrand ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
+		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
+	let interviewAnswers = $state<Answers | null>(null);
+	let interviewDirectOnly = $state(false);
+	let assistant = $state<{ focus: () => void }>();
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
@@ -218,19 +221,8 @@
 			lang: language
 		}).toString()
 	);
-	const ranked = $derived(
-		adapted
-			? rankProducts(
-					canonical.filter(
-						(product) =>
-							(!freeShipping || product.shipping === 0) &&
-							(capacity === undefined ||
-								(product.category === 'rice-cooker' && product.specs.capacity === capacity))
-					),
-					activePlan
-				)
-			: []
-	);
+	const eligibleProducts = $derived(eligibleShelfProducts(freeShipping, capacity));
+	const ranked = $derived(adapted ? rankProducts(eligibleProducts, activePlan) : []);
 	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
 
 	function quantityInCart(productId: string) {
@@ -251,7 +243,9 @@
 			sort,
 			freeShipping,
 			capacity,
-			locks: [...locks]
+			locks: [...locks],
+			interviewAnswers: $state.snapshot(interviewAnswers),
+			interviewDirectOnly
 		};
 	}
 	function remember() {
@@ -305,13 +299,18 @@
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
+		restoreCheckpoint(previous);
+		changes = [];
+	}
+	function restoreCheckpoint(previous: ShelfState) {
 		writePlan(previous.plan);
 		adapted = previous.adapted;
 		sort = previous.sort;
 		freeShipping = draftShipping = previous.freeShipping;
 		capacity = previous.capacity;
 		locks = previous.locks;
-		changes = [];
+		interviewAnswers = previous.interviewAnswers;
+		interviewDirectOnly = previous.interviewDirectOnly;
 	}
 	function restoreDefaults() {
 		cancelPending();
@@ -322,11 +321,52 @@
 			remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
+		interviewAnswers = null;
+		interviewDirectOnly = false;
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
 		capacity = undefined;
 		changes = [];
+	}
+	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
+		const result = interviewProposal(answers, activePlan, {
+			directOnly,
+			lockedFields: locks
+		});
+		const previous = $state.snapshot(activePlan);
+		const fields = Object.entries(result.patch).filter(
+			([key, value]) => JSON.stringify(previous[key as keyof ShopperPlan]) !== JSON.stringify(value)
+		);
+		// No-op answers leave the current surface and Undo history unchanged.
+		if (!fields.length) {
+			if (interviewAnswers !== null || Object.keys(result.answers).length) {
+				interviewAnswers = result.answers;
+			}
+			interviewDirectOnly = directOnly;
+			return;
+		}
+		cancelPending();
+		session.restoreBrowser();
+		storeReady = true;
+		remember();
+		for (const field of Object.keys(result.patch) as (keyof ShopperPlan)[]) {
+			if (result.sources[field] === 'answer') register(field);
+		}
+		writePlan({ ...previous, ...result.patch });
+		changes = fields.map(([key]) => key as keyof ShopperPlan);
+		interviewAnswers = result.answers;
+		interviewDirectOnly = directOnly;
+		adapted = true;
+		turn = undefined;
+		await tick();
+		const shelf = document.getElementById('products');
+		shelf?.scrollIntoView({ block: 'start', behavior: 'instant' });
+		shelf?.focus({ preventScroll: true });
+	}
+	async function focusAssistant() {
+		await tick();
+		assistant?.focus();
 	}
 	function removePreference(key: keyof ShopperPlan) {
 		const previous = [...locks];
@@ -566,6 +606,8 @@
 				capacity,
 				locks,
 				undoStack,
+				interviewAnswers,
+				interviewDirectOnly,
 				turn,
 				liveModel,
 				liveFallback,
@@ -591,8 +633,10 @@
 		cartRestored = session.cart.length > 0;
 		openSharedLook();
 	}
-	afterNavigate(({ from, to }) => {
-		if (eventDemo && !(session.visit?.adapted && session.visit.search === page.url.search)) return;
+	afterNavigate(({ from, to, type }) => {
+		if (type !== 'popstate' && from?.route.id === '/product/[id]')
+			restoreSearch(page.state.storeSearch);
+		if (eventDemo) return;
 		if (page.url.hash === '#xray') traceOpen = true;
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
@@ -667,7 +711,21 @@
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
 	);
 	function captureSearch() {
-		return marketplaceBrand
+		if (interviewAnswers !== null) {
+			return saveInterviewVisit({
+				current: shelfState(),
+				undo: $state.snapshot(undoStack),
+				changes: [...changes],
+				draftQuery,
+				search: validLook
+					? '?look=' + encodeURIComponent(sharedLook)
+					: page.url.searchParams.get('view') === 'receipt'
+						? '?view=receipt'
+						: '',
+				scrollY: Math.max(0, Math.round(window.scrollY))
+			});
+		}
+		return eventDemo
 			? {
 					category,
 					language,
@@ -682,13 +740,23 @@
 			: undefined;
 	}
 	function restoreSearch(input: unknown) {
+		const visit = readInterviewVisit(input);
 		const selection = readSearchSelection(input);
-		if (!marketplaceBrand || !selection) return;
-		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
-		draftPrice = maxPrice;
-		draftShipping = freeShipping;
-		if (selection.scrollY !== undefined) {
-			const offset = selection.scrollY;
+		if (visit) {
+			session.restoreBrowser();
+			storeReady = true;
+			restoreCheckpoint(visit.current);
+			undoStack = visit.undo;
+			changes = visit.changes;
+			draftQuery = visit.draftQuery;
+		} else if (eventDemo && selection) {
+			({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } =
+				selection);
+			draftPrice = maxPrice;
+			draftShipping = freeShipping;
+		} else return;
+		const offset = visit?.scrollY ?? selection?.scrollY;
+		if (offset !== undefined) {
 			void tick().then(async () => {
 				await document.fonts.ready;
 				await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -700,10 +768,6 @@
 	}
 	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
 	carrySearchToListing(captureSearch);
-	afterNavigate(({ from, type }) => {
-		if (type !== 'popstate' && from?.route.id === '/product/[id]')
-			restoreSearch(page.state.storeSearch);
-	});
 	const selectedCapacityProduct = $derived(
 		capacity !== undefined
 			? canonical.find(
@@ -721,7 +785,7 @@
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
 			const visible = new Set(
-				rankProducts(canonical, { ...activePlan, simplified: false }).map(
+				rankProducts(eligibleProducts, { ...activePlan, simplified: false }).map(
 					({ product }) => product.id
 				)
 			);
@@ -876,12 +940,13 @@
 			{listingHref}
 			reasons={rankingExplanation}
 			highlightedSpecs={plan.highlightedSpecs}
+			interviewDetails={interviewAnswers ? plan.details : []}
 		/>
 	{:else}
 		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
 			{#each shelfProducts as product (product.id)}
 				<li class="product" data-product={product.catalogId} data-product-card={product.catalogId}>
-					{#if eventDemo}
+					{#if eventDemo || (interviewAnswers && activePlan.details.includes('image'))}
 						<div
 							class="art demo-photo"
 							data-category={product.category}
@@ -1103,52 +1168,13 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
-	class:marketplace-brand={marketplaceBrand}
 	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
 >
 	<a class="skip" href="#products">{t.skip}</a>
-	{#if marketplaceBrand}
-		<MarketplaceBrand
-			locale={language}
-			showControls={!eventDemo}
-			enabled={interactive}
-			{theme}
-			themes={themes.map((value) => ({ value, label: t[value] }))}
-			ontheme={(value: string) => {
-				theme = value as Theme;
-				register('theme');
-			}}
-			onlocale={() => {
-				register('locale');
-				language = language === 'th' ? 'en' : 'th';
-			}}
-		>
-			<div class="brand-store-actions">
-				<a
-					class="compare-link"
-					data-offline-ready={session.offlineReady}
-					href={resolve(`/compare?${compareParams}`)}
-				>
-					{a.compare}
-				</a>
-				<CartControls locale={language} onBestPrice={() => openBasket()} />
-				<button
-					type="button"
-					bind:this={traceTrigger}
-					disabled={!interactive}
-					aria-expanded={traceOpen}
-					aria-controls={traceOpen ? 'store-xray' : undefined}
-					aria-keyshortcuts="X"
-					onclick={toggleTrace}
-				>
-					{a.trace}
-				</button>
-			</div>
-		</MarketplaceBrand>
-	{:else if !eventDemo}
+	{#if !eventDemo}
 		<header class="masthead">
 			<div class="wrap masthead-inner">
 				<a class="brand" href={resolve('/')} aria-label="DynamicShopper">
@@ -1208,6 +1234,25 @@
 
 	<main class="wrap">
 		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
+		{#if eventDemo}
+			<header class="marketplace-brand" aria-label="DynamicShopper">
+				<a href={resolve('/')} class="marketplace-identity">
+					<svg
+						width="28"
+						height="30"
+						viewBox="0 0 28 30"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						aria-hidden="true"
+					>
+						<path d="M5 9h18l2 18H3L5 9Z" /><path d="M9 12V8a5 5 0 0 1 10 0v4" />
+					</svg>
+					<span>DynamicShopper</span>
+				</a>
+			</header>
+		{/if}
+
 		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
@@ -1279,27 +1324,20 @@
 			{/if}
 		</form>
 
-		<PersonalizeShop
-			plan={activePlan}
-			themeLocked={locks.includes('theme')}
-			enabled={interactive}
-			onapply={(patch: Partial<ShopperPlan>, sources: ProposalSources) => {
-				// A no-op must not silently add locks without an undo snapshot.
-				if (
-					!Object.entries(patch).some(
-						([key, value]) =>
-							JSON.stringify(activePlan[key as keyof ShopperPlan]) !== JSON.stringify(value)
-					)
-				)
-					return;
-				session.restoreBrowser();
-				storeReady = true;
-				changePlan(patch, false);
-				for (const field of Object.keys(patch) as (keyof ShopperPlan)[]) {
-					if (sources[field] === 'answer') register(field);
-				}
-			}}
-		/>
+		{#snippet interviewEntry()}
+			<InterviewEntry
+				plan={activePlan}
+				lockedFields={locks}
+				answers={interviewAnswers}
+				directOnly={interviewDirectOnly}
+				applied={interviewAnswers !== null && adapted}
+				disabled={!interactive}
+				compact={eventDemo}
+				onapply={applyInterviewAnswers}
+				onchat={focusAssistant}
+			/>
+		{/snippet}
+		{#if !adapted || !interviewAnswers}{@render interviewEntry()}{/if}
 
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
@@ -1404,11 +1442,19 @@
 						{language === 'th' ? 'ส่งฟรี' : 'Free shipping'}
 					</button>
 				{/if}
-				<button aria-pressed={category === 'all'} onclick={() => chooseCategory('all')}>
+				<button
+					disabled={!interactive}
+					aria-pressed={category === 'all'}
+					onclick={() => chooseCategory('all')}
+				>
 					{t.all}
 				</button>
 				{#each categoryKeys as key (key)}
-					<button aria-pressed={category === key} onclick={() => chooseCategory(key)}>
+					<button
+						disabled={!interactive}
+						aria-pressed={category === key}
+						onclick={() => chooseCategory(key)}
+					>
 						{categories[key][language]}
 					</button>
 				{/each}
@@ -1609,6 +1655,7 @@
 						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
 					</p>{/if}
 				<ShoppingAssistant
+					bind:this={assistant}
 					locale={language}
 					onSend={send}
 					openOnMount={page.url.hash === '#assistant'}
@@ -1694,7 +1741,12 @@
 			</XrayDrawer>
 			{#if compareOpen}
 				<div class="comparison-area">
-					<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+					<CompareShelves
+						plan={activePlan}
+						locale={language}
+						{eligibleProducts}
+						onDeal={openDeal}
+					/>
 				</div>
 			{/if}
 			{#if quote}
@@ -1735,6 +1787,7 @@
 					</span>
 				</p>
 			</div>
+			{#if adapted && interviewAnswers}{@render interviewEntry()}{/if}
 			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
 			<div bind:this={proofRoot}>
 				{#if products.length === 0}
@@ -1807,19 +1860,6 @@
 		--paper: #fff;
 		--seam: #ecebe6;
 		--radius: 0;
-	}
-	.store.marketplace-brand[data-theme='standard'] {
-		--paper: #f5f5f5;
-		--accent: #b63113;
-	}
-	.brand-store-actions {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.375rem;
-		background: var(--surface);
-		color: var(--ink);
 	}
 	.store[data-theme='vibrant'] {
 		--accent: #2f3ccf;
@@ -2285,12 +2325,33 @@
 		/* The sticky filters change height after scrolling. Keep the shelf offset stable. */
 		overflow-anchor: none;
 		--paper: #f5f5f5;
+		--marketplace-orange: #ee4d2d;
+		--accent: #b5321a;
 
 		--seam: #e4e4e4;
 		--radius: 6px;
 		--small: 0.8125rem;
 		--ink: #222;
 		--muted: #585858;
+	}
+	.marketplace-brand {
+		padding: 0.75rem 1rem 0.2rem;
+		background: var(--marketplace-orange);
+		color: white;
+	}
+	.marketplace-identity {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		min-height: 44px;
+		font-size: 1.25rem;
+		font-weight: 750;
+		letter-spacing: -0.035em;
+		text-decoration: none;
+		color: inherit;
+	}
+	.marketplace-identity:focus-visible {
+		outline-color: white;
 	}
 	.event-demo main {
 		padding-top: 0;
@@ -2302,6 +2363,7 @@
 		background: var(--surface);
 	}
 	.event-demo .search {
+		background: var(--marketplace-orange);
 		position: sticky;
 		top: 0;
 		z-index: 3;
@@ -2310,8 +2372,9 @@
 		gap: 0.375rem;
 	}
 	.event-demo .search input {
-		border-color: var(--accent);
-		border-radius: 0.75rem;
+		border-color: white;
+		background: white;
+		border-radius: 0.375rem;
 		padding-inline-end: 2.75rem;
 	}
 	.event-demo .search-back {
@@ -2330,6 +2393,7 @@
 		z-index: 1;
 	}
 	.event-demo .filter-trigger {
+		background: white;
 		border: 0;
 		color: var(--accent);
 		gap: 0.2rem;
@@ -2405,7 +2469,7 @@
 		font-weight: 400;
 	}
 	.event-demo .price :global(strong) {
-		color: var(--ink);
+		color: var(--accent);
 		font-size: max(1.1rem, var(--size));
 	}
 	.event-demo .price :global(s) {
