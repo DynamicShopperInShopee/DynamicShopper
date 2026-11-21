@@ -7,7 +7,10 @@ export type Database = ReturnType<typeof drizzleD1<typeof schema>>;
 const d1Clients = new WeakMap<D1Database, Database>();
 const sqliteClients = new Map<string, Promise<Database>>();
 
-export async function createDatabase(database: D1Database | undefined, databaseUrl: string) {
+export async function createDatabase(
+	database: D1Database | undefined,
+	databaseUrl: string | undefined
+) {
 	if (database) {
 		let client = d1Clients.get(database);
 		if (!client) {

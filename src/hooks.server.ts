@@ -8,11 +8,11 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
 	const platformEnv = event.platform?.env;
 	const db = await createDatabase(platformEnv?.DB, platformEnv?.DATABASE_URL ?? DATABASE_URL);
-	const auth = createAuth(
-		db,
-		platformEnv?.ORIGIN ?? ORIGIN,
-		platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET
-	);
+	const origin = platformEnv?.ORIGIN ?? ORIGIN;
+	const secret = platformEnv?.BETTER_AUTH_SECRET ?? BETTER_AUTH_SECRET;
+	if (!origin) throw new Error('ORIGIN must be configured for the current runtime');
+	if (!secret) throw new Error('BETTER_AUTH_SECRET must be configured for the current runtime');
+	const auth = createAuth(db, origin, secret);
 	event.locals.auth = auth;
 
 	const session = await auth.api.getSession({ headers: event.request.headers });
