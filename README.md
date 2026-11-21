@@ -2,14 +2,16 @@
 
 ## Choose your team assignment
 
-In your own checkout, run `git fetch origin` and `git switch <your-branch>`. Open one assignment in a fresh Sol session and use its start prompt. Owner 4 coordinates the first contract PR while Owners 1–3 provide examples and begin independent checks. Each teammate commits and pushes to their own branch.
+In your own checkout, run `git fetch origin` and switch to your existing task branch. If you need a branch, run `git switch -c <your-branch> origin/main` with your chosen name. Open one assignment in a fresh Sol session and use its start prompt. Owner 4 coordinates the first contract PR while Owners 1–3 provide examples and begin independent checks. Each teammate commits and pushes to their own branch.
+
+See the [team setup and security guide](docs/team-setup.md) for required tools, optional Codex skills by role, and repository access rules.
 
 | Owner | Assignment | Branch |
 | --- | --- | --- |
 | 1 | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md) | `feat/catalog-pricing` |
-| 2 | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | `feat/personalization` |
-| 3 | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md) | `feat/storefront-proof` |
-| 4 | [Integration and release](docs/superpowers/plans/04-integration-and-release.md) | `feat/integration-release` |
+| 2 | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | Owner’s working branch |
+| 3 | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md) | Owner’s working branch |
+| 4 | [Integration and release](docs/superpowers/plans/04-integration-and-release.md) | Owner’s working branch |
 
 See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.md) for the two-shopper rehearsal and the [contributor rules](AGENTS.md) for review and merge ownership.
 
@@ -48,7 +50,7 @@ If you're seeing this, you've probably already done this step. Congrats!
 
 ```sh
 # create a new project
-npx sv create my-app
+bunx sv create my-app
 ```
 
 To recreate this project with the same configuration:
@@ -63,24 +65,24 @@ bun x sv@1.7.0 create --template minimal --types ts --add prettier eslint playwr
 Add features to your project with `sv add`:
 
 ```sh
-npx sv add
+bunx sv add
 ```
 
 For example, to add Tailwind CSS:
 
 ```sh
-npx sv add tailwindcss
+bunx sv add tailwindcss
 ```
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Once you've created a project and installed dependencies with `bun install` (or `pnpm install` or `yarn`), start a development server:
 
 ```sh
-npm run dev
+bun run dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun run dev -- --open
 ```
 
 ## Building
@@ -88,9 +90,9 @@ npm run dev -- --open
 To create a production version of your app:
 
 ```sh
-npm run build
+bun run build
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `bun run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
