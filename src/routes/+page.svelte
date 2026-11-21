@@ -9,6 +9,7 @@
 	import { formatBaht, formatNumber, searchProducts, type Sort } from '../lib/store-search';
 	import CookerCapacityChips from './CookerCapacityChips.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
+	import SearchShopPreview from './SearchShopPreview.svelte';
 
 	const copy = {
 		en: {
@@ -549,6 +550,10 @@
 					</button>
 				{/if}
 			</div>
+		{/if}
+
+		{#if cookerTools && products.length}
+			<SearchShopPreview {products} {language} />
 		{/if}
 
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">

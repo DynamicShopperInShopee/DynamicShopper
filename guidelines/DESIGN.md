@@ -224,3 +224,5 @@ The title and shipping row span the summary column, separated by hairlines. On a
 The seller section includes a horizontally scrollable shelf of other products from the same catalog shop, ordered by units sold. Each card links to the listing in the current language and uses the same local illustration as the storefront. The shelf disappears when there are no other items from that shop.
 
 The details section begins with an inline specifications button when the catalog has specs. It opens the same sheet as the bottom action bar. The one-button cooker description uses separate closed and open product illustrations, captions drawn from the catalog, and the full specification list below both images.
+
+Rice cooker searches show a shop preview between the controls and the grid. It features matching items from one seller in result order. Shoppers can switch between matching shops, open a product directly, or view the seller’s full simulated inventory.

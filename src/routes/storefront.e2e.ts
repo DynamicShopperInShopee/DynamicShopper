@@ -13,7 +13,7 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 
 	await page.getByRole('searchbox').fill('gaming mouse');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
-	const cards = page.locator('[data-product]');
+	const cards = page.locator('.product-grid [data-product]');
 	await expect(cards).toHaveCount(8);
 
 	await page.getByLabel('Sort by').selectOption('price-low');
@@ -63,7 +63,7 @@ test('renders the event demo grid and filters in a modal drawer', async ({ page 
 		.poll(async () => (await page.getByRole('navigation', { name: 'Categories' }).boundingBox())?.y)
 		.toBe(56);
 	await page.evaluate(() => window.scrollTo(0, 0));
-	const cards = page.locator('[data-product]');
+	const cards = page.locator('.product-grid [data-product]');
 	await expect
 		.poll(async () => (await cards.nth(1).boundingBox())?.y)
 		.toBe((await cards.first().boundingBox())?.y);
@@ -96,13 +96,22 @@ test('uses the compact search controls and filters cookers by catalog capacity',
 	await searchBox.fill('rice cooker');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
 	const search = page.getByRole('search');
+	const shopPreview = page.getByRole('region', { name: 'Matching shops' });
+	await expect(shopPreview.getByRole('heading')).toHaveText('บ้านครัว HomeKrua');
+	await shopPreview.getByRole('button', { name: 'Other shops' }).click();
+	await expect(shopPreview.getByRole('heading')).toHaveText('TechHub Official Store');
+	await shopPreview.getByRole('button', { name: 'View shop' }).click();
+	const shop = page.getByRole('dialog', { name: 'TechHub Official Store' });
+	await expect(shop.getByRole('link', { name: /IH rice cooker/ })).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(shop).toBeHidden();
 	await search.getByRole('combobox', { name: 'Sort by' }).selectOption('price-high');
 	await expect(
 		page.getByRole('region', { name: 'Products' }).getByText('Price: high to low')
 	).toBeVisible();
 	const quick = page.getByRole('group', { name: 'Quick filters' });
 	await expect(quick.getByRole('button', { name: 'Filters' })).toBeVisible();
-	const cards = page.locator('[data-product]');
+	const cards = page.locator('.product-grid [data-product]');
 	await expect(cards).toHaveCount(6);
 	await expect(cards.first()).toHaveAttribute('data-product', 'cooker-5');
 	await page.evaluate(() => window.scrollTo(0, 260));

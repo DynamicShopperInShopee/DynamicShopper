@@ -452,3 +452,12 @@ export const riceCookerReviews: Readonly<Partial<Record<string, { en: string; th
 	'cooker-1': { en: 'Mom uses it without help', th: 'แม่ใช้เองได้โดยไม่ต้องมีคนช่วย' },
 	'cooker-3': { en: 'Large buttons suit seniors', th: 'ปุ่มใหญ่เหมาะกับผู้สูงอายุ' }
 };
+
+// Store ratings from the Shops table in guidelines/CATALOG.md.
+export const shopRatings: Readonly<Partial<Record<string, number>>> = {
+	'TechHub Official Store': 4.9,
+	'GamerZone Thailand': 4.7,
+	'AudioLab Mall': 4.8,
+	'บ้านครัว HomeKrua': 4.8,
+	'Glow Skin Official': 4.9
+};
