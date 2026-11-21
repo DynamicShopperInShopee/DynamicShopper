@@ -2,15 +2,6 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted storefront branding scope
-
-The user explicitly requested on 2026-11-21 that the current main template retain
-Shopee branding before and after the CNN interview, followed by agent refinement
-through fixed UI presets. For the root marketplace flow, the orange Shopee header
-is an accepted exception to the no-mark/no-marketplace guidance below. Keep the
-DynamicShopper project attribution and the existing catalog simulation disclosure.
-The exception changes presentation only; all fact, pricing and control rules apply.
-
 ## Product rules
 
 1. **Facts come only from the catalog and the pricing logic.** Price, original price, rating, review count, units sold, shipping, specs, voucher terms and deal amounts are never computed, rounded, restated or invented anywhere else.
@@ -37,7 +28,8 @@ The exception changes presentation only; all fact, pricing and control rules app
 - Thai and English are equal: every string exists in both, written for each language.
 - The store stays usable after any message: readable, navigable, never blank.
 - Green and red mean state only. A stamp appears only where a check ran and passed.
-- New proof surfaces look like receipt slips. No shadows, gradients, badges, banners or marketplace chrome. No Shopee marks.
+- New proof surfaces look like receipt slips, with no shadows, gradients, badges or sale banners. Personalized receipt themes keep this visual system.
+- At the user's explicit request, the default marketplace storefront may use an orange shopping header, category/sort controls and a photo grid. This exception is scoped to the default storefront; keep DynamicShopper identity, no Shopee marks, and no invented offers or product facts.
 - Every theme meets WCAG AA; large print keeps 20px text and 48px targets; reduced motion means no motion.
 - Every screen works at laptop (1440×900) and phone (390×844) size with no sideways scroll.
 

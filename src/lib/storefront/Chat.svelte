@@ -128,6 +128,11 @@
 		void send(draft);
 	}
 
+	export function focus() {
+		if (mobile) open();
+		else textbox?.focus();
+	}
+
 	function open() {
 		dialog?.showModal();
 		textbox?.focus({ preventScroll: true });

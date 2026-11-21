@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { products, type Locale, type Product } from '../catalog';
+	import type { Product, Locale } from '../catalog';
 	import { personaPlan, rankProducts, type ShopperPlan } from '../personalization';
 	import FactsReceipt from './FactsReceipt.svelte';
 	import FactValue from './FactValue.svelte';
@@ -10,16 +10,14 @@
 	let {
 		plan,
 		locale,
-		freeShipping = false,
 		dealPending = false,
-		eligibleProducts = products,
+		eligibleProducts,
 		onDeal
 	}: {
 		plan: ShopperPlan;
 		locale: Locale;
-		freeShipping?: boolean;
 		dealPending?: boolean;
-		eligibleProducts?: readonly Product[];
+		eligibleProducts: readonly Product[];
 		onDeal: (productId: string, locale: Locale) => void;
 	} = $props();
 
@@ -31,18 +29,15 @@
 		shops: plan.shops,
 		mallOnly: plan.mallOnly
 	});
-	const eligible = $derived(
-		freeShipping ? eligibleProducts.filter(({ shipping }) => shipping === 0) : eligibleProducts
-	);
 	const techPlan = personaPlan('tech');
 	const momPlan = personaPlan('mom');
 	const techParams = receiptListingParams(techPlan);
 	const momParams = receiptListingParams(momPlan);
 	const tech = $derived(
-		rankProducts(eligible, { ...techPlan, ...search }).map(({ product }) => product)
+		rankProducts(eligibleProducts, { ...techPlan, ...search }).map(({ product }) => product)
 	);
 	const mom = $derived(
-		rankProducts(eligible, { ...momPlan, ...search }).map(({ product }) => product)
+		rankProducts(eligibleProducts, { ...momPlan, ...search }).map(({ product }) => product)
 	);
 </script>
 

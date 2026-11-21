@@ -3,13 +3,17 @@
 	import { snapshot } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { categories, products, specs, type Category } from '#lib/catalog/index.ts';
+	import { categories, specs, type Category } from '#lib/catalog/index.ts';
 	import { rankProducts, type ShopperPlan } from '#lib/personalization/index.ts';
 	import { matchesQuery } from '#lib/personalization/ranking.ts';
 	import { optimizeDeal } from '#lib/pricing/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
-	import { comparePresets, type ComparePreset } from '#lib/storefront/compare.ts';
+	import {
+		comparePresets,
+		eligibleShelfProducts,
+		type ComparePreset
+	} from '#lib/storefront/compare.ts';
 	import { receiptListingParams } from '#lib/storefront/sharedLook.ts';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 
@@ -19,6 +23,8 @@
 	});
 	const session = getStoreSession();
 	const pricingContext = $derived(session.clock.context);
+	const shelf = $derived(session.visit);
+	const eligibleProducts = $derived(eligibleShelfProducts(shelf?.freeShipping, shelf?.capacity));
 	const locale = $derived(page.url.searchParams.get('lang') === 'th' ? 'th' : 'en');
 	const options = Object.keys(categories) as Category[];
 	const glyphs = new Map(catalog.map((item) => [item.catalogId, item.category]));
@@ -40,7 +46,9 @@
 	const specCategory = $derived.by(() => {
 		if (category) return category;
 		const matchedCategories = new Set(
-			products.filter((product) => matchesQuery(product, query)).map((product) => product.category)
+			eligibleProducts
+				.filter((product) => matchesQuery(product, query))
+				.map((product) => product.category)
 		);
 		return matchedCategories.size === 1 ? [...matchedCategories][0] : undefined;
 	});
@@ -59,9 +67,14 @@
 		return resolve(`/product/[id]?${receiptListingParams(plan)}`, { id });
 	}
 	function productsFor(plan: ShopperPlan) {
-		return rankProducts(products, { ...plan, query, category: category ?? null }).map(
-			({ product }) => product.id
-		);
+		return rankProducts(eligibleProducts, {
+			...plan,
+			query,
+			category: category ?? null,
+			maxPrice: shelf?.plan.maxPrice ?? plan.maxPrice,
+			shops: shelf?.plan.shops ?? plan.shops,
+			mallOnly: shelf?.plan.mallOnly ?? plan.mallOnly
+		}).map(({ product }) => product.id);
 	}
 
 	function vouchersFor(id: string) {

@@ -18,7 +18,7 @@ const specWords: readonly [SpecKey, RegExp][] = [
 	['connection', /\b(?:connection|bluetooth)\b|การเชื่อมต่อ|บลูทูธ/u],
 	['noiseCancelling', /\banc\b|noise cancel|ตัดเสียงรบกวน/u],
 	['latency', /\blatency\b|ความหน่วง/u],
-	['capacity', /\b(?:capacity|litres?|liters?|mah)\b|ความจุ|ลิตร/u],
+	['capacity', /\b(?:capacity|litres?|liters?|mah)\b|ความจุ|จุ(?:เท่าไร|เท่าไหร่|กี่|ได้)|ลิตร/u],
 	['power', /\b(?:watt(?:s|age)?|power usage)\b|กำลังไฟ|กินไฟ|วัตต์/u],
 	['output', /\boutput\b|กำลังจ่าย/u],
 	['programs', /\bprograms?\b|โปรแกรม/u],

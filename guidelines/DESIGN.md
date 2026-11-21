@@ -1,22 +1,23 @@
 # Design system: "The Thermal Receipt"
 
-## Optional interview on the root storefront
+## Default marketplace exception
 
-Accepted on 2026-11-21: keep the current marketplace as the initial view and add
-a compact optional interview entry. Four short steps cover shopping goal,
-preferred evidence, priority and reading. Draft answers stay inside the dialog;
-the final receipt explains the proposal before one Apply. Apply uses the existing
-adaptive storefront, change chips and Undo. Closing an unapplied interview returns
-focus to its trigger. No full-page onboarding replaces shopping.
+Accepted at the user's explicit request: the default storefront uses a familiar
+orange shopping header, DynamicShopper identity, search, category controls and a
+photo grid. This styling is scoped to `event-demo`; personalized receipt themes
+retain their existing tokens and proof surfaces. No Shopee mark, invented
+promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries only
+large bold white brand text; the darker action/price ink `#b5321a` supports normal
+text on white. The interview entry remains a compact optional strip.
 
-The user's later instruction explicitly retains Shopee branding on the root
-before and after Apply. A stable orange brand header surrounds the existing
-responsive template and the adapted product content. This scoped branding
-exception supersedes the earlier no-mark/no-orange guidance for this requested
-surface; proof slips and catalog facts remain unchanged. No device frame is used.
-The existing default storefront is owned separately. This integration adds no
-promotion, seller metric or new catalog values. See
-[the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+## Interview transition
+
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip, then a proposed
+view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+the visible chat-refinement button focuses the existing assistant. No animation is
+required. Large print keeps single-column answers, 20px text and 48px targets.
 
 ## North star
 

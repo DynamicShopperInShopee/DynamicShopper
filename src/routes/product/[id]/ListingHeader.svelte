@@ -5,26 +5,36 @@
 	import { page } from '$app/state';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 	import { carrySearchToListing, readSearchSelection } from '../../search-navigation';
+	import { readInterviewVisit } from '../../interview-navigation';
 	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
-	let {
-		data,
-		hero,
-		backQuery,
-		children
-	}: { data: PageData; hero?: HTMLElement; backQuery: string; children?: Snippet } = $props();
+	let { data, hero, children }: { data: PageData; hero?: HTMLElement; children?: Snippet } =
+		$props();
 	const session = getStoreSession();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
 	let backLink: HTMLAnchorElement;
 	let inDetails = $state(false);
 	let actionsHeight = $state(50);
+	const interviewKey = $derived(
+		typeof page.state.storeSearch === 'string' ? page.state.storeSearch : undefined
+	);
+	const interview = $derived(readInterviewVisit(interviewKey));
 	const shelfSearch = $derived(readSearchSelection(page.state.storeSearch));
 	const marketplaceOrigin = $derived(shelfSearch?.origin === 'marketplace');
-	const returnSearch = $derived(marketplaceOrigin || !data.receiptQuery ? shelfSearch : undefined);
+	const returnSearch = $derived(
+		interview ? interviewKey : marketplaceOrigin || !data.receiptQuery ? shelfSearch : undefined
+	);
 	const marketplaceUrl = $derived(session.visit?.marketplace ? returnToStore(session) : '/');
+	const receiptUrl = $derived<'/' | `/?${string}`>(
+		!data.receiptQuery
+			? '/'
+			: session.visit && !session.visit.marketplace
+				? returnToStore(session)
+				: `/?${data.receiptQuery}`
+	);
 	const returnUrl = $derived(
-		resolve(marketplaceOrigin ? marketplaceUrl : backQuery ? `/?${backQuery}` : '/')
+		resolve(interview ? `/${interview.search}` : marketplaceOrigin ? marketplaceUrl : receiptUrl)
 	);
 	carrySearchToListing(() => returnSearch);
 	function returnToShelf(event: MouseEvent) {

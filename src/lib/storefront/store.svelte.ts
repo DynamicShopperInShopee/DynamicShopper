@@ -1,3 +1,4 @@
+import type { Answers } from '../personalization/interview';
 import { Conversation } from './conversation.svelte';
 import { ListingSession } from './listingSession';
 import { createContext } from 'svelte';
@@ -11,6 +12,8 @@ import { readSavedStore, writeSavedStore } from './browserState';
 import type { Sort } from '../store-search';
 
 export interface ShelfState {
+	interviewAnswers: Answers | null;
+	interviewDirectOnly: boolean;
 	plan: ShopperPlan;
 	adapted: boolean;
 	sort: Sort;
@@ -19,14 +22,18 @@ export interface ShelfState {
 	locks: (keyof ShopperPlan)[];
 }
 
-interface StoreVisit extends ShelfState {
+export interface StoreVisitState extends ShelfState {
 	undoStack: ShelfState[];
 	turn?: Turn;
 	liveModel?: string;
 	liveFallback: boolean;
+	traceMerge?: 'applied' | 'unchanged';
 	changes: (keyof ShopperPlan)[];
 	focusedProduct?: string;
 	draftQuery: string;
+}
+
+interface StoreVisit extends StoreVisitState {
 	search: string;
 	marketplace: boolean;
 }

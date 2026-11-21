@@ -44,11 +44,7 @@
 <svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
 
 <main lang={data.language} data-product={data.id} data-theme={data.theme}>
-	<ListingHeader
-		{data}
-		backQuery={data.receiptQuery ? session.visit?.search.slice(1) || data.receiptQuery : ''}
-		{hero}
-	>
+	<ListingHeader {data} {hero}>
 		<CartControls
 			locale={data.language}
 			onBestPrice={() => void productDeal?.showCart()}

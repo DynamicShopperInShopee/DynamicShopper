@@ -33,6 +33,11 @@
 		factRoot?: HTMLElement;
 	} = $props();
 
+	let chat = $state<{ focus: () => void }>();
+	export function focus() {
+		chat?.focus();
+	}
+
 	function listingHref(id: string, lang: Locale) {
 		const params = new SvelteURLSearchParams({ lang, theme, view: 'receipt' });
 		const look = new SvelteURLSearchParams(listingQuery).get('look');
@@ -43,6 +48,7 @@
 
 <div class="shopping-assistant" bind:this={factRoot}>
 	<Chat
+		bind:this={chat}
 		{locale}
 		{pending}
 		{onSend}

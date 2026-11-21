@@ -4,6 +4,8 @@
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
 	import AddToCart from './AddToCart.svelte';
+	import ProductEvidence from './ProductEvidence.svelte';
+	import type { ShopperPlan } from '../personalization';
 	import FactValue from './FactValue.svelte';
 
 	let {
@@ -14,7 +16,8 @@
 		onAdd,
 		listingHref,
 		reasons,
-		highlightedSpecs = []
+		highlightedSpecs = [],
+		interviewDetails = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
@@ -27,10 +30,14 @@
 		) =>
 			ReturnType<typeof addCartItem>['status'] | Promise<ReturnType<typeof addCartItem>['status']>;
 		highlightedSpecs?: readonly SpecKey[];
+		interviewDetails?: ShopperPlan['details'];
 	} = $props();
 
 	const th = $derived(locale === 'th');
 	const category = $derived(products[0]?.category);
+	const writtenEvidence = $derived(
+		interviewDetails.filter((field) => field === 'summary' || field === 'reviews')
+	);
 	const columns = $derived.by(() => {
 		if (!category || !products.every((product) => product.category === category)) return [];
 		const definitions = specs[category].filter(({ key }) =>
@@ -77,6 +84,9 @@
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
 							<!-- eslint-enable svelte/no-navigation-without-resolve -->
+							{#if writtenEvidence.length}
+								<ProductEvidence productId={product.id} {locale} details={writtenEvidence} />
+							{/if}
 							{@render reasons?.(product.id)}
 						</th>
 						{#each columns as column (column.key)}
