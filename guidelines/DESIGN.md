@@ -277,3 +277,18 @@ Digital review photos and silent clips are explicitly labeled as simulated examp
 The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
 
 The preset library uses a neutral header. On phones, its section and module choices scroll in their own rows so the selected preview starts within the first screen in both languages. Every choice remains keyboard-accessible.
+## Direct decision help and Smart Basket
+
+Accepted: cooker results offer explicit easy-use and comparison tasks without an
+interview or chat. They preserve current eligibility and theme; an independent Undo
+restores the previous decision view without mutating search, filters or cart. Easy-use
+selects up to three catalog-tagged simple models ordered by program count then ID.
+The comparison shows catalog price, capacity, programs and warranty, with cart actions.
+
+Smart Basket offers at most one curated catalog-supported companion, with a cited
+source review and the target skin-type fact. The current demo pairs vitamin-C serum
+with ceramide moisturiser; no cooker companion is asserted. Both quotes use the same
+optimizer context and coin balance. Add is explicit, rejection hides the offer for
+this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
+The catalog remains simulated; this is not a clinical compatibility guarantee or a
+new promotion. No new theme, checkout, deployment or automatic purchase is introduced.

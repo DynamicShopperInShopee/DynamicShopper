@@ -36,6 +36,7 @@ test('presentation examples remain isolated from the store', async ({ page }) =>
 	await expect(page.getByRole('button', { name: /Apply/ })).toHaveCount(0);
 	expect(await stored()).toBe(before);
 	await page.getByRole('link', { name: 'Back to the store', exact: true }).click();
+	await page.getByRole('link', { name: 'Shopping assistant', exact: true }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
 	await expect(page.locator('#products table')).toHaveCount(0);
 });

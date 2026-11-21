@@ -105,3 +105,18 @@ Everyone who uses the store should come away believing two things at once: "the 
 Seller insight into what shoppers ask for; photo search; Thai voice input for mom mode; gentle sort suggestions from browsing (never applied automatically); plain-language specs in mom mode ("about 10 cups" next to 1.8 L); running against a local model.
 
 Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.
+## Direct decision help and Smart Basket
+
+Accepted: cooker results offer explicit easy-use and comparison tasks without an
+interview or chat. They preserve current eligibility and theme; an independent Undo
+restores the previous decision view without mutating search, filters or cart. Easy-use
+shows up to three catalog-tagged simple models ordered by program count then ID beside the complete results. The ordinary shelf retains the shopper’s chosen sort, including when no easy-use suggestion qualifies.
+The comparison shows catalog price, capacity, programs and warranty, with cart actions.
+
+Smart Basket offers at most one curated catalog-supported companion, with a cited
+source review and the target skin-type fact. The current demo pairs vitamin-C serum
+with ceramide moisturiser; no cooker companion is asserted. Both quotes use the same
+optimizer context and coin balance. Add is explicit, rejection hides the offer for
+this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
+The catalog remains simulated; this is not a clinical compatibility guarantee or a
+new promotion. No new theme, checkout, deployment or automatic purchase is introduced.

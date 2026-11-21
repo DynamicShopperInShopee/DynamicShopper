@@ -7,6 +7,7 @@ for (const locale of ['th', 'en']) {
 		page
 	}) => {
 		await page.goto('/presets');
+		await expect(page.getByRole('button', { name: 'English', exact: true })).toBeEnabled();
 		if (locale === 'en') {
 			await page.getByRole('button', { name: 'English', exact: true }).click();
 		}
