@@ -143,3 +143,16 @@ test('easy-use suggestions preserve the shopper’s explicit price order and Tha
 		page.getByRole('region', { name: 'ตะกร้าแนะนำ' }).getByRole('heading', { name: 'ตะกร้าแนะนำ' })
 	).toBeVisible();
 });
+
+test('listing navigation restores the chosen decision view and its Undo', async ({ page }) => {
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.getByRole('button', { name: 'For mum, easy to use' }).click();
+	await page.getByRole('button', { name: 'Compare before buying' }).click();
+	const panel = page.getByRole('region', { name: 'Decision help' });
+	await panel.getByRole('link').first().click();
+	await page.getByRole('link', { name: /Back to (store|results)/ }).click();
+	await expect(panel.getByRole('table')).toBeVisible();
+	await page.getByRole('button', { name: 'Undo decision view' }).click();
+	await expect(panel).toContainText('fewer programs');
+});

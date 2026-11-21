@@ -2,7 +2,6 @@
 	import type { ShopperPlan } from '../personalization/plan';
 	type InterviewView = {
 		plan: ShopperPlan;
-		lockedFields: (keyof ShopperPlan)[];
 		interview: { answers: Answers } | null;
 	};
 	import { tick, untrack } from 'svelte';
@@ -10,22 +9,18 @@
 		interview,
 		interviewProposal,
 		describePatch,
-		preferenceName,
 		type Answers,
 		type Question
 	} from '../personalization/interview';
 	let {
 		view,
-		onapply,
-		initialDirectOnly = false
+		onapply
 	}: {
 		view: InterviewView;
-		initialDirectOnly?: boolean;
-		onapply: (answers: Answers, directOnly: boolean) => void;
+		onapply: (answers: Answers) => void;
 	} = $props();
 	// Draft lives only inside the sheet. Closing it never changes the shop.
 	let answers = $state<Answers>(untrack(() => ({ ...view.interview?.answers })));
-	let directOnly = $state(untrack(() => initialDirectOnly));
 	let step = $state(0);
 	let stepHeading = $state<HTMLHeadingElement>();
 	const question = $derived(interview.questions[step]);
@@ -51,9 +46,7 @@
 		answers = next;
 		void move(step + 1);
 	}
-	const result = $derived(
-		interviewProposal(answers, view.plan, { directOnly, lockedFields: view.lockedFields })
-	);
+	const result = $derived(interviewProposal(answers, view.plan));
 	const changes = $derived(
 		describePatch(
 			Object.fromEntries(
@@ -70,7 +63,7 @@
 <form
 	onsubmit={(event) => {
 		event.preventDefault();
-		if (reviewing) onapply(answers, directOnly);
+		if (reviewing) onapply(answers);
 		else if (question && answers[question.id as Question]) void move(step + 1);
 	}}
 >
@@ -131,48 +124,6 @@
 					)}
 				</p>
 			</section>
-			<details>
-				<summary>{t('How this view is chosen', 'มุมมองนี้เลือกมาอย่างไร')}</summary>
-				<p>
-					{t(
-						'A model on this device suggests a view from example preferences. Your reading settings take priority.',
-						'โมเดลในอุปกรณ์นี้เสนอรูปแบบจากตัวอย่างความชอบ โดยยึดการตั้งค่าการอ่านของคุณเป็นหลัก'
-					)}
-				</p>
-				<label class="direct">
-					<input type="checkbox" bind:checked={directOnly} />
-					<span>{t('Use direct answers only', 'ใช้เฉพาะคำตอบที่เลือก')}</span>
-				</label>
-				<p data-testid="interview-backend">
-					{result.backend === 'cnn'
-						? t('The CNN evaluated your answers on this device.', 'CNN ประเมินคำตอบในอุปกรณ์นี้')
-						: result.backend === 'incomplete'
-							? t('Direct answers until the interview is complete.', 'ใช้คำตอบโดยตรงจนกว่าจะตอบครบ')
-							: result.backend === 'unavailable'
-								? t(
-										'CNN unavailable. Direct answers still work.',
-										'CNN ใช้งานไม่ได้ ยังใช้คำตอบโดยตรงได้'
-									)
-								: t('Using only the answers you chose.', 'ใช้คำตอบโดยตรง โดยไม่ผ่าน CNN')}
-				</p>
-				{#if result.prediction && result.backend === 'cnn'}
-					<p>
-						{t('CNN theme suggestion', 'ธีมที่ CNN เสนอ')}: {preferenceName(
-							result.prediction.labels.theme,
-							lang
-						)}.
-						{view.lockedFields.includes('theme')
-							? t('Your existing theme is protected.', 'รักษาธีมที่คุณเลือกไว้แล้ว')
-							: t('You can change or remove it after applying.', 'เปลี่ยนหรือลบได้หลังปรับมุมมอง')}
-					</p>
-					<dl>
-						{#each describePatch(result.patch, lang).filter((item) => result.sources[item.field] === 'cnn') as item (item.field)}
-							<dt>{item.label} · CNN</dt>
-							<dd>{item.text}</dd>
-						{/each}
-					</dl>
-				{/if}
-			</details>
 		{/if}
 	</div>
 	<div class="apply">
@@ -288,7 +239,7 @@
 		opacity: 0.45;
 		cursor: not-allowed;
 	}
-	:is(button, summary, .direct input):focus-visible {
+	button:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
@@ -337,19 +288,6 @@
 	}
 	.preview p {
 		color: var(--muted);
-	}
-	summary {
-		cursor: pointer;
-		min-height: var(--tap);
-		padding-block: 0.65rem;
-		font-weight: 600;
-	}
-	.direct {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		min-height: var(--tap);
-		cursor: pointer;
 	}
 	.apply {
 		position: sticky;
