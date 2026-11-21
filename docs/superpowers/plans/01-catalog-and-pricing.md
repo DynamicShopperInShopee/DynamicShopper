@@ -40,6 +40,12 @@ The sorted unused groups are minimum gaps for MEGA8 (310), KRUA150 (510) and SHI
 
 For the separate exact-search test, use one 1,000-baht item with free shipping, a fixed shop discount of 100 and a fixed platform discount of 200. Both require 1,000. Skipping the shop voucher qualifies the platform voucher, uses 80 coins and pays 720. Taking the shop voucher disqualifies the platform voucher, uses 90 coins and pays 810.
 
+#### Implementation handoff
+
+- Catalog consumers can import `products`, `getProduct`, `shops`, `getShop`, `categories`, `specs`, `vouchers`, `resolveFact` and `formatFact` from `src/lib/catalog/index.ts`. Product fact keys include `sold`, `reviewCount`, `summary`, `review.0`, `review.1` and `spec.<key>`. The raw value can be numeric or bilingual text. Resolve shop and voucher metadata from their catalog definitions.
+- Pricing consumers can import `optimizeDeal(basket, context)` and `findAddOns(basket, context)` from `src/lib/pricing/index.ts`. Pass a stable store-opening timestamp as `openedAt` and a reference timestamp as `now`, both in milliseconds. The default coin balance is shared. The receipt contains `items`, `shops`, `subtotal`, `shipping`, `baseline`, `appliedVouchers`, `unusedVouchers`, `coinsUsed`, `total` and `savings`. A `null` receipt means there is no confirmed total. Show the appropriate empty or invalid-basket state in that case.
+- The shared baseline was pending at implementation start. These export types live in the domain modules for consumer review. Owner 4 still owns `src/lib/contracts.ts`; reconcile types with Owners 2 and 3 before merging the storefront wiring.
+
 ### Task 2: Resolve and format the first real listing
 
 - [ ] Create `src/lib/catalog/facts.spec.ts`. Run `bun run test:unit --run --project server src/lib/catalog/facts.spec.ts` and capture the missing implementation failure. Assert the shared anchor fixture resolves independently by ID and field, formats in Thai and English exactly as agreed and preserves fractional capacity. Unknown IDs, unknown fields, inherited object keys and absent original prices return the agreed missing result.
