@@ -68,3 +68,7 @@ Files: digital assets and manifest under `src/lib/assets/products`, route-local 
 - Independent design, producer/consumer, media, conflict-resolution and visual reviews were completed. All sixteen locale/theme/viewport combinations loaded their images and verified the rendered facts.
 - Production build passed; server unit tests: 107 passed with the same five pre-existing personalization contract failures; client unit tests: 78 passed. Type checking reports only the same two unresolved imports in `personalization/contract.spec.ts`, with no warnings. Production E2E passed 112 with the development-only poisoned-model case skipped; that case passed separately in development.
 - After the final phone-caption fix, all nineteen affected listing tests passed on a fresh production Worker. Independent English/Thai phone inspection confirmed the caption clears navigation, with verified facts and no sideways scroll.
+
+### Final main integration
+
+Main `385eccb` includes the team's contract repairs and standalone harness. It merged cleanly and passed independent review of the new agent/catalog boundary. On the resulting tree, all 360 unit tests passed (one credential-dependent live-model test skipped), type checking reported zero errors and warnings, and production E2E passed 118 cases (the development-only poison case skipped in production). The Cloudflare build passed. These results supersede the earlier baseline-failure counts.

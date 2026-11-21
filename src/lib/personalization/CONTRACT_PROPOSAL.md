@@ -1,7 +1,16 @@
 # Owner 2 contract proposal
 
-Status: proposed for Owner 4's shared-contract baseline. Owner 2 does not edit
-`src/lib/contracts.ts` or `src/lib/fixtures/contract-sample.ts`.
+Status: dropped as a runtime API proposal; the integrated storefront adopted
+`src/lib/harness/index.ts` and its validated `handleTurn` pipeline instead. This
+document and the shared draft fixture remain as design history, not a claim that
+`applyTurn` is exported by the legacy personalization module.
+
+Accepted: retain the five behavioral acceptance cases in `contract.spec.ts`, using
+the shared product fixture and the actual harness APIs. The checks exercise
+partial validation, no-op history, explicit language precedence, Undo and cited
+answers without adding a second state reducer or weakening their guarantees.
+The existing `personalization.spec.ts` still covers the legacy API used by
+comparison and listing components.
 
 This proposal follows the approved product language (`language`, `cardFields`,
 `searchWords`) rather than the unreviewed implementation on another owner's

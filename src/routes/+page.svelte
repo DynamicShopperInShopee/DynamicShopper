@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { afterNavigate, beforeNavigate, snapshot } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
 	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
 	import { page } from '$app/state';
@@ -812,6 +812,21 @@
 	}
 </script>
 
+{#snippet harnessLink()}
+	<a
+		class="assistant-link"
+		href={resolve('/harness#assistant')}
+		onclick={(event) => {
+			if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+				return;
+			event.preventDefault();
+			void goto(resolve('/harness#assistant'), { state: { storeSearch: captureSearch() } });
+		}}
+	>
+		{language === 'th' ? 'ทดลองผู้ช่วยปรับหน้าร้าน' : 'Explore the agent harness'}
+	</a>
+{/snippet}
+
 {#snippet sectionDeal()}
 	{#if topDeal}<DealSlip receipt={topDeal} locale={language} />{/if}
 {/snippet}
@@ -1338,6 +1353,7 @@
 
 		{#if cookerSearch || skinSearch}
 			<SearchQuickFilters
+				{harnessLink}
 				cooker={cookerSearch}
 				{language}
 				{category}
@@ -1707,6 +1723,7 @@
 			>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
 				{#if eventDemo && !cookerSearch && !skinSearch}
+					{@render harnessLink()}
 					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
