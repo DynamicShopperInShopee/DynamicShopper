@@ -49,7 +49,9 @@
 				<ul>
 					{#each mom as product (product.id)}
 						<li data-product={product.id}>
-							<a href={resolve(`/product/[id]?lang=th&theme=large&view=receipt`, { id: product.id })}>
+							<a
+								href={resolve(`/product/[id]?lang=th&theme=large&view=receipt`, { id: product.id })}
+							>
 								<FactValue productId={product.id} field="name" locale="th" />
 							</a>
 							<FactValue productId={product.id} field="summary" locale="th" tag="p" />

@@ -11,16 +11,9 @@
 	let showInventory = $state(false);
 	const current = $derived(catalog.find((item) => item.catalogId === data.id));
 	const inventory = $derived(current ? [current, ...data.shopProducts] : data.shopProducts);
-	function productLink(id: string) {
-		return (
-			resolve('/product/[id]', { id }) +
-			'?lang=' +
-			data.language +
-			'&theme=' +
-			data.theme +
-			(data.receiptQuery ? '&' + data.receiptQuery : '')
-		);
-	}
+	const productQuery = $derived(
+		`lang=${data.language}&theme=${data.theme}${data.receiptQuery ? '&' + data.receiptQuery : ''}`
+	);
 </script>
 
 <section aria-labelledby="seller-name">
@@ -62,7 +55,7 @@
 		<ul>
 			{#each data.shopProducts as item (item.catalogId)}
 				<li>
-					<a href={productLink(item.id)}>
+					<a href={resolve(`/product/[id]?${productQuery}`, { id: item.id })}>
 						<span
 							class="demo-photo"
 							data-category={item.category}
@@ -114,7 +107,7 @@
 				{#each inventory as item (item.catalogId)}
 					<li>
 						<a
-							href={productLink(item.id)}
+							href={resolve(`/product/[id]?${productQuery}`, { id: item.id })}
 							aria-current={item.catalogId === data.id ? 'page' : undefined}
 							onclick={() => inventoryDialog?.close()}
 						>
