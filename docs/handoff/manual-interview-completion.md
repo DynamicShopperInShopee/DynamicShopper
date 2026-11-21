@@ -14,3 +14,11 @@ Verification:
 - Independent review found no wizard logic blocker. Review findings about old assertions and preview copy were corrected.
 
 Remaining release checks: normal type-check with independent dependency installation, production browser smoke, all four themes and existing provider poison checks. This is one Manual increment, not certification of every storefront journey. No merge, deployment or paid provider call was performed during implementation.
+
+## Release-check follow-up
+
+On the final `d9e55a6` tree, the credential-cleared Node production build and browser subset passed: 60 passed, one development-only poison case skipped as intended. Coverage includes all four themes, Thai/English, 390×844 and 1440×900, storefront/listing accessibility, cart, comparison and all interview journeys. Local assistant checks passed 5/5; local harness checks passed 2/2, including poisoned-model behavior. These use synthetic responses and make no paid provider calls.
+
+Workers Builds for PR #29 head `d9e55a6` reported success. A hosted signed-out smoke check and independent dependency installation/type-check remain unverified. Existing development logs include a SvelteKit replaceState deprecation warning; no unrelated navigation rewrite was included.
+
+User instruction: leave this PR unmerged and do not deploy. Further Manual tasks use separate branches.
