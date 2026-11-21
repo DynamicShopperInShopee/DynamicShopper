@@ -213,10 +213,22 @@ test('serves the storefront without credentials and isolates unconfigured demo a
 	expect(auth.status()).toBe(503);
 });
 
-test('disables live experimentation on the production storefront', async ({ page, request }) => {
+test('keeps production model endpoints disabled and falls back safely', async ({
+	page,
+	request
+}) => {
 	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
-	await expect(page.getByRole('button', { name: 'Try live model' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Simulate poisoned model' })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Try live model' }).click();
+	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('minimal');
+	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+	await expect(page.getByText('Fallback reason: api_error')).toBeVisible();
+	const assistant = await request.post('/api/assistant', {
+		data: { message: 'hello', poison: true }
+	});
+	expect(assistant.status()).toBe(404);
 	const result = await request.post('/api/local-assistant', {
 		headers: { origin: new URL(page.url()).origin },
 		data: { hints: ['playful'] }
@@ -239,7 +251,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await shops.getByRole('link').first().click();
 	await expect(page).toHaveURL(/\/product\/cooker-/);
 	await page.getByRole('link', { name: 'Back to store' }).click();
-	await page.getByRole('link', { name: 'Shopping assistant' }).click();
+	await page.getByRole('button', { name: 'Shopping assistant', exact: true }).click();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });
 
@@ -248,7 +260,7 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await page.goto('/');
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
-	const cards = page.locator('.product-grid > li');
+	const cards = page.locator('#products [data-product]');
 	await expect(strip).toBeVisible();
 	await page.evaluate(() => scrollTo(0, 500));
 	await expect.poll(async () => (await strip.boundingBox())?.y).toBe(56);
@@ -272,5 +284,8 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await strip.getByLabel('Categories').selectOption('skin');
 	await expect(strip).toHaveCount(0);
 	await expect(page.getByRole('region', { name: 'Matching shops' })).toBeVisible();
-	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
+	await expect(page.locator('#products .demo-photo').first()).toHaveAttribute(
+		'data-category',
+		'skin'
+	);
 });

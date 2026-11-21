@@ -21,6 +21,8 @@ The plan is the complete description of how one shopper's store looks. It is sma
 
 Every part has a closed list of allowed values. Nothing in the plan is free text except search words, and those are checked before an AI-chosen phrase is accepted.
 
+Card details are rendered as an ordered subset on grid cards, list cards and Top picks. The product name and Best price action remain available even when their optional fields are omitted. Images can appear anywhere in the selected order. Specs use highlighted keys first; review excerpts and rating counts come directly from the catalog. Vouchers show the optimizer-selected combination for the same single-product basket and clock used by Best price, without reproducing discount arithmetic in the card.
+
 ## Four levels of personalization
 
 | Level | The shopper says | The store changes |
@@ -59,13 +61,13 @@ The AI does not design pages freely. It chooses from **seven fixed sections** an
 | **What buyers say** | Up to two review quotes for each of the top three, preferring quotes that mention a spec the shopper cares about | Social proof for visual and gift shoppers |
 | **Best deal** | The optimizer's receipt for the top product: vouchers, coins, the real total | The real price, already worked out |
 | **Share with family** | Copy a link, or send it over LINE; a note that only the look is shared | Set up a store for a parent and send it |
-| **Products** | The product area (grid, list or table) with whatever the earlier sections have not already shown | The shopper never loses the full list |
+| **Products** | The complete filtered product area (grid, list or table) | The shopper never loses the full list |
 
 Rules:
 
 - The products section is always on the page. If a proposal leaves it out, it is added at the end.
 - At most seven sections, no duplicates, unknown ones dropped.
-- Products already shown in Top picks, or in a Compare table that actually appears, are not repeated in Products. If nothing is left, Products shows nothing.
+- Accepted: Top picks and Compare may repeat products in Products. Retain the complete filtered shelf so a recommendation never removes the shopper’s product list, including simplified mode.
 - If the layout is already a comparison table, Compare top 3 does not appear (no two tables).
 - When the filters match nothing, the page shows one empty state that names the filters, not a column of empty sections.
 - A page that is only Products looks exactly like the standard store, with no section headings.

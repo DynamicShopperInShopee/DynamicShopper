@@ -42,6 +42,7 @@
 	import { defaultCatalog, whatChanged, pageSections } from '#lib/harness/index.ts';
 	import ChangeSlip from '#lib/harness-ui/ChangeSlip.svelte';
 	import Accuracy from '#lib/harness-ui/Accuracy.svelte';
+	import AdaptiveCard from '#lib/harness-ui/AdaptiveCard.svelte';
 
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
 
@@ -1174,7 +1175,7 @@
 		{#snippet productShelf()}
 			<section id="products" aria-labelledby="products-heading" tabindex="-1">
 				<div class="results-header">
-					<h2 id="products-heading">{t.products}</h2>
+					<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
 					{#if eventDemo}
 						<button
 							class="assistant-link"
@@ -1218,6 +1219,26 @@
 								</ul>
 							</details>
 						{/if}
+					{:else if adapted}
+						<ul class="adaptive-grid" class:adaptive-list={plan.layout === 'list'}>
+							{#each products as product (product.id)}
+								{@const canonicalProduct = canonical.find((item) => item.id === product.catalogId)}
+								{#if canonicalProduct}<li>
+										<AdaptiveCard
+											product={canonicalProduct}
+											plan={toHarness(activePlan)}
+											photos={eventDemo}
+											clock={opening !== undefined && referenceTime !== undefined
+												? { openedAt: opening, now: referenceTime }
+												: undefined}
+											onDeal={openDeal}
+											reasons={sort === 'default' && !plan.simplified && products.length > 1
+												? (ranked.find((row) => row.product.id === product.catalogId)?.bars ?? [])
+												: []}
+										/>
+									</li>{/if}
+							{/each}
+						</ul>
 					{:else}
 						<ul class="product-grid" class:list-layout={adapted && plan.layout === 'list'}>
 							{#each products as product (product.id)}
@@ -1385,16 +1406,29 @@
 				</div>
 			{:else if products.length && ['compare', 'top-picks', 'reviews', 'what-matters'].includes(section)}
 				<section class="assistant-reply" data-section={section}>
-					{#if section === 'compare' || section === 'top-picks'}
-						<h2>
-							{section === 'compare'
-								? language === 'th'
-									? 'เปรียบเทียบ'
-									: 'Compare'
-								: language === 'th'
-									? 'สินค้าที่เหมาะกับคุณ'
-									: 'Top picks'}
-						</h2>
+					{#if section === 'top-picks'}
+						<h2>{language === 'th' ? 'สินค้าที่เหมาะกับคุณ' : 'Top picks'}</h2>
+						<ul class="adaptive-grid" class:adaptive-list={plan.layout === 'list'}>
+							{#each products.slice(0, 3) as product (product.id)}
+								{@const canonicalProduct = canonical.find((item) => item.id === product.catalogId)}
+								{#if canonicalProduct}<li>
+										<AdaptiveCard
+											product={canonicalProduct}
+											plan={toHarness(activePlan)}
+											photos={eventDemo}
+											clock={opening !== undefined && referenceTime !== undefined
+												? { openedAt: opening, now: referenceTime }
+												: undefined}
+											onDeal={openDeal}
+											reasons={sort === 'default' && !plan.simplified && products.length > 1
+												? (ranked.find((row) => row.product.id === product.catalogId)?.bars ?? [])
+												: []}
+										/>
+									</li>{/if}
+							{/each}
+						</ul>
+					{:else if section === 'compare'}
+						<h2>{language === 'th' ? 'เปรียบเทียบ' : 'Compare'}</h2>
 						<ShelfTable
 							products={products
 								.slice(0, 3)
@@ -1436,6 +1470,20 @@
 </div>
 
 <style>
+	.adaptive-grid {
+		list-style: none;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+		gap: 1rem;
+	}
+	.adaptive-grid > li {
+		min-width: 0;
+	}
+	.adaptive-grid.adaptive-list {
+		grid-template-columns: 1fr;
+	}
+
 	.rank-bar {
 		display: block;
 		height: 6px;

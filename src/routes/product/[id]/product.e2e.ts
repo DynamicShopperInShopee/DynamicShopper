@@ -112,8 +112,8 @@ test('searches catalog reviews offline and follows listing photos to their illus
 test('skin pack shots use the same image and crop on the results and listing', async ({ page }) => {
 	await page.goto('/');
 	await page.getByRole('button', { name: 'Skincare', exact: true }).click();
-	const result = page.locator('.product-grid [data-product="vitamin-c-serum"]');
-	const art = result.locator('.art');
+	const result = page.locator('#products [data-product="vitamin-c-serum"]');
+	const art = result.locator('.demo-photo');
 	const style = await art.evaluate((node) => ({
 		url: getComputedStyle(node).backgroundImage,
 		position: getComputedStyle(node).backgroundPosition
