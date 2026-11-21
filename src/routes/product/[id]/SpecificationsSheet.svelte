@@ -12,17 +12,49 @@
 		{ key: 'capacity', label: th ? 'ความจุ' : 'Capacity', unit: th ? 'ลิตร' : 'L' },
 		{ key: 'power', label: th ? 'กำลังไฟ' : 'Power', unit: th ? 'วัตต์' : 'W' },
 		{ key: 'programs', label: th ? 'โปรแกรมหุง' : 'Cooking programs', unit: '' },
-		{ key: 'warranty', label: th ? 'การรับประกัน' : 'Warranty', unit: th ? 'ปี' : 'years' }
+		{
+			key: 'warranty',
+			label: th ? 'การรับประกัน' : 'Warranty',
+			unit: th ? 'ปี' : specs[3] === 1 ? 'year' : 'years'
+		}
 	]);
 </script>
 
-<div class="actions">
-	{#if hasReview}<a href="#reviews">{th ? 'รีวิว' : 'Reviews'}</a>{/if}
-	<a href="#details">{th ? 'รายละเอียด' : 'Details'}</a>
+<nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>
+	{#if hasReview}
+		<a href="#reviews">
+			<svg
+				aria-hidden="true"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.5"
+			>
+				<path d="M20 11a8 8 0 0 1-8 8H5l2-3a8 8 0 1 1 13-5Z" /><path d="M9 11h6" />
+			</svg>
+			{th ? 'รีวิว' : 'Reviews'}
+		</a>
+	{/if}
+	<a href="#details">
+		<svg
+			aria-hidden="true"
+			width="20"
+			height="20"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.5"
+		>
+			<path d="M6 3h12v18H6zM9 8h6m-6 4h6m-6 4h4" />
+		</svg>
+		{th ? 'รายละเอียด' : 'Details'}
+	</a>
 	<button type="button" aria-haspopup="dialog" onclick={() => sheet?.showModal()}>
 		{th ? 'สเปกสินค้า' : 'Specifications'}
 	</button>
-</div>
+</nav>
 
 <dialog bind:this={sheet} aria-labelledby="specs-title">
 	<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
@@ -57,13 +89,17 @@
 	}
 	.actions a {
 		flex: 1;
-		display: grid;
-		place-items: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 		border-inline-end: 1px solid #e9e6dc;
 		min-height: 48px;
 		padding: 0 0.4rem;
 		color: inherit;
 		text-align: center;
+		text-decoration: none;
+		font-size: 0.75rem;
 	}
 	button {
 		font: inherit;
@@ -109,6 +145,14 @@
 	dd {
 		margin: 0;
 		font-family: 'IBM Plex Mono', ui-monospace, monospace;
+	}
+	@media (max-width: 699px) {
+		.actions {
+			position: fixed;
+			inset-inline: 0;
+			z-index: 2;
+			min-height: var(--product-actions-height);
+		}
 	}
 	@media (min-width: 700px) {
 		dialog {

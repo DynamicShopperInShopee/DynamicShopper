@@ -98,11 +98,25 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 		}))
 	);
 	await expect(page).toHaveURL(/\/product\/cooker-1/);
+	const hero = page.locator('main .art');
+	const header = page.getByRole('link', { name: 'Back to store' });
+	const heroBox = await hero.boundingBox();
+	const headerBox = await header.boundingBox();
+	expect(heroBox?.width).toBe(390);
+	expect(heroBox?.height).toBe(390);
+	expect(headerBox?.y ?? -1).toBeGreaterThanOrEqual(heroBox?.y ?? 0);
+	expect((headerBox?.y ?? 0) - (heroBox?.y ?? 0)).toBeLessThan(24);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+	const actions = page.getByRole('navigation', { name: 'Product actions' });
+	await expect(actions).toBeInViewport();
+	const actionBox = await actions.boundingBox();
+	expect((actionBox?.y ?? 0) + (actionBox?.height ?? 0)).toBe(844);
+
 	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
 	await page.getByRole('button', { name: 'Specifications' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Specifications' });
 	await expect(sheet).toBeVisible();
-	await expect(page.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
+	await expect(sheet.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
 	await sheet.getByRole('button', { name: 'Done' }).click();
 	await expect(sheet).toBeHidden();
 	await page.getByRole('link', { name: 'ไทย' }).click();

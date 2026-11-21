@@ -16,7 +16,7 @@
 
 <svelte:head><title>{product.name[data.language]} · DynamicShopper</title></svelte:head>
 
-<main lang={data.language} data-product={product.id}>
+<main class:with-actions={Boolean(specs)} lang={data.language} data-product={product.id}>
 	<header>
 		<a class="back" href={resolve('/')} aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}>
 			<svg
@@ -31,7 +31,8 @@
 				<path d="M21 12H4m7-7-7 7 7 7" />
 			</svg>
 		</a>
-		<a class="header-search" href={resolve('/')}>
+		<span class="hero-shop" data-fact="shop" data-raw={product.shop}>{product.shop}</span>
+		<a class="header-search" href={resolve('/')} aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}>
 			<svg
 				viewBox="0 0 20 20"
 				width="18"
@@ -43,9 +44,12 @@
 			>
 				<circle cx="8" cy="8" r="5" /><path d="m12 12 5 5" />
 			</svg>
-			{th ? 'ค้นหาสินค้า' : 'Search products'}
+			<span>{th ? 'ค้นหาสินค้า' : 'Search products'}</span>
 		</a>
-		<a href={`${resolve('/product/[id]', { id: product.id })}?lang=${th ? 'en' : 'th'}`}>
+		<a
+			class="language"
+			href={`${resolve('/product/[id]', { id: product.id })}?lang=${th ? 'en' : 'th'}`}
+		>
 			{th ? 'English' : 'ไทย'}
 		</a>
 	</header>
@@ -75,13 +79,47 @@
 					<dd data-fact="sold" data-raw={product.sold}>{formatNumber(product.sold)}</dd>
 				</div>
 			</dl>
+			{#if specs}
+				<dl class="highlights">
+					<div>
+						<dt>{th ? 'ความจุ' : 'Capacity'}</dt>
+						<dd data-fact="capacity" data-raw={specs[0]}>
+							{formatNumber(specs[0])}
+							{th ? 'ลิตร' : 'L'}
+						</dd>
+					</div>
+					<div>
+						<dt>{th ? 'การรับประกัน' : 'Warranty'}</dt>
+						<dd data-fact="warranty" data-raw={specs[3]}>
+							{formatNumber(specs[3])}
+							{th ? 'ปี' : specs[3] === 1 ? 'year' : 'years'}
+						</dd>
+					</div>
+				</dl>
+			{/if}
 			<h1 id="product-title" data-fact="name" data-raw={product.name[data.language]}>
 				{product.name[data.language]}
 			</h1>
-			<p data-fact="shop" data-raw={product.shop}>{product.shop}</p>
 			<dl class="facts">
-				<div>
-					<dt>{th ? 'ค่าจัดส่ง' : 'Shipping'}</dt>
+				<div class="delivery">
+					<dt>
+						<svg
+							aria-hidden="true"
+							width="22"
+							height="22"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+						>
+							<path d="M2 5h12v12H2zM14 9h4l4 5v3h-8" /><circle cx="6" cy="18" r="2" /><circle
+								cx="18"
+								cy="18"
+								r="2"
+							/>
+						</svg>
+						{th ? 'ค่าจัดส่ง' : 'Shipping'}
+					</dt>
 					<dd data-fact="shipping" data-raw={product.shipping}>
 						{product.shipping === 0 ? (th ? 'ฟรี' : 'Free') : formatBaht(product.shipping)}
 					</dd>
@@ -125,6 +163,9 @@
 		align-items: center;
 		color: inherit;
 	}
+	.hero-shop {
+		display: none;
+	}
 	.back {
 		flex: 0 0 44px;
 		justify-content: center;
@@ -156,7 +197,7 @@
 		background-position: 0 100%;
 	}
 	.art[data-model='cooker-1'] {
-		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
+		background: #d0dce6 url('../../../lib/assets/products/cooker-listing-hero.jpg') center / cover
 			no-repeat;
 	}
 	.art[data-category='skin'] {
@@ -187,9 +228,6 @@
 		font-size: 1.25rem;
 		line-height: 1.4;
 		margin: 0.75rem 0 0.25rem;
-	}
-	p {
-		margin: 0 0 0.75rem;
 	}
 	.prices {
 		margin: 0;
@@ -235,6 +273,116 @@
 		min-height: 44px;
 		align-items: center;
 		border-top: 1px solid #e9e6dc;
+	}
+	.highlights {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		margin: 0;
+		padding: 0.55rem 0;
+		border-top: 0;
+		border-bottom: 1px solid #e9e6dc;
+	}
+	.highlights div {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.1rem;
+		padding: 0.15rem 0.6rem;
+	}
+	.highlights div + div {
+		border-inline-start: 1px solid #e9e6dc;
+	}
+	.highlights dt {
+		font-size: 0.875rem;
+		color: #5d5d63;
+	}
+	.highlights dd {
+		font-weight: 600;
+	}
+	.delivery dt {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	@media (max-width: 699px) {
+		main {
+			--product-actions-height: 50px;
+		}
+		main.with-actions {
+			padding-bottom: calc(var(--product-actions-height) + env(safe-area-inset-bottom, 0px));
+		}
+		header {
+			height: 60px;
+			box-sizing: border-box;
+			margin-bottom: -60px;
+			border: 0;
+			background: transparent;
+			padding: 8px;
+			gap: 4px;
+			pointer-events: none;
+		}
+		header a {
+			box-sizing: border-box;
+			min-width: 44px;
+			justify-content: center;
+			background: #27394e;
+			color: white;
+			border-radius: 999px;
+			text-decoration: none;
+			pointer-events: auto;
+		}
+		header .back {
+			margin-inline-end: 0.2rem;
+		}
+		.hero-shop {
+			display: block;
+			flex: 0 1 auto;
+			min-width: 0;
+			margin-inline: auto;
+			padding: 0.2rem 0.35rem;
+			border-radius: 3px;
+			color: white;
+			background: #27394e;
+			overflow-wrap: anywhere;
+			font-size: 0.875rem;
+			font-weight: 600;
+			line-height: 1.25;
+		}
+		header .header-search {
+			background: #27394e;
+			flex: 0 0 44px;
+			padding: 0;
+		}
+		.header-search span {
+			display: none;
+		}
+		.language {
+			padding-inline: 0.55rem;
+			font-size: 0.875rem;
+		}
+		section {
+			padding-inline: 0.8rem;
+		}
+		.prices {
+			min-height: 52px;
+			align-content: center;
+			padding-block: 0.4rem;
+		}
+		.prices dd[data-fact='price'] {
+			font-size: 1.375rem;
+			font-weight: 400;
+		}
+		.prices s,
+		.prices .sold {
+			font-size: 0.8rem;
+		}
+		h1 {
+			font-size: 1rem;
+			font-weight: 400;
+			margin: 0.8rem 0 0.25rem;
+		}
+		.delivery {
+			min-height: 58px;
+		}
 	}
 	@media (min-width: 700px) {
 		.listing {
