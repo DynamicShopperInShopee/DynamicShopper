@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ShopperPlan } from '../personalization/plan';
+	import InterviewConversation from './InterviewConversation.svelte';
 	type InterviewView = {
 		plan: ShopperPlan;
 		interview: { answers: Answers } | null;
@@ -21,6 +22,7 @@
 	} = $props();
 	// Draft lives only inside the sheet. Closing it never changes the shop.
 	let answers = $state<Answers>(untrack(() => ({ ...view.interview?.answers })));
+	let conversationOpen = $state(false);
 	let step = $state(0);
 	let stepHeading = $state<HTMLHeadingElement>();
 	const question = $derived(interview.questions[step]);
@@ -60,91 +62,139 @@
 	);
 </script>
 
-<form
-	onsubmit={(event) => {
-		event.preventDefault();
-		if (reviewing) onapply(answers);
-		else if (question && answers[question.id as Question]) void move(step + 1);
-	}}
->
-	<div class="step-content">
-		<ol class="progress" aria-label={t('Interview progress', 'ขั้นตอนการปรับมุมมอง')}>
-			{#each stepNames as name, index (name[0])}
-				<li
-					class:current={step === index}
-					class:complete={step > index}
-					aria-current={step === index ? 'step' : undefined}
-				>
-					<span>{name[lang === 'th' ? 1 : 0]}</span>
-				</li>
-			{/each}
-		</ol>
-		<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
-			{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
-		</h3>
-		{#if question}
-			<fieldset aria-labelledby="interview-step-title">
-				<div class="answers">
-					{#each question.options as option (option.id)}
-						<label class:selected={answers[question.id as Question] === option.id}>
-							<input
-								type="radio"
-								name={question.id}
-								value={option.id}
-								checked={answers[question.id as Question] === option.id}
-								onchange={() => (answers = { ...answers, [question.id]: option.id })}
-							/>
-							<span>{option[lang]}</span>
-						</label>
-					{/each}
-				</div>
-			</fieldset>
-			<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
-		{:else}
-			<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
-				{#if changes.length}
-					<dl>
-						{#each changes as item (item.field)}<div>
-								<dt>{item.label}</dt>
-								<dd>{item.text}</dd>
-							</div>{/each}
-					</dl>
-				{:else}<p>
-						{Object.keys(answers).length
-							? t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')
-							: t(
-									'You skipped every question. Your view will stay the same.',
-									'คุณข้ามทุกข้อ มุมมองจึงคงเดิม'
-								)}
-					</p>{/if}
-				<p>
-					{t(
-						'Your product information stays the same. You can fine-tune this view in chat.',
-						'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
-					)}
-				</p>
-			</section>
-		{/if}
-	</div>
-	<div class="apply">
-		{#if step > 0}
-			<button class="back" type="button" onclick={() => move(step - 1)}>
-				{t('Back', 'ย้อนกลับ')}
+{#if conversationOpen}
+	<InterviewConversation
+		locale={lang}
+		oncancel={() => (conversationOpen = false)}
+		oncomplete={(draft: Answers) => {
+			answers = draft;
+			conversationOpen = false;
+			void move(interview.questions.length);
+		}}
+	/>
+{:else}
+	{#if step === 0}
+		<div class="assistant-option">
+			<p>
+				{t(
+					'Prefer a conversation? Open the AI interview; the four direct choices also work offline.',
+					'อยากคุยกับผู้ช่วยไหม? เริ่มสัมภาษณ์ด้วย AI ได้ หรือเลือกคำตอบสั้น ๆ แบบออฟไลน์ก็ได้'
+				)}
+			</p>
+			<button type="button" onclick={() => (conversationOpen = true)}>
+				{t('Talk to the assistant', 'คุยกับผู้ช่วย')}
 			</button>
-		{/if}
-		<button class="primary" disabled={!reviewing && !answers[question.id as Question]}>
-			{reviewing
-				? t('Apply my view', 'ใช้มุมมองนี้')
-				: step === interview.questions.length - 1
-					? t('Preview my view', 'ดูมุมมองที่เสนอ')
-					: t('Next', 'ถัดไป')}
-		</button>
-	</div>
-</form>
+		</div>
+	{/if}
+	<form
+		onsubmit={(event) => {
+			event.preventDefault();
+			if (reviewing) onapply(answers);
+			else if (question && answers[question.id as Question]) void move(step + 1);
+		}}
+	>
+		<div class="step-content">
+			<ol class="progress" aria-label={t('Interview progress', 'ขั้นตอนการปรับมุมมอง')}>
+				{#each stepNames as name, index (name[0])}
+					<li
+						class:current={step === index}
+						class:complete={step > index}
+						aria-current={step === index ? 'step' : undefined}
+					>
+						<span>{name[lang === 'th' ? 1 : 0]}</span>
+					</li>
+				{/each}
+			</ol>
+			<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
+				{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
+			</h3>
+			{#if question}
+				<fieldset aria-labelledby="interview-step-title">
+					<div class="answers">
+						{#each question.options as option (option.id)}
+							<label class:selected={answers[question.id as Question] === option.id}>
+								<input
+									type="radio"
+									name={question.id}
+									value={option.id}
+									checked={answers[question.id as Question] === option.id}
+									onchange={() => (answers = { ...answers, [question.id]: option.id })}
+								/>
+								<span>{option[lang]}</span>
+							</label>
+						{/each}
+					</div>
+				</fieldset>
+				<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
+			{:else}
+				<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
+					{#if changes.length}
+						<dl>
+							{#each changes as item (item.field)}<div>
+									<dt>{item.label}</dt>
+									<dd>{item.text}</dd>
+								</div>{/each}
+						</dl>
+					{:else}<p>
+							{Object.keys(answers).length
+								? t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')
+								: t(
+										'You skipped every question. Your view will stay the same.',
+										'คุณข้ามทุกข้อ มุมมองจึงคงเดิม'
+									)}
+						</p>{/if}
+					<p>
+						{t(
+							'Your product information stays the same. You can fine-tune this view in chat.',
+							'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
+						)}
+					</p>
+				</section>
+			{/if}
+		</div>
+		<div class="apply">
+			{#if step > 0}
+				<button class="back" type="button" onclick={() => move(step - 1)}>
+					{t('Back', 'ย้อนกลับ')}
+				</button>
+			{/if}
+			<button class="primary" disabled={!reviewing && !answers[question.id as Question]}>
+				{reviewing
+					? t('Apply my view', 'ใช้มุมมองนี้')
+					: step === interview.questions.length - 1
+						? t('Preview my view', 'ดูมุมมองที่เสนอ')
+						: t('Next', 'ถัดไป')}
+			</button>
+		</div>
+	</form>
+{/if}
 
 <style>
 	form {
 		margin: 0;
+	}
+	.assistant-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+		padding: 0.875rem 1.125rem 0;
+	}
+	.assistant-option p {
+		margin: 0;
+		color: var(--muted);
+	}
+	.assistant-option button {
+		min-height: var(--tap);
+		padding-inline: 0.8rem;
+		border: 1px solid var(--seam);
+		border-radius: var(--radius);
+		background: var(--surface);
+		color: var(--ink);
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
 	}
 	.step-content {
 		display: grid;

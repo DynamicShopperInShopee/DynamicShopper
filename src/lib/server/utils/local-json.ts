@@ -6,9 +6,7 @@ export function error(status: number, reason: string) {
 	return Response.json({ error: reason }, { status, headers });
 }
 
-export function localJsonGuard(request: Request, url: URL, dev: boolean, peer: string) {
-	if (!dev || !loopback.includes(url.hostname) || !loopbackPeers.includes(peer))
-		return error(404, 'unavailable');
+export function sameOriginJsonGuard(request: Request, url: URL) {
 	if (request.headers.get('origin') !== url.origin) return error(403, 'invalid-request');
 	if (
 		request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json'
@@ -16,6 +14,12 @@ export function localJsonGuard(request: Request, url: URL, dev: boolean, peer: s
 		return error(415, 'invalid-request');
 	}
 	return null;
+}
+
+export function localJsonGuard(request: Request, url: URL, dev: boolean, peer: string) {
+	if (!dev || !loopback.includes(url.hostname) || !loopbackPeers.includes(peer))
+		return error(404, 'unavailable');
+	return sameOriginJsonGuard(request, url);
 }
 
 export function socketPeer(getClientAddress: () => string) {
