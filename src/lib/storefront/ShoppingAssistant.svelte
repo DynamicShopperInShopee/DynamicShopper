@@ -34,9 +34,9 @@
 	} = $props();
 
 	function listingHref(id: string, lang: Locale) {
-		const params = new SvelteURLSearchParams(listingQuery);
-		params.set('lang', lang);
-		params.set('theme', theme);
+		const params = new SvelteURLSearchParams({ lang, theme, view: 'receipt' });
+		const look = new SvelteURLSearchParams(listingQuery).get('look');
+		if (look) params.set('look', look);
 		return resolve(`/product/[id]?${params}`, { id });
 	}
 </script>
