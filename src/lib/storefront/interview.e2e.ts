@@ -22,8 +22,8 @@ async function interview(page: Page, thai = false, editing = false) {
 				name:
 					question === 'reading'
 						? thai
-							? 'ดูมุมมองที่เสนอ'
-							: 'Preview my view'
+							? 'ตอบเสร็จแล้ว'
+							: 'Finish interview'
 						: thai
 							? 'ถัดไป'
 							: 'Next',
@@ -31,9 +31,6 @@ async function interview(page: Page, thai = false, editing = false) {
 			})
 			.click();
 	}
-	await dialog
-		.getByRole('button', { name: thai ? 'ใช้มุมมองนี้' : 'Apply my view', exact: true })
-		.click();
 }
 
 for (const width of [390, 1440]) {

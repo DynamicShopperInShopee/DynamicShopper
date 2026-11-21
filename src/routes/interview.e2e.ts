@@ -6,7 +6,7 @@ async function answerInterview(page: import('@playwright/test').Page, labels: st
 		await dialog.getByRole('radio', { name: label, exact: true }).check();
 		await dialog
 			.getByRole('button', {
-				name: index === labels.length - 1 ? 'Preview my view' : 'Next',
+				name: index === labels.length - 1 ? 'Finish interview' : 'Next',
 				exact: true
 			})
 			.click();
@@ -18,8 +18,8 @@ test('the shortlist and specification choices appear on the applied shelf', asyn
 	await page.goto('/');
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
-	const dialog = await answerInterview(page, ['Help me choose', 'Specs', 'Durability', 'Balanced']);
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
+	await answerInterview(page, ['Help me choose', 'Specs', 'Durability', 'Balanced']);
+
 	await expect(page.getByRole('region', { name: 'Top picks' }).getByRole('link')).toHaveCount(3);
 	await expect(
 		page.locator('#products .product').first().locator('[data-fact^="spec."]').first()
@@ -46,8 +46,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	await context.setOffline(true);
 	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
-	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();
+
 	await expect(dialog).toHaveCount(0);
 	await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
@@ -106,7 +105,7 @@ test('cancelling a draft is inert; partial answers preserve explicit filters', a
 		await dialog
 			.getByRole('button', { name: 'Skip — keep my current settings', exact: true })
 			.click();
-	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();
+
 	await expect(page.locator('#products [data-fact="price"]')).toHaveCount(2);
 	await expect(page.getByRole('button', { name: 'Capacity 1.8 L' })).toBeVisible();
 	await page.getByRole('button', { name: 'Reset store', exact: true }).click();
@@ -123,19 +122,19 @@ test('an empty interview proposal does not consume the next Undo', async ({ page
 		await skipped
 			.getByRole('button', { name: 'Skip — keep my current settings', exact: true })
 			.click();
-	await skipped.getByRole('button', { name: 'Apply my view', exact: true }).click();
+
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
-	const dialog = await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
-	await dialog.getByRole('button', { name: 'Apply my view', exact: true }).click();
+	await answerInterview(page, ['Compare', 'Specs', 'Durability', 'Large text']);
+
 	await page.getByRole('button', { name: 'Edit my answers' }).click();
 	const edit = page.getByRole('dialog', { name: 'Make the shop fit you' });
 	for (let i = 0; i < 4; i++)
 		await edit
 			.getByRole('button', { name: 'Skip — keep my current settings', exact: true })
 			.click();
-	await edit.getByRole('button', { name: 'Apply my view', exact: true }).click();
+
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
@@ -147,21 +146,21 @@ test('an unchanged completed interview preserves the answers and takes one Undo 
 	await page.goto('/');
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	const answers = ['Compare', 'Specs', 'Durability', 'Large text'];
-	const dialog = await answerInterview(page, answers);
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
+	await answerInterview(page, answers);
+
 	await page.getByRole('button', { name: 'Edit my answers' }).click();
 	const edit = page.getByRole('dialog');
 	for (const [index, answer] of answers.entries()) {
 		await expect(edit.getByRole('radio', { name: answer, exact: true })).toBeChecked();
 		await edit
 			.getByRole('button', {
-				name: index === answers.length - 1 ? 'Preview my view' : 'Next',
+				name: index === answers.length - 1 ? 'Finish interview' : 'Next',
 				exact: true
 			})
 			.click();
 	}
-	await expect(edit.getByText('Your current view already matches these answers.')).toBeVisible();
-	await edit.getByRole('button', { name: 'Apply my view' }).click();
+	await expect(edit).toHaveCount(0);
+
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('button', { name: 'Start a quick interview' })).toBeVisible();
 });
@@ -174,11 +173,8 @@ test('the reviewed reading choice matches the applied shelf without a predicted 
 	await page.getByRole('button', { name: 'Start a quick interview' }).click();
 	await context.setOffline(true);
 	const dialog = await answerInterview(page, ['Browse', 'Pictures', 'Value', 'More space']);
-	const preview = dialog.getByRole('region', { name: 'Proposed view' });
-	await expect(preview).toContainText('More space');
-	await expect(preview).not.toContainText('Carbon blue');
-	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
-	await dialog.getByRole('button', { name: 'Apply my view' }).click();
+	await expect(dialog).toHaveCount(0);
+
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await expect(page.locator('.store')).toHaveAttribute('data-density', 'spacious');
 	await expect(page.locator('#products .product-grid')).toBeVisible();

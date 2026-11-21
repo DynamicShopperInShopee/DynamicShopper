@@ -5,13 +5,7 @@
 		interview: { answers: Answers } | null;
 	};
 	import { tick, untrack } from 'svelte';
-	import {
-		interview,
-		interviewProposal,
-		describePatch,
-		type Answers,
-		type Question
-	} from '../personalization/interview';
+	import { interview, type Answers, type Question } from '../personalization/interview';
 	let {
 		view,
 		onapply
@@ -22,49 +16,44 @@
 	// Draft lives only inside the sheet. Closing it never changes the shop.
 	let answers = $state<Answers>(untrack(() => ({ ...view.interview?.answers })));
 	let step = $state(0);
+	let completed = $state(false);
 	let stepHeading = $state<HTMLHeadingElement>();
 	const question = $derived(interview.questions[step]);
-	const reviewing = $derived(step === interview.questions.length);
 	const lang = $derived(view.plan.locale);
 	const t = (en: string, th: string) => (lang === 'th' ? th : en);
 	const stepNames = [
 		['Goal', 'เป้าหมาย'],
 		['Details', 'ข้อมูล'],
 		['Priority', 'สิ่งสำคัญ'],
-		['Reading', 'การอ่าน'],
-		['Review', 'ทบทวน']
+		['Reading', 'การอ่าน']
 	];
 	async function move(next: number) {
-		step = Math.max(0, Math.min(interview.questions.length, next));
+		step = Math.max(0, Math.min(interview.questions.length - 1, next));
 		await tick();
 		stepHeading?.focus();
 	}
+	function advance() {
+		if (completed) return;
+		if (step < interview.questions.length - 1) {
+			void move(step + 1);
+			return;
+		}
+		completed = true;
+		onapply({ ...answers });
+	}
 	function skip() {
-		if (!question) return;
+		if (completed) return;
 		const next = { ...answers };
 		delete next[question.id as Question];
 		answers = next;
-		void move(step + 1);
+		advance();
 	}
-	const result = $derived(interviewProposal(answers, view.plan));
-	const changes = $derived(
-		describePatch(
-			Object.fromEntries(
-				Object.entries(result.patch).filter(
-					([key, value]) =>
-						JSON.stringify(view.plan[key as keyof ShopperPlan]) !== JSON.stringify(value)
-				)
-			),
-			lang
-		)
-	);
 </script>
 
 <form
 	onsubmit={(event) => {
 		event.preventDefault();
-		if (reviewing) onapply(answers);
-		else if (question && answers[question.id as Question]) void move(step + 1);
+		if (answers[question.id as Question]) advance();
 	}}
 >
 	<div class="step-content">
@@ -80,64 +69,46 @@
 			{/each}
 		</ol>
 		<h3 id="interview-step-title" bind:this={stepHeading} tabindex="-1">
-			{reviewing ? t('Review your view', 'ตรวจมุมมองที่เสนอ') : question[lang]}
+			{question[lang]}
 		</h3>
-		{#if question}
-			<fieldset aria-labelledby="interview-step-title">
-				<div class="answers">
-					{#each question.options as option (option.id)}
-						<label class:selected={answers[question.id as Question] === option.id}>
-							<input
-								type="radio"
-								name={question.id}
-								value={option.id}
-								checked={answers[question.id as Question] === option.id}
-								onchange={() => (answers = { ...answers, [question.id]: option.id })}
-							/>
-							<span>{option[lang]}</span>
-						</label>
-					{/each}
-				</div>
-			</fieldset>
-			<button class="skip" type="button" onclick={skip}>{interview.skip[lang]}</button>
-		{:else}
-			<section class="preview" aria-label={t('Proposed view', 'มุมมองที่เสนอ')}>
-				{#if changes.length}
-					<dl>
-						{#each changes as item (item.field)}<div>
-								<dt>{item.label}</dt>
-								<dd>{item.text}</dd>
-							</div>{/each}
-					</dl>
-				{:else}<p>
-						{Object.keys(answers).length
-							? t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')
-							: t(
-									'You skipped every question. Your view will stay the same.',
-									'คุณข้ามทุกข้อ มุมมองจึงคงเดิม'
-								)}
-					</p>{/if}
-				<p>
-					{t(
-						'Your product information stays the same. You can fine-tune this view in chat.',
-						'ข้อมูลสินค้าคงเดิม แล้วค่อยแชตปรับมุมมองต่อได้'
-					)}
-				</p>
-			</section>
+		<fieldset aria-labelledby="interview-step-title">
+			<div class="answers">
+				{#each question.options as option (option.id)}
+					<label class:selected={answers[question.id as Question] === option.id}>
+						<input
+							type="radio"
+							name={question.id}
+							value={option.id}
+							checked={answers[question.id as Question] === option.id}
+							onchange={() => (answers = { ...answers, [question.id]: option.id })}
+						/>
+						<span>{option[lang]}</span>
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+		<button class="skip" type="button" disabled={completed} onclick={skip}>
+			{interview.skip[lang]}
+		</button>
+		{#if step === interview.questions.length - 1}
+			<p>
+				{t(
+					'Finish or skip this question to update your view. You can undo the change.',
+					'ตอบเสร็จหรือข้ามข้อนี้เพื่อปรับมุมมอง คุณย้อนกลับได้'
+				)}
+			</p>
 		{/if}
 	</div>
 	<div class="apply">
 		{#if step > 0}
-			<button class="back" type="button" onclick={() => move(step - 1)}>
+			<button class="back" type="button" disabled={completed} onclick={() => move(step - 1)}>
 				{t('Back', 'ย้อนกลับ')}
 			</button>
 		{/if}
-		<button class="primary" disabled={!reviewing && !answers[question.id as Question]}>
-			{reviewing
-				? t('Apply my view', 'ใช้มุมมองนี้')
-				: step === interview.questions.length - 1
-					? t('Preview my view', 'ดูมุมมองที่เสนอ')
-					: t('Next', 'ถัดไป')}
+		<button class="primary" disabled={completed || !answers[question.id as Question]}>
+			{step === interview.questions.length - 1
+				? t('Finish interview', 'ตอบเสร็จแล้ว')
+				: t('Next', 'ถัดไป')}
 		</button>
 	</div>
 </form>
@@ -258,36 +229,9 @@
 		background: transparent;
 		font-weight: 400;
 	}
-	.preview {
-		background: var(--surface);
-		border-block: 1px dashed var(--muted);
-		padding: 0.6rem 0.875rem;
-	}
-	dl {
-		margin: 0;
-	}
-	dl div {
-		padding: 0.4rem 0;
-		border-bottom: 1px dotted var(--seam);
-	}
-	.preview dl div {
-		display: grid;
-		grid-template-columns: minmax(5rem, 1fr) minmax(0, 2fr);
-		gap: 0.75rem;
-	}
-	dt {
-		color: var(--muted);
-	}
-	dd {
-		margin: 0;
-		font-weight: 600;
-	}
 	p {
 		margin: 0.6rem 0;
 		line-height: 1.55;
-	}
-	.preview p {
-		color: var(--muted);
 	}
 	.apply {
 		position: sticky;

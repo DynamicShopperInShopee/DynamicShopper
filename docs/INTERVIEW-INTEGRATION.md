@@ -2,17 +2,17 @@
 
 The root storefront offers the optional DynamicShopper interview from PR #14.
 The shopper can search, choose a category, or open the interview immediately.
-One Apply updates the existing shelf. The receipt URL, listing pages, cart, chat,
+Finishing or skipping the final question automatically updates the existing shelf. The receipt URL, listing pages, cart, chat,
 comparison views, pricing engine and catalog use the same store session.
 
 `InterviewEntry.svelte` opens the bilingual dialog. `InterviewWizard.svelte`
-keeps draft answers, supports skipping each question and previews the actual
-plan changes. Closing the dialog returns focus to the opener. Apply focuses
+keeps draft answers and supports skipping each question. There is no separate
+preview or Apply step. Closing an unfinished dialog returns focus to the opener without changing the shop. Completion focuses
 the shelf and exposes chat for further changes.
 
 Each recognized answer maps directly to an authored setting. The shopper can choose a goal, evidence, priority and reading style independently. Only large text changes the theme. Skipped or unknown answers preserve the corresponding settings.
 
-Apply records one Undo step when the view changes. Returning from a listing restores the accepted view and its history through an opaque tab-local key. The tests cover every complete or skipped combination, product facts, locale, keyboard focus, cart, capacity, navigation, chat refinement and Undo.
+Completion records one Undo step when the view changes. Returning from a listing restores the accepted view and its history through an opaque tab-local key. The tests cover every complete or skipped combination, product facts, locale, keyboard focus, cart, capacity, navigation, chat refinement and Undo.
 
 ## Integration validation against current main
 

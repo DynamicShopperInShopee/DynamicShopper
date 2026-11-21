@@ -11,7 +11,7 @@ for (const method of ['browser Back', 'listing Back', 'listing Search']) {
 		await dialog.getByRole('radio', { name: 'Compare', exact: true }).check();
 		await dialog.getByRole('button', { name: 'Next', exact: true }).click();
 		for (let step = 0; step < 3; step++) await dialog.getByRole('button', { name: /Skip/ }).click();
-		await dialog.getByRole('button', { name: 'Apply my view' }).click();
+
 		const table = page.getByRole('region', { name: 'Product table' });
 		await table.getByRole('link').first().click();
 		await expect(page.getByRole('link', { name: 'Back to store' })).toBeVisible();

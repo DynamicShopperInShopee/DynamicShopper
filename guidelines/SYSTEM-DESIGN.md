@@ -54,7 +54,7 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 
 ## Explicit interview entry
 
-Draft answers stay inside the four-question dialog. Apply passes the validated patch to the root store and its Undo history. The catalog, ranker and optimizer supply the displayed facts and order. See [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
+Draft answers stay inside the four-question dialog. Finishing or skipping the last question automatically passes the validated patch to the root store and its Undo history. The catalog, ranker and optimizer supply the displayed facts and order. See [the integration contract](../docs/INTERVIEW-INTEGRATION.md).
 
 ## The conversation pipeline
 

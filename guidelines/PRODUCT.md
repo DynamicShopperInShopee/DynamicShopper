@@ -6,7 +6,7 @@
 
 ## Optional sourced shopping preview
 
-The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront keeps its own preview and Apply flow.
+The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront applies one validated, undoable proposal when the final interview question is answered or skipped.
 
 Seven sourced listings and their photos ship with the standalone preview. The same-origin catalog service supplies additional listings. A previous visit can provide the complete offline release when its saved contents match the published checksum. Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. An optional local read-only API serves additional records and original photographs. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
 

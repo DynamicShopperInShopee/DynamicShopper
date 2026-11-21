@@ -17,9 +17,8 @@ The optional sourced preview identifies the catalog source and uses the DynamicS
 ## Interview transition
 
 The default marketplace has a plain optional interview entry. Its modal shows one
-question at a time with labeled radio choices, Back, Next and Skip, then a proposed
-view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
-sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+question at a time with labeled radio choices, Back, Next and Skip, then automatically applies one validated proposal when the final question is answered or skipped. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Completion focuses the changed product shelf;
 the visible chat-refinement button focuses the existing assistant. No animation is
 required. Large print keeps single-column answers, 20px text and 48px targets.
 

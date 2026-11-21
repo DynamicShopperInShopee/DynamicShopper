@@ -59,10 +59,7 @@ for (const viewport of [
 			await dialog.getByRole('button', { name: text.next }).press('Enter');
 			for (let remaining = 0; remaining < 3; remaining++)
 				await dialog.getByRole('button', { name: text.skip }).press('Enter');
-			await expect(dialog.getByRole('heading', { name: text.review })).toBeFocused();
-			await expect(dialog.locator('[aria-current="step"]')).toHaveText(text.stage);
-			await expect(dialog.getByRole('button', { name: text.apply })).toBeInViewport();
-			await dialog.getByRole('button', { name: text.apply }).press('Enter');
+			await expect(dialog).toHaveCount(0);
 			await expect(page.locator('#products')).toBeFocused();
 			const chat = page.getByRole('button', { name: text.chat });
 			await expect(chat).toBeInViewport({ ratio: 1 });
