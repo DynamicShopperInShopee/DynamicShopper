@@ -129,7 +129,7 @@
 <style>
 	section {
 		min-width: 0;
-		margin: 0.5rem;
+		margin: 0.25rem 0.5rem;
 		border-radius: var(--radius);
 		background: var(--surface);
 		color: var(--ink);
@@ -138,7 +138,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.65rem 0.55rem;
+		padding: 0.35rem 0.55rem;
 	}
 	.symbol {
 		display: grid;
@@ -178,11 +178,11 @@
 	.strip {
 		display: flex;
 		gap: 0.375rem;
-		padding: 0.15rem 0.55rem 0.5rem;
+		padding: 0.15rem 0.55rem 0.25rem;
 		overflow-x: auto;
 	}
 	.strip li {
-		flex: 0 0 clamp(5.75rem, 26vw, 8rem);
+		flex: 0 0 clamp(5.75rem, 25vw, 8rem);
 	}
 	.strip a {
 		position: relative;
