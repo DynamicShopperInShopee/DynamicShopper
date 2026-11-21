@@ -553,7 +553,7 @@
 	}
 
 	async function send(message: string): Promise<void | 'superseded'> {
-		if (!message.trim()) return 'superseded';
+		if (pendingPhase === 'cart' || !message.trim()) return 'superseded';
 		cancelPending();
 		const generation = requestGeneration;
 		pendingPhase = 'cart';
@@ -1698,6 +1698,7 @@
 					openOnMount={['#assistant', '#shopper-assistant'].includes(page.url.hash)}
 					conversation={session.conversation}
 					pending={Boolean(pendingPhase)}
+					canSupersede={pendingPhase === 'model'}
 					pendingLabel={pendingPhase === 'cart'
 						? language === 'th'
 							? 'กำลังบันทึกตะกร้า…'

@@ -30,6 +30,12 @@ it('sends suggestions and typed messages through the same callback, supersedes p
 	expect(send).toHaveBeenCalledTimes(1);
 
 	await screen.rerender({ pending: true });
+	await expect.element(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+	await expect.element(screen.getByRole('button', { name: 'ขอแบบเรียบๆ ดูสเปกก่อน' })).toBeDisabled();
+	await userEvent.keyboard('{Enter}');
+	expect(send).toHaveBeenCalledTimes(1);
+
+	await screen.rerender({ canSupersede: true });
 	await expect.element(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
 	await userEvent.keyboard('{Enter}');
 	expect(send).toHaveBeenLastCalledWith('ขอแบบเรียบง่าย');

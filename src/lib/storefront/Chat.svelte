@@ -7,6 +7,7 @@
 		locale,
 		messages,
 		pending,
+		canSupersede = false,
 		onSend,
 		renderReply,
 		largePrint = false,
@@ -18,6 +19,7 @@
 		locale: FactLocale;
 		messages: readonly ChatMessage[];
 		pending: boolean;
+		canSupersede?: boolean;
 		onSend: (message: string) => ChatSendResult | Promise<ChatSendResult>;
 		renderReply?: Snippet<[ChatMessage]>;
 		largePrint?: boolean;
@@ -59,6 +61,7 @@
 		{ text: 'ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ', locale: 'th' }
 	] as const;
 	const t = $derived(copy[locale]);
+	const sendBlocked = $derived(pending && !canSupersede);
 
 	const id = $props.id();
 	let ready = $state(false);
@@ -112,7 +115,7 @@
 
 	async function send(text: string) {
 		const message = text.trim();
-		if (!message || message.length > 1000) return;
+		if (sendBlocked || !message || message.length > 1000) return;
 		const originalDraft = draft;
 		try {
 			const result = await onSend(message);
@@ -199,7 +202,7 @@
 					class="min-h-[var(--tap,44px)] rounded-[999px] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 					type="button"
 					lang={suggestion.locale}
-					disabled={!ready}
+					disabled={!ready || sendBlocked}
 					onclick={() => send(suggestion.text)}
 				>
 					{suggestion.text}
@@ -227,7 +230,7 @@
 		<button
 			class="min-h-[var(--tap,44px)] self-end rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-2.5 py-1.5 text-[var(--ink,#16161a)] group-[.large]/chat:min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 			type="submit"
-			disabled={!ready || !draft.trim()}
+			disabled={!ready || sendBlocked || !draft.trim()}
 		>
 			{t.send}
 		</button>
