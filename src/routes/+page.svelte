@@ -428,8 +428,10 @@
 
 	function applyFilters(event: SubmitEvent) {
 		event.preventDefault();
-		remember();
+		cancelLive();
+		if (draftPrice !== maxPrice || draftShipping !== freeShipping) remember();
 		if (draftPrice !== undefined) register('maxPrice');
+		else locks = locks.filter((key) => key !== 'maxPrice');
 		maxPrice = draftPrice;
 		freeShipping = draftShipping;
 		if (eventDemo) filterDialog?.close();
@@ -677,7 +679,7 @@
 			<div class="toolbar">
 				<label class="sort">
 					<span>{t.sort}</span>
-					<select bind:value={sort}>
+					<select bind:value={sort} onchange={cancelLive}>
 						{#each sorts as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -761,6 +763,8 @@
 					<button
 						type="button"
 						onclick={() => {
+							cancelLive();
+							locks = locks.filter((key) => key !== 'maxPrice');
 							maxPrice = undefined;
 							draftPrice = undefined;
 						}}
@@ -784,6 +788,7 @@
 					<button
 						type="button"
 						onclick={() => {
+							cancelLive();
 							freeShipping = false;
 							draftShipping = false;
 						}}
