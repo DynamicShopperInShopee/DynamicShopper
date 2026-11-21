@@ -1,6 +1,6 @@
 # DynamicShopper hackathon design and team workflow
 
-**Status** Proposed for team approval. **Primary build direction** AI-Native Products & Operations.
+**Status** Approved by the team lead. **Primary build direction** AI-Native Products & Operations.
 
 ## What the judges should experience
 
@@ -53,7 +53,7 @@ Treat shopper-entered amounts separately from model output. Parse budget constra
 5. **Prove the result.** Start a bug fix with a failing reproduction. Run the narrow test while coding. On the merged candidate run type checks, lint, unit tests, production build and browser journey. Provision dependencies and Playwright browsers before the offline rehearsal. Use the installed Playwright binary directly during rehearsal since the starter e2e script invokes browser installation. Verify 1440×900 and 390×844, four themes and both languages. Confirm 20px text and 48px targets in large print, accessible contrast and keyboard focus. Revert a regression via a reviewed revert commit if a fix would hold up everyone.
 6. **Keep the release demonstrable.** Merge the contract and keyless boot first. Then integrate domain, conversation and UI increments as their acceptance examples pass. Once the first comparison works on main, repeat it after each merge. Keep a known-good commit and its evidence for rehearsal. Stage the release with time to test the public URL signed out before 17:00 Bangkok. Prioritize proof, accessibility and the offline path before expanding the demo. Record incomplete journey steps explicitly.
 
-Owner 4 curates golden messages with expected intent and behavior independently of the parser. Owner 2 runs them through the real pipeline and records the backend actually used. Owner 3 renders measured results in the Accuracy slip and an unavailable state for an unmeasured model. For X-ray, the proposed change to the trust guideline is to show a sanitized structured summary of instructions and output. Owner 2 supplies the projection, owner 3 renders it, and owner 4 reconciles the trust guideline in the same implementation PR. Test that unknown input keys, price-bearing replies and server configuration never appear in the public trace.
+Owner 4 curates golden messages with expected intent and behavior independently of the parser. Owner 2 runs them through the real pipeline and records the backend actually used. Owner 3 renders measured results in the Accuracy slip and an unavailable state for an unmeasured model. For X-ray, the approved design shows a sanitized structured summary of instructions and output. Owner 2 supplies the projection, owner 3 renders it, and owner 4 reconciles the trust guideline in the same implementation PR. Test that unknown input keys, price-bearing replies and server configuration never appear in the public trace.
 
 ### Repo boundary and release evidence
 
@@ -72,4 +72,4 @@ Give agents this repo as their only project workspace. Keep other repos, persona
 
 Submit one Google Form by **17:00 Bangkok, 21 November 2026** with the public GitHub repository, project writeup, working demo/prototype link and declarations. Both rounds allow six minutes to demonstrate. Prepare for two minutes of questions in round one and four in the final. The team confirms this is a new, currently private repository and reports no reused open-source project as a base. List the actual framework and package dependencies separately. Identify the starter/docs baseline and what the team built on-site from its commits and firsthand record. The repository owner will make it public before submission. Verify anonymous access to both links after that change. No deployment or visibility change is part of this design review.
 
-The four implementation briefs will expand the ownership table into ordered tasks with file boundaries, tests, review checkpoints and a copyable agent handoff after the team approves this design.
+The [team assignments](../../../README.md#choose-your-team-assignment) expand the ownership table into ordered tasks with file boundaries, tests, review checkpoints and a copyable agent handoff.

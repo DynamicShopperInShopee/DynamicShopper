@@ -48,7 +48,7 @@ Every line of a deal is printed from the optimizer: what each voucher saved, the
 
 A drawer that shows the pipeline behind the last reply, step by step:
 
-1. **You:** the message.
+1. **Shopper request:** a localized intent label for the turn.
 2. **Agent steps:** each tool use in words ("Searched catalog: rice cooker → 6 results", "Read 3 listings") and the token usage ("4 calls · 3,120 in / 410 out tokens").
 3. **Understanding:** the AI (with the model name and response time), or the keyword fallback with its reason (no key, forced offline, model error, invalid output, timed out).
 4. **Validate:** how many parts of the proposal were dropped, and their names.
@@ -57,7 +57,7 @@ A drawer that shows the pipeline behind the last reply, step by step:
 7. **Ranking:** how many products.
 8. **Render:** facts from the catalog.
 
-It also offers the raw AI output and the exact instructions sent to the AI, folded away for the curious. It never shows a key or any configuration except the model name. It can be opened from the header, with the `x` key, or from a link.
+The drawer summarizes instructions and outcomes using locally formatted, allowlisted fields. It may show the model name. Raw prompts, model output, transcripts, arbitrary field names and private server configuration stay out of diagnostics. It can be opened from the header, with the `x` key, or from a link.
 
 ### Force offline
 
