@@ -17,12 +17,8 @@ export const examples: { id: string; answers: Answers }[] = [
 ];
 
 // Each preview starts from the same neutral baseline; the live store is not mutated.
-export function previewInterview(
-	answers: Answers,
-	locale: ShopperPlan['locale'],
-	directOnly = false
-) {
+export function previewInterview(answers: Answers, locale: ShopperPlan['locale']) {
 	const base = { ...structuredClone(defaultPlan), locale, priorities: {} };
-	const result = interviewProposal(answers, base, { directOnly });
+	const result = interviewProposal(answers, base);
 	return { ...result, plan: { ...base, ...result.patch } };
 }

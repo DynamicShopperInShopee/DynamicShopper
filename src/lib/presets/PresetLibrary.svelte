@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Locale } from '../catalog';
@@ -9,6 +10,10 @@
 	import PresetCanvas from './PresetCanvas.svelte';
 	import PresetExamples from './PresetExamples.svelte';
 	let locale = $state<Locale>('th');
+	let interactive = $state(false);
+	onMount(() => {
+		interactive = true;
+	});
 	let theme = $state('standard');
 	let width = $state('fluid');
 	let dataState = $state<'ready' | 'empty' | 'loading' | 'error'>('ready');
@@ -37,7 +42,7 @@
 	<MarketplaceBrand
 		{locale}
 		showControls={true}
-		enabled={true}
+		enabled={interactive}
 		{theme}
 		{themes}
 		ontheme={(value: string) => (theme = value)}
@@ -47,12 +52,11 @@
 		<a class="back" href={resolve('/')}>{t('Back to the store', 'กลับหน้าร้าน')}</a>
 		<header class="intro">
 			<div>
-				<p class="eyebrow">{t('Design system · module review', 'ระบบออกแบบ · ตรวจชิ้นส่วน')}</p>
-				<h1>{t('One shop. A view for each task.', 'ร้านเดียว ปรับมุมมองให้เหมาะกับแต่ละงาน')}</h1>
+				<h1>{t('Storefront preset library', 'คลังรูปแบบหน้าร้าน')}</h1>
 				<p>
 					{t(
-						'Explore each module, its information order and its states. The shop keeps its familiar brand.',
-						'ดูแต่ละชิ้นส่วน ลำดับข้อมูล และสถานะการใช้งาน โดยคงหน้าตาแบรนด์ที่คุ้นเคย'
+						'Choose a section and a module to preview it.',
+						'เลือกส่วนของหน้าร้าน แล้วเลือกชิ้นส่วนที่ต้องการดู'
 					)}
 				</p>
 			</div>
@@ -64,7 +68,7 @@
 				</span>
 			</p>
 		</header>
-		<div class="workspace">
+		<div class="workspace" inert={!interactive}>
 			<nav class="parts" aria-label={t('Website parts', 'ส่วนของเว็บไซต์')}>
 				{#each parts as item (item.id)}<button
 						aria-current={part.id === item.id ? 'page' : undefined}
@@ -117,6 +121,7 @@
 					<div class="stage">
 						<div class="surface" class:phone={width === 'phone'}>
 							{#key recipe.id}<PresetCanvas
+									{theme}
 									{recipe}
 									{locale}
 									{dataState}
@@ -156,13 +161,13 @@
 				</section>
 				<p class="footnote">
 					{t(
-						'Review surface only. Data-dependent modules do not imply live services. The updated product catalog is pending.',
-						'พื้นที่ตรวจแบบ ส่วนที่ต้องใช้ข้อมูลยังไม่ถือว่าเปิดบริการจริง และรอแค็ตตาล็อกสินค้าเวอร์ชันอัปเดต'
+						'Examples use the catalog. Modules that require an additional service are labeled in their descriptions.',
+						'ตัวอย่างใช้ข้อมูลจากแค็ตตาล็อก ชิ้นส่วนที่ต้องเชื่อมบริการเพิ่มเติมจะระบุไว้ในคำอธิบาย'
 					)}
 				</p>
 			</div>
 		</div>
-		<PresetExamples {locale} />
+		<PresetExamples {locale} {interactive} />
 	</main>
 </div>
 
@@ -216,7 +221,6 @@
 	p {
 		margin: 0 0 12px;
 	}
-	.eyebrow,
 	.footnote,
 	small {
 		color: var(--muted);
@@ -393,7 +397,7 @@
 		}
 		.intro {
 			display: block;
-			margin: 8px 0 24px;
+			margin: 4px 0 16px;
 		}
 		.count {
 			display: flex;
@@ -401,7 +405,7 @@
 			align-items: center;
 			padding: 0;
 			border: 0;
-			margin-top: 20px;
+			margin-top: 8px;
 		}
 		.count strong {
 			font-size: 36px;
@@ -409,15 +413,26 @@
 		.workspace {
 			grid-template-columns: minmax(0, 1fr);
 		}
-		.parts {
+		.parts,
+		.modules {
 			position: static;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+			display: flex;
+			gap: 8px;
+			overflow-x: auto;
+			scroll-padding-inline: 4px;
+			padding: 4px;
+			scrollbar-width: thin;
 		}
-		.parts button {
-			padding: 8px;
+		.parts button,
+		.modules button {
+			flex: none;
+			max-width: 80%;
 		}
 		.modules {
-			grid-template-columns: minmax(0, 1fr);
+			margin: 8px 0 16px;
+		}
+		.modules .diagram {
+			display: none;
 		}
 		.stage {
 			padding: 8px;

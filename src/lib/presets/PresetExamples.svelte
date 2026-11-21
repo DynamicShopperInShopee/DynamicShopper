@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { presetListingHref } from './listing-link';
+	import { rankingTerms } from '../storefront/copy';
 	import { products, specs, type Locale } from '../catalog';
-	import { shopPresets } from './plans';
+	import { presetPatch, shopPresets } from './plans';
 	import Sections from '../storefront/Sections.svelte';
 	import ItemizedDealSlip from '../storefront/ItemizedDealSlip.svelte';
 	import { getStoreSession } from '../storefront/store.svelte';
@@ -9,15 +10,21 @@
 	import { formatBaht, getProduct } from '../catalog';
 	import { defaultPlan, rankProducts } from '../personalization';
 	import { describePlanChanges } from '../storefront/describePlanChanges';
-	let { locale }: { locale: Locale } = $props();
+	let { locale, interactive }: { locale: Locale; interactive: boolean } = $props();
 	let selected = $state(shopPresets[0].id);
 	const preset = $derived(shopPresets.find((p) => p.id === selected) ?? shopPresets[0]);
-	const plan = $derived({ ...defaultPlan, ...preset.patch, locale });
+	const plan = $derived({ ...defaultPlan, ...presetPatch(selected, defaultPlan), locale });
 	const session = getStoreSession();
 	const ids = $derived(
 		rankProducts(products, { ...plan, category: 'rice-cooker' })
 			.slice(0, 3)
 			.map(({ product }) => product.id)
+	);
+	const priorities = $derived(
+		Object.entries(plan.priorities).flatMap(([key, weight]) => {
+			const label = rankingTerms[key];
+			return weight && label ? [{ en: label[0], th: label[1] }] : [];
+		})
 	);
 	const columns = specs['rice-cooker'].map((s) => ({ field: `spec.${s.key}`, label: s.label }));
 	const quote = $derived(
@@ -38,7 +45,7 @@
 			: 'Inspect authored presentations here. Selecting an example does not change the store.'}
 	</p>
 	<label>
-		{locale === 'th' ? 'ตัวอย่าง' : 'Example'}<select bind:value={selected}>
+		{locale === 'th' ? 'ตัวอย่าง' : 'Example'}<select disabled={!interactive} bind:value={selected}>
 			{#each shopPresets as item (item.id)}<option value={item.id}>
 					{item.title[locale]}
 				</option>{/each}
@@ -53,12 +60,8 @@
 			{locale}
 			{columns}
 			details={plan.details}
-			listingHref={(id: string) =>
-				`${resolve('/product/[id]', { id })}?${new URLSearchParams({ lang: locale, theme: plan.theme === 'large-print' ? 'large' : plan.theme })}`}
-			priorities={[
-				{ en: 'Rating', th: 'คะแนน' },
-				{ en: 'Value', th: 'ความคุ้มค่า' }
-			]}
+			listingHref={(id) => presetListingHref(id, locale, plan.theme)}
+			{priorities}
 		>
 			{#snippet deal()}
 				<ItemizedDealSlip

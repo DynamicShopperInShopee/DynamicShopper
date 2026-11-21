@@ -1,70 +1,70 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { Locale } from '../catalog';
+
+	type Block = 'preferences' | 'apply' | 'undo';
 	let {
 		locale,
-		reading = $bindable('standard'),
 		separateApply,
-		onreset,
+		resetCanvas,
+		reading = $bindable('standard'),
 		children
 	}: {
 		locale: Locale;
-		reading?: string;
 		separateApply: boolean;
-		onreset: () => void;
-		children: Snippet<[Snippet<[string]>]>;
+		resetCanvas: () => void;
+		reading?: string;
+		children: Snippet<[Snippet<[Block]>]>;
 	} = $props();
-	let draftReading = $state('standard');
-	let previousReading = $state<string>();
+
+	let draft = $state('standard');
+	let previous = $state<string>();
 	const t = (en: string, th: string) => (locale === 'th' ? th : en);
+
 	function apply() {
-		if (reading === draftReading) return;
-		previousReading = reading;
-		reading = draftReading;
+		if (draft === reading) return;
+		previous = reading;
+		reading = draft;
+	}
+	function undo() {
+		if (previous === undefined) return;
+		draft = reading = previous;
+		previous = undefined;
+	}
+	function reset() {
+		draft = reading = 'standard';
+		previous = undefined;
+		resetCanvas();
 	}
 </script>
 
-{#snippet controls(block: string)}
+{#snippet applyButton()}
+	<button disabled={draft === reading} onclick={apply}>
+		{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
+	</button>
+{/snippet}
+
+{#snippet controls(block: Block)}
 	{#if block === 'preferences'}
 		<label>
-			{t('Reading style', 'รูปแบบการอ่าน')}<select bind:value={draftReading}>
-				<option value="standard">{t('Standard', 'มาตรฐาน')}</option><option value="large">
-					{t('Large print', 'ตัวอักษรใหญ่')}
-				</option>
+			{t('Reading style', 'รูปแบบการอ่าน')}
+			<select bind:value={draft}>
+				<option value="standard">{t('Standard', 'มาตรฐาน')}</option>
+				<option value="large">{t('Large print', 'ตัวอักษรใหญ่')}</option>
 			</select>
 		</label>
-		{#if !separateApply}<button disabled={draftReading === reading} onclick={apply}>
-				{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-			</button>{/if}
+		{#if !separateApply}{@render applyButton()}{/if}
 	{:else if block === 'apply'}
 		<p>{t('Review your reading choice before applying.', 'ตรวจรูปแบบการอ่านที่เลือกก่อนใช้')}</p>
-		<button disabled={draftReading === reading} onclick={apply}>
-			{t('Apply reading style', 'ใช้รูปแบบการอ่าน')}
-		</button>
-	{:else if block === 'undo'}
+		{@render applyButton()}
+	{:else}
 		<div class="actions">
-			<button
-				disabled={previousReading === undefined}
-				onclick={() => {
-					reading = previousReading ?? 'standard';
-					draftReading = reading;
-					previousReading = undefined;
-				}}
-			>
-				{t('Undo', 'ย้อนกลับ')}
-			</button><button
-				onclick={() => {
-					onreset();
-					reading = 'standard';
-					draftReading = 'standard';
-					previousReading = undefined;
-				}}
-			>
-				{t('Reset', 'คืนค่า')}
-			</button>
+			<button disabled={previous === undefined} onclick={undo}>{t('Undo', 'ย้อนกลับ')}</button>
+			<button onclick={reset}>{t('Reset', 'คืนค่า')}</button>
 		</div>
 	{/if}
 {/snippet}
+
 {@render children(controls)}
 
 <style>
@@ -72,12 +72,15 @@
 		display: grid;
 		gap: 8px;
 	}
+	p {
+		margin: 8px 0;
+	}
 	select,
 	button {
 		font: inherit;
 		min-height: var(--tap, 44px);
-		max-width: 100%;
 		box-sizing: border-box;
+		max-width: 100%;
 		border: 1px solid var(--muted);
 		background: var(--surface);
 		color: var(--ink);
@@ -86,7 +89,6 @@
 	}
 	button {
 		cursor: pointer;
-		text-align: start;
 	}
 	button:disabled {
 		color: var(--muted);

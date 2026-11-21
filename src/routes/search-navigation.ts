@@ -2,6 +2,7 @@ import { onNavigate, replaceState } from '$app/navigation';
 import { page } from '$app/state';
 import { products } from '../lib/catalog';
 import { categories, type Category, type Language } from '../lib/store-catalog';
+import type { CookerDecision } from '../lib/storefront/store.svelte';
 import type { Sort } from '../lib/store-search';
 
 export const searchLimit = 256;
@@ -15,6 +16,7 @@ export type SearchSelection = {
 	freeShipping: boolean;
 	capacity?: number;
 	scrollY?: number;
+	cookerDecisions?: CookerDecision[];
 };
 
 const sorts: readonly Sort[] = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'];
@@ -43,7 +45,14 @@ export function readSearchSelection(input: unknown): SearchSelection | undefined
 			(typeof value.capacity !== 'number' || !capacities.has(value.capacity)))
 	)
 		return;
+	const decisions = value.cookerDecisions;
 	return {
+		cookerDecisions:
+			Array.isArray(decisions) &&
+			decisions.length <= 20 &&
+			decisions.every((item) => item === 'easy' || item === 'compare')
+				? [...decisions]
+				: undefined,
 		category: value.category,
 		language: value.language,
 		sort: value.sort,

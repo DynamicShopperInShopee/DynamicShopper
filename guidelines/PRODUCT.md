@@ -1,30 +1,14 @@
 # Product
 
-## Accepted sourced catalog and interview completion
-
-The shopper browses the ordinary marketplace first, then optionally describes
-their needs in a four-step interview. Finishing automatically applies one
-validated presentation proposal and returns to a change receipt, Undo and chat
-refinement. Draft answers leave the shop unchanged; cancelling before completion
-discards them. The main flow does not ask the shopper to choose a UI preset or
-theme, review a proposed view or confirm a separate Apply. Three example views
-remain an inspection demo and cannot change the live shop.
-
-The accepted backend stores 1,500 unique Shopee Thailand listing observations
-in local SQLite and Cloudflare D1, with original photographs and per-listing
-provenance. The separate catalog Worker serves the same UI and read-only API;
-it does not publish the authentication scaffold. Prices were observed on
-2026-11-21, 14:22–14:32 Asia/Bangkok. They are dated listing prices, subject to
-variant and buyer conditions, not guaranteed checkout totals or continuous
-synchronization. Missing stock, shipping, ratings and reviews remain unknown.
-A validated browser snapshot supports offline browsing and local CNN changes.
-Seven earlier records are a clearly labeled fallback if neither API nor saved
-catalog is available. See [the dataset](../catalogs/shopee-2026-11-21/README.md)
-and [cloud delivery](../deploy/catalog/README.md).
-
 ## One line
 
 > The right products, the right information and the right interface for each shopper, with the facts locked.
+
+## Optional sourced shopping preview
+
+The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront keeps its own preview and Apply flow.
+
+Seven sourced listings and their photos ship with the standalone preview. The same-origin catalog service supplies additional listings. A previous visit can provide the complete offline release when its saved contents match the published checksum. Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. An optional local read-only API serves additional records and original photographs. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
 
 ## The problem
 
@@ -56,7 +40,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 2. **Every AI change is visible and reversible.** Each change is explained in a short "What changed" note, shows up as removable chips, and can be undone in one step. Reset is always one click away.
 3. **Show the proof, not the claim.** Every promise about facts has a surface that demonstrates it.
 4. **Never depend on the network.** With no AI key, no connection or a misbehaving model, the store still understands the shopper through a keyword fallback, labelled "Offline mode".
-5. **Explicit control beats inference.** Chips, Undo, Reset, a language switch, category tabs and a search box always work, and what the shopper sets directly is never overridden by guesswork.
+5. **Explicit control beats inference.** Chips, a persona picker, Undo, Reset, a language switch, category tabs and a search box always work, and what the shopper sets directly is never overridden by guesswork.
 6. **Same truth for everyone.** Two shoppers may see very different stores, but every shared fact is identical.
 7. **Thai and English are equal.** Every word of the interface exists in both, and mixed-language messages are normal input.
 
@@ -65,13 +49,13 @@ Everyone who uses the store should come away believing two things at once: "the 
 ### What the product should do
 
 - **Chat reshapes the store.** A message in Thai, English or a mix changes theme, layout, density, language, which details cards show, ranking priorities, filters and which sections the page contains.
-- **Explicit control.** A preferences bar of removable chips, Undo, Reset, a language switch, category tabs and search. The optional four-question interview asks about shopping needs and automatically applies one validated presentation when completed. Drafts are inert; Undo restores the previous view and answers. There is no separate preview/Apply gate or manual preset, persona or theme chooser in the main flow.
+- **Explicit control.** A preferences bar of removable chips, a persona picker, Undo, Reset, a language switch, category tabs and search.
 - **Deterministic ranking** over catalog facts and the shopper's priorities, with a "Why this order?" explanation that uses no numbers.
 - **Voucher optimizer.** The best legal voucher and coin stack as a printed receipt, reasons for every unused voucher, and "Only if you need it" add-ons that unlock a voucher at a known extra cost.
 - **Agent-composed pages.** The AI reads the catalog with read-only tools and composes the page from a fixed library of fact-locked sections.
 - **Share with family.** A link (and a LINE share) that carries the store's look, nothing personal.
-- **Compare views.** Two inspection examples side by side on the same search, with a check that the facts are identical. Comparison cannot apply a view to the store.
-- **Mom mode.** Large print, Thai, three choices, reachable from chat ("ซื้อให้แม่ อายุ 65") or the optional needs interview.
+- **Compare views.** Two personas side by side on the same search, with a check that the facts are identical.
+- **Mom mode.** Large print, Thai, three choices, reachable from chat ("ซื้อให้แม่ อายุ 65") or the persona picker.
 - **Product questions with citations.** Answers only by pointing at the listing's specs, reviews or summary.
 - **X-ray and red team.** A view of the pipeline behind the last reply, a "Force offline" switch, and a simulated poisoned model.
 - **Accuracy scoreboard.** How well the AI and the fallback understand a golden set of about sixty real shopper messages, and how many facts either one leaked (the target is zero).
@@ -79,8 +63,8 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ### What it deliberately does not do
 
-- No real accounts, checkout or payment. Marketplace data is limited to the explicitly accepted sourced observations above. The agent never adds to the cart and never buys.
-- The database persists sourced catalog observations only. Shopper presentation, interview answers and Undo remain in the browser, with no cross-device sync.
+- The main storefront uses a simulated catalog. Neither shop provides accounts, checkout or payment. The agent never adds to the cart and never buys.
+- Shopper preferences and Undo stay in the browser. The optional preview's database stores sourced catalog observations.
 - No AI-written markup, copy blocks or images. The page is built only from fixed, fact-locked parts.
 - No seller analytics, photo search, voice input or long-term behaviour tracking.
 - No public deployment of the AI endpoint. It runs locally.
@@ -97,7 +81,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. The accepted Shopee-inspired baseline keeps its orange shopping header and search action across every theme under DynamicShopper's identity; personalized receipt themes retain the neutral proof system. Disclose simulation for fixtures and dated observations for the sourced catalog. The presentation exception does not permit invented promotions or product facts.
+- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. At the user's explicit request, the default storefront uses an orange marketplace shopping header and photo grid; personalized receipt themes retain the neutral system. This presentation exception does not permit invented promotions or product facts.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like
@@ -119,19 +103,20 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Honesty
 
-- Core fixture products, shops and vouchers remain simulated. The accepted sourced shop uses dated listing observations and original photography, with provenance kept separate from the fixtures.
+- The main storefront labels its catalog and vouchers as simulated. The standalone preview identifies the source and observation date for listing facts.
 - There are no real users, testimonials or metrics, and none may be invented.
 
 ## Ideas for later
 
 Seller insight into what shoppers ask for; photo search; Thai voice input for mom mode; gentle sort suggestions from browsing (never applied automatically); plain-language specs in mom mode ("about 10 cups" next to 1.8 L); running against a local model.
 
+Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.
 ## Direct decision help and Smart Basket
 
 Accepted: cooker results offer explicit easy-use and comparison tasks without an
 interview or chat. They preserve current eligibility and theme; an independent Undo
 restores the previous decision view without mutating search, filters or cart. Easy-use
-selects up to three catalog-tagged simple models ordered by program count then ID.
+shows up to three catalog-tagged simple models ordered by program count then ID beside the complete results. The ordinary shelf retains the shopper’s chosen sort, including when no easy-use suggestion qualifies.
 The comparison shows catalog price, capacity, programs and warranty, with cart actions.
 
 Smart Basket offers at most one curated catalog-supported companion, with a cited
@@ -141,4 +126,5 @@ optimizer context and coin balance. Add is explicit, rejection hides the offer f
 this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
 The catalog remains simulated; this is not a clinical compatibility guarantee or a
 new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
-Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.
+
+Following a listing and returning restores the active cooker decision and its Undo history in the same tab. Reset clears that choice.

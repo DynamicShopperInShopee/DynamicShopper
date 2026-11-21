@@ -34,14 +34,14 @@ test('renders chosen card facts and directional priorities without duplicate rev
 	expect(await reason.innerText()).not.toMatch(/\p{N}/u);
 });
 
-test('composes chat-selected sections in order without listing the same product twice', async ({
+test('composes persona sections in order without listing the same product twice', async ({
 	page
 }) => {
 	await page.goto('/?view=receipt');
 	await page.getByRole('searchbox').fill('rice cooker');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
-	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('visual style');
-	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
+	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
 	const products = page.locator('#products');
 	await expect(products.getByRole('heading', { name: 'Top picks', exact: true })).toBeVisible();
 	await expect(
@@ -53,8 +53,7 @@ test('composes chat-selected sections in order without listing the same product 
 			.locator('[data-product-card]')
 			.evaluateAll((nodes) => new Set(nodes.map((n) => n.getAttribute('data-product-card'))).size)
 	).toBe(6);
-	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('mom mode');
-	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await page.getByRole('button', { name: 'Mom mode', exact: true }).click();
 	const headings = await products.getByRole('heading', { level: 2 }).allTextContents();
 	expect(headings).toEqual(['สินค้า', 'สินค้าที่แนะนำ', 'สิ่งที่ควรดู', 'ดีลที่ดีที่สุด', 'แชร์กับครอบครัว']);
 	await expect(products.locator('[data-product-card]')).toHaveCount(3);

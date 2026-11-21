@@ -151,6 +151,7 @@ export function interpretOffline(message: string, plan: ShopperPlan, focus?: str
 			patch.layout = 'table';
 			patch.details = ['specs', 'price', 'rating', 'shop'];
 		}
+		if (/\b(?:table view|show as a table)\b|แบบตาราง(?!การ์ด)/u.test(text)) patch.layout = 'table';
 		if (/\b(?:list view|show as a list)\b|แบบรายการ/u.test(text)) patch.layout = 'list';
 		if (/\b(?:grid view|show as a grid)\b|แบบตารางการ์ด/u.test(text)) patch.layout = 'grid';
 		if (/\bcompact\b|แบบกะทัดรัด/u.test(text)) patch.density = 'compact';

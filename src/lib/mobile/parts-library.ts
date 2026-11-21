@@ -121,8 +121,8 @@ function part(
 	};
 }
 const local = copy(
-	'Uses the saved catalog and direct shopper choices.',
-	'ใช้รายการสินค้าที่บันทึกไว้และตัวเลือกที่ผู้ใช้กำหนดเอง'
+	'Uses the loaded catalog and direct shopper choices.',
+	'ใช้ข้อมูลสินค้าที่โหลดแล้วและตัวเลือกที่ผู้ใช้กำหนดเอง'
 );
 const listing = copy(
 	'Only saved names, photographs, sizes and observed prices are available. Confirm current terms at the original listing.',

@@ -1,43 +1,21 @@
 # Personalization
 
-## Accepted interview completion flow
+## Interview before chat
 
-The sourced shop starts with the ordinary marketplace. Its optional four-question
-interview gathers shopping needs; the system chooses the presentation. Completing
-the last step validates and applies one proposal immediately, closes the sheet,
-and focuses the change receipt with Undo and chat refinement. Drafts remain inert
-until completion; Back retains answers, Skip preserves skipped settings, and
-Close/Escape cancels an unfinished draft. No separate preview/Apply screen,
-manual UI chooser or production inference toggle is required.
+Accepted: the default marketplace offers an optional short interview, followed by
+chat refinement. Every question is optional; drafts never alter the shelf. Apply
+uses the existing validated plan and records one undo step, including the prior
+interview answers and locks. Undo also restores the saved presentation. Applying
+equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
+remain intact. Reset removes the interview and restores the default view.
 
-Full answers use the exported browser CNN; skipped/partial answers and inference
-failure use deterministic mappings. Each predicted head is allowlisted and an
-invalid part falls back independently. The model receives answer IDs, never
-prices or product facts. Synthetic training accuracy does not establish real
-shopper preference accuracy. Missing scores, reviews or specifications cannot
-be invented to satisfy an answer.
+Each answer maps to named layout, detail, priority or reading settings. Skipping a question preserves its settings. Large text uses spacious spacing. Chat can adjust other settings, and an explicit layout command can replace the interview layout. Undo restores the preceding view.
 
-Completion records the prior interview answers and explicit locks with the plan.
-Undo also restores the saved presentation; equivalent settings create no new
-lock or Undo step. Search, category, budget and explicit sorting remain intact;
-the fixture storefront also retains its cooker-capacity filter. Reset removes
-the interview and restores the default view.
+Proposed: measure interview completion, corrections and task success with shoppers.
 
-The local synthetic-trained CNN chooses allowlisted layout, information and
-section recipes and may suggest an unlocked theme. Reading density, explicit
-large text and ranking priorities follow answers directly. Existing explicit
-theme choices remain protected. Later chat requests can refine CNN-suggested
-fields through the existing interpretation and validation pipeline. Answer-sourced
-fields retain the shopper's explicit choice until edited or removed.
+## Standalone sourced interview
 
-Three example views remain an editable inspection demo. They share the sourced
-catalog and shelf renderer but cannot apply a view to the shop. Existing
-explicit locks, filters and saved products remain intact during ordinary
-interview personalization. Personas below describe fixed plan recipes; they do
-not require a manual picker in the accepted sourced-shop flow.
-
-Proposed: evaluate interview completion, corrections and task success with shoppers
-before treating learned suggestions as an improvement over direct controls.
+The optional sourced preview uses the same fixed answer mappings and proposal validator as the storefront. Finish applies once, and the preview offers Undo and chat refinement. The three editable example views demonstrate presentation changes independently of the shop. Skipping a question preserves its existing settings, and closing the draft cancels it.
 
 ## The plan
 

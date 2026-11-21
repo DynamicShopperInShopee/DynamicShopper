@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- The product link points to an absolute external source URL. */
 	import './shop-theme.css';
 	import ShopShelf from './ShopShelf.svelte';
@@ -26,13 +27,12 @@
 	let locale = $derived(lang);
 	// The comparison language starts with the shop and can be changed without changing it.
 	let drafts = $state(examples.map((example) => ({ ...example, answers: { ...example.answers } })));
-	let directOnly = $state(false);
 	let parts = $state(false);
 	let selected = $state<ShopListing | null>(null);
 	const previews = $derived(
 		drafts.map((draft) => ({
 			...draft,
-			result: previewInterview(draft.answers, locale, directOnly)
+			result: previewInterview(draft.answers, locale)
 		}))
 	);
 	const t = (en: string, th: string) => (locale === 'th' ? th : en);
@@ -70,17 +70,11 @@
 				'ดูว่าแต่ละส่วนเปลี่ยนจากอะไร'
 			)}
 		</label>
-		<label>
-			<input type="checkbox" bind:checked={directOnly} />{t(
-				'Direct answers only — bypass CNN',
-				'ใช้คำตอบโดยตรง — ไม่ผ่าน CNN'
-			)}
-		</label>
 	</div>
 	<p class="explanation">
 		{t(
-			'These examples do not change your shop. Complete the interview in your shop and the CNN will adapt its presentation from your answers.',
-			'ตัวอย่างเหล่านี้ไม่เปลี่ยนหน้าร้านของคุณ กลับไปตอบ interview ในหน้าร้าน แล้ว CNN จะปรับการแสดงผลจากคำตอบให้โดยอัตโนมัติ'
+			'These examples do not change your shop. Complete the interview in your shop to apply your choices.',
+			'ตัวอย่างเหล่านี้ไม่เปลี่ยนหน้าร้านของคุณ ตอบคำถามในหน้าร้านเพื่อปรับหน้าร้านตามตัวเลือกของคุณ'
 		)}
 	</p>
 	<div class="panes">
@@ -101,13 +95,9 @@
 								: t('Browse visually', 'เลือกจากรูป')}
 					</h2>
 					<p class="theme-source">
-						{preview.result.patch.theme &&
-						preview.result.backend === 'cnn' &&
-						preview.answers.reading !== 'large'
-							? t('CNN theme', 'ธีมจาก CNN')
-							: preview.answers.reading === 'large'
-								? t('From the reading answer', 'ตามคำตอบเรื่องการอ่าน')
-								: t('Default theme', 'ธีมเริ่มต้น')}:
+						{preview.answers.reading === 'large'
+							? t('From the reading answer', 'ตามคำตอบเรื่องการอ่าน')
+							: t('Default theme', 'ธีมเริ่มต้น')}:
 						<strong>{preferenceName(plan.theme, locale)}</strong>
 					</p>
 				</header>
@@ -137,11 +127,9 @@
 								<dt>{item.label}</dt>
 								<dd>
 									{item.text}<small>
-										{preview.result.sources[item.field] === 'cnn'
-											? t('CNN suggestion', 'ข้อเสนอจาก CNN')
-											: item.field === 'theme' && preview.answers.reading !== 'large'
-												? t('Default; no theme inference', 'ค่าเริ่มต้น ไม่ได้อนุมานธีม')
-												: t('Explicit answer', 'คำตอบโดยตรง')}
+										{item.field === 'theme' && preview.answers.reading !== 'large'
+											? t('Default theme', 'ธีมเริ่มต้น')
+											: t('Explicit answer', 'คำตอบโดยตรง')}
 									</small>
 									{#if item.field === 'priorities'}<small>
 											{t(
@@ -182,15 +170,15 @@
 	</div>
 	<p class="footnote">
 		{t(
-			'The CNN is trained on example rules, not real shopper outcomes. Product prices and sizes come from the same saved listings in every view.',
-			'CNN เรียนรู้จากกฎตัวอย่าง ไม่ใช่ผลการใช้งานของผู้ซื้อจริง ราคาและขนาดสินค้าในทุกมุมมองมาจากรายการที่บันทึกชุดเดียวกัน'
+			'Prices and sizes come from the same source listings in every view.',
+			'ราคาและขนาดสินค้าในทุกมุมมองมาจากรายการสินค้าต้นทางชุดเดียวกัน'
 		)}
 	</p>
 	{#if selected}<Sheet
 			title={t('Product details', 'รายละเอียดสินค้า')}
 			onclose={() => (selected = null)}
 		>
-			<h2>{selected.name[locale]}</h2>
+			<h2 {...catalogNameAttributes(selected, locale)}>{selected.name[locale]}</h2>
 			{#if selected.size}<p data-fact-key={`${selected.id}:size`} data-raw={selected.size[locale]}>
 					{selected.size[locale]}
 				</p>{/if}

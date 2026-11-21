@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { catalogNameAttributes } from './name-attributes';
 	/* eslint-disable svelte/no-navigation-without-resolve -- All links are external source URLs; this component also runs without SvelteKit in the standalone preview. */
 	import '../assets/fonts/plex.css';
 	import './marketplace.css';
@@ -10,9 +11,9 @@
 	import PartsLibrary from './PartsLibrary.svelte';
 	import { tick, onMount } from 'svelte';
 	import { describePatch, type Answers } from '../personalization/interview';
-	import { listings, shopSource, retrieved } from './shop-data';
 	import type { ShopListing, CatalogSnapshot } from '../catalog-api/types';
 	import { fetchCatalogSnapshot, readCatalogCache, writeCatalogCache } from '../catalog-api/client';
+	import { reviewedCatalog } from '../catalog-api/reviewed-catalog';
 	import {
 		initialView,
 		visibleListings,
@@ -29,29 +30,9 @@
 	let saved = $state<string[]>([]);
 	let tab = $state('shop');
 	let sheet = $state<'assistant' | 'product' | 'interview' | 'filters' | null>(null);
-	const starterCategories = [...new Set(listings.map((item) => item.category))].map((id) => ({
-		id,
-		name:
-			id === 'laundry'
-				? { en: 'Laundry care', th: 'ดูแลเสื้อผ้า' }
-				: id === 'dishes'
-					? { en: 'Kitchen care', th: 'ดูแลครัว' }
-					: { en: id, th: id },
-		count: listings.filter((item) => item.category === id).length
-	}));
-	let catalog = $state<CatalogSnapshot>({
-		items: listings,
-		categories: starterCategories,
-		snapshot: {
-			id: 'starter-seven',
-			source: shopSource,
-			observedAt: retrieved,
-			importedAt: retrieved,
-			total: listings.length
-		}
-	});
-	let catalogStatus = $state<'loading' | 'backend' | 'cached' | 'fallback'>('loading');
-	let focus = $state<ShopListing>(listings[0]);
+	let catalog = $state.raw<CatalogSnapshot>(reviewedCatalog);
+	let catalogStatus = $state<'loading' | 'backend' | 'cached' | 'starter'>('loading');
+	let focus = $state<ShopListing>(reviewedCatalog.items[0]);
 	let message = $state('');
 	let budget = $state<number | undefined>();
 	let chat = $state<{ role: 'user' | 'assistant'; text: string }[]>([]);
@@ -65,15 +46,6 @@
 		const route = new URL(window.location.href).searchParams.get('view');
 		comparisonOpen = route === 'interviews';
 		libraryOpen = route === 'parts';
-		try {
-			const cached = readCatalogCache(window.localStorage);
-			if (cached) {
-				catalog = cached;
-				catalogStatus = 'cached';
-			}
-		} catch {
-			/* Browser storage may be disabled. */
-		}
 		const request = new AbortController();
 		const timeout = setTimeout(() => request.abort(), 8000);
 		let active = true;
@@ -82,14 +54,13 @@
 				if (!active) return;
 				catalog = next;
 				catalogStatus = 'backend';
-				try {
-					writeCatalogCache(window.localStorage, next);
-				} catch {
-					/* Optional offline cache. */
-				}
+				void writeCatalogCache(next);
 			})
-			.catch(() => {
-				if (active && catalogStatus !== 'cached') catalogStatus = 'fallback';
+			.catch(async () => {
+				const saved = await readCatalogCache();
+				if (!active) return;
+				if (saved) catalog = saved;
+				catalogStatus = saved ? 'cached' : 'starter';
 			})
 			.finally(() => clearTimeout(timeout));
 		return () => {
@@ -128,14 +99,11 @@
 	const catalogMessage = $derived(
 		catalogStatus === 'backend'
 			? t('Catalog loaded', 'โหลดข้อมูลสินค้าแล้ว')
-			: catalogStatus === 'cached'
-				? t('Saved offline catalog', 'ข้อมูลสินค้าที่บันทึกไว้สำหรับออฟไลน์')
-				: catalogStatus === 'loading'
-					? t('Loading full catalog…', 'กำลังโหลดข้อมูลสินค้าทั้งหมด…')
-					: t(
-							'Showing the starter catalog; full catalog unavailable.',
-							'แสดงรายการเริ่มต้น ยังโหลดข้อมูลสินค้าทั้งหมดไม่ได้'
-						)
+			: catalogStatus === 'loading'
+				? t('Checking the catalog service…', 'กำลังตรวจสอบข้อมูลจากบริการแค็ตตาล็อก…')
+				: catalogStatus === 'cached'
+					? t('Verified offline catalog', 'แค็ตตาล็อกออฟไลน์ที่ตรวจสอบแล้ว')
+					: t('Offline starter catalog', 'แค็ตตาล็อกเริ่มต้นสำหรับใช้ออฟไลน์')
 	);
 	const interviewChanges = $derived(
 		describePatch(
@@ -320,6 +288,7 @@
 			</div>
 			<div class="search-hints wrap">
 				{#each catalog.categories.slice(0, 5) as category (category.id)}<button
+						{...catalogNameAttributes(category, lang)}
 						onclick={() => setCategory(category.id)}
 					>
 						{category.name[lang]}
@@ -399,6 +368,7 @@
 					{t('All products', 'สินค้าทั้งหมด')}
 				</button>
 				{#each catalog.categories.slice(0, 4) as category (category.id)}<button
+						{...catalogNameAttributes(category, lang)}
 						class:active={!shopHome && tab === 'shop' && view.category === category.id}
 						onclick={() => setCategory(category.id)}
 					>
@@ -419,7 +389,9 @@
 						)?.image}
 						<button onclick={() => setCategory(category.id)}>
 							<span>
-								<small>{t('PRODUCT GROUPS', 'เลือกตามกลุ่มสินค้า')}</small><strong>
+								<small>{t('PRODUCT GROUPS', 'เลือกตามกลุ่มสินค้า')}</small><strong
+									{...catalogNameAttributes(category, lang)}
+								>
 									{category.name[lang]}
 								</strong><span>
 									{t('View products', 'ดูสินค้าในกลุ่มนี้')}
@@ -467,30 +439,14 @@
 						{#if !interviewChanges.length}<p>
 								{t('Your current view already matches these answers.', 'มุมมองปัจจุบันตรงกับคำตอบนี้แล้ว')}
 							</p>{/if}
-						<details class="inference-note">
+						<details class="interview-note">
 							<summary>
 								{t('How the interview adapted this shop', 'interview ปรับร้านนี้อย่างไร')}
 							</summary>
-							<p data-testid="interview-backend">
-								{view.interview.backend === 'cnn'
-									? t(
-											'CNN evaluated your answers on this device. Its presentation proposal passed validation before the shop changed.',
-											'CNN ประเมินคำตอบบนอุปกรณ์นี้ และตรวจสอบข้อเสนอการแสดงผลก่อนปรับหน้าร้าน'
-										)
-									: view.interview.backend === 'incomplete'
-										? t(
-												'Skipped questions keep their settings. The answered preferences used the direct fallback.',
-												'ข้อที่ข้ามคงการตั้งค่าเดิม ใช้คำตอบที่มีผ่านกฎสำรอง'
-											)
-										: t(
-												'CNN was unavailable. Your answers still adapted the shop using the direct fallback.',
-												'CNN ใช้งานไม่ได้ จึงปรับร้านตามคำตอบผ่านกฎสำรอง'
-											)}
-							</p>
 							<p>
 								{t(
-									'The CNN learned from example rules, not measured shopper outcomes. Product facts stay unchanged.',
-									'CNN เรียนรู้จากกฎตัวอย่าง ไม่ใช่ผลการใช้งานของผู้ซื้อจริง ข้อมูลสินค้าคงเดิม'
+									'Your answers set this view. Skipped questions keep their current settings.',
+									'หน้าร้านใช้ตัวเลือกที่คุณตอบ ส่วนข้อที่ข้ามจะคงการตั้งค่าเดิม'
 								)}
 							</p>
 						</details>
@@ -529,7 +485,10 @@
 						value={view.category}
 						onchange={(event) => setCategory(event.currentTarget.value)}
 					>
-						{#each categories as category (category.id)}<option value={category.id}>
+						{#each categories as category (category.id)}<option
+								value={category.id}
+								{...catalogNameAttributes(category, lang)}
+							>
 								{category.name[lang]}
 							</option>{/each}
 					</select>
@@ -537,7 +496,9 @@
 							class:active={view.category === category.id}
 							onclick={() => setCategory(category.id)}
 						>
-							<Icon name="grid" size={18} />{category.name[lang]}
+							<Icon name="grid" size={18} /><span {...catalogNameAttributes(category, lang)}>
+								{category.name[lang]}
+							</span>
 						</button>{/each}
 					<form
 						class="budget"
@@ -592,7 +553,10 @@
 									value={view.category}
 									onchange={(event) => setCategory(event.currentTarget.value)}
 								>
-									{#each categories as category (category.id)}<option value={category.id}>
+									{#each categories as category (category.id)}<option
+											value={category.id}
+											{...catalogNameAttributes(category, lang)}
+										>
 											{category.name[lang]}
 										</option>{/each}
 								</select>
@@ -786,7 +750,10 @@
 					{/each}
 				</div>
 				{#if outcome === 'ask'}<div class="options">
-						{#each rows.slice(0, 24) as p (p.id)}<button onclick={() => open(p)}>
+						{#each rows.slice(0, 24) as p (p.id)}<button
+								onclick={() => open(p)}
+								{...catalogNameAttributes(p, lang)}
+							>
 								{p.name[lang]}
 							</button>{/each}
 					</div>{/if}
@@ -825,7 +792,7 @@
 					/>{/if}<span class="overline">
 					{focus.sellerName ?? t('Seller not recorded', 'ไม่ได้บันทึกชื่อร้านค้า')}
 				</span>
-				<h2>{focus.name[lang]}</h2>
+				<h2 {...catalogNameAttributes(focus, lang)}>{focus.name[lang]}</h2>
 				{#if focus.size}<p data-fact-key={`${focus.id}:size`} data-raw={focus.size[lang]}>
 						{focus.size[lang]}
 					</p>{/if}
