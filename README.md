@@ -13,7 +13,9 @@ bun run dev
 
 ### Try the demo
 
-[Watch the 51-second silent walkthrough](docs/demo/DynamicShopper-final-demo.mp4) of the interview, shopping assistant, catalog citation, deal receipt and Undo.
+The [39-second silent demo](docs/demo/DynamicShopper-final-demo.mp4) follows one rice cooker from its photo to the cart and itemized receipt, then shows a live request to change the shop’s appearance and Undo.
+
+To follow the cart journey, open a product and choose **Add to cart**. **View cart** shows the item, quantity and unit price. Choose **Best price for my cart** to see shipping, vouchers, coins and the final quote. You can reopen **Cart** from the storefront.
 
 1. Open `/` and choose **Rice cookers**. Select **1.8 L**. Choose **ไทย** to try the same journey in Thai.
 2. Select **Start a quick interview** (**เริ่มตอบคำถามสั้น ๆ**). Answer **Compare** and **Specs**, skip the remaining questions, and review the proposed changes. **Apply my view** opens the filtered comparison table. Closing the draft leaves the shelf as it was.
@@ -47,15 +49,21 @@ Run `npm run dev:shopping` and open `http://127.0.0.1:5176` to try the standalon
 | [Interview](src/lib/personalization/interview.ts) | Four optional questions map directly to settings for layout, information, priorities and reading. Review the changes before applying them. Skipped answers preserve existing settings. |
 | [Storefront](src/lib/storefront) and [routes](src/routes) | Fixed rendering components, bilingual copy, product details, cart, change explanations, Undo and Reset. The fact checker compares rendered text and raw fact attributes with their source before showing proof. |
 | [Standalone harness](src/lib/harness), [UI adapter](src/lib/harness-ui), and [bounded agent](src/lib/server/agent) | A separate route exercises validated card order, read-only catalog tools, guarded replies, visible traces and offline fallback. |
-| [Local model handler](src/lib/server/live-assistant) | Optional loopback development endpoint for allowlisted presentation hints. The server validates the response before the shelf can use it. |
+| [Storefront model handler](src/lib/server/live-assistant) | The hosted storefront and optional local assistant send allowlisted presentation hints. The server validates each returned setting. |
 
 Browser storage holds validated presentation settings and cart items. Shared looks contain allowlisted presentation fields. Returning from a listing restores the interview and Undo history using a tab-local key. Raw conversations, credentials and model responses stay out of shared links. See the [system design](guidelines/SYSTEM-DESIGN.md), [trust and proof rules](guidelines/TRUST-AND-PROOF.md), and [demo journey](guidelines/JOURNEY.md).
+
+## Chat with the hosted assistant
+
+Open **Shopping assistant** and send **Give this shop a playful look.** The public Worker uses its existing server-side `OPENAI_API_KEY`. X-ray shows the model after a successful presentation request. Product questions use catalog citations, and deal requests use the pricing engine.
+
+The public demo shares a lifetime allowance of 60 model requests, with a minimum of three seconds between reservations. The Worker reserves each call atomically in its existing D1 database. Offline chat stays available when the allowance is exhausted or the provider is unavailable. The guided interview uses local, bilingual questions.
 
 ## Optional local OpenAI test
 
 Set `OPENAI_API_KEY` in the ignored `.env` file and leave the tracked sample blank. `OPENAI_MODEL` can select a model available to your project. The configured default is `gpt-5-mini`. Start `bun run dev --host 127.0.0.1`, open the printed loopback URL, then choose **Shopping assistant** → **X-ray** → **Try live model**.
 
-Try “Make it minimal with a compact spec table” or “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. The provider receives only recognized presentation hints for theme, layout, density and language. Prices, catalog data, raw messages and conversation history stay in the app. A listing question and a deal request take their deterministic paths. X-ray distinguishes a model contribution, agreement with local settings and offline fallback. **Force offline** returns subsequent turns to the keyword fallback. Production disables both provider endpoints. The standalone harness uses its own development endpoint; the local server projects the current request into allowlisted intent, catalog and presentation labels before contacting a provider. Its browser-based history and raw shopper text stay out of provider requests.
+Try “Make it minimal with a compact spec table” or “หน้าร้านดูจริงจังไป ขอจอยๆ หน่อย”. The provider receives only recognized presentation hints for theme, layout, density and language. Prices, catalog data, raw messages and conversation history stay in the app. A listing question and a deal request take their deterministic paths. X-ray distinguishes a model contribution, agreement with local settings and offline fallback. **Force offline** returns subsequent turns to the keyword fallback. The local pilot endpoint is restricted to loopback development. The standalone harness uses its own development endpoint; the local server projects the current request into allowlisted intent, catalog and presentation labels before contacting a provider. Its browser-based history and raw shopper text stay out of provider requests.
 
 Two optional server-side tools report usage. `OPENAI_LOG_USAGE=1 bun run dev --host 127.0.0.1` logs reported token counts and supported cost estimates to the server terminal. `bun run scripts/evaluate-local-assistant.ts` makes billable requests for five fixed synthetic cases and compares the proposals with the fallback. Estimates apply to supported model pricing. Check the [provider usage dashboard](https://platform.openai.com/usage) for billing totals.
 

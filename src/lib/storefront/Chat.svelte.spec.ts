@@ -174,3 +174,16 @@ it('keeps a draft when the listing handoff fails asynchronously', async () => {
 	await expect.element(screen.getByRole('alert')).toBeVisible();
 	await expect.element(field).toHaveValue('Change the layout');
 });
+
+it.each([
+	['en', 'Online assistant'],
+	['th', 'ผู้ช่วยออนไลน์']
+] as const)('identifies a model-backed change in %s', async (locale, label) => {
+	const screen = await render(Chat, {
+		locale,
+		pending: false,
+		onSend: vi.fn(),
+		messages: [{ id: 'reply', role: 'assistant', text: '✓', offline: false }]
+	});
+	await expect.element(screen.getByText(label, { exact: true })).toBeVisible();
+});

@@ -36,6 +36,7 @@
 			help: 'Tell me what you’re looking for or how you’d like the store to look.',
 			pending: 'Reading your request…',
 			offline: 'Offline mode',
+			online: 'Online assistant',
 			failed: 'Message could not be sent. You can try again.',
 			history: 'Conversation'
 		},
@@ -47,6 +48,7 @@
 			help: 'บอกได้เลยว่ากำลังหาสินค้าอะไร หรืออยากให้หน้าร้านแสดงแบบไหน',
 			pending: 'กำลังอ่านข้อความ…',
 			offline: 'โหมดออฟไลน์',
+			online: 'ผู้ช่วยออนไลน์',
 			failed: 'ส่งข้อความไม่สำเร็จ ลองส่งอีกครั้งได้',
 			history: 'บทสนทนา'
 		}
@@ -179,7 +181,9 @@
 						lang={locale}
 					>
 						{t.offline}
-					</p>{/if}
+					</p>{:else if message.role === 'assistant' && message.offline === false}
+					<p class="m-0 text-[var(--muted,#5d5d63)]" lang={locale}>{t.online}</p>
+				{/if}
 				{#if message.role === 'assistant' && !message.error}{@render renderReply?.(message)}{/if}
 			</article>
 		{/each}

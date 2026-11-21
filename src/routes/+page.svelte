@@ -121,7 +121,8 @@
 	let traceMerge = $state<'applied' | 'unchanged'>();
 	let poisonArmed = $state(false);
 	let forceOffline = $state(false);
-	let liveEnabled = $state(false);
+	const hostedAssistant = Boolean(import.meta.env.D1_WORKER) && !dev;
+	let liveEnabled = $state(hostedAssistant);
 	let pendingPhase = $state<'cart' | 'model'>();
 	let requestGeneration = 0;
 	let liveFallback = $state(false);
@@ -595,7 +596,7 @@
 
 		if (
 			simulating ||
-			!dev ||
+			(!dev && !hostedAssistant) ||
 			forceOffline ||
 			!liveEnabled ||
 			(local.intent !== 'chat' && local.intent !== 'change')
@@ -614,7 +615,7 @@
 		pendingPhase = 'model';
 		turn = undefined;
 		changes = [];
-		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
+		void requestLivePreview(hostedAssistant ? resolve('/api/storefront-assistant') : resolve('/api/local-assistant'), hints, request.signal).then(
 			(result) => {
 				if (liveRequest !== request) return;
 				liveRequest = undefined;
