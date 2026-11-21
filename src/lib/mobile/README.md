@@ -8,9 +8,9 @@ local SQLite catalog and original images, follow the
 [catalog backend](../server/catalog/README.md) documents the read-only API.
 
 `preview/main.ts` mounts `MobileShop.svelte`. The production SvelteKit home and
-`/harness` keep their existing shopper journeys. An optional catalog Worker
-can serve the standalone bundle, D1 data and referenced images through the
-same relative API paths. See [cloud delivery](../../../deploy/catalog/README.md).
+`/harness` keep their existing shopper journeys. The preview can browse its
+bundled observations and original photos immediately, including when the local
+API is unavailable.
 
 The standalone preview opens a shopping page under the DynamicShopper
 identity: orange search header, gray ground, shop navigation, filters and product
@@ -132,10 +132,8 @@ The page reports the actual catalog count, observation date and whether it loade
 from the API, a verified offline release or the starter catalog. This is an observation
 snapshot, not a promise of current checkout prices, stock, ratings or shipping.
 Original names and photos are retained; an untranslated source name is not
-replaced with an invented English name. Cloud publication uses the same dated
-observations and does not enable automatic ingestion or price refresh. Interview mapping
-and keyword refinement run in the browser; cloud delivery does not
-complete the separate production-agent or checkout integration.
+replaced with an invented English name. Each import retains its observation date. Interview mapping and keyword refinement
+run in the browser.
 
 ## Starter source observations
 
@@ -215,8 +213,8 @@ skipped settings survive completion, one changed proposal creates one Undo step,
 and comparison examples cannot apply a view. Also compare the same catalog
 facts before and after completion and after Undo in Thai and English at desktop
 and phone sizes. These are required checks, not a report that they have run.
-Record results for this implementation and cloud release separately; earlier
-Apply-flow screenshots and tests cannot establish that the revised flow passes.
+Run the current Finish and Undo checks using
+`node_modules/.bin/playwright test --config preview/playwright.config.ts`.
 
 ## Decisions
 
@@ -233,6 +231,5 @@ Apply-flow screenshots and tests cannot establish that the revised flow passes.
   interview and the system selects presentation.
 - Deferred: full shared Owner 2 contract integration in this local adapter.
 - Accepted: sourced starter listings and checksum-verified offline reuse of the full release.
-- Accepted: a separate cloud catalog Worker, D1 persistence and original image
-  assets serving the same UI/API contract; no public product-write endpoint.
+- Accepted: an optional local SQLite catalog and original image service behind the preview’s read-only API.
 - Deferred: continuous ingestion, checkout calculation and production agent integration.

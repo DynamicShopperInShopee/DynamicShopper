@@ -30,13 +30,7 @@
 		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes",
 		"dev:shopping": "vite --config preview/vite.config.ts",
 		"dev:catalog": "node scripts/catalog-server.ts --port 4190",
-		"catalog:import": "node scripts/catalog-server.ts --import data/shopee/catalog.json",
-		"catalog:export:d1": "node scripts/export-catalog-d1.ts",
-		"build:catalog:cloud": "vite build --config preview/vite.config.ts && node deploy/catalog/prepare.ts",
-		"catalog:import:d1": "wrangler d1 execute DB --config deploy/catalog/wrangler.jsonc --remote --file data/shopee/catalog-d1.sql",
-		"deploy:catalog": "npm run build:catalog:cloud && wrangler deploy --config deploy/catalog/wrangler.jsonc",
-		"verify:catalog": "node scripts/verify-catalog-deployment.ts",
-		"dev:shopping:cloud": "CATALOG_API_ORIGIN=https://dynamic-shopper-catalog.nattawin-ya.workers.dev vite --config preview/vite.config.ts"
+		"catalog:import": "node scripts/catalog-server.ts --import data/shopee/catalog.json"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261121.1",

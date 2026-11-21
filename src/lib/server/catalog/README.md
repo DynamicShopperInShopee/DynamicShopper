@@ -2,10 +2,7 @@
 
 The local Node backend stores validated Shopee Thailand observations in a durable
 SQLite database, separate from shopper presentation state and the local
-authentication database. It uses the already installed `better-sqlite3`; no package
-was added. A separate Cloudflare Worker implements the same read-only API over
-D1 and packaged original images. Its catalog tables share the existing D1 database
-without changing unrelated authentication tables.
+authentication database. It uses the repository’s existing `better-sqlite3` dependency.
 
 To import a separately staged, normalized `CatalogSnapshot`, run:
 
@@ -20,13 +17,8 @@ requests to port 4190; that port is only the internal local backend listener.
 
 `--database` overrides `data/catalog.sqlite`; `CATALOG_DATABASE_PATH` can also
 set it. `--images` overrides `data/shopee/images`. The server binds only to
-`127.0.0.1`. This package provides the standalone local server and a separate
-catalog Worker; it does not add Node-backed SvelteKit API routes to the main
-Cloudflare application. The standalone server does not require auth settings.
-Cloud delivery lives in
-[`deploy/catalog`](../../../../deploy/catalog/README.md), uses Fetch and D1, and
-packages the standalone shopping frontend without the Node/auth scaffold.
-Importing local SQLite and publishing the cloud catalog are separate actions.
+`127.0.0.1`. The preview works immediately with the bundled starter catalog. The optional
+loopback service supplies additional records and images when available.
 
 Only these read operations are exposed:
 
@@ -86,30 +78,4 @@ retain the complete `data/shopee` directory and run `npm run catalog:import`,
 then `npm run dev:catalog` and `npm run dev:shopping`. Reimporting the same
 snapshot does not duplicate records. Back up a running SQLite database with
 SQLite's backup mechanism, or stop the catalog server before copying its file.
-There is no automatic price refresh. The accepted cloud path imports the same
-validated snapshot into D1 and packages the original images as Worker assets;
-local data files are not uploaded merely by pushing application code.
-
-## Cloud catalog data and publication
-
-Remote D1 import on 2026-11-21 was verified as 1,500 rows with 1,500 unique listing
-IDs. Its validated-snapshot checksum is
-`ff5cfb032f9a497e191700de474892924e290ef763a8fe4637dd8af4a93cf653`.
-This verifies the database import; public Worker availability and its URL require
-separate deployment and live smoke verification.
-
-`scripts/export-catalog-d1.ts` validates source records, exports only catalog
-tables and checks exact round-trip, repeat-import idempotence and unrelated-table
-isolation. Changed imports invalidate metadata before replacing items and publish
-metadata last, so interrupted imports do not advertise a complete mixed snapshot.
-The Worker reads metadata and product results together using D1 batches. There is
-no public import endpoint and no agent catalog-write path.
-
-`deploy/catalog/prepare.ts` packages the built frontend and only original images
-referenced by the validated snapshot. Database files, collection evidence,
-credentials and unreferenced image files are excluded from public assets. The
-Worker keeps `/api/catalog/*` separate from the app fallback, returns JSON errors,
-and serves original JPEG/PNG/WebP bytes with their actual content type. Follow
-[the cloud build and publication steps](../../../../deploy/catalog/README.md).
-Neither D1 persistence nor Worker publication schedules new Shopee collection or
-changes the observation date. Refreshing data remains an explicit validated import.
+The observation times come from the imported records.

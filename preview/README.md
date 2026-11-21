@@ -12,4 +12,4 @@ different layouts independently of the shopper’s view.
 
 See the [shopping guide](../src/lib/mobile/README.md), the
 [dataset guide](../catalogs/shopee-2026-11-21/README.md) and the
-[historical cloud release record](../deploy/catalog/RELEASE.md).
+[local catalog API](../src/lib/server/catalog/README.md).
