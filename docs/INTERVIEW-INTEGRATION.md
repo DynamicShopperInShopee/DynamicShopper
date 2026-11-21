@@ -45,6 +45,7 @@ flow. This extends the branch's earlier harness sync at `0202ca4`.
 - Checks used the locked dependencies and cached Chromium 1223. Temporary runner
   configs and build artifacts are excluded from the commit.
 
-Status: proposed UI decision — this branch replaces the previously selected
-`codex/cnn-interview-main` branded header and interview UI. Merging remains pending
-until that choice is reconciled; synchronization does not approve that design change.
+Status: accepted UI decision — the user selected PR #14's DynamicShopper design.
+Its orange DynamicShopper header and interview flow replace the earlier
+`codex/cnn-interview-main` branded interface. The integration checks above apply
+to the approved design.
