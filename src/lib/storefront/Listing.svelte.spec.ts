@@ -1,7 +1,7 @@
 import { render } from 'vitest-browser-svelte';
 import { expect, it, vi } from 'vitest';
 import CitationSlip from './CitationSlip.svelte';
-import DealSlip from './DealSlip.svelte';
+import ItemizedDealSlip from './ItemizedDealSlip.svelte';
 import ProductListing from './ProductListing.svelte';
 import type { FactLocale, ResolvePrintedFact } from './verifyFacts';
 
@@ -65,8 +65,8 @@ it('renders the supplied optimizer result consistently from any entry point', as
 		productName: (id: string) => (id === productId ? 'One-button rice cooker' : undefined),
 		addOns: [{ productId, extraCost: 15, voucherCode: 'MIN' }]
 	};
-	const first = await render(DealSlip, props);
-	const second = await render(DealSlip, props);
+	const first = await render(ItemizedDealSlip, props);
+	const second = await render(ItemizedDealSlip, props);
 	const facts = (root: HTMLElement) =>
 		[...root.querySelectorAll('[data-source="pricing"]')].map((node) => [
 			node.getAttribute('data-field'),
