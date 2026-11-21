@@ -156,7 +156,7 @@ The system is flat. There are **no shadows anywhere**, including popovers and th
 - Dashed ink rules frame a card's price strip and voucher names.
 - Dotted leaders (2px dotted, faded ink at 40%) join every receipt label to its figure. Short Thai labels never break; the value wraps instead.
 - Receipt slips end in a torn zig-zag edge with 6px teeth, outlined by a 1px seam.
-- Product art is a flat seam-coloured tile with a solid glyph in the theme accent (ink, or blue in vibrant). Tiles carry no per-product hue, because a green or red tile would read as state. In large print the tile keeps the standard seam tone.
+- Adaptive shelves and comparison cards show the same locally bundled illustration as the listing when a model has a dedicated photo or crop. A flat seam-coloured tile with a category glyph in the theme accent represents models with only a shared category illustration. Tiles carry no per-product hue, because a green or red tile would read as state. In large print the tile keeps the standard seam tone.
 - Icons (star, ×, chevron, check) are drawn, never Unicode glyphs.
 
 ## Components

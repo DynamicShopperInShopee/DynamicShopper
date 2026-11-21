@@ -1,57 +1,54 @@
 import { render } from 'vitest-browser-svelte';
-import { page, userEvent } from 'vitest/browser';
 import { afterEach, expect, it, vi } from 'vitest';
 import InterviewConversation from './InterviewConversation.svelte';
 
-afterEach(() => {
-	vi.unstubAllGlobals();
-});
+afterEach(() => vi.unstubAllGlobals());
 
-it('sends interview answers to the production endpoint and maps only preset IDs', async () => {
+it('keeps typed conversation on device and returns only reviewed choice IDs', async () => {
+	const network = vi.fn(() => {
+		throw new Error('Unexpected network request');
+	});
+	vi.stubGlobal('fetch', network);
 	const oncomplete = vi.fn();
-	const oncancel = vi.fn();
-	const fetchMock = vi.fn().mockResolvedValue(
-		Response.json({
-			reply: 'I will prepare a comparison view.',
-			complete: true,
-			answers: {
-				goal: 'compare',
-				matters: 'quality',
-				detail: 'simple',
-				help: null,
-				access: 'larger-text'
-			}
-		})
-	);
-	vi.stubGlobal('fetch', fetchMock);
-	const screen = await render(InterviewConversation, { locale: 'en', oncomplete, oncancel });
+	const screen = await render(InterviewConversation, {
+		locale: 'en',
+		oncomplete,
+		oncancel: vi.fn()
+	});
+	const input = screen.getByRole('textbox', { name: 'Your answer' });
 
-	await screen.getByRole('button', { name: 'Start interview' }).click();
+	await input.fill('A synthetic shopper note with no matching choice');
+	await screen.getByRole('button', { name: 'Reply', exact: true }).click();
+	await expect
+		.element(screen.getByRole('status'))
+		.toHaveTextContent('Choose one of the listed replies, or skip this question.');
+	expect(oncomplete).not.toHaveBeenCalled();
 
-	expect(fetchMock).toHaveBeenCalledOnce();
-	expect(fetchMock).toHaveBeenCalledWith(
-		'/api/interview',
-		expect.objectContaining({ method: 'POST' })
-	);
+	await input.fill('compare');
+	await screen.getByRole('button', { name: 'Reply', exact: true }).click();
+	await screen.getByRole('button', { name: 'Specs', exact: true }).click();
+	await screen.getByRole('button', { name: 'Skip this question' }).click();
+	await screen.getByRole('button', { name: 'Large text', exact: true }).click();
+
 	expect(oncomplete).toHaveBeenCalledExactlyOnceWith({
 		goal: 'compare',
-		priority: 'durability',
-		evidence: 'summary',
+		evidence: 'specs',
 		reading: 'large'
 	});
-	expect(oncancel).not.toHaveBeenCalled();
+	expect(network).not.toHaveBeenCalled();
 });
 
-it('offers the offline interview when the service fails', async () => {
+it('supports Thai replies and returns to the choices without applying a draft', async () => {
+	const network = vi.fn();
+	vi.stubGlobal('fetch', network);
 	const oncomplete = vi.fn();
 	const oncancel = vi.fn();
-	vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
-	const screen = await render(InterviewConversation, { locale: 'en', oncomplete, oncancel });
-
-	await screen.getByRole('button', { name: 'Start interview' }).click();
-	await expect.element(screen.getByRole('alert')).toBeVisible();
-	await userEvent.click(screen.getByRole('button', { name: 'Use offline choices' }));
-
+	const screen = await render(InterviewConversation, { locale: 'th', oncomplete, oncancel });
+	await screen.getByRole('textbox', { name: 'คำตอบของคุณ' }).fill('เปรียบเทียบ');
+	await screen.getByRole('button', { name: 'ตอบ', exact: true }).click();
+	await expect.element(screen.getByRole('heading', { name: 'ดูอะไรแล้วตัดสินใจง่ายขึ้น?' })).toBeVisible();
+	await screen.getByRole('button', { name: 'กลับไปเลือกคำตอบ' }).click();
 	expect(oncancel).toHaveBeenCalledOnce();
 	expect(oncomplete).not.toHaveBeenCalled();
+	expect(network).not.toHaveBeenCalled();
 });

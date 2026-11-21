@@ -5,10 +5,18 @@
 	import Fact from './Fact.svelte';
 	import { resolveCatalogFact } from './catalogFact';
 	import AddToCart from './AddToCart.svelte';
+	import CartFeedback from './CartFeedback.svelte';
 	let { locale }: { locale: Locale } = $props();
 	const session = getStoreSession();
 	let dismissed = $state(false);
+	let addedProduct = $state<string>();
 	const offer = $derived(dismissed ? undefined : companion(session.cart, session.clock.context));
+
+	async function addCompanion(id: string) {
+		const result = await session.addProduct(id);
+		if (result === 'added') addedProduct = id;
+		return result;
+	}
 </script>
 
 {#if offer}
@@ -38,9 +46,11 @@
 				{formatBaht(offer.total, locale)}
 			</strong>
 		</p>
-		<AddToCart productId={offer.productId} {locale} onAdd={session.addProduct} />
+		<AddToCart productId={offer.productId} {locale} onAdd={addCompanion} />
 		<button onclick={() => (dismissed = true)}>{locale === 'th' ? 'ไม่เอา' : 'No thanks'}</button>
 	</section>
+{:else if addedProduct && session.cart.some((item) => item.productId === addedProduct)}
+	<CartFeedback {locale} status="added" restoreFocus />
 {/if}
 
 <style>

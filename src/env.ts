@@ -4,11 +4,11 @@ export const variables = defineEnvVars({
 	OPENAI_API_KEY: {
 		schema: (value) => value,
 		description:
-			'Server-only OpenAI API key for the production preference interview and optional local assistant.'
+			'Server-only OpenAI key for the optional local assistant and the bounded hosted storefront assistant.'
 	},
 	OPENAI_MODEL: {
 		schema: (value) => value,
-		description: 'Optional OpenAI model name for the preference interview and local assistant.'
+		description: 'Optional OpenAI model name for the local assistant.'
 	},
 	OPENAI_LOG_USAGE: {
 		schema: (value) => value,

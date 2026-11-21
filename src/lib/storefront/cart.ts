@@ -4,6 +4,7 @@ export interface CartItem {
 }
 
 export const maxDistinctCartItems = 20;
+export const cartPanelId = 'shopping-cart';
 
 type MayPrice = (cart: readonly CartItem[]) => boolean;
 

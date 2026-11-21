@@ -2,25 +2,42 @@ import { parseLiveHints } from '../../personalization/live';
 import { requestLivePatch, type LiveUsage } from './openai';
 import { readJson } from './read-json';
 
-import { localJsonGuard, headers, error } from '../utils/local-json';
+import { localJsonGuard, sameOriginJsonGuard, headers, error } from '../utils/local-json';
 
 const maxRequestBytes = 1024;
+
+interface ProviderOptions {
+	apiKey?: string;
+	model?: string;
+	onUsage?: (usage: LiveUsage) => void;
+}
 
 export async function handleLocalAssistant(
 	request: Request,
 	url: URL,
-	options: {
-		enabled: boolean;
-		peer: string;
-		apiKey?: string;
-		model?: string;
-		onUsage?: (usage: LiveUsage) => void;
-	},
+	options: ProviderOptions & { enabled: boolean; peer: string },
 	provider: typeof fetch = fetch
 ) {
 	const denied = localJsonGuard(request, url, options.enabled, options.peer);
-	if (denied) return denied;
+	return denied ?? respondToHints(request, options, provider);
+}
 
+export async function handlePublicAssistant(
+	request: Request,
+	url: URL,
+	options: ProviderOptions & { reserve: () => Promise<boolean> },
+	provider: typeof fetch = fetch
+) {
+	const denied = sameOriginJsonGuard(request, url);
+	return denied ?? respondToHints(request, options, provider, options.reserve);
+}
+
+async function respondToHints(
+	request: Request,
+	options: ProviderOptions,
+	provider: typeof fetch,
+	reserve?: () => Promise<boolean>
+) {
 	// Reject oversized declared bodies before cancelling a streamed read can reset the HTTP socket.
 	const contentLength = request.headers.get('content-length');
 	if (contentLength !== null && Number(contentLength) > maxRequestBytes)
@@ -41,6 +58,13 @@ export async function handleLocalAssistant(
 
 	const apiKey = options.apiKey?.trim();
 	if (!apiKey) return error(503, 'unavailable');
+	if (reserve) {
+		try {
+			if (!(await reserve())) return error(429, 'unavailable');
+		} catch {
+			return error(503, 'unavailable');
+		}
+	}
 	const result = await requestLivePatch(
 		hints,
 		{ apiKey, model: options.model, signal: request.signal, onUsage: options.onUsage },

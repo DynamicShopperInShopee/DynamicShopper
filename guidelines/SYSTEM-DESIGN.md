@@ -7,15 +7,14 @@ The storefront interview maps recognized answer IDs to fixed presentation settin
 Apply preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
 metadata. The same catalog, deterministic ranking and optimizer serve this view;
-no separate pricing or product data path is introduced. The optional live
-shopping assistant remains development-only. The preference interview can call
-OpenAI from the production server using only the shopper's dialogue and locale;
-its key stays server-side and same-origin JSON checks remain enabled. The direct
-answer and chat fallbacks continue to work without the interview service.
+no separate pricing or product data path is introduced. Both interview modes
+run entirely in the browser. The guided conversation matches replies to the
+authored bilingual choices and sends only the selected IDs to Review.
+The legacy interview HTTP endpoint returns Gone for older clients.
 
 ## Standalone sourced catalog
 
-The standalone preview reads an optional local SQLite service through a same-origin, read-only catalog interface. All layouts and comparisons start with seven checked-in listing observations, their sources and their original photos. The preview validates a same-origin API response before displaying it. It persists one size-limited snapshot only when its canonical JSON matches the SHA-256 digest in the release manifest, and rechecks the digest before displaying any saved facts. Unavailable or altered storage leaves the seven starter listings visible. Original images require the local image service or an existing image cache when offline. Observation time and source links remain visible. A local operator imports the separately supplied full catalog. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
+The standalone preview reads an optional local SQLite service through a same-origin, read-only catalog interface. All layouts and comparisons start with seven checked-in listing observations, their sources and their original photos. The preview validates a same-origin API response before displaying it. It persists one size-limited snapshot only when its canonical JSON matches the SHA-256 digest in the release manifest, and rechecks the digest before displaying any saved facts. Unavailable or altered storage leaves the seven starter listings visible. The preview uses a bundled original when listing ID, source page and source image match. Additional images require the local image service or an existing image cache when offline. A missing original leaves the listing readable with a localized photo status. Observation time and source links remain visible. A local operator imports the separately supplied full catalog. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
 
 ## The central decision: split presentation from facts
 
@@ -132,7 +131,7 @@ When to use tools: for vague or multi-need requests ("something for my mom", "a 
 
 ## Offline parity: the keyword fallback
 
-The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. X-ray identifies the responding model and states when local settings determine every applied change. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
+The hosted storefront and the opt-in local pilot request presentation proposals. The hosted Worker atomically reserves a call from a shared lifetime allowance in D1 before contacting the provider. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. X-ray identifies the responding model and states when local settings determine every applied change. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
 
 The keyword fallback answers whenever the AI cannot: no key, forced offline, an error, a timeout, or unusable output. It produces exactly the same kind of answer as the AI, so everything after "Understand" is identical online and offline.
 

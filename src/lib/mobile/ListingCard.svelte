@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ListingPhoto from './ListingPhoto.svelte';
 	import { catalogNameAttributes } from './name-attributes';
 	import { formatBaht } from '../catalog';
 	import type { ShopListing, CatalogCategory } from '../catalog-api/types';
@@ -22,22 +23,12 @@
 		onopen: () => void;
 	} = $props();
 	const summary = $derived(details.includes('summary'));
-	let failedImage = $state<string | null>(null);
 	const facts = $derived(details.includes('specs') ? ['size', 'price'] : ['price', 'size']);
 </script>
 
 {#snippet picture()}
 	<button class="picture" onclick={onopen} aria-label={product.name[lang]}>
-		{#if product.image && product.image !== failedImage}<img
-				src={product.image}
-				alt={product.name[lang]}
-				loading="lazy"
-				onerror={() => (failedImage = product.image)}
-			/>{:else}<span class="missing">
-				<span {...catalogNameAttributes(product, lang)}>{product.name[lang]}</span><small>
-					{lang === 'th' ? 'ยังไม่มีภาพที่ตรวจสอบแล้ว' : 'Verified image unavailable'}
-				</small>
-			</span>{/if}
+		<ListingPhoto {product} {lang} />
 	</button>
 {/snippet}
 
@@ -134,7 +125,7 @@
 		aspect-ratio: 1;
 		background: white;
 	}
-	.picture img {
+	.picture :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
@@ -156,17 +147,6 @@
 		width: 44px;
 		display: grid;
 		place-items: center;
-	}
-	.missing {
-		font-size: 20px;
-		letter-spacing: 0.08em;
-		padding: 16px;
-	}
-	.missing small {
-		display: block;
-		letter-spacing: 0;
-		margin-top: 12px;
-		line-height: 1.6;
 	}
 	h3 {
 		font-size: 16px;
@@ -245,7 +225,7 @@
 		max-height: 240px;
 		aspect-ratio: auto;
 	}
-	:global(.large) .picture img {
+	:global(.large) .picture :global(img) {
 		height: 240px;
 	}
 	:global(.spacious) .body {

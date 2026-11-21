@@ -13,6 +13,7 @@
 		onSend,
 		conversation,
 		pending = false,
+		canSupersede = false,
 		largePrint = false,
 		openOnMount = false,
 		pendingLabel,
@@ -22,6 +23,7 @@
 		onSend: (message: string) => ChatSendResult | Promise<ChatSendResult>;
 		conversation: Conversation;
 		pending?: boolean;
+		canSupersede?: boolean;
 		largePrint?: boolean;
 		openOnMount?: boolean;
 		pendingLabel?: string;
@@ -47,6 +49,7 @@
 		bind:this={chat}
 		{locale}
 		{pending}
+		{canSupersede}
 		{onSend}
 		{largePrint}
 		{openOnMount}

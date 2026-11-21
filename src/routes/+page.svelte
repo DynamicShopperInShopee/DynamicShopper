@@ -121,7 +121,8 @@
 	let traceMerge = $state<'applied' | 'unchanged'>();
 	let poisonArmed = $state(false);
 	let forceOffline = $state(false);
-	let liveEnabled = $state(false);
+	const hostedAssistant = Boolean(import.meta.env.D1_WORKER) && !dev;
+	let liveEnabled = $state(hostedAssistant);
 	let pendingPhase = $state<'cart' | 'model'>();
 	let requestGeneration = 0;
 	let liveFallback = $state(false);
@@ -489,7 +490,7 @@
 		cancelPending();
 		const generation = requestGeneration;
 		await session.cartSettled();
-		if (!interactive || eventDemo || generation !== requestGeneration) return;
+		if (!interactive || generation !== requestGeneration) return;
 		const basket = productIds ? basketForProducts(productIds) : session.cart;
 		if (basket.length && showBasketDeal(basket, locale) && productIds)
 			focusedProduct = productIds[0];
@@ -497,7 +498,7 @@
 	const calculateQuote = (basket: readonly CartItem[], locale: Locale) =>
 		quoteBasket(basket, locale, session.clock.context);
 	function showBasketDeal(basket: readonly CartItem[], locale: Locale = language) {
-		if (!interactive || eventDemo) return false;
+		if (!interactive) return false;
 		cancelPending();
 		const previous = quoteInput;
 		quoteInput = { basket: basket.map((item) => ({ ...item })), locale };
@@ -552,7 +553,7 @@
 	}
 
 	async function send(message: string): Promise<void | 'superseded'> {
-		if (!message.trim()) return 'superseded';
+		if (pendingPhase === 'cart' || !message.trim()) return 'superseded';
 		cancelPending();
 		const generation = requestGeneration;
 		pendingPhase = 'cart';
@@ -595,7 +596,7 @@
 
 		if (
 			simulating ||
-			!dev ||
+			(!dev && !hostedAssistant) ||
 			forceOffline ||
 			!liveEnabled ||
 			(local.intent !== 'chat' && local.intent !== 'change')
@@ -614,7 +615,7 @@
 		pendingPhase = 'model';
 		turn = undefined;
 		changes = [];
-		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
+		void requestLivePreview(hostedAssistant ? resolve('/api/storefront-assistant') : resolve('/api/local-assistant'), hints, request.signal).then(
 			(result) => {
 				if (liveRequest !== request) return;
 				liveRequest = undefined;
@@ -1163,7 +1164,7 @@
 					<AdaptiveProductCard
 						{product}
 						plan={activePlan}
-						photos={Boolean(interviewAnswers)}
+						caption={Boolean(interviewAnswers)}
 						columns={activePlan.details.includes('specs') ? cardSpecs(product.catalogId) : []}
 						vouchers={cardVouchers.get(product.catalogId) ?? []}
 						href={listingHref(product.id)}
@@ -1375,6 +1376,7 @@
 				ids={products.map((product) => product.catalogId)}
 				disabled={!interactive}
 				publicEntry={eventDemo}
+				onCartPrice={eventDemo ? () => openBasket() : undefined}
 				strip={cookerSearch || skinSearch}
 			/>
 		{/snippet}
@@ -1696,6 +1698,7 @@
 					openOnMount={['#assistant', '#shopper-assistant'].includes(page.url.hash)}
 					conversation={session.conversation}
 					pending={Boolean(pendingPhase)}
+					canSupersede={pendingPhase === 'model'}
 					pendingLabel={pendingPhase === 'cart'
 						? language === 'th'
 							? 'กำลังบันทึกตะกร้า…'
@@ -1811,21 +1814,21 @@
 					/>
 				</div>
 			{/if}
-			{#if quote}
-				<section class="quote" lang={quote.locale}>
-					<button
-						type="button"
-						bind:this={closeQuoteButton}
-						onclick={closeDeal}
-						onkeydown={(event) => {
-							if (event.key === 'Escape') closeDeal();
-						}}
-					>
-						{assistantCopy[quote.locale].closeDeal}
-					</button>
-					<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
-				</section>
-			{/if}
+		{/if}
+		{#if quote}
+			<section class="quote" lang={quote.locale}>
+				<button
+					type="button"
+					bind:this={closeQuoteButton}
+					onclick={closeDeal}
+					onkeydown={(event) => {
+						if (event.key === 'Escape') closeDeal();
+					}}
+				>
+					{assistantCopy[quote.locale].closeDeal}
+				</button>
+				<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
+			</section>
 		{/if}
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
