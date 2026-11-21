@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+test('persona and shared-look changes explain themselves and clear on Undo', async ({ page }) => {
+	await page.goto('/?view=receipt');
+	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+	const notice = page
+		.getByRole('status')
+		.filter({ has: page.getByText('What changed', { exact: true }) });
+	await expect(notice).toContainText('Theme');
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(notice).toHaveCount(0);
+	await page.goto('/?look=vibrant.grid.en');
+	await expect(notice).toContainText('Theme');
+	await page.getByRole('button', { name: 'Undo', exact: true }).click();
+	await expect(notice).toHaveCount(0);
+});
+
 test('Reset store at the default state leaves Undo unavailable', async ({ page }) => {
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('searchbox')).toBeEnabled();

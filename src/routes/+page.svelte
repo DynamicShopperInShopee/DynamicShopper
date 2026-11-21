@@ -1,8 +1,9 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, snapshot } from '$app/navigation';
 	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
+	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
 	import { onMount, tick, untrack } from 'svelte';
@@ -13,7 +14,7 @@
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
-	import CookerQuickFilters from './CookerQuickFilters.svelte';
+	import SearchQuickFilters from './SearchQuickFilters.svelte';
 	import CookerPhotoCaption from '../lib/storefront/CookerPhotoCaption.svelte';
 	import SearchShopPreview from './SearchShopPreview.svelte';
 	import '../lib/assets/products/shelf-photos.css';
@@ -654,6 +655,49 @@
 			(category === 'cooker' ||
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'cooker')))
 	);
+	const skinSearch = $derived(
+		eventDemo &&
+			(category === 'skin' ||
+				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
+	);
+	function captureSearch() {
+		return eventDemo
+			? {
+					category,
+					language,
+					sort,
+					query,
+					draftQuery,
+					maxPrice,
+					freeShipping,
+					capacity,
+					scrollY: Math.max(0, Math.round(window.scrollY))
+				}
+			: undefined;
+	}
+	function restoreSearch(input: unknown) {
+		const selection = readSearchSelection(input);
+		if (!eventDemo || !selection) return;
+		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
+		draftPrice = maxPrice;
+		draftShipping = freeShipping;
+		if (selection.scrollY !== undefined) {
+			const offset = selection.scrollY;
+			void tick().then(async () => {
+				await document.fonts.ready;
+				await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+				if (page.route.id !== '/') return;
+				const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+				window.scrollTo({ top: Math.min(offset, maxScroll), behavior: 'instant' });
+			});
+		}
+	}
+	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
+	carrySearchToListing(captureSearch);
+	afterNavigate(({ from, type }) => {
+		if (type !== 'popstate' && from?.route.id === '/product/[id]')
+			restoreSearch(page.state.storeSearch);
+	});
 	const selectedCapacityProduct = $derived(
 		capacity !== undefined
 			? canonical.find(
@@ -862,7 +906,24 @@
 						</div>
 						{#if eventDemo || activePlan.details.includes('shipping')}
 							<div class="shipping">
-								<span>{t.shipping}</span>
+								{#if eventDemo}
+									<svg
+										aria-hidden="true"
+										viewBox="0 0 24 24"
+										width="16"
+										height="16"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.7"
+									>
+										<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
+											cx="6"
+											cy="18"
+											r="2"
+										/><circle cx="18" cy="18" r="2" />
+									</svg>
+								{/if}
+								<span class:visually-hidden={eventDemo}>{t.shipping}</span>
 								<span class="leader" aria-hidden="true"></span>
 								<FactValue
 									class="figure"
@@ -870,6 +931,14 @@
 									field="shipping"
 									locale={language}
 								/>
+								{#if eventDemo}
+									<FactValue
+										class="shipping-shop"
+										productId={product.catalogId}
+										field="shop"
+										locale={language}
+									/>
+								{/if}
 							</div>
 						{/if}
 						{#if eventDemo || activePlan.details.includes('rating')}
@@ -907,7 +976,7 @@
 								</span>
 							</div>
 						{/if}
-						{#if eventDemo || activePlan.details.includes('shop')}
+						{#if !eventDemo && activePlan.details.includes('shop')}
 							<FactValue
 								tag="p"
 								class="shop"
@@ -1073,7 +1142,7 @@
 
 	<main class="wrap">
 		<h1 class:visually-hidden={eventDemo}>{t.title}</h1>
-		<form class="search" role="search" onsubmit={submitSearch}>
+		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
 					<svg
@@ -1093,6 +1162,7 @@
 			<input
 				id="search"
 				disabled={!interactive}
+				maxlength={eventDemo ? searchLimit : undefined}
 				type="search"
 				placeholder={category !== 'all' ? categories[category][language] : t.searchHint}
 				bind:value={draftQuery}
@@ -1143,7 +1213,7 @@
 			{/if}
 		</form>
 
-		{#if eventDemo && products.length > 0 && (category === 'skin' || (query && products.every((item) => item.category === 'skin')))}
+		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		{#if eventDemo && !cookerSearch}
@@ -1193,8 +1263,9 @@
 			</div>
 		{/if}
 
-		{#if cookerSearch}
-			<CookerQuickFilters
+		{#if cookerSearch || skinSearch}
+			<SearchQuickFilters
+				cooker={cookerSearch}
 				{language}
 				{category}
 				bind:capacity
@@ -1439,6 +1510,12 @@
 						</p>
 					</div>
 				{/if}
+				{#if changes.length}
+					<div class="assistant-reply" role="status">
+						<strong>{a.changed}</strong>
+						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
+					</div>
+				{/if}
 				{#if sharedLookOpened}<p role="status">
 						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
 					</p>{/if}
@@ -1551,9 +1628,12 @@
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
 		<section id="products" aria-labelledby="products-heading" tabindex="-1">
-			<div class="results-header" class:visually-hidden={cookerSearch && sort === 'default'}>
+			<div
+				class="results-header"
+				class:visually-hidden={skinSearch || (cookerSearch && sort === 'default')}
+			>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
-				{#if eventDemo && !cookerSearch}
+				{#if eventDemo && !cookerSearch && !skinSearch}
 					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
@@ -2099,6 +2179,8 @@
 	}
 
 	.event-demo {
+		/* The sticky filters change height after scrolling. Keep the shelf offset stable. */
+		overflow-anchor: none;
 		--paper: #f5f5f5;
 
 		--seam: #e4e4e4;
@@ -2215,7 +2297,7 @@
 	}
 
 	.event-demo .card-body h3 {
-		font-size: var(--size);
+		font-size: max(0.9375rem, var(--small));
 		line-height: 1.35;
 		font-weight: 400;
 	}
@@ -2303,7 +2385,7 @@
 	}
 
 	.event-demo .card-body {
-		gap: 0.32rem;
+		gap: 0.25rem;
 		padding: 0.45rem 0.5rem 0.6rem;
 	}
 	.event-demo .card-body h3 {
@@ -2350,6 +2432,37 @@
 		.store.trace-open .comparison-area,
 		.store.trace-open .quote {
 			padding-inline-end: calc(320px + 1rem);
+		}
+	}
+	.shipping :global(.shipping-shop) {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		border-inline-start: 1px solid var(--seam);
+		padding-inline-start: 0.35rem;
+	}
+	@media (max-width: 699px) {
+		.event-demo .cooker-search {
+			display: grid;
+			grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+			padding-inline: 0.125rem;
+			gap: 0.125rem;
+		}
+		.cooker-search .search-back {
+			grid-area: 1 / 1;
+		}
+		.event-demo .cooker-search input {
+			grid-area: 1 / 2;
+			width: 100%;
+			padding-inline: var(--tap) 0.5rem;
+		}
+		.event-demo .cooker-search .search-icon {
+			grid-area: 1 / 2;
+			justify-self: start;
+			width: var(--tap);
+			margin: 0;
 		}
 	}
 </style>

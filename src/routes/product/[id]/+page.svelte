@@ -64,7 +64,7 @@
 			</ProductSummary>
 		</div>
 		<ProductDescription {data} openSpecifications={sheet ? openSpecifications : undefined} />
-		<SpecificationsSheet specs={data.specs} {th} bind:sheet />
+		<SpecificationsSheet {data} {th} bind:sheet />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />
 	{#if data.receiptQuery}<ProductChat
@@ -109,8 +109,14 @@
 	}
 
 	@media (max-width: 699px) {
+		main[data-theme='large'] {
+			--gallery-caption-top: 68px;
+			--gallery-caption-surface: #fff;
+			--gallery-caption-ink: #16161a;
+			--gallery-caption-padding: 0.125em 0.25em;
+		}
 		main {
-			padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+			padding-bottom: calc(var(--listing-actions-height, 60px) + 1rem);
 		}
 	}
 	@media (min-width: 700px) {

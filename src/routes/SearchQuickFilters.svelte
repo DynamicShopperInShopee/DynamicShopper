@@ -8,6 +8,7 @@
 
 	let {
 		language,
+		cooker,
 		category,
 		capacity = $bindable(),
 		freeShipping,
@@ -17,6 +18,7 @@
 		toggleLanguage
 	}: {
 		language: Language;
+		cooker: boolean;
 		category: Category | 'all';
 		capacity?: number;
 		freeShipping: boolean;
@@ -26,7 +28,22 @@
 		toggleLanguage: () => void;
 	} = $props();
 	const th = $derived(language === 'th');
+	const label = $derived(
+		cooker
+			? th
+				? 'ตัวกรองหม้อหุงข้าว'
+				: 'Rice cooker filters'
+			: th
+				? 'ตัวกรองสกินแคร์'
+				: 'Skincare filters'
+	);
 	let scrollY = $state(0);
+	let strip: HTMLDivElement;
+	let previousMode: boolean | undefined;
+	$effect(() => {
+		if (strip && previousMode !== cooker) strip.scrollLeft = 0;
+		previousMode = cooker;
+	});
 	const sizes = new SvelteMap<number, string>();
 	for (const item of products) {
 		if (item.category !== 'rice-cooker') continue;
@@ -36,8 +53,8 @@
 </script>
 
 <svelte:window bind:scrollY />
-<nav class:condensed={scrollY > 180} aria-label={th ? 'ตัวกรองหม้อหุงข้าว' : 'Rice cooker filters'}>
-	<div class="chips">
+<nav class:condensed={scrollY > 180} class:single-row={!cooker} aria-label={label}>
+	<div class="chips" bind:this={strip}>
 		<button type="button" aria-pressed={freeShipping} onclick={toggleShipping}>
 			<svg
 				width="17"
@@ -79,37 +96,43 @@
 				{/each}
 			</select>
 		</label>
-		{#each sizes as [volume, id] (volume)}
-			<button
-				type="button"
-				aria-pressed={capacity === volume}
-				onclick={() => (capacity = capacity === volume ? undefined : volume)}
-			>
-				<FactValue productId={id} field="spec.capacity" locale={language} />
-			</button>
-		{/each}
-		<button type="button" onclick={toggleLanguage}>{th ? 'English' : 'ไทย'}</button>
+		{#if cooker}
+			{#each sizes as [volume, id] (volume)}
+				<button
+					type="button"
+					aria-pressed={capacity === volume}
+					onclick={() => (capacity = capacity === volume ? undefined : volume)}
+				>
+					<FactValue productId={id} field="spec.capacity" locale={language} />
+				</button>
+			{/each}
+		{/if}
+		<button type="button" lang={th ? 'en' : 'th'} onclick={toggleLanguage}>
+			{th ? 'English' : 'ไทย'}
+		</button>
 		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
 	</div>
-	<button
-		class="filters"
-		type="button"
-		aria-haspopup="dialog"
-		onclick={(event) => openFilters(event.currentTarget)}
-	>
-		<svg
-			width="20"
-			height="20"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="1.6"
-			aria-hidden="true"
+	{#if cooker}
+		<button
+			class="filters"
+			type="button"
+			aria-haspopup="dialog"
+			onclick={(event) => openFilters(event.currentTarget)}
 		>
-			<path d="M3 5h18l-7 8v6l-4 2v-8z" />
-		</svg>
-		{th ? 'ตัวกรอง' : 'Filters'}
-	</button>
+			<svg
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.6"
+				aria-hidden="true"
+			>
+				<path d="M3 5h18l-7 8v6l-4 2v-8z" />
+			</svg>
+			{th ? 'ตัวกรอง' : 'Filters'}
+		</button>
+	{/if}
 </nav>
 
 <style>
@@ -188,6 +211,9 @@
 	}
 	button :global([data-fact]) {
 		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
+	}
+	.single-row .chips {
+		grid-template-rows: auto;
 	}
 	@media (max-width: 699px) {
 		.condensed .chips {
