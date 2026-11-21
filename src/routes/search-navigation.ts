@@ -15,6 +15,7 @@ export type SearchSelection = {
 	freeShipping: boolean;
 	capacity?: number;
 	scrollY?: number;
+	origin?: 'marketplace';
 };
 
 const sorts: readonly Sort[] = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'];
@@ -52,7 +53,8 @@ export function readSearchSelection(input: unknown): SearchSelection | undefined
 		maxPrice: value.maxPrice,
 		freeShipping: value.freeShipping,
 		capacity: value.capacity,
-		scrollY: value.scrollY
+		scrollY: value.scrollY,
+		...(value.origin === 'marketplace' ? { origin: value.origin } : {})
 	};
 }
 

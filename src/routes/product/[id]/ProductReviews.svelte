@@ -5,6 +5,8 @@
 	import servingCooker from '../../../lib/assets/products/cooker-serving.jpg';
 	import cookerSwitch from '../../../lib/assets/products/cooker-switch-detail.jpg';
 	import overview from '../../../lib/assets/products/cooker-overview.mp4';
+	import DigitalReviewMedia from './DigitalReviewMedia.svelte';
+	import DigitalReviewVideos from './DigitalReviewVideos.svelte';
 	const illustrations = [
 		{ id: 'cooker-exterior', src: closedCooker, en: 'Cooker exterior', th: 'ตัวหม้อหุงข้าว' },
 		{ id: 'cooker-capacity', src: servingCooker, en: 'Serving rice', th: 'การตักข้าว' },
@@ -42,7 +44,9 @@
 			{th ? 'รีวิว' : 'reviews'})
 		</small>
 	</h2>
-	{#if data.id === 'cooker-one-button'}
+	{#if data.listingDetails}
+		<DigitalReviewMedia {data} />
+	{:else if data.id === 'cooker-one-button'}
 		<aside aria-labelledby="listing-photo-label">
 			<h3 id="listing-photo-label">{th ? 'ภาพจากหน้าสินค้า' : 'Photos from the listing'}</h3>
 			{#if !receipt}
@@ -78,7 +82,13 @@
 		<input
 			type="search"
 			aria-label={th ? 'ค้นหาในรีวิว' : 'Search product reviews'}
-			placeholder={th ? 'ค้นหารีวิวจากผู้ซื้อคนอื่น' : 'Search buyer reviews'}
+			placeholder={data.listingDetails
+				? th
+					? 'ค้นหารีวิวจำลอง'
+					: 'Search simulated reviews'
+				: th
+					? 'ค้นหารีวิวจากผู้ซื้อคนอื่น'
+					: 'Search buyer reviews'}
 			bind:value={search}
 		/>
 	</label>
@@ -97,9 +107,18 @@
 					>
 						<circle cx="12" cy="9" r="3.3" /><path d="M5 20c0-7.5 14-7.5 14 0" />
 					</svg>
-					{th ? 'รีวิวจากผู้ซื้อ' : 'Buyer review'}
+					{data.listingDetails
+						? th
+							? 'รีวิวจำลอง'
+							: 'Simulated review'
+						: th
+							? 'รีวิวจากผู้ซื้อ'
+							: 'Buyer review'}
 				</div>
 				<blockquote {...review.attributes}>{review.text}</blockquote>
+				{#if data.listingDetails}
+					<DigitalReviewMedia {data} reviewField={review.attributes['data-fact']} />
+				{/if}
 			</li>
 		{:else}
 			<li>{th ? 'ไม่พบรีวิวที่ตรงกับคำค้น' : 'No reviews match your search.'}</li>
@@ -107,7 +126,9 @@
 	</ul>
 </section>
 
-{#if data.id === 'cooker-one-button'}
+{#if data.listingDetails}
+	{#key data.id}<DigitalReviewVideos {data} />{/key}
+{:else if data.id === 'cooker-one-button'}
 	<section class="media" aria-labelledby="listing-video-title">
 		<h3 id="listing-video-title">{th ? 'วิดีโอจากหน้าสินค้า' : 'Video from the listing'}</h3>
 		{#if showVideo}

@@ -196,6 +196,14 @@ async function assertReadable(scope: Locator, large: boolean) {
 	expect(violations).toEqual([]);
 }
 
+test('the marketplace attribution meets normal-text contrast', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	const attribution = page.locator('header[aria-label="Shopee"] p');
+	await expect(attribution).toBeVisible();
+	await assertReadable(attribution, false);
+});
+
 for (const theme of themes) {
 	for (const lang of languages) {
 		for (const { width, height } of viewports) {

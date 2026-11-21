@@ -3,6 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 	import { carrySearchToListing, readSearchSelection } from '../../search-navigation';
 	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
@@ -12,19 +13,23 @@
 		backQuery,
 		children
 	}: { data: PageData; hero?: HTMLElement; backQuery: string; children?: Snippet } = $props();
+	const session = getStoreSession();
 	const th = $derived(data.language === 'th');
 	let overHero = $state(true);
 	let backLink: HTMLAnchorElement;
 	let inDetails = $state(false);
 	let actionsHeight = $state(50);
-	carrySearchToListing(() =>
-		data.receiptQuery ? undefined : readSearchSelection(page.state.storeSearch)
+	const shelfSearch = $derived(readSearchSelection(page.state.storeSearch));
+	const marketplaceOrigin = $derived(shelfSearch?.origin === 'marketplace');
+	const returnSearch = $derived(marketplaceOrigin || !data.receiptQuery ? shelfSearch : undefined);
+	const marketplaceUrl = $derived(session.visit?.marketplace ? returnToStore(session) : '/');
+	const returnUrl = $derived(
+		resolve(marketplaceOrigin ? marketplaceUrl : backQuery ? `/?${backQuery}` : '/')
 	);
+	carrySearchToListing(() => returnSearch);
 	function returnToShelf(event: MouseEvent) {
-		const selection = readSearchSelection(page.state.storeSearch);
 		if (
-			!selection ||
-			data.receiptQuery ||
+			!returnSearch ||
 			event.button !== 0 ||
 			event.metaKey ||
 			event.ctrlKey ||
@@ -33,7 +38,7 @@
 		)
 			return;
 		event.preventDefault();
-		void goto(resolve('/'), { state: { storeSearch: selection } });
+		void goto(returnUrl, { state: { storeSearch: returnSearch } });
 	}
 	$effect(() => {
 		if (!hero) return;
@@ -76,7 +81,7 @@
 	<a
 		class="back"
 		bind:this={backLink}
-		href={resolve(backQuery ? `/?${backQuery}` : '/')}
+		href={returnUrl}
 		onclick={returnToShelf}
 		aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
 	>
@@ -95,7 +100,7 @@
 	<span class="hero-space" aria-hidden="true"></span>
 	<a
 		class="header-search"
-		href={resolve(backQuery ? `/?${backQuery}` : '/')}
+		href={returnUrl}
 		onclick={returnToShelf}
 		aria-label={th ? 'ค้นหาสินค้า' : 'Search products'}
 	>

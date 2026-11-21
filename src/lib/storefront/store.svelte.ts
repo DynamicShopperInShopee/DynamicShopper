@@ -28,6 +28,7 @@ interface StoreVisit extends ShelfState {
 	focusedProduct?: string;
 	draftQuery: string;
 	search: string;
+	marketplace: boolean;
 }
 
 type StoreStorage = Pick<Storage, 'getItem' | 'setItem'>;
@@ -167,6 +168,6 @@ export const createStoreSession = () => new StoreSession();
 export const [getStoreSession, setStoreSession] = createContext<StoreSession>();
 
 export function returnToStore(session: StoreSession): '/' | `/?${string}` {
-	const query = session.visit?.search.slice(1);
-	return query ? `/?${query}` : '/?view=receipt';
+	const search = session.visit?.search ?? '?view=receipt';
+	return search ? `/?${search.slice(1)}` : '/';
 }

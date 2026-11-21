@@ -1,5 +1,23 @@
 # Design system: "The Thermal Receipt"
 
+## Optional interview on the root storefront
+
+Accepted on 2026-11-21: keep the current marketplace as the initial view and add
+a compact optional interview entry. Four short steps cover shopping goal,
+preferred evidence, priority and reading. Draft answers stay inside the dialog;
+the final receipt explains the proposal before one Apply. Apply uses the existing
+adaptive storefront, change chips and Undo. Closing an unapplied interview returns
+focus to its trigger. No full-page onboarding replaces shopping.
+
+The user's later instruction explicitly retains Shopee branding on the root
+before and after Apply. A stable orange brand header surrounds the existing
+responsive template and the adapted product content. This scoped branding
+exception supersedes the earlier no-mark/no-orange guidance for this requested
+surface; proof slips and catalog facts remain unchanged. No device frame is used.
+The existing default storefront is owned separately. This integration adds no
+promotion, seller metric or new catalog values. See
+[the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+
 ## North star
 
 > The store may rearrange itself; every number prints like a receipt you can check.
@@ -154,6 +172,10 @@ White, 1px ink border, theme radius, tap height; the caret is the accent; placeh
 
 Theme radius, white on paper, 1px seam border, no shadow. The art tile runs full-bleed at the top (about 120px tall in a grid) or on the left (list). Contents in order: name (Title), price (Price), the receipt strip between dashed rules with Price / Was (struck in red) / Shipping on dotted leaders, the rating line with a drawn star, the shop with an optional Mall tag, then Add to cart and Best price side by side.
 
+Adaptive cards keep the catalog name and Best price action available. Between them, the validated ordered card-field subset controls every optional block, including the image. Omitted blocks leave no label, blank image tile or reserved space. Grid, list and Top picks share this card component and inherit theme and density tokens. In list layout each card spans the shelf width; its illustration is bounded so large-print text stays easy to scan.
+
+The specs block leads with highlighted catalog keys, then the remaining available keys without duplication. The rating block includes the catalog rating, review count and units sold. Reviews show the available catalog excerpts. The voucher block is a plain receipt fragment showing only vouchers chosen by the shared optimizer for that product and the shared store clock; it waits for that clock before appearing. Coupon codes and amounts carry pricing fact metadata. The unchanged initial photographic shelf remains the default before adaptation.
+
 ### Receipt slip (signature)
 
 The proof surface: What changed, the deal, citations, the facts check, a restored or shared store.
@@ -237,4 +259,8 @@ The cooker capacity panel uses a locally bundled serving scene with its catalog 
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
 
-The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
+
+Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
+
+The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.

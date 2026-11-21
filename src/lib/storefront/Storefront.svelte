@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { afterNavigate, beforeNavigate, snapshot } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto, snapshot } from '$app/navigation';
 	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import {
 		carrySearchToListing,
@@ -51,6 +51,9 @@
 	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from './ShelfTable.svelte';
 	import ShoppingAssistant from './ShoppingAssistant.svelte';
+	import PersonalizeShop from './PersonalizeShop.svelte';
+	import MarketplaceBrand from './MarketplaceBrand.svelte';
+	import type { ProposalSources } from '../personalization/interview';
 	import { fillPresentationGaps, requestLivePreview } from './live-preview';
 	import { projectLiveHints } from '../personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from './copy';
@@ -96,13 +99,14 @@
 	let filterDialog = $state<HTMLDialogElement>();
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
 	const validLook = $derived(isValidLook(sharedLook));
-	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	let adapted = $state(false);
+	const marketplaceBrand = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
+	const eventDemo = $derived(marketplaceBrand && !adapted);
 	let proofRoot = $state<HTMLElement>();
 	let cartProofRoot = $state<HTMLElement>();
 	let assistantProofRoot = $state<HTMLElement>();
 	let filterProofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
-	let adapted = $state(false);
 	const session = getStoreSession();
 	let undoStack = $state<ShelfState[]>([]);
 	let locks = $state<(keyof ShopperPlan)[]>([]);
@@ -238,7 +242,7 @@
 			)
 	);
 	const listingParams = $derived(
-		eventDemo
+		marketplaceBrand
 			? new URLSearchParams({ lang: language, theme }).toString()
 			: receiptListingParams(activePlan)
 	);
@@ -249,15 +253,19 @@
 			lang: language
 		}).toString()
 	);
+	const capacityEligible = $derived(
+		capacity === undefined
+			? canonical
+			: canonical.filter(
+					(product) => product.category === 'rice-cooker' && product.specs.capacity === capacity
+				)
+	);
 	const ranked = $derived(
 		adapted
 			? rankProducts(
-					canonical.filter(
-						(product) =>
-							(!freeShipping || product.shipping === 0) &&
-							(capacity === undefined ||
-								(product.category === 'rice-cooker' && product.specs.capacity === capacity))
-					),
+					freeShipping
+						? capacityEligible.filter(({ shipping }) => shipping === 0)
+						: capacityEligible,
 					activePlan
 				)
 			: []
@@ -295,6 +303,7 @@
 		session.visit = {
 			...shelfState(),
 			search: page.url.search,
+			marketplace: marketplaceBrand,
 			undoStack: $state.snapshot(undoStack),
 			turn: $state.snapshot(turn),
 			liveModel,
@@ -631,7 +640,7 @@
 		openSharedLook();
 	}
 	afterNavigate(({ from, to }) => {
-		if (eventDemo) return;
+		if (eventDemo && !(session.visit?.adapted && session.visit.search === page.url.search)) return;
 		if (page.url.hash === '#xray') traceOpen = true;
 		const sameStore =
 			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
@@ -659,7 +668,7 @@
 		}
 	});
 	$effect(() => {
-		if (!storeReady || eventDemo) return;
+		if (!storeReady) return;
 		const current = $state.snapshot(activePlan);
 		untrack(() => session.savePlan(current));
 	});
@@ -706,7 +715,7 @@
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
 	);
 	function captureSearch() {
-		return eventDemo
+		return marketplaceBrand
 			? {
 					category,
 					language,
@@ -722,7 +731,7 @@
 	}
 	function restoreSearch(input: unknown) {
 		const selection = readSearchSelection(input);
-		if (!eventDemo || !selection) return;
+		if (!marketplaceBrand || !selection) return;
 		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
 		draftPrice = maxPrice;
 		draftShipping = freeShipping;
@@ -738,7 +747,10 @@
 		}
 	}
 	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
-	carrySearchToListing(captureSearch);
+	carrySearchToListing(() => {
+		const selection = captureSearch();
+		return selection && { ...selection, origin: 'marketplace' };
+	});
 	afterNavigate(({ from, type }) => {
 		if (type !== 'popstate' && from?.route.id === '/product/[id]')
 			restoreSearch(page.state.storeSearch);
@@ -908,6 +920,21 @@
 	}
 </script>
 
+{#snippet harnessLink()}
+	<a
+		class="assistant-link"
+		href={resolve('/harness#assistant')}
+		onclick={(event) => {
+			if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+				return;
+			event.preventDefault();
+			void goto(resolve('/harness#assistant'), { state: { storeSearch: captureSearch() } });
+		}}
+	>
+		{language === 'th' ? 'ทดลองผู้ช่วยปรับหน้าร้าน' : 'Explore the agent harness'}
+	</a>
+{/snippet}
+
 {#snippet sectionDeal()}
 	{#if topDeal}<DealSlip receipt={topDeal} locale={language} />{/if}
 {/snippet}
@@ -974,9 +1001,15 @@
 							data-category={product.category}
 							data-model={product.id}
 							data-cooker-photo={product.catalogId}
-							aria-hidden={product.id === 'cooker-1' ? undefined : true}
+							aria-hidden={product.id === 'cooker-1' || product.id === 'cooker-2'
+								? undefined
+								: true}
 						>
-							{#if product.id === 'cooker-1'}<CookerPhotoCaption locale={language} compact />{/if}
+							{#if product.id === 'cooker-1' || product.id === 'cooker-2'}<CookerPhotoCaption
+									productId={product.id === 'cooker-2' ? 'cooker-digital' : 'cooker-one-button'}
+									locale={language}
+									compact
+								/>{/if}
 						</div>
 					{:else if activePlan.details.includes('image')}
 						<div class="art"><CategoryGlyph category={product.category} /></div>
@@ -1184,13 +1217,51 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:marketplace-brand={marketplaceBrand}
 	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
 >
 	<a class="skip" href="#products">{t.skip}</a>
-	{#if !eventDemo}
+	{#if marketplaceBrand}
+		<MarketplaceBrand
+			locale={language}
+			showControls={!eventDemo}
+			enabled={interactive}
+			{theme}
+			themes={themes.map((value) => ({ value, label: t[value] }))}
+			ontheme={(value: string) => selectTheme(value as Theme)}
+			onlocale={toggleReceiptLanguage}
+		>
+			<div class="brand-store-actions">
+				<a
+					class="compare-link"
+					data-offline-ready={session.offlineReady}
+					href={resolve(`/compare?${compareParams}`)}
+				>
+					{a.compare}
+				</a>
+				<CartControls
+					locale={language}
+					onBestPrice={() => openBasket()}
+					pending={Boolean(pendingPhase)}
+					bind:factRoot={cartProofRoot}
+				/>
+				<button
+					type="button"
+					bind:this={traceTrigger}
+					disabled={!interactive}
+					aria-expanded={traceOpen}
+					aria-controls={traceOpen ? 'store-xray' : undefined}
+					aria-keyshortcuts="X"
+					onclick={toggleTrace}
+				>
+					{a.trace}
+				</button>
+			</div>
+		</MarketplaceBrand>
+	{:else}
 		<header class="masthead">
 			<div class="wrap masthead-inner">
 				<a class="brand" href={resolve('/')} aria-label="DynamicShopper">
@@ -1328,6 +1399,28 @@
 			{/if}
 		</form>
 
+		<PersonalizeShop
+			plan={activePlan}
+			themeLocked={locks.includes('theme')}
+			enabled={interactive}
+			onapply={(patch: Partial<ShopperPlan>, sources: ProposalSources) => {
+				// A no-op must not silently add locks without an undo snapshot.
+				if (
+					!Object.entries(patch).some(
+						([key, value]) =>
+							JSON.stringify(activePlan[key as keyof ShopperPlan]) !== JSON.stringify(value)
+					)
+				)
+					return;
+				session.restoreBrowser();
+				storeReady = true;
+				changePlan(patch, false);
+				for (const field of Object.keys(patch) as (keyof ShopperPlan)[]) {
+					if (sources[field] === 'answer') register(field);
+				}
+			}}
+		/>
+
 		{#if skinSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
 		{/if}
@@ -1380,6 +1473,7 @@
 
 		{#if cookerSearch || skinSearch}
 			<SearchQuickFilters
+				{harnessLink}
 				cooker={cookerSearch}
 				{language}
 				{category}
@@ -1711,6 +1805,7 @@
 						plan={activePlan}
 						locale={language}
 						{freeShipping}
+						eligibleProducts={capacityEligible}
 						onDeal={openDeal}
 						dealPending={Boolean(pendingPhase)}
 					/>
@@ -1742,6 +1837,7 @@
 			>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
 				{#if eventDemo && !cookerSearch && !skinSearch}
+					{@render harnessLink()}
 					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
@@ -1855,6 +1951,19 @@
 		--paper: #fff;
 		--seam: #ecebe6;
 		--radius: 0;
+	}
+	.store.marketplace-brand[data-theme='standard'] {
+		--paper: #f5f5f5;
+		--accent: #b63113;
+	}
+	.brand-store-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem;
+		background: var(--surface);
+		color: var(--ink);
 	}
 	.store[data-theme='vibrant'] {
 		--accent: #2f3ccf;

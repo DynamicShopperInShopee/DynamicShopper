@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { products, type Locale } from '../catalog';
+	import { products, type Locale, type Product } from '../catalog';
 	import { personaPlan, rankProducts, type ShopperPlan } from '../personalization';
 	import FactsReceipt from './FactsReceipt.svelte';
 	import FactValue from './FactValue.svelte';
@@ -12,12 +12,14 @@
 		locale,
 		freeShipping = false,
 		dealPending = false,
+		eligibleProducts = products,
 		onDeal
 	}: {
 		plan: ShopperPlan;
 		locale: Locale;
 		freeShipping?: boolean;
 		dealPending?: boolean;
+		eligibleProducts?: readonly Product[];
 		onDeal: (productId: string, locale: Locale) => void;
 	} = $props();
 
@@ -30,7 +32,7 @@
 		mallOnly: plan.mallOnly
 	});
 	const eligible = $derived(
-		freeShipping ? products.filter(({ shipping }) => shipping === 0) : products
+		freeShipping ? eligibleProducts.filter(({ shipping }) => shipping === 0) : eligibleProducts
 	);
 	const techPlan = personaPlan('tech');
 	const momPlan = personaPlan('mom');

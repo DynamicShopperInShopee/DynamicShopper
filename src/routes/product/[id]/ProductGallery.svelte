@@ -1,11 +1,20 @@
 <script lang="ts">
 	import { flushSync, onMount } from 'svelte';
-	import overview from '../../../lib/assets/products/cooker-overview.mp4';
+	import oneButtonOverview from '../../../lib/assets/products/cooker-overview.mp4';
+	import digitalOverview from '../../../lib/assets/products/digital-overview.mp4';
+	import { digitalMedia } from '../../../lib/assets/products/digital-media';
 	import CookerPhotoCaption from '../../../lib/storefront/CookerPhotoCaption.svelte';
-	import mainPhoto from '../../../lib/assets/products/cooker-listing-hero.jpg';
-	import alternatePhoto from '../../../lib/assets/products/cooker-one-button.jpg';
+	import oneButtonPhoto from '../../../lib/assets/products/cooker-listing-hero.jpg';
+	import oneButtonAlternate from '../../../lib/assets/products/cooker-one-button.jpg';
 
-	let { th }: { th: boolean } = $props();
+	let {
+		th,
+		productId = 'cooker-one-button'
+	}: { th: boolean; productId?: 'cooker-one-button' | 'cooker-digital' } = $props();
+	const digital = $derived(productId === 'cooker-digital');
+	const overview = $derived(digital ? digitalOverview : oneButtonOverview);
+	const mainPhoto = $derived(digital ? digitalMedia.hero : oneButtonPhoto);
+	const alternatePhoto = $derived(digital ? digitalMedia.intro : oneButtonAlternate);
 	let strip = $state<HTMLDivElement>();
 	let active = $state(0);
 	let watching = $state(false);
@@ -28,12 +37,18 @@
 			}
 		}
 		void cacheClip();
+		if (digital) {
+			// The finite local image set stays available if connectivity drops mid-listing.
+			for (const src of new Set(Object.values(digitalMedia))) {
+				void fetch(src, { signal: controller.signal, cache: 'force-cache' }).catch(() => {});
+			}
+		}
 		return () => {
 			controller.abort();
 			if (objectUrl) URL.revokeObjectURL(objectUrl);
 		};
 	});
-	let playbackSource = $state(overview);
+	let playbackSource = $state('');
 	let playControl = $state<HTMLButtonElement>();
 	let closeControl = $state<HTMLButtonElement>();
 
@@ -114,7 +129,7 @@
 						src={photo.src}
 						alt={photo.alt}
 						draggable="false"
-					/>{#if index === 0}<CookerPhotoCaption locale={th ? 'th' : 'en'} />{/if}
+					/>{#if index === 0}<CookerPhotoCaption {productId} locale={th ? 'th' : 'en'} />{/if}
 				</div>
 			{/each}
 		</div>

@@ -18,7 +18,22 @@ export type SpecKey =
 	| 'volume'
 	| 'spf'
 	| 'skinType';
-export type FactUnit = 'baht' | 'g' | 'h' | 'Hz' | 'ms' | 'mAh' | 'W' | 'L' | 'yr' | 'ml' | null;
+export type FactUnit =
+	| 'baht'
+	| 'g'
+	| 'h'
+	| 'Hz'
+	| 'ms'
+	| 'mAh'
+	| 'W'
+	| 'L'
+	| 'yr'
+	| 'ml'
+	| 'cm'
+	| 'deg'
+	| 's'
+	| 'kg'
+	| null;
 export type Scores = Readonly<Record<'performance' | 'durability' | 'design' | 'value', number>>;
 
 export type Product = Readonly<{
