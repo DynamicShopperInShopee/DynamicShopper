@@ -1,17 +1,19 @@
 <script lang="ts">
 	import '../lib/assets/products/cooker-photos.css';
 	import { resolve } from '$app/paths';
-	import { afterNavigate, snapshot } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, snapshot } from '$app/navigation';
+	import { getStoreSession, type ShelfState } from '#lib/storefront/store.svelte.ts';
 	import { carrySearchToListing, readSearchSelection, searchLimit } from './search-navigation';
-	import {
-		readInterviewVisit,
-		saveInterviewVisit,
-		type ShelfCheckpoint
-	} from './interview-navigation';
+	import { readInterviewVisit, saveInterviewVisit } from './interview-navigation';
+	import InterviewEntry from '../lib/storefront/InterviewEntry.svelte';
+	import { interviewProposal, type Answers } from '../lib/personalization/interview';
 	import { page } from '$app/state';
 	import { dev } from '$app/env';
-	import { onMount, tick } from 'svelte';
-	import { SvelteURL } from 'svelte/reactivity';
+	import { onMount, tick, untrack } from 'svelte';
+	import { describePlanChanges } from '#lib/storefront/describePlanChanges.ts';
+	import ShareLook from '#lib/storefront/ShareLook.svelte';
+	import { parseSharedLook } from '#lib/storefront/browserState.ts';
+	import { isValidLook, lookFields, validateLook } from '#lib/storefront/sharedLook.ts';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
@@ -28,7 +30,8 @@
 		specs,
 		type Locale
 	} from '../lib/catalog/index.ts';
-	import { findAddOns, optimizeDeal, type DealReceipt, type AddOn } from '../lib/pricing/index.ts';
+	import { quoteBasket } from '#lib/storefront/quoteBasket.ts';
+	import { optimizeDeal, type DealReceipt } from '../lib/pricing/index.ts';
 	import {
 		defaultPlan,
 		interpretOffline,
@@ -38,30 +41,34 @@
 		type ShopperPlan,
 		type Turn
 	} from '../lib/personalization';
+	import CartControls from '../lib/storefront/CartControls.svelte';
+	import AddToCart from '../lib/storefront/AddToCart.svelte';
+	import type { CartItem } from '../lib/storefront/cart';
 	import FactValue from '../lib/storefront/FactValue.svelte';
 	import FactsReceipt from '../lib/storefront/FactsReceipt.svelte';
 	import DealSlip from '../lib/storefront/DealSlip.svelte';
 	import CompareShelves from '../lib/storefront/CompareShelves.svelte';
+	import Sections from '#lib/storefront/Sections.svelte';
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
-	import ProductEvidence from '../lib/storefront/ProductEvidence.svelte';
-	import TopPicks from '../lib/storefront/TopPicks.svelte';
-	import InterviewEntry from '../lib/storefront/InterviewEntry.svelte';
-	import { interviewProposal, type Answers } from '../lib/personalization/interview';
-	import { getStoreOpenedAt } from '../lib/storefront/clock';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
+	import Xray from '../lib/storefront/Xray.svelte';
+	import XrayDrawer from '../lib/storefront/XrayDrawer.svelte';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
-	const sorts = ['default', 'price-low', 'price-high', 'top-rated'] as const;
+	const sorts = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'] as const;
 	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
 
 	let interactive = $state(false);
 	onMount(() => {
 		interactive = true;
+		return () => {
+			interactive = false;
+		};
 	});
 
 	let language = $state<Language>('en');
@@ -73,15 +80,13 @@
 	let draftPrice = $state<number>();
 	let draftShipping = $state(false);
 	let maxPrice = $state<number>();
-	let capacity = $state<number>();
 	let freeShipping = $state(false);
+	let capacity = $state<number>();
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
 	let adapted = $state(false);
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
-	const validLook = $derived(
-		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(sharedLook)
-	);
+	const validLook = $derived(isValidLook(sharedLook));
 	const eventDemo = $derived(
 		!adapted && page.url.searchParams.get('view') !== 'receipt' && !validLook
 	);
@@ -90,42 +95,101 @@
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
+	const session = getStoreSession();
+	let undoStack = $state<ShelfState[]>([]);
 	let interviewAnswers = $state<Answers | null>(null);
 	let interviewDirectOnly = $state(false);
 	let assistant = $state<{ focus: () => void }>();
-	let undoStack = $state<ShelfCheckpoint[]>([]);
-	let interviewRestored = false;
 	let locks = $state<(keyof ShopperPlan)[]>([]);
 	let compareOpen = $state(false);
 	let traceOpen = $state(false);
+	let traceTrigger = $state<HTMLButtonElement>();
+	let traceMerge = $state<'applied' | 'unchanged'>();
 	let poisonArmed = $state(false);
+	let forceOffline = $state(false);
 	let liveEnabled = $state(false);
-	let livePending = $state(false);
+	let pendingPhase = $state<'cart' | 'model'>();
+	let requestGeneration = 0;
 	let liveFallback = $state(false);
 	let liveModel = $state<string>();
 	let liveRequest: AbortController | undefined;
 	let pendingLocalTurn: Turn | undefined;
 
-	function cancelLive() {
+	function cancelPending() {
+		requestGeneration += 1;
 		liveRequest?.abort();
 		liveRequest = undefined;
 		pendingLocalTurn = undefined;
-		livePending = false;
+		pendingPhase = undefined;
 	}
 	function toggleLive() {
-		const fallback = pendingLocalTurn;
-		cancelLive();
 		liveEnabled = !liveEnabled;
-		if (fallback) applyTurn(fallback);
+		if (!liveEnabled) finishPendingOffline();
+	}
+	function setForceOffline(enabled: boolean) {
+		forceOffline = enabled;
+		if (forceOffline) finishPendingOffline();
+	}
+	function finishPendingOffline() {
+		const fallback = pendingLocalTurn;
+		if (fallback) {
+			cancelPending();
+			applyTurn(fallback);
+		}
+	}
+	function closeTrace() {
+		traceOpen = false;
+	}
+	function toggleTrace() {
+		traceOpen = !traceOpen;
+	}
+	function handleTraceKey(event: KeyboardEvent) {
+		const modal = document.querySelector('dialog[open], :popover-open');
+		if (eventDemo || event.defaultPrevented || (modal && modal.id !== 'store-xray')) return;
+		if (event.key === 'Escape' && traceOpen) {
+			event.preventDefault();
+			closeTrace();
+			return;
+		}
+		if (
+			event.key.toLowerCase() !== 'x' ||
+			event.altKey ||
+			event.ctrlKey ||
+			event.metaKey ||
+			event.shiftKey ||
+			event.isComposing ||
+			event.repeat
+		)
+			return;
+		const target = event.target;
+		if (
+			target instanceof HTMLElement &&
+			(target.isContentEditable || target.closest('input, textarea, select, [role="textbox"]'))
+		)
+			return;
+		event.preventDefault();
+		toggleTrace();
 	}
 	let turn = $state<Turn>();
+	const trace = $derived(
+		turn
+			? {
+					backend: liveModel ? { kind: 'model', model: liveModel } : { kind: 'offline' },
+					guard: turn.guarded ? 'replaced' : 'passed',
+					merge: traceMerge
+				}
+			: undefined
+	);
 	let changes = $state<(keyof ShopperPlan)[]>([]);
 	let focusedProduct = $state<string>();
-	let quote = $state<{ receipt: DealReceipt; locale: Locale; addOns: readonly AddOn[] }>();
+	let quoteInput = $state<{ basket: readonly CartItem[]; locale: Locale }>();
+	const quote = $derived(
+		quoteInput
+			? quoteBasket(quoteInput.basket, quoteInput.locale, session.clock.context)
+			: undefined
+	);
 	let closeQuoteButton = $state<HTMLButtonElement>();
 	let quoteTrigger: HTMLElement | undefined;
-	let opening = $state<number>();
-	let referenceTime = $state<number>();
 
 	const categoryFromShelf = {
 		mouse: 'mouse',
@@ -149,40 +213,72 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
+	const compareParams = $derived(
+		new URLSearchParams({
+			q: activePlan.query,
+			category: activePlan.category ?? '',
+			lang: language
+		}).toString()
+	);
 	const ranked = $derived(
 		adapted
 			? rankProducts(
 					canonical.filter(
 						(product) =>
 							(!freeShipping || product.shipping === 0) &&
-							(capacity === undefined || product.specs.capacity === capacity)
+							(capacity === undefined ||
+								(product.category === 'rice-cooker' && product.specs.capacity === capacity))
 					),
 					activePlan
 				)
 			: []
 	);
 	const catalogById = new Map(catalog.map((product) => [product.catalogId, product]));
+
+	function quantityInCart(productId: string) {
+		return session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
+	}
 	const a = $derived(assistantCopy[language]);
 	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
-	let shareCopied = $state(false);
 
-	function checkpoint(): ShelfCheckpoint {
+	let restoredFields = $state<(keyof ShopperPlan)[]>([]);
+	let cartRestored = $state(false);
+	let sharedLookOpened = $state(false);
+	let storeReady = $state(false);
+
+	function shelfState(): ShelfState {
 		return {
 			plan: $state.snapshot(activePlan),
 			adapted,
 			sort,
 			freeShipping,
+			capacity,
 			locks: [...locks],
 			interviewAnswers: $state.snapshot(interviewAnswers),
-			interviewDirectOnly,
-			capacity
+			interviewDirectOnly
 		};
 	}
 	function remember() {
-		undoStack = [...undoStack.slice(-19), checkpoint()];
+		undoStack = [...undoStack.slice(-19), shelfState()];
 	}
+	beforeNavigate(({ from, to, willUnload }) => {
+		if (from?.url.pathname !== to?.url.pathname || from?.url.search !== to?.url.search)
+			cancelPending();
+		if (willUnload || !to || to.route.id === from?.route.id) return;
+		session.visit = {
+			...shelfState(),
+			search: page.url.search,
+			undoStack: $state.snapshot(undoStack),
+			turn: $state.snapshot(turn),
+			liveModel,
+			liveFallback,
+			changes: [...changes],
+			focusedProduct,
+			draftQuery
+		};
+	});
 	function register(key: keyof ShopperPlan) {
-		cancelLive();
+		cancelPending();
 		if (!locks.includes(key)) locks = [...locks, key];
 	}
 	function writePlan(next: ShopperPlan) {
@@ -194,7 +290,7 @@
 		maxPrice = draftPrice = next.maxPrice ?? undefined;
 	}
 	function changePlan(patch: Partial<ShopperPlan>, respectLocks: boolean) {
-		cancelLive();
+		cancelPending();
 		const previous = $state.snapshot(activePlan);
 		const entries = Object.entries(patch).filter(
 			([key, value]) =>
@@ -209,34 +305,38 @@
 		adapted = true;
 	}
 	function undo() {
-		cancelLive();
+		cancelPending();
 		const previous = undoStack.at(-1);
 		if (!previous) return;
 		undoStack = undoStack.slice(0, -1);
 		restoreCheckpoint(previous);
 		changes = [];
 	}
-	function restoreCheckpoint(previous: ShelfCheckpoint) {
-		capacity = previous.capacity;
+	function restoreCheckpoint(previous: ShelfState) {
 		writePlan(previous.plan);
 		adapted = previous.adapted;
 		sort = previous.sort;
 		freeShipping = draftShipping = previous.freeShipping;
+		capacity = previous.capacity;
 		locks = previous.locks;
 		interviewAnswers = previous.interviewAnswers;
 		interviewDirectOnly = previous.interviewDirectOnly;
 	}
 	function restoreDefaults() {
-		cancelLive();
-		remember();
+		cancelPending();
+		const hasPlanChanges = (Object.keys(defaultPlan) as (keyof ShopperPlan)[]).some(
+			(key) => JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])
+		);
+		if (hasPlanChanges || adapted || sort !== 'default' || freeShipping || capacity !== undefined)
+			remember();
 		writePlan(structuredClone(defaultPlan));
 		locks = [];
 		interviewAnswers = null;
 		interviewDirectOnly = false;
-		capacity = undefined;
 		adapted = false;
 		sort = 'default';
 		freeShipping = draftShipping = false;
+		capacity = undefined;
 		changes = [];
 	}
 	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
@@ -258,7 +358,9 @@
 			interviewDirectOnly = directOnly;
 			return;
 		}
-		cancelLive();
+		cancelPending();
+		session.restoreBrowser();
+		storeReady = true;
 		remember();
 		if (result.answers.reading === 'large') register('theme');
 		writePlan({ ...previous, ...result.patch });
@@ -305,6 +407,9 @@
 			register(field);
 		if (persona === 'mom') register('locale');
 	}
+	function listingHref(id: string) {
+		return resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, { id });
+	}
 	function termName(key: string, productId?: string) {
 		const plain = key.startsWith('spec.') ? key.slice(5) : key;
 		const product = canonical.find(({ id }) => id === productId);
@@ -315,39 +420,84 @@
 			a.priorities
 		);
 	}
+	function cardSpecs(productId: string) {
+		const product = canonical.find(({ id }) => id === productId);
+		if (!product) return [];
+		const definitions = specs[product.category].filter(
+			({ key }) => product.specs[key] !== undefined
+		);
+		return [
+			...activePlan.highlightedSpecs.flatMap((key) =>
+				definitions.filter((spec) => spec.key === key)
+			),
+			...definitions.filter(({ key }) => !activePlan.highlightedSpecs.includes(key))
+		];
+	}
+	const priorityLabels = $derived([
+		...Object.entries(activePlan.priorities).flatMap(([key, weight]) =>
+			weight && rankingTerms[key] ? [{ en: rankingTerms[key][0], th: rankingTerms[key][1] }] : []
+		),
+		...Object.entries(activePlan.specPreferences).flatMap(([key, direction]) => {
+			const definition = Object.values(specs)
+				.flat()
+				.find((spec) => spec.key === key);
+			return definition && direction
+				? [
+						{
+							en: `${direction === 'higher' ? 'Higher' : 'Lower'} ${definition.label.en}`,
+							th: `${definition.label.th}${direction === 'higher' ? 'สูงขึ้น' : 'ลดลง'}`
+						}
+					]
+				: [];
+		})
+	]);
 	function changeName(key: keyof ShopperPlan) {
-		const labels = {
-			density: ['Spacing', 'ระยะห่าง'],
-			details: ['Information', 'ข้อมูล'],
-			sections: ['Page sections', 'ส่วนต่าง ๆ ของหน้า']
-		};
-		return key in labels
-			? labels[key as keyof typeof labels][language === 'th' ? 1 : 0]
-			: key in a
-				? a[key as keyof typeof a]
-				: a.appearance;
+		return key in a ? a[key as keyof typeof a] : a.appearance;
 	}
 	function openDeal(productId: string, locale: Locale = language) {
-		openBasket([productId], locale);
+		void openBasket([productId], locale);
 	}
-	function openBasket(productIds: readonly string[], locale: Locale = language) {
-		const openedAt = getStoreOpenedAt();
-		const context = { openedAt, now: Math.max(openedAt, Date.now()) };
-		const basket = productIds.map((productId) => ({ productId, quantity: 1 }));
-		const receipt = optimizeDeal(basket, context);
-		if (!receipt) return;
+	function basketForProducts(productIds: readonly string[]): CartItem[] {
+		return productIds.map((productId) => ({
+			productId,
+			quantity: quantityInCart(productId)
+		}));
+	}
+	async function openBasket(productIds?: readonly string[], locale: Locale = language) {
+		cancelPending();
+		const generation = requestGeneration;
+		await session.cartSettled();
+		if (!interactive || eventDemo || generation !== requestGeneration) return;
+		const basket = productIds ? basketForProducts(productIds) : session.cart;
+		if (basket.length && showBasketDeal(basket, locale) && productIds)
+			focusedProduct = productIds[0];
+	}
+	const calculateQuote = (basket: readonly CartItem[], locale: Locale) =>
+		quoteBasket(basket, locale, session.clock.context);
+	function showBasketDeal(basket: readonly CartItem[], locale: Locale = language) {
+		if (!interactive || eventDemo) return false;
+		cancelPending();
+		const previous = quoteInput;
+		quoteInput = { basket: basket.map((item) => ({ ...item })), locale };
+		if (!quote) {
+			quoteInput = previous;
+			return false;
+		}
 		quoteTrigger =
 			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-		focusedProduct = productIds[0];
-		quote = { receipt, locale, addOns: findAddOns(basket, context) };
 		void tick().then(() => closeQuoteButton?.focus());
+		return true;
 	}
 	function closeDeal() {
-		quote = undefined;
+		cancelPending();
+		quoteInput = undefined;
 		quoteTrigger?.focus();
 	}
 	function applyTurn(next: Turn) {
+		const previous = $state.snapshot(activePlan);
 		turn = next;
+		const replyLocale = /\p{Script=Thai}/u.test(next.reply) ? 'th' : 'en';
+		let deal: ReturnType<typeof calculateQuote>;
 		changes = [];
 		switch (next.intent) {
 			case 'change':
@@ -360,13 +510,31 @@
 				restoreDefaults();
 				break;
 			case 'deal':
-				if (next.productIds.length) openBasket(next.productIds);
+				if (next.productIds.length) {
+					deal = calculateQuote(basketForProducts(next.productIds), replyLocale);
+					if (deal) focusedProduct = next.productIds[0];
+				}
 				break;
 		}
+		const turnChanges = describePlanChanges(previous, activePlan, replyLocale);
+		traceMerge = turnChanges.length ? 'applied' : 'unchanged';
+		session.conversation.reply(next, {
+			locale: replyLocale,
+			offline: !liveModel,
+			changes: turnChanges,
+			deal
+		});
 	}
 
-	function send(message: string) {
-		cancelLive();
+	async function send(message: string): Promise<void | 'superseded'> {
+		if (pendingPhase || !message.trim()) return 'superseded';
+		cancelPending();
+		const generation = requestGeneration;
+		pendingPhase = 'cart';
+		await session.cartSettled();
+		if (!interactive || eventDemo || generation !== requestGeneration) return 'superseded';
+		pendingPhase = undefined;
+		session.conversation.shopper(message, /\p{Script=Thai}/u.test(message) ? 'th' : language);
 		liveModel = undefined;
 		liveFallback = false;
 		const focus = products.some((product) => product.catalogId === focusedProduct)
@@ -388,6 +556,7 @@
 		if (
 			simulating ||
 			!dev ||
+			forceOffline ||
 			!liveEnabled ||
 			(local.intent !== 'chat' && local.intent !== 'change')
 		) {
@@ -402,7 +571,7 @@
 		const request = new AbortController();
 		liveRequest = request;
 		pendingLocalTurn = local;
-		livePending = true;
+		pendingPhase = 'model';
 		turn = undefined;
 		changes = [];
 		void requestLivePreview(resolve('/api/local-assistant'), hints, request.signal).then(
@@ -410,7 +579,7 @@
 				if (liveRequest !== request) return;
 				liveRequest = undefined;
 				pendingLocalTurn = undefined;
-				livePending = false;
+				pendingPhase = undefined;
 				if (!result) {
 					liveFallback = true;
 					applyTurn(local);
@@ -435,32 +604,93 @@
 		);
 	}
 
-	async function shareLook() {
-		const link = new SvelteURL(page.url.href);
-		link.search = '';
-		link.searchParams.set('look', `${theme}.${adapted ? plan.layout : 'grid'}.${language}`);
-		try {
-			await navigator.clipboard.writeText(link.href);
-			shareCopied = true;
-		} catch {
-			shareCopied = false;
+	onMount(() => () => cancelPending());
+	function restoreStore() {
+		session.restoreBrowser();
+		storeReady = true;
+		const saved = session.visit;
+		if (saved && saved.search === page.url.search) {
+			writePlan(saved.plan);
+			({
+				adapted,
+				sort,
+				freeShipping,
+				capacity,
+				locks,
+				undoStack,
+				interviewAnswers,
+				interviewDirectOnly,
+				turn,
+				liveModel,
+				liveFallback,
+				changes,
+				focusedProduct,
+				draftQuery
+			} = saved);
+			draftShipping = freeShipping;
+			return;
 		}
+		const persisted = session.savedPlan;
+		if (persisted) {
+			restoredFields = (Object.keys(defaultPlan) as (keyof ShopperPlan)[]).filter(
+				(key) => JSON.stringify(persisted[key]) !== JSON.stringify(defaultPlan[key])
+			);
+			if (restoredFields.length) {
+				writePlan(persisted);
+				adapted = restoredFields.some(
+					(key) => !['query', 'category', 'maxPrice', 'locale', 'theme'].includes(key)
+				);
+			}
+		}
+		cartRestored = session.cart.length > 0;
+		openSharedLook();
 	}
-	onMount(() => {
-		opening = getStoreOpenedAt();
-		referenceTime = Math.max(opening, Date.now());
-		const timer = window.setInterval(() => {
-			if (opening !== undefined) referenceTime = Math.max(opening, Date.now());
-		}, 60_000);
-		return () => {
-			cancelLive();
-			window.clearInterval(timer);
-		};
+	afterNavigate(({ from, to, type }) => {
+		if (type !== 'popstate' && from?.route.id === '/product/[id]')
+			restoreSearch(page.state.storeSearch);
+		if (eventDemo) return;
+		if (page.url.hash === '#xray') traceOpen = true;
+		const sameStore =
+			from?.route.id === '/' && to?.route.id === '/' && from.url.search !== to.url.search;
+		const hasCurrentControls =
+			undoStack.length ||
+			locks.length ||
+			draftQuery !== query ||
+			sort !== 'default' ||
+			freeShipping ||
+			capacity !== undefined;
+		if (!storeReady && sameStore && hasCurrentControls) {
+			session.restoreBrowser();
+			cartRestored = session.cart.length > 0;
+			storeReady = true;
+		}
+		if (!storeReady) restoreStore();
+		else if (sameStore) openSharedLook();
+		if (from?.route.id === '/product/[id]') {
+			const pending = session.listing.takeTurn();
+			if (pending) {
+				liveModel = undefined;
+				liveFallback = false;
+				applyTurn(pending);
+			}
+		}
 	});
-	onMount(() => {
-		if (interviewRestored) return;
+	$effect(() => {
+		if (!storeReady || eventDemo) return;
+		const current = $state.snapshot(activePlan);
+		untrack(() => session.savePlan(current));
+	});
+	function openSharedLook() {
+		sharedLookOpened = false;
 		const look = page.url.searchParams.get('look');
-		if (!look || look.length > 40) return;
+		if (!look) return;
+		const patch = parseSharedLook(look, lookFields, validateLook);
+		if (patch) {
+			changePlan(patch, false);
+			sharedLookOpened = changes.length > 0;
+			return;
+		}
+		if (look.length > 40) return;
 		const [nextTheme, nextLayout, nextLocale] = look.split('.');
 		if (
 			look.split('.').length !== 3 ||
@@ -477,7 +707,8 @@
 			},
 			false
 		);
-	});
+		sharedLookOpened = changes.length > 0;
+	}
 
 	const t = $derived(storefrontCopy[language]);
 	const queryMatches = $derived(eventDemo && query ? searchProducts({ query, category }) : []);
@@ -494,12 +725,12 @@
 	function captureSearch() {
 		if (interviewAnswers !== null) {
 			return saveInterviewVisit({
-				current: checkpoint(),
+				current: shelfState(),
 				undo: $state.snapshot(undoStack),
 				changes: [...changes],
 				draftQuery,
 				search: validLook
-					? '?look=' + sharedLook
+					? '?look=' + encodeURIComponent(sharedLook)
 					: page.url.searchParams.get('view') === 'receipt'
 						? '?view=receipt'
 						: '',
@@ -524,12 +755,11 @@
 		const visit = readInterviewVisit(input);
 		const selection = readSearchSelection(input);
 		if (visit) {
-			interviewRestored = true;
+			session.restoreBrowser();
+			storeReady = true;
 			restoreCheckpoint(visit.current);
 			undoStack = visit.undo;
-			changes = visit.changes.filter(
-				(field): field is keyof ShopperPlan => field !== 'capacityRemoved'
-			);
+			changes = visit.changes;
 			draftQuery = visit.draftQuery;
 		} else if (eventDemo && selection) {
 			({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } =
@@ -550,10 +780,6 @@
 	}
 	snapshot({ id: 'event-store-search', capture: captureSearch, restore: restoreSearch });
 	carrySearchToListing(captureSearch);
-	afterNavigate(({ from, type }) => {
-		if (type !== 'popstate' && from?.route.id === '/product/[id]')
-			restoreSearch(page.state.storeSearch);
-	});
 	const selectedCapacityProduct = $derived(
 		capacity !== undefined
 			? canonical.find(
@@ -564,7 +790,9 @@
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping || !!selectedCapacityProduct);
 	const products = $derived.by(() => {
 		const matched = searchProducts({ query, category, sort, maxPrice, freeShipping }).filter(
-			(item) => capacity === undefined || getProduct(item.catalogId)?.specs.capacity === capacity
+			(item) =>
+				capacity === undefined ||
+				(item.category === 'cooker' && getProduct(item.catalogId)?.specs.capacity === capacity)
 		);
 		if (!adapted || eventDemo) return matched;
 		if (sort !== 'default') {
@@ -576,47 +804,55 @@
 			const filtered = matched.filter(({ catalogId }) => visible.has(catalogId));
 			return plan.simplified ? filtered.slice(0, 3) : filtered;
 		}
-		const matching = new Set(matched.map((product) => product.catalogId));
-		return ranked.flatMap(({ product }) =>
-			matching.has(product.id) ? (catalogById.get(product.id) ?? []) : []
-		);
+		return ranked.flatMap(({ product }) => catalogById.get(product.id) ?? []);
 	});
 	const topDeal = $derived.by(() => {
 		const top = products[0];
-		if (
-			eventDemo ||
-			!adapted ||
-			!plan.sections.includes('best-deal') ||
-			!top ||
-			opening === undefined ||
-			referenceTime === undefined
-		)
+		const context = session.clock.context;
+		if (eventDemo || !adapted || !plan.sections.includes('best-deal') || !top || !context)
 			return null;
-		return optimizeDeal([{ productId: top.catalogId, quantity: 1 }], {
-			openedAt: opening,
-			now: referenceTime
-		});
+		return optimizeDeal(
+			[{ productId: top.catalogId, quantity: quantityInCart(top.catalogId) }],
+			context
+		);
+	});
+	const cardVouchers = $derived.by(() => {
+		const context = session.clock.context;
+		if (eventDemo || !activePlan.details.includes('vouchers') || !context)
+			return new Map<string, DealReceipt['appliedVouchers']>();
+		return new Map(
+			products.map((product) => [
+				product.catalogId,
+				optimizeDeal(
+					[{ productId: product.catalogId, quantity: quantityInCart(product.catalogId) }],
+					context
+				)?.appliedVouchers ?? []
+			])
+		);
 	});
 
 	function submitSearch(event: SubmitEvent) {
 		event.preventDefault();
-		remember();
+		const nextQuery = draftQuery.trim();
+		if (nextQuery !== query || capacity !== undefined) remember();
 		register('query');
-		query = draftQuery.trim();
+		query = nextQuery;
 		capacity = undefined;
 	}
 
 	function applyFilters(event: SubmitEvent) {
 		event.preventDefault();
-		remember();
+		cancelPending();
+		if (draftPrice !== maxPrice || draftShipping !== freeShipping) remember();
 		if (draftPrice !== undefined) register('maxPrice');
+		else locks = locks.filter((key) => key !== 'maxPrice');
 		maxPrice = draftPrice;
 		freeShipping = draftShipping;
 		if (eventDemo) filterDialog?.close();
 	}
 
 	function clearFilters() {
-		cancelLive();
+		cancelPending();
 		capacity = undefined;
 		locks = locks.filter((key) => key !== 'maxPrice');
 		draftPrice = undefined;
@@ -628,6 +864,11 @@
 	function chooseCategory(value: Category | 'all') {
 		register('category');
 		category = value;
+		capacity = undefined;
+	}
+	function removeCapacity() {
+		cancelPending();
+		remember();
 		capacity = undefined;
 	}
 
@@ -647,6 +888,264 @@
 	}
 </script>
 
+{#snippet sectionDeal()}
+	{#if topDeal}<DealSlip receipt={topDeal} locale={language} />{/if}
+{/snippet}
+{#snippet sharedStore()}
+	<ShareLook
+		locale={language}
+		storefrontUrl={page.url.href}
+		plan={activePlan}
+		presentationFields={lookFields}
+	/>
+{/snippet}
+{#snippet rankingExplanation(productId: string)}
+	{@const reasons = ranked.find(({ product }) => product.id === productId)?.terms ?? []}
+	{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
+		<details class="rank">
+			<summary>{a.rank}</summary>
+			<ul>
+				{#each reasons.slice(0, 3) as reason (reason.key)}
+					<li>
+						<span>{termName(reason.key, productId)}</span><span
+							class="rank-track"
+							aria-hidden="true"
+						>
+							<span
+								data-rank-bar
+								style:width={`${reasons[0].contribution > 0 ? (reason.contribution / reasons[0].contribution) * 100 : 0}%`}
+							></span>
+						</span>
+					</li>
+				{/each}
+			</ul>
+		</details>
+	{/if}
+{/snippet}
+{#snippet shelf(ids: readonly string[], shelfLayout: 'grid' | 'list' | 'table' | 'large-print')}
+	{@const shelfProducts = ids.flatMap(
+		(id) => products.find((product) => product.catalogId === id) ?? []
+	)}
+	{#if shelfLayout === 'table'}
+		<ShelfTable
+			products={shelfProducts.flatMap(
+				(product) => canonical.find(({ id }) => id === product.catalogId) ?? []
+			)}
+			locale={language}
+			onDeal={openDeal}
+			onAdd={session.addProduct}
+			{listingHref}
+			reasons={rankingExplanation}
+			highlightedSpecs={plan.highlightedSpecs}
+			interviewDetails={interviewAnswers ? plan.details : []}
+		/>
+	{:else}
+		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
+			{#each shelfProducts as product (product.id)}
+				<li class="product" data-product={product.catalogId} data-product-card={product.catalogId}>
+					{#if eventDemo || (interviewAnswers && activePlan.details.includes('image'))}
+						<div
+							class="art demo-photo"
+							data-category={product.category}
+							data-model={product.id}
+							data-cooker-photo={product.catalogId}
+							aria-hidden={product.id === 'cooker-1' ? undefined : true}
+						>
+							{#if product.id === 'cooker-1'}<CookerPhotoCaption locale={language} compact />{/if}
+						</div>
+					{:else if activePlan.details.includes('image')}
+						<div class="art"><CategoryGlyph category={product.category} /></div>
+					{/if}
+					<div class="card-body">
+						<h3>
+							<a
+								class="product-link"
+								href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
+									id: product.id
+								})}
+							>
+								<FactValue productId={product.catalogId} field="name" locale={language} />
+							</a>
+						</h3>
+						<div class="price">
+							<span class="visually-hidden">{t.price} </span>
+							<FactValue
+								tag="strong"
+								class="figure"
+								productId={product.catalogId}
+								field="price"
+								locale={language}
+							/>
+							{#if product.originalPrice !== null}
+								<span class="visually-hidden">{t.was} </span>
+								<FactValue
+									tag="s"
+									class="figure"
+									productId={product.catalogId}
+									field="originalPrice"
+									locale={language}
+								/>
+							{/if}
+						</div>
+						{#if eventDemo || activePlan.details.includes('shipping')}
+							<div class="shipping">
+								{#if eventDemo}
+									<svg
+										aria-hidden="true"
+										viewBox="0 0 24 24"
+										width="16"
+										height="16"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.7"
+									>
+										<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
+											cx="6"
+											cy="18"
+											r="2"
+										/><circle cx="18" cy="18" r="2" />
+									</svg>
+								{/if}
+								<span class:visually-hidden={eventDemo}>{t.shipping}</span>
+								<span class="leader" aria-hidden="true"></span>
+								<FactValue
+									class="figure"
+									productId={product.catalogId}
+									field="shipping"
+									locale={language}
+								/>
+								{#if eventDemo}
+									<FactValue
+										class="shipping-shop"
+										productId={product.catalogId}
+										field="shop"
+										locale={language}
+									/>
+								{/if}
+							</div>
+						{/if}
+						{#if eventDemo || activePlan.details.includes('rating')}
+							<div class="metadata">
+								<span>
+									<svg
+										viewBox="0 0 20 20"
+										width="15"
+										height="15"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										aria-hidden="true"
+									>
+										<path
+											d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+										/>
+									</svg>
+									<span class="visually-hidden">{t.rating} </span>
+									<FactValue
+										class="figure"
+										productId={product.catalogId}
+										field="rating"
+										locale={language}
+									/>
+								</span>
+								<span>
+									{t.sold}
+									<FactValue
+										class="figure"
+										productId={product.catalogId}
+										field="sold"
+										locale={language}
+									/>
+								</span>
+							</div>
+						{/if}
+						{#if !eventDemo && activePlan.details.includes('shop')}
+							<FactValue
+								tag="p"
+								class="shop"
+								productId={product.catalogId}
+								field="shop"
+								locale={language}
+							/>{/if}
+						{#if !eventDemo}
+							{#if adapted && plan.details.includes('summary')}
+								<FactValue
+									tag="p"
+									productId={product.catalogId}
+									field="summary"
+									locale={language}
+								/>
+							{/if}
+							{#if activePlan.details.includes('specs')}
+								<dl class="card-specs">
+									{#each cardSpecs(product.catalogId) as spec (spec.key)}
+										<div>
+											<dt>{spec.label[language]}</dt>
+											<dd>
+												<FactValue
+													productId={product.catalogId}
+													field={`spec.${spec.key}`}
+													locale={language}
+												/>
+											</dd>
+										</div>
+									{/each}
+								</dl>
+							{/if}
+							{#if adapted && plan.details.includes('reviews')}
+								<FactValue
+									tag="p"
+									productId={product.catalogId}
+									field="review.0"
+									locale={language}
+								/>
+							{/if}
+							{#if cardVouchers.get(product.catalogId)?.length}
+								<ul class="card-vouchers" aria-label={language === 'th' ? 'โค้ดส่วนลด' : 'Vouchers'}>
+									{#each cardVouchers.get(product.catalogId) ?? [] as voucher (voucher.code)}
+										<li>
+											<span
+												data-source="pricing"
+												data-product={product.catalogId}
+												data-field="voucher.code"
+												data-raw={JSON.stringify(voucher.code)}
+											>
+												{voucher.code}
+											</span>
+											{#if voucher.expiresSoon}<span
+													data-source="pricing"
+													data-product={product.catalogId}
+													data-field="voucher.expiresSoon"
+													data-raw="true"
+												>
+													· {language === 'th' ? 'ใกล้หมดอายุ' : 'Expires soon'}
+												</span>{/if}
+										</li>
+									{/each}
+								</ul>
+							{/if}
+							<div class="card-actions">
+								<AddToCart
+									productId={product.catalogId}
+									locale={language}
+									onAdd={session.addProduct}
+								/>
+								<button
+									class="best-price"
+									type="button"
+									onclick={() => openDeal(product.catalogId)}
+								>
+									{a.deal}
+								</button>
+							</div>
+							{@render rankingExplanation(product.catalogId)}
+						{/if}
+					</div>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+{/snippet}
 <svelte:head>
 	<title>DynamicShopper</title>
 	<meta
@@ -655,9 +1154,12 @@
 	/>
 </svelte:head>
 
+<svelte:window onkeydown={handleTraceKey} />
+
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:trace-open={traceOpen && !eventDemo}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
@@ -681,6 +1183,13 @@
 					DynamicShopper
 				</a>
 				<div class="settings">
+					<a
+						class="compare-link"
+						data-offline-ready={session.offlineReady}
+						href={resolve(`/compare?${compareParams}`)}
+					>
+						{a.compare}
+					</a>
 					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
 						{#each themes as option (option)}
 							<option value={option}>{t[option]}</option>
@@ -696,6 +1205,18 @@
 						}}
 					>
 						{language === 'th' ? 'English' : 'ไทย'}
+					</button>
+					<CartControls locale={language} onBestPrice={() => openBasket()} />
+					<button
+						type="button"
+						bind:this={traceTrigger}
+						disabled={!interactive}
+						aria-expanded={traceOpen}
+						aria-controls={traceOpen ? 'store-xray' : undefined}
+						aria-keyshortcuts="X"
+						onclick={toggleTrace}
+					>
+						{a.trace}
 					</button>
 				</div>
 			</div>
@@ -722,6 +1243,7 @@
 				</a>
 			</header>
 		{/if}
+
 		<form class="search" class:cooker-search={cookerSearch} role="search" onsubmit={submitSearch}>
 			{#if eventDemo}
 				<button type="button" class="search-back" aria-label={t.reset} onclick={reset}>
@@ -741,6 +1263,7 @@
 			<label class="visually-hidden" for="search">{t.search}</label>
 			<input
 				id="search"
+				disabled={!interactive}
 				maxlength={eventDemo ? searchLimit : undefined}
 				type="search"
 				placeholder={category !== 'all' ? categories[category][language] : t.searchHint}
@@ -945,7 +1468,7 @@
 			<div class="toolbar">
 				<label class="sort">
 					<span>{t.sort}</span>
-					<select bind:value={sort}>
+					<select bind:value={sort} onchange={cancelPending}>
 						{#each sorts as option (option)}
 							<option value={option}>{t[option]}</option>
 						{/each}
@@ -1026,7 +1549,7 @@
 		{#if hasFilters}
 			<div class="chips">
 				{#if selectedCapacityProduct}
-					<button type="button" onclick={() => (capacity = undefined)}>
+					<button type="button" onclick={removeCapacity}>
 						{language === 'th' ? 'ความจุ' : 'Capacity'}
 						<FactValue
 							productId={selectedCapacityProduct.id}
@@ -1050,6 +1573,8 @@
 					<button
 						type="button"
 						onclick={() => {
+							cancelPending();
+							locks = locks.filter((key) => key !== 'maxPrice');
 							maxPrice = undefined;
 							draftPrice = undefined;
 						}}
@@ -1073,6 +1598,7 @@
 					<button
 						type="button"
 						onclick={() => {
+							cancelPending();
 							freeShipping = false;
 							draftShipping = false;
 						}}
@@ -1096,10 +1622,53 @@
 
 		{#if !eventDemo}
 			<section class="shopper-tools" aria-label={a.persona}>
-				<ShoppingAssistant bind:this={assistant} locale={language} onSend={send} />
+				{#if restoredFields.length || cartRestored}
+					<div class="assistant-reply" role="status">
+						<strong>
+							{language === 'th' ? 'กู้คืนหน้าร้านที่บันทึกไว้แล้ว' : 'Restored your saved store'}
+						</strong>
+						<p>
+							{[
+								...new Set(restoredFields.map(changeName)),
+								...(cartRestored ? [language === 'th' ? 'ตะกร้า' : 'Cart'] : [])
+							].join(' · ')}
+						</p>
+					</div>
+				{/if}
+				{#if changes.length}
+					<div class="assistant-reply" role="status">
+						<strong>{a.changed}</strong>
+						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
+					</div>
+				{/if}
+				{#if sharedLookOpened}<p role="status">
+						{language === 'th' ? 'เปิดหน้าร้านที่แชร์แล้ว' : 'Shared store opened'}
+					</p>{/if}
+				<ShoppingAssistant
+					bind:this={assistant}
+					locale={language}
+					onSend={send}
+					openOnMount={page.url.hash === '#assistant'}
+					conversation={session.conversation}
+					pending={Boolean(pendingPhase)}
+					pendingLabel={pendingPhase === 'cart'
+						? language === 'th'
+							? 'กำลังบันทึกตะกร้า…'
+							: 'Saving your cart…'
+						: undefined}
+					largePrint={theme === 'large'}
+					{theme}
+				/>
 				<div class="shopper-actions">
 					{#each personas as persona (persona)}
-						<button type="button" onclick={() => selectPersona(persona)}>{a[persona]}</button>
+						<button
+							id={`persona-${persona}`}
+							type="button"
+							disabled={!interactive}
+							onclick={() => selectPersona(persona)}
+						>
+							{a[persona]}
+						</button>
 					{/each}
 					<button
 						type="button"
@@ -1110,61 +1679,10 @@
 					</button>
 					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
 					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
-					<button
-						type="button"
-						disabled={!interactive}
-						aria-expanded={traceOpen}
-						onclick={() => (traceOpen = !traceOpen)}
-					>
-						{a.trace}
-					</button>
 				</div>
-				{#if livePending}
-					<p class="assistant-reply" role="status">
-						{language === 'th' ? 'กำลังทดสอบโมเดล' : 'Testing the live model'}
-					</p>
-				{/if}
-				{#if turn}
-					<div class="assistant-reply" aria-live="polite">
-						<span class="mode-label">
-							{liveModel ? (language === 'th' ? 'โมเดลสด' : 'Live model') : a.offline}
-						</span>
-						<p>{turn.reply}</p>
-						{#if turn.citations.length}
-							<strong>{a.fromListing}</strong>
-							<ul>
-								{#each turn.citations as citation (`${citation.productId}:${citation.field}`)}
-									<li>
-										<a
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
-												id: citation.productId
-											})}
-										>
-											<FactValue
-												productId={citation.productId}
-												field={citation.field}
-												locale={language}
-											/>
-										</a>
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				{/if}
-				{#if changes.length}
-					<div class="assistant-reply" aria-live="polite">
-						<strong>{a.changed}</strong>
-						<div class="shopper-actions">
-							{#each [...new Set(changes.map(changeName))] as label (label)}
-								<span>{label}</span>
-							{/each}
-						</div>
-					</div>
-				{/if}
 				{#if adapted || locks.length}
 					<div class="shopper-actions" aria-label={a.appearance}>
-						{#each ['theme', 'layout', 'density', 'details', 'sections', 'priorities', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
+						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
 							{@const key = value as keyof ShopperPlan}
 							{#if JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])}
 								<button
@@ -1180,44 +1698,41 @@
 						{/each}
 					</div>
 				{/if}
-				{#if traceOpen}
-					<div class="assistant-reply" aria-label={a.trace}>
-						<p>
-							{liveModel
-								? (language === 'th' ? 'โมเดลสด' : 'Live model') + ` · ${liveModel}`
-								: a.offline}
-						</p>
-						{#if liveFallback}<p>
-								{language === 'th'
-									? 'ใช้การตอบแบบออฟไลน์แทน'
-									: 'Live model unavailable. Used offline mode.'}
-							</p>{/if}
-						{#if dev}
-							<button type="button" onclick={toggleLive} aria-pressed={liveEnabled}>
-								{liveEnabled
-									? language === 'th'
-										? 'บังคับโหมดออฟไลน์'
-										: 'Force offline'
-									: language === 'th'
-										? 'ลองใช้โมเดลสด'
-										: 'Try live model'}
-							</button>
-						{/if}
-						{#if turn?.guarded}<p>{a.guard}</p>{/if}
-						{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
-						{#if !changes.length}<p>{a.noChange}</p>{/if}
-						{#if dev}<button
-								type="button"
-								disabled={poisonArmed}
-								onclick={() => (poisonArmed = true)}
-							>
-								{poisonArmed ? a.armed : a.poison}
-							</button>{/if}
-					</div>
-				{/if}
 			</section>
+			<XrayDrawer locale={language} bind:open={traceOpen} returnFocus={traceTrigger}>
+				<Xray
+					locale={language}
+					{trace}
+					{forceOffline}
+					onForceOffline={setForceOffline}
+					modelName={liveModel}
+					{poisonArmed}
+					onPoison={dev ? () => (poisonArmed = true) : undefined}
+				>
+					{#if dev}
+						<button
+							type="button"
+							disabled={forceOffline}
+							onclick={toggleLive}
+							aria-pressed={liveEnabled}
+						>
+							{language === 'th' ? 'ลองใช้โมเดลสด' : 'Try live model'}
+						</button>
+					{/if}
+					{#if liveFallback}
+						<p>
+							{language === 'th'
+								? 'ใช้การตอบแบบออฟไลน์แทน'
+								: 'Live model unavailable. Used offline mode.'}
+						</p>
+					{/if}
+					{#if turn?.dropped.length}<p>{a.rejected}</p>{/if}
+				</Xray>
+			</XrayDrawer>
 			{#if compareOpen}
-				<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+				<div class="comparison-area">
+					<CompareShelves plan={activePlan} locale={language} {freeShipping} onDeal={openDeal} />
+				</div>
 			{/if}
 			{#if quote}
 				<section class="quote" lang={quote.locale}>
@@ -1234,30 +1749,6 @@
 					<DealSlip receipt={quote.receipt} locale={quote.locale} addOns={quote.addOns} />
 				</section>
 			{/if}
-			{#if topDeal && !quote}<DealSlip receipt={topDeal} locale={language} />{/if}
-			{#if adapted && plan.sections.includes('what-matters') && products.length}
-				<section class="assistant-reply" aria-label={a.guide}>
-					<strong>{a.guide}</strong>
-					<p>
-						{[
-							...new Set(
-								[
-									...Object.keys(activePlan.specPreferences),
-									...Object.entries(activePlan.priorities)
-										.filter(([, weight]) => (weight ?? 0) > 0)
-										.map(([key]) => key)
-								].map((key) => termName(key, products[0]?.catalogId))
-							)
-						].join(' · ')}
-					</p>
-				</section>
-			{/if}
-			{#if adapted && plan.sections.includes('share')}
-				<div class="shopper-actions">
-					<button type="button" onclick={shareLook}>{a.share}</button>
-					{#if shareCopied}<span role="status">{a.shared}</span>{/if}
-				</div>
-			{/if}
 		{/if}
 		{#if cookerSearch && products.length > 0}
 			<SearchShopPreview {products} {language} {theme} />
@@ -1269,7 +1760,7 @@
 			>
 				<h2 id="products-heading">{cookerSearch && sort !== 'default' ? t[sort] : t.products}</h2>
 				{#if eventDemo && !cookerSearch && !skinSearch}
-					<a class="assistant-link" href={resolve('/?view=receipt')}>
+					<a class="assistant-link" href={resolve('/?view=receipt#assistant')}>
 						{language === 'th' ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}
 					</a>
 				{/if}
@@ -1281,9 +1772,6 @@
 				</p>
 			</div>
 			{#if adapted && interviewAnswers}{@render interviewEntry()}{/if}
-			{#if interviewAnswers && adapted && plan.sections.includes('top-picks')}
-				<TopPicks {products} locale={language} {theme} {originQuery} />
-			{/if}
 			{#if !eventDemo}<FactsReceipt root={proofRoot} locale={language} />{/if}
 			<div bind:this={proofRoot}>
 				{#if products.length === 0}
@@ -1292,206 +1780,25 @@
 						<p>{t.emptyHint}</p>
 						<button type="button" class="primary" onclick={reset}>{t.reset}</button>
 					</div>
-				{:else if !eventDemo && adapted && plan.layout === 'table'}
-					<ShelfTable
-						products={products.flatMap(
-							(product) => canonical.find(({ id }) => id === product.catalogId) ?? []
-						)}
-						locale={language}
-						onDeal={openDeal}
-						highlightedSpecs={plan.highlightedSpecs}
-						interviewDetails={interviewAnswers ? plan.details : []}
-					/>
+				{:else if eventDemo}
+					{@render shelf(
+						products.map((product) => product.catalogId),
+						'grid'
+					)}
 				{:else}
-					{#if !eventDemo && adapted && plan.sections.includes('compare')}
-						<ShelfTable
-							products={products
-								.slice(0, 3)
-								.flatMap((product) => canonical.find(({ id }) => id === product.catalogId) ?? [])}
-							locale={language}
-							onDeal={openDeal}
-							highlightedSpecs={plan.highlightedSpecs}
-						/>
-					{/if}
-					<ul
-						class="product-grid"
-						class:list-layout={!eventDemo && adapted && plan.layout === 'list'}
-					>
-						{#each products as product (product.id)}
-							<li class="product" data-product={product.catalogId}>
-								{#if eventDemo || (interviewAnswers && plan.details.includes('image'))}
-									<div
-										class="art demo-photo"
-										data-category={product.category}
-										data-model={product.id}
-										data-cooker-photo={product.catalogId}
-										aria-hidden={product.id === 'cooker-1' ? undefined : true}
-									>
-										{#if product.id === 'cooker-1'}<CookerPhotoCaption
-												locale={language}
-												compact
-											/>{/if}
-									</div>
-								{:else if !interviewAnswers}
-									<div class="art"><CategoryGlyph category={product.category} /></div>
-								{/if}
-								<div class="card-body">
-									<h3>
-										<a
-											class="product-link"
-											href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
-												id: product.id
-											})}
-										>
-											<FactValue productId={product.catalogId} field="name" locale={language} />
-										</a>
-									</h3>
-									<div class="price">
-										<span class="visually-hidden">{t.price} </span>
-										<FactValue
-											tag="strong"
-											class="figure"
-											productId={product.catalogId}
-											field="price"
-											locale={language}
-										/>
-										{#if product.originalPrice !== null}
-											<span class="visually-hidden">{t.was} </span>
-											<FactValue
-												tag="s"
-												class="figure"
-												productId={product.catalogId}
-												field="originalPrice"
-												locale={language}
-											/>
-										{/if}
-									</div>
-									{#if interviewAnswers}
-										<ProductEvidence
-											productId={product.catalogId}
-											locale={language}
-											details={plan.details}
-										/>
-									{/if}
-									<div class="shipping">
-										{#if eventDemo}
-											<svg
-												aria-hidden="true"
-												viewBox="0 0 24 24"
-												width="16"
-												height="16"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.7"
-											>
-												<path d="M2 6h12v11H2zM14 10h4l4 4v3h-8" /><circle
-													cx="6"
-													cy="18"
-													r="2"
-												/><circle cx="18" cy="18" r="2" />
-											</svg>
-										{/if}
-										<span class:visually-hidden={eventDemo}>{t.shipping}</span>
-										<span class="leader" aria-hidden="true"></span>
-										<FactValue
-											class="figure"
-											productId={product.catalogId}
-											field="shipping"
-											locale={language}
-										/>
-										{#if eventDemo}
-											<FactValue
-												class="shipping-shop"
-												productId={product.catalogId}
-												field="shop"
-												locale={language}
-											/>
-										{/if}
-									</div>
-									<div class="metadata">
-										<span>
-											<svg
-												viewBox="0 0 20 20"
-												width="15"
-												height="15"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.5"
-												aria-hidden="true"
-											>
-												<path
-													d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
-												/>
-											</svg>
-											<span class="visually-hidden">{t.rating} </span>
-											<FactValue
-												class="figure"
-												productId={product.catalogId}
-												field="rating"
-												locale={language}
-											/>
-										</span>
-										<span>
-											{t.sold}
-											<FactValue
-												class="figure"
-												productId={product.catalogId}
-												field="sold"
-												locale={language}
-											/>
-										</span>
-									</div>
-									{#if !eventDemo}
-										<FactValue
-											tag="p"
-											class="shop"
-											productId={product.catalogId}
-											field="shop"
-											locale={language}
-										/>
-									{/if}
-									{#if !eventDemo}
-										{@const reasons =
-											ranked.find(({ product: item }) => item.id === product.catalogId)?.terms ??
-											[]}
-										{#if adapted && !interviewAnswers && plan.details.includes('summary')}
-											<FactValue
-												tag="p"
-												productId={product.catalogId}
-												field="summary"
-												locale={language}
-											/>
-										{/if}
-										{#if adapted && (plan.sections.includes('reviews') || plan.details.includes('reviews')) && !(interviewAnswers && plan.details.includes('reviews'))}
-											<FactValue
-												tag="p"
-												productId={product.catalogId}
-												field="review.0"
-												locale={language}
-											/>
-										{/if}
-										<button
-											class="best-price"
-											type="button"
-											onclick={() => openDeal(product.catalogId)}
-										>
-											{a.deal}
-										</button>
-										{#if adapted && sort === 'default' && !plan.simplified && reasons.length && products.length > 1}
-											<details class="rank">
-												<summary>{a.rank}</summary>
-												<ul>
-													{#each reasons.slice(0, 3) as reason (reason.key)}
-														<li>{termName(reason.key, product.catalogId)}</li>
-													{/each}
-												</ul>
-											</details>
-										{/if}
-									{/if}
-								</div>
-							</li>
-						{/each}
-					</ul>
+					<Sections
+						sections={adapted ? activePlan.sections : ['products']}
+						productIds={products.map((product) => product.catalogId)}
+						layout={adapted ? activePlan.layout : 'grid'}
+						locale={language}
+						columns={[]}
+						{listingHref}
+						productTarget={false}
+						priorities={priorityLabels}
+						renderShelf={shelf}
+						deal={topDeal && !quote ? sectionDeal : undefined}
+						share={sharedStore}
+					/>
 				{/if}
 			</div>
 		</section>
@@ -1501,6 +1808,9 @@
 					? 'DynamicShopper · ภาพประกอบสินค้าจำลอง'
 					: 'DynamicShopper · Illustrative product images'
 				: t.simulated}
+			{#if !eventDemo}<a class="inspection-link" href="#xray" onclick={() => (traceOpen = true)}>
+					{language === 'th' ? 'ตรวจสอบหน้าร้านนี้' : 'Inspect this store'}
+				</a>{/if}
 		</footer>
 	</main>
 </div>
@@ -1556,6 +1866,9 @@
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
+	.store:not(.event-demo) button {
+		min-inline-size: var(--tap);
+	}
 	.wrap {
 		width: min(100% - 2.5rem, 70rem);
 		margin-inline: auto;
@@ -1563,6 +1876,13 @@
 	.masthead {
 		border-bottom: 1px solid var(--seam);
 		background: var(--surface);
+	}
+	.compare-link {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--tap, 44px);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
 	}
 	.masthead-inner,
 	.settings,
@@ -1776,8 +2096,16 @@
 	.assistant-reply p {
 		margin-block: 0.25rem;
 	}
-	.mode-label {
-		color: var(--muted);
+
+	.card-actions {
+		position: relative;
+		z-index: 1;
+		align-self: flex-start;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: flex-start;
+		margin-block-start: 0.65rem;
 	}
 	.best-price,
 	.rank {
@@ -1789,6 +2117,37 @@
 		min-block-size: var(--tap);
 		align-content: center;
 		cursor: pointer;
+	}
+	.rank ul,
+	.card-vouchers {
+		padding: 0;
+		list-style: none;
+	}
+	.rank li {
+		display: grid;
+		grid-template-columns: 1fr 35%;
+		gap: 0.5rem;
+		align-items: center;
+	}
+	.rank-track,
+	[data-rank-bar] {
+		display: block;
+	}
+	[data-rank-bar] {
+		height: 0.375rem;
+		background: currentColor;
+	}
+	.card-specs {
+		margin-block: 0.5rem;
+	}
+	.card-specs > div {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		justify-content: space-between;
+	}
+	.card-specs dd {
+		margin: 0;
 	}
 	.product-link::after {
 		content: '';
@@ -2211,6 +2570,20 @@
 	}
 	.event-demo .card-body :global(.shop) {
 		order: 3;
+	}
+	.inspection-link {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: var(--tap);
+		margin-inline-start: 1rem;
+		color: inherit;
+	}
+	@media (min-width: 1024px) {
+		.store.trace-open #products,
+		.store.trace-open .comparison-area,
+		.store.trace-open .quote {
+			padding-inline-end: calc(320px + 1rem);
+		}
 	}
 	.shipping :global(.shipping-shop) {
 		flex: 1;

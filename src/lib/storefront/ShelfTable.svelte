@@ -1,6 +1,9 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import type { addCartItem } from './cart';
 	import { resolve } from '$app/paths';
 	import { specs, type Locale, type Product, type SpecKey } from '../catalog';
+	import AddToCart from './AddToCart.svelte';
 	import ProductEvidence from './ProductEvidence.svelte';
 	import type { ShopperPlan } from '../personalization';
 	import FactValue from './FactValue.svelte';
@@ -9,12 +12,21 @@
 		products,
 		locale,
 		onDeal,
+		onAdd,
+		listingHref,
+		reasons,
 		highlightedSpecs = [],
 		interviewDetails = []
 	}: {
 		products: readonly Product[];
 		locale: Locale;
+		listingHref?: (productId: string) => string;
+		reasons?: Snippet<[string]>;
 		onDeal: (productId: string, locale: Locale) => void;
+		onAdd?: (
+			id: string
+		) =>
+			ReturnType<typeof addCartItem>['status'] | Promise<ReturnType<typeof addCartItem>['status']>;
 		highlightedSpecs?: readonly SpecKey[];
 		interviewDetails?: ShopperPlan['details'];
 	} = $props();
@@ -55,19 +67,25 @@
 					{/each}
 					<th scope="col" class="figure">{th ? 'ราคา' : 'Price'}</th>
 					<th scope="col" class="figure">{th ? 'คะแนน' : 'Rating'}</th>
-					<th scope="col">{th ? 'ดีล' : 'Deal'}</th>
+					<th scope="col">{onAdd ? (th ? 'ตัวเลือก' : 'Actions') : th ? 'ดีล' : 'Deal'}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each products as product (product.id)}
 					<tr data-product={product.id}>
 						<th scope="row">
-							<a href={resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}>
+							<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller's resolved URL preserves the active look and theme. -->
+							<a
+								href={listingHref?.(product.id) ??
+									resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}
+							>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							{#if writtenEvidence.length}
 								<ProductEvidence productId={product.id} {locale} details={writtenEvidence} />
 							{/if}
+							{@render reasons?.(product.id)}
 						</th>
 						{#each columns as column (column.key)}
 							<td class="figure">
@@ -92,6 +110,7 @@
 						<td class="figure"><FactValue productId={product.id} field="price" {locale} /></td>
 						<td class="figure"><FactValue productId={product.id} field="rating" {locale} /></td>
 						<td>
+							{#if onAdd}<AddToCart productId={product.id} {locale} {onAdd} />{/if}
 							<button type="button" onclick={() => onDeal(product.id, locale)}>
 								{th ? 'ราคาดีที่สุด' : 'Best price'}
 							</button>

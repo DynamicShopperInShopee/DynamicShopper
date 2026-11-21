@@ -75,6 +75,7 @@ test('interview adapts the existing marketplace offline, then chat and Undo pres
 	await expect(input).toBeFocused();
 	await input.fill('list view');
 	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await page.getByRole('button', { name: 'Close chat' }).click();
 	await expect(page.locator('.list-layout')).toBeVisible();
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
 	await expect(page.getByRole('region', { name: 'Product table' })).toBeVisible();
