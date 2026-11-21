@@ -4,6 +4,12 @@
 
 > The right products, the right information and the right interface for each shopper, with the facts locked.
 
+## Optional sourced shopping preview
+
+The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront keeps its own preview and Apply flow.
+
+Seven sourced listings and their photos ship with the standalone preview. The same-origin catalog service supplies additional listings. A previous visit can provide the complete offline release when its saved contents match the published checksum. Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. An optional local read-only API serves additional records and original photographs. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
+
 ## The problem
 
 1. **One interface for everyone.** Shoppers differ in what they need and in how they like to receive information. A tech buyer wants a spec table. Another shopper wants pictures and short summaries. Someone buying for an older parent needs large print, Thai and fewer choices. A marketplace that shows everyone the same grid serves none of them well.
@@ -57,8 +63,8 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ### What it deliberately does not do
 
-- No real marketplace data, accounts, checkout or payment. The agent never adds to the cart and never buys.
-- No database or cross-device sync. The shopper's store lives in their browser.
+- The main storefront uses a simulated catalog. Neither shop provides accounts, checkout or payment. The agent never adds to the cart and never buys.
+- Shopper preferences and Undo stay in the browser. The optional preview's database stores sourced catalog observations.
 - No AI-written markup, copy blocks or images. The page is built only from fixed, fact-locked parts.
 - No seller analytics, photo search, voice input or long-term behaviour tracking.
 - No public deployment of the AI endpoint. It runs locally.
@@ -97,7 +103,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Honesty
 
-- Products, shops and vouchers are simulated. Product images are simple drawn category glyphs, not photos.
+- The main storefront labels its catalog and vouchers as simulated. The standalone preview identifies the source and observation date for listing facts.
 - There are no real users, testimonials or metrics, and none may be invented.
 
 ## Ideas for later

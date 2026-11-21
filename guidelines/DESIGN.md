@@ -10,6 +10,10 @@ promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries on
 large bold white brand text; the darker action/price ink `#b5321a` supports normal
 text on white. The interview entry remains a compact optional strip.
 
+## Standalone sourced shopping preview
+
+The optional sourced preview uses the DynamicShopper identity. Its shopping header and search action keep their orange colors across themes. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
+
 ## Interview transition
 
 The default marketplace has a plain optional interview entry. Its modal shows one

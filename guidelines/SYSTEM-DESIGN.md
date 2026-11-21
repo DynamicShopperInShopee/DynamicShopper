@@ -11,6 +11,10 @@ no separate pricing or product data path is introduced. The optional local live
 assistant remains development-only, while the interview and chat fallback work
 without network access after loading.
 
+## Standalone sourced catalog
+
+The standalone preview reads an optional local SQLite service through a same-origin, read-only catalog interface. All layouts and comparisons start with seven checked-in listing observations, their sources and their original photos. The preview validates a same-origin API response before displaying it. It persists one size-limited snapshot only when its canonical JSON matches the SHA-256 digest in the release manifest, and rechecks the digest before displaying any saved facts. Unavailable or altered storage leaves the seven starter listings visible. Original images require the local image service or an existing image cache when offline. Observation time and source links remain visible. A local operator imports the separately supplied full catalog. See the [versioned dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../src/lib/server/catalog/README.md).
+
 ## The central decision: split presentation from facts
 
 Everything in the system follows from one split.

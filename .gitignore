@@ -32,3 +32,9 @@ test-results
 *.db
 
 *.pdf
+
+# Sourced catalog runtime data and standalone build output
+/data
+/preview/dist/
+__pycache__/
+*.pyc

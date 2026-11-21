@@ -13,6 +13,10 @@ Each answer maps to named layout, detail, priority or reading settings. Skipping
 
 Proposed: measure interview completion, corrections and task success with shoppers.
 
+## Standalone sourced interview
+
+The optional sourced preview uses the same fixed answer mappings and proposal validator as the storefront. Finish applies once, and the preview offers Undo and chat refinement. The three editable example views demonstrate presentation changes independently of the shop. Skipping a question preserves its existing settings, and closing the draft cancels it.
+
 ## The plan
 
 The plan is the complete description of how one shopper's store looks. It is small, readable and fully enumerable, which is what makes it safe to hand to an AI.

@@ -27,7 +27,10 @@
 		"db:d1:local": "wrangler d1 migrations apply DB --local",
 		"db:d1:remote": "wrangler d1 migrations apply DB --remote",
 		"dev:d1": "bun run build:d1 && wrangler dev",
-		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes",
+		"dev:shopping": "vite --config preview/vite.config.ts",
+		"dev:catalog": "node scripts/catalog-server.ts --port 4190",
+		"catalog:import": "node scripts/catalog-server.ts --import data/shopee/catalog.json"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261121.1",
