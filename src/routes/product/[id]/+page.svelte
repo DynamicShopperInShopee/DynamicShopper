@@ -5,6 +5,7 @@
 	import { riceCookerReviews, riceCookerSpecs } from '../../../lib/store-catalog';
 	import { formatBaht, formatNumber } from '../../../lib/store-search';
 	import type { PageProps } from './$types';
+	import ProductGallery from './ProductGallery.svelte';
 
 	let { data }: PageProps = $props();
 	const product = $derived(data.product);
@@ -74,8 +75,12 @@
 			bind:this={hero}
 			data-category={product.category}
 			data-model={product.id}
-			aria-hidden="true"
-		></div>
+			aria-hidden={product.id === 'cooker-1' ? undefined : true}
+		>
+			{#if product.id === 'cooker-1'}
+				<ProductGallery {th} />
+			{/if}
+		</div>
 		<section aria-labelledby="product-title">
 			<dl class="prices">
 				<div>
@@ -214,8 +219,7 @@
 		background-position: 0 100%;
 	}
 	.art[data-model='cooker-1'] {
-		background: #d0dce6 url('../../../lib/assets/products/cooker-listing-hero.jpg') center / cover
-			no-repeat;
+		background: #d0dce6;
 	}
 	.art[data-category='skin'] {
 		background-position: 50% 100%;

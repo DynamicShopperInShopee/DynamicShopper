@@ -107,6 +107,19 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	expect(headerBox?.y ?? -1).toBeGreaterThanOrEqual(heroBox?.y ?? 0);
 	expect((headerBox?.y ?? 0) - (heroBox?.y ?? 0)).toBeLessThan(24);
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+	const gallery = page.getByRole('region', { name: 'Product photos' });
+	const mainPhoto = gallery.getByRole('button', { name: 'Main photo' });
+	const secondPhoto = gallery.getByRole('button', { name: 'Alternate photo' });
+	await expect(mainPhoto).toHaveAttribute('aria-pressed', 'true');
+	await secondPhoto.focus();
+	await page.keyboard.press('Enter');
+	await expect(secondPhoto).toHaveAttribute('aria-pressed', 'true');
+	await expect(
+		gallery.getByRole('img', { name: 'Rice cooker on a kitchen counter' })
+	).toBeInViewport();
+	await gallery.locator('.photos').evaluate((element) => element.scrollTo(0, 0));
+	await expect(mainPhoto).toHaveAttribute('aria-pressed', 'true');
+
 	const actions = page.getByRole('navigation', { name: 'Product actions' });
 	await expect(actions).toBeInViewport();
 	const actionBox = await actions.boundingBox();

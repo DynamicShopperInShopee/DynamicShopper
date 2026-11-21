@@ -215,4 +215,6 @@ The product detail route uses a square product illustration, with a locally bund
 
 The listing price uses bold, tightly tracked Plex Mono. The listing and specification sheet use Plex Sans Thai for the baht symbol and Thai units that Plex Mono does not cover.
 
+The one-button cooker gallery contains two locally bundled product illustrations. The shopper can swipe between them or choose an image with the controls over the lower corner of the square frame.
+
 Below the price and delivery summary, the product route shows available catalog review excerpts, the seller, and product details with the catalog specifications also shown in the sheet. The bottom action bar links to reviews and product details and opens the specification sheet when that data exists.
