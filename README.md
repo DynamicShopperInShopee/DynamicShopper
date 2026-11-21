@@ -8,7 +8,7 @@ DynamicShopper is a bilingual shopping prototype for the hackathon. Shoppers can
 
 See the [demo journey](guidelines/JOURNEY.md), [product brief](guidelines/PRODUCT.md), and [system design](guidelines/SYSTEM-DESIGN.md).
 
-The [shopping workflow research](research/milestone-2-shopping-workflows.md) proposes the next customizable, responsive views and defines their owner handoffs and acceptance checks.
+The [shopping workflow research](research/milestone-2-shopping-workflows.md) proposes customizable views and higher-priority improvements to price comparison, evidence, and offline recovery. It defines owner handoffs and acceptance checks.
 
 ## Choose your team assignment
 
