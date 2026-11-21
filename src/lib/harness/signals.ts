@@ -77,8 +77,11 @@ export function acceptSuggestion(
 	id: SignalKind,
 	catalog: CatalogPort
 ): Transition {
-	const suggestion = state.suggestions.find((item) => item.id === id);
-	if (!suggestion) return { state, before: state.plan, changed: [], dropped: [] };
+	const offered = state.suggestions.some((item) => item.id === id);
+	const suggestions = deriveSuggestions(state, catalog);
+	const suggestion = offered ? suggestions.find((item) => item.id === id) : undefined;
+	if (!suggestion)
+		return { state: { ...state, suggestions }, before: state.plan, changed: [], dropped: [] };
 	const result = applyPatch(state, suggestion.patch, 'explicit', catalog);
 	const next = {
 		...result.state,

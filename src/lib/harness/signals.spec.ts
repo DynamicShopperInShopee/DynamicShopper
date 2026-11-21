@@ -67,6 +67,44 @@ describe('R16 · behaviour only suggests; the shopper decides', () => {
 		expect(recordSignal(state, { kind: 'hack', at: 1 }, catalog)).toBe(state);
 		expect(recordSignal(state, null, catalog)).toBe(state);
 	});
+
+	it('rechecks a newer explicit choice before accepting an older suggestion', () => {
+		let state = initialState();
+		for (let i = 0; i < 3; i++) state = recordSignal(state, signal('open_compare', i), catalog);
+		state = applyPatch(state, { layout: 'list' }, 'explicit', catalog).state;
+		const result = acceptSuggestion(state, 'open_compare', catalog);
+		expect(result.state.plan).toEqual(state.plan);
+		expect(result.state.undo).toEqual(state.undo);
+		expect(result.changed).toEqual([]);
+		expect(result.state.suggestions).toEqual([]);
+	});
+
+	it('moves specs ahead of the current fields without restoring old fields', () => {
+		let state = initialState();
+		for (let i = 0; i < 3; i++) state = recordSignal(state, signal('open_specs', i), catalog);
+		state = applyPatch(
+			state,
+			{ cardFields: ['image', 'shipping', 'price'] },
+			'inferred',
+			catalog
+		).state;
+		const result = acceptSuggestion(state, 'open_specs', catalog);
+		expect(result.state.plan.cardFields).toEqual(['specs', 'image', 'shipping', 'price']);
+		expect(result.state.undo).toHaveLength(state.undo.length + 1);
+		expect(result.state.undo.at(-1)?.plan).toEqual(state.plan);
+	});
+
+	it('expires an already satisfied suggestion without consuming signals or undo', () => {
+		let state = initialState();
+		for (let i = 0; i < 3; i++) state = recordSignal(state, signal('open_compare', i), catalog);
+		state = applyPatch(state, { layout: 'table' }, 'inferred', catalog).state;
+		const result = acceptSuggestion(state, 'open_compare', catalog);
+		expect(result.state.plan).toEqual(state.plan);
+		expect(result.state.undo).toEqual(state.undo);
+		expect(result.state.signals).toEqual(state.signals);
+		expect(result.state.dismissed).toEqual(state.dismissed);
+		expect(result.state.suggestions).toEqual([]);
+	});
 });
 
 describe('interview answers apply directly as explicit choices', () => {

@@ -22,6 +22,12 @@ before treating learned suggestions as an improvement over direct controls.
 
 ## The plan
 
+Accepted: behavior suggestions are checked again against the current plan, explicit
+choices, dismissed kinds and recent signals when the shopper accepts them. An
+outdated suggestion disappears without changing the plan or Undo history. A still
+eligible suggestion uses the current card fields and sections, so it cannot restore
+an old presentation. Only a previously offered suggestion can be accepted.
+
 The plan is the complete description of how one shopper's store looks. It is small, readable and fully enumerable, which is what makes it safe to hand to an AI.
 
 | Part | Choices | What it controls |
