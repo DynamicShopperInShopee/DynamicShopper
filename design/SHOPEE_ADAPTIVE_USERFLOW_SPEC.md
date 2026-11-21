@@ -1,20 +1,35 @@
-# Shopee Adaptive UX — User-flow specification
+# DynamicShopper Adaptive UX — User-flow specification
 
-Status: prototype specification  
-Surface: Shopee buyer experience, mobile first  
+Status: prototype specification
+Surface: independent Shopee-inspired buyer experience, mobile first
 Source constraints: `AGENTS.md`, `guidelines/PRODUCT.md`, `guidelines/SYSTEM-DESIGN.md`, `guidelines/DESIGN.md`, `METHODS.html`, `REPORT.html`
+
+## Figma draft v2
+
+The expanded draft is organized as five editable SVG boards on the Figma page
+`01–05 · Adaptive UX System v2`:
+
+1. First-run adaptation: standard store, optional invitation, interview, and preview.
+2. Adaptive shopping: changed store, spec-first search, comparison, product detail, and cited questions.
+3. Basket, deal, and family: basket, optimizer receipt, complete-the-set, large print, and private sharing.
+4. Learning, safety, and recovery: permissioned learning, preference center, offline path, poisoned-model guard, Undo, and Reset.
+5. Component system: controls, navigation, themes, cards, proof surfaces, states, responsive patterns, and content contracts.
+
+The v2 boards supersede the earlier orange concept sheets. They follow the
+repository brand: thermal paper, carbon ink, no Shopee marks, no marketplace
+sale chrome, and state colors only.
 
 ## Outcome
 
-A shopper begins with the familiar standard Shopee experience. They may complete a short, optional interview. The storefront then adapts gradually as the shopper uses it, while every change remains visible, reversible, and fact-safe.
+A shopper begins with a familiar standard marketplace experience. They may complete a short, optional interview. The storefront then adapts gradually as the shopper uses it, while every change remains visible, reversible, and fact-safe.
 
-The system must feel like Shopee becoming more useful, not a new marketplace replacing Shopee.
+The system must feel immediately understandable to a Thai marketplace shopper while remaining an independent DynamicShopper product.
 
 ## Smallest experience that proves the idea
 
-Five connected mobile states:
+Twenty connected mobile states across five boards:
 
-1. Standard Shopee home.
+1. Standard DynamicShopper home.
 2. Optional preference interview.
 3. First adapted home after explicit answers.
 4. Learning state after repeated sessions.
@@ -73,13 +88,13 @@ baseline
 
 Any adapted state
   ├─ Undo last change
-  ├─ Reset to standard Shopee
+  ├─ Reset to standard DynamicShopper
   └─ Edit preferences
 ```
 
 ### Transition rules
 
-- `baseline` is the actual standard Shopee layout and navigation.
+- `baseline` is the standard DynamicShopper layout and navigation.
 - The interview is optional, skippable, and resumable.
 - Explicit answers create confirmed preferences.
 - Behaviour creates tentative preferences only.
@@ -102,14 +117,14 @@ The system never overrides an explicit choice with inferred behaviour.
 
 ## Flow A — first visit
 
-### A1. Standard Shopee home
+### A1. Standard DynamicShopper home
 
 Purpose: preserve recognition and trust.
 
 Required UI:
 
-- Shopee header, search, cart, chat, categories, campaigns, recommendations, and bottom navigation.
-- A small “Make Shopee fit me” entry card after the first content block.
+- DynamicShopper header, search, cart, chat, categories, recommendations, and bottom navigation.
+- A small “Make the store fit me” entry card after the first content block.
 - “Not now” dismisses it for the session.
 - No automatic restyle before the shopper acts.
 
