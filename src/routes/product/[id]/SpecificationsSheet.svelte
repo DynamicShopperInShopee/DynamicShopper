@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	let { specs, th }: { specs: PageData['specs']; th: boolean } = $props();
-	let sheet = $state<HTMLDialogElement>();
+	let {
+		specs,
+		th,
+		sheet = $bindable()
+	}: { specs: PageData['specs']; th: boolean; sheet?: HTMLDialogElement } = $props();
 </script>
 
 <nav class="actions" aria-label={th ? 'การทำงานกับสินค้า' : 'Product actions'}>

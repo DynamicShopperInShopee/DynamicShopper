@@ -25,6 +25,8 @@ export function resolveFact(productId: string, field: string): Fact | undefined 
 			return fact(product.reviews[0]);
 		case 'review.1':
 			return fact(product.reviews[1]);
+		case 'shopRating':
+			return fact(getShop(product.shopId)?.rating);
 		case 'shop':
 			return fact(getShop(product.shopId)?.name);
 		default: {
