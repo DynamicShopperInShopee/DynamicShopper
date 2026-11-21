@@ -316,4 +316,4 @@ On phone category results, a single sticky search row replaces the home masthead
 
 ## Style implementation
 
-Use literal Tailwind classes in Svelte markup. Keep shared theme tokens, fonts and product assets in their shared stylesheets. Existing Bits UI and Flowbite components use the same colors, focus indicators and tap targets as the surrounding storefront. See [the Tailwind migration notes](../docs/tailwind-migration.md).
+Use literal Tailwind classes in Svelte markup. Keep shared theme tokens, fonts and product assets in their shared stylesheets. Component controls use the same colors, focus indicators and tap targets as the surrounding storefront. See [the Tailwind migration notes](../docs/tailwind-migration.md).
