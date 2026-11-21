@@ -23,6 +23,7 @@
 	// Draft lives only inside the sheet. Closing it never changes the shop.
 	let answers = $state<Answers>(untrack(() => ({ ...view.interview?.answers })));
 	let conversationOpen = $state(false);
+	let conversationTrigger = $state<HTMLButtonElement>();
 	let step = $state(0);
 	let stepHeading = $state<HTMLHeadingElement>();
 	const question = $derived(interview.questions[step]);
@@ -65,7 +66,11 @@
 {#if conversationOpen}
 	<InterviewConversation
 		locale={lang}
-		oncancel={() => (conversationOpen = false)}
+		oncancel={async () => {
+			conversationOpen = false;
+			await tick();
+			conversationTrigger?.focus();
+		}}
 		oncomplete={(draft: Answers) => {
 			answers = draft;
 			conversationOpen = false;
@@ -77,11 +82,15 @@
 		<div class="assistant-option">
 			<p>
 				{t(
-					'Prefer a conversation? Open the AI interview; the four direct choices also work offline.',
-					'อยากคุยกับผู้ช่วยไหม? เริ่มสัมภาษณ์ด้วย AI ได้ หรือเลือกคำตอบสั้น ๆ แบบออฟไลน์ก็ได้'
+					'Prefer a conversation? Answer one question at a time in the guided chat.',
+					'หากชอบคุยมากกว่าเลือกในแบบฟอร์ม ลองตอบคำถามทีละข้อในแชตได้'
 				)}
 			</p>
-			<button type="button" onclick={() => (conversationOpen = true)}>
+			<button
+				type="button"
+				bind:this={conversationTrigger}
+				onclick={() => (conversationOpen = true)}
+			>
 				{t('Talk to the assistant', 'คุยกับผู้ช่วย')}
 			</button>
 		</div>

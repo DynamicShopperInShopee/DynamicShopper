@@ -5,11 +5,11 @@ The shopper can search, choose a category, or open the interview immediately.
 One Apply updates the existing shelf. The receipt URL, listing pages, cart, chat,
 comparison views, pricing engine and catalog use the same store session.
 
-The interview endpoint is available in production and calls OpenAI from the
-server. `OPENAI_API_KEY` is never sent to the browser. The endpoint accepts
-same-origin JSON only and sends only the interview dialogue and locale to the
-provider; the catalog, product facts and pricing are not included. Keep the
-direct-answer and chat fallbacks usable when the provider is unavailable.
+The guided conversation and the direct choices run in the browser. The guide
+asks the same four authored questions in Thai or English. Shoppers can type or
+select a listed reply, skip a question, and review the proposed view before
+applying it. Typed replies stay on the device. Only recognized choice IDs reach
+the presentation validator.
 
 `InterviewEntry.svelte` opens the bilingual dialog. `InterviewWizard.svelte`
 keeps draft answers, supports skipping each question and previews the actual

@@ -67,7 +67,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 - Shopper preferences and Undo stay in the browser. The optional preview's database stores sourced catalog observations.
 - No AI-written markup, copy blocks or images. The page is built only from fixed, fact-locked parts.
 - No seller analytics, photo search, voice input or long-term behaviour tracking.
-- The shopping assistant endpoint remains local-only. The preference interview may call OpenAI from the server in production; its API key stays server-side, and its request contains only the interview dialogue and locale, never catalog or pricing data.
+- The preference interview runs in the browser. Guided chat and direct choices use the same authored questions and send only recognized choice IDs to the local presentation validator.
 
 ### Anti-goals: failure even if it "works"
 
