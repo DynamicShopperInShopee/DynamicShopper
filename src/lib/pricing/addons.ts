@@ -14,9 +14,18 @@ export function optimizeAddOns(
 	if (!base) return [];
 
 	const existing = new Set(base.items.map(({ productId }) => productId));
+	const minimumSpends = new Map(vouchers.map(({ code, minSpend }) => [code, minSpend]));
+	// Receipt gaps describe the winning stack. Skipping shop vouchers gives order vouchers
+	// their highest possible qualifying spend, the full item subtotal.
 	const unavailable = new Set(
 		base.unusedVouchers
-			.filter(({ reason }) => reason === 'minimum-spend' || reason === 'no-eligible-item')
+			.filter(({ code, kind, reason }) => {
+				if (reason === 'no-eligible-item') return true;
+				return (
+					reason === 'minimum-spend' &&
+					(kind === 'shop' || (minimumSpends.get(code) ?? 0) > base.subtotal)
+				);
+			})
 			.map(({ code }) => code)
 	);
 	if (unavailable.size === 0) return [];
