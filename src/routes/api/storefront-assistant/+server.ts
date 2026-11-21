@@ -14,6 +14,7 @@ export const POST: RequestHandler = async ({ request, url, platform }) => {
 	const database = bindings.DB;
 	return handlePublicAssistant(request, url, {
 		apiKey: bindings.OPENAI_API_KEY,
+		model: bindings.OPENAI_MODEL,
 		reserve: async () => reserveDemoCall(await createDatabase(database, undefined))
 	});
 };

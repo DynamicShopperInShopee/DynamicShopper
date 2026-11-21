@@ -1,5 +1,5 @@
 import { parseLiveHints } from '../../personalization/live';
-import { requestLivePatch, type LiveUsage } from './openai';
+import { requestLivePatch, type LiveUsage, type ProviderFailure } from './openai';
 import { readJson } from './read-json';
 
 import { localJsonGuard, sameOriginJsonGuard, headers, error } from '../utils/local-json';
@@ -65,10 +65,22 @@ async function respondToHints(
 			return error(503, 'unavailable');
 		}
 	}
+	let failure: ProviderFailure = 'runtime';
 	const result = await requestLivePatch(
 		hints,
-		{ apiKey, model: options.model, signal: request.signal, onUsage: options.onUsage },
+		{
+			apiKey,
+			model: options.model,
+			signal: request.signal,
+			onUsage: options.onUsage,
+			onFailure: (reason) => {
+				failure = reason;
+			}
+		},
 		provider
 	);
-	return result ? Response.json(result, { headers }) : error(502, 'unavailable');
+	if (result) return Response.json(result, { headers });
+	const fallback = error(502, 'unavailable');
+	if (reserve) fallback.headers.set('x-assistant-failure', failure);
+	return fallback;
 }

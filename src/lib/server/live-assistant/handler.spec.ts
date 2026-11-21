@@ -50,7 +50,7 @@ describe('local assistant transport', () => {
 		expect(target).toBe('https://api.openai.com/v1/responses');
 		expect(init).toMatchObject({
 			headers: { Authorization: 'Bearer test-private-key' },
-			redirect: 'error'
+			redirect: 'manual'
 		});
 		expect(init?.signal).toBeInstanceOf(AbortSignal);
 		if (typeof init?.body !== 'string') throw new Error('expected provider JSON request');

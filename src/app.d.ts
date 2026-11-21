@@ -19,6 +19,7 @@ declare global {
 		interface Platform {
 			env: {
 				OPENAI_API_KEY?: string;
+				OPENAI_MODEL?: string;
 				DB?: import('@cloudflare/workers-types').D1Database;
 				DATABASE_URL?: string;
 				ORIGIN?: string;
