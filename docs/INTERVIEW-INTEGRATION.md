@@ -46,5 +46,5 @@ flow. This extends the branch's earlier harness sync at `0202ca4`.
   configs and build artifacts are excluded from the commit.
 
 Status: proposed UI decision — this branch replaces the previously selected
-`codex/cnn-interview-main` branded header and interview UI. The PR remains draft
+`codex/cnn-interview-main` branded header and interview UI. Merging remains pending
 until that choice is reconciled; synchronization does not approve that design change.
