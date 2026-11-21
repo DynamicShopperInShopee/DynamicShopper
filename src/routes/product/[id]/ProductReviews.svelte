@@ -10,7 +10,7 @@
 		{ id: 'cooker-switch', src: cookerSwitch, en: 'Front switch', th: 'สวิตช์ด้านหน้า' }
 	];
 
-	let { data }: { data: PageData } = $props();
+	let { data, receipt = false }: { data: PageData; receipt?: boolean } = $props();
 	const th = $derived(data.language === 'th');
 	let search = $state('');
 	let showVideo = $state(false);
@@ -44,7 +44,9 @@
 	{#if data.id === 'cooker-one-button'}
 		<aside aria-labelledby="listing-photo-label">
 			<h3 id="listing-photo-label">{th ? 'ภาพจากหน้าสินค้า' : 'Photos from the listing'}</h3>
-			<p class="listing-summary" {...data.summary.attributes}>{data.summary.text}</p>
+			{#if !receipt}
+				<p class="listing-summary" {...data.summary.attributes}>{data.summary.text}</p>
+			{/if}
 			<div class="thumbnails">
 				{#each illustrations as item (item.id)}
 					<a href={'#' + item.id}>

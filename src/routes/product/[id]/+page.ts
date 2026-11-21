@@ -2,7 +2,9 @@ import { error } from '@sveltejs/kit';
 import { formatFact, getProduct, resolveFact, specs } from '../../../lib/catalog';
 import type { Fact, Locale } from '../../../lib/catalog';
 import { catalog } from '../../../lib/store-catalog';
-import { isValidLook } from '#lib/storefront/sharedLook.ts';
+import { defaultPlan } from '#lib/personalization/plan.ts';
+import { parseSharedLook } from '#lib/storefront/browserState.ts';
+import { isValidLook, lookFields, validateLook } from '#lib/storefront/sharedLook.ts';
 import { rawAttribute } from '../../../lib/storefront/verify';
 import type { PageLoad } from './$types';
 
@@ -35,12 +37,16 @@ export const load: PageLoad = ({ params, url }) => {
 	const originalPrice = resolveFact(product.id, 'originalPrice');
 	const shop = resolveFact(product.id, 'shop');
 	const look = url.searchParams.get('look') ?? '';
+	const urlLook = url.searchParams.get('view') === 'receipt' && isValidLook(look);
 	const receiptQuery =
 		url.searchParams.get('view') === 'receipt'
-			? 'view=receipt' + (isValidLook(look) ? '&look=' + look : '')
+			? 'view=receipt' + (urlLook ? '&look=' + look : '')
 			: '';
 	return {
 		receiptQuery,
+		listingDetails: urlLook
+			? (parseSharedLook(look, lookFields, validateLook)?.details ?? defaultPlan.details)
+			: undefined,
 		id: product.id,
 		pathId: params.id,
 		photoModel: shelfItem.id,
@@ -55,7 +61,10 @@ export const load: PageLoad = ({ params, url }) => {
 		shipping: fact('shipping'),
 		rating: fact('rating'),
 		reviewCount: fact('reviewCount'),
-		reviews: [fact('review.0'), fact('review.1')],
+		reviews: ['review.0', 'review.1'].flatMap((field) => {
+			const review = resolveFact(product.id, field);
+			return review ? [presentFact(review, language)] : [];
+		}),
 		summary: fact('summary'),
 		shop: shop && presentFact(shop, language),
 		shopProducts: catalog

@@ -1,5 +1,5 @@
-import { defaultPlan, validateProposal } from '../personalization';
-import { parseSharedLook } from './browserState';
+import { defaultPlan, validateProposal, type ShopperPlan } from '../personalization';
+import { encodeSharedLook, parseSharedLook } from './browserState';
 
 export const lookFields = [
 	'theme',
@@ -23,4 +23,15 @@ export function isValidLook(token: string): boolean {
 		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(token) ||
 		Boolean(parseSharedLook(token, lookFields, validateLook))
 	);
+}
+
+export function receiptListingParams(plan: ShopperPlan): string {
+	const params = new URLSearchParams({
+		lang: plan.locale,
+		theme: plan.theme === 'large-print' ? 'large' : plan.theme,
+		view: 'receipt'
+	});
+	const token = encodeSharedLook(plan, lookFields);
+	if (token) params.set('look', token);
+	return params.toString();
 }

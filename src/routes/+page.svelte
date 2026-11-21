@@ -9,7 +9,12 @@
 	import { describePlanChanges } from '#lib/storefront/describePlanChanges.ts';
 	import ShareLook from '#lib/storefront/ShareLook.svelte';
 	import { parseSharedLook } from '#lib/storefront/browserState.ts';
-	import { isValidLook, lookFields, validateLook } from '#lib/storefront/sharedLook.ts';
+	import {
+		isValidLook,
+		lookFields,
+		receiptListingParams,
+		validateLook
+	} from '#lib/storefront/sharedLook.ts';
 	import '../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../lib/CategoryGlyph.svelte';
 	import CookerSearchSort from './CookerSearchSort.svelte';
@@ -19,13 +24,7 @@
 	import '../lib/assets/products/shelf-photos.css';
 	import { categories, catalog, type Category, type Language } from '../lib/store-catalog';
 	import { formatNumber, searchProducts, type Sort } from '../lib/store-search';
-	import {
-		formatBaht,
-		getProduct,
-		products as canonical,
-		specs,
-		type Locale
-	} from '../lib/catalog/index.ts';
+	import { getProduct, products as canonical, specs, type Locale } from '../lib/catalog/index.ts';
 	import { quoteBasket } from '#lib/storefront/quoteBasket.ts';
 	import { optimizeDeal, type DealReceipt } from '../lib/pricing/index.ts';
 	import {
@@ -50,11 +49,13 @@
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
 	import { projectLiveHints } from '../lib/personalization/live';
 	import { assistantCopy, rankingTerms, storefrontCopy } from '../lib/storefront/copy';
+	import PreferenceChips from '../lib/storefront/PreferenceChips.svelte';
 	import Xray from '../lib/storefront/Xray.svelte';
 	import XrayDrawer from '../lib/storefront/XrayDrawer.svelte';
 
 	type Theme = 'standard' | 'minimal' | 'vibrant' | 'large';
 	const themes = ['standard', 'minimal', 'vibrant', 'large'] as const;
+	const legacyDetails: ShopperPlan['details'] = ['price', 'shipping', 'rating', 'shop'];
 	const sorts = ['default', 'price-low', 'price-high', 'top-rated', 'top-sales'] as const;
 	const cookerSorts = ['default', 'top-sales', 'price-low', 'price-high', 'top-rated'] as const;
 	const categoryKeys = Object.keys(categories) as Category[];
@@ -83,9 +84,6 @@
 	const sharedLook = $derived(page.url.searchParams.get('look') ?? '');
 	const validLook = $derived(isValidLook(sharedLook));
 	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
-	const originQuery = $derived(
-		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
-	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
 	let adapted = $state(false);
@@ -204,6 +202,11 @@
 		category: category === 'all' ? null : categoryFromShelf[category],
 		theme: theme === 'large' ? 'large-print' : theme
 	});
+	const listingParams = $derived(
+		eventDemo
+			? new URLSearchParams({ lang: language, theme }).toString()
+			: receiptListingParams(activePlan)
+	);
 	const compareParams = $derived(
 		new URLSearchParams({
 			q: activePlan.query,
@@ -321,10 +324,13 @@
 		capacity = undefined;
 		changes = [];
 	}
-	function removePreference(key: keyof ShopperPlan) {
-		const previous = [...locks];
-		changePlan({ [key]: structuredClone(defaultPlan[key]) }, false);
-		locks = previous.filter((item) => item !== key);
+	function removePreference(
+		patch: Partial<ShopperPlan>,
+		field: keyof ShopperPlan,
+		resetField: boolean
+	) {
+		changePlan(patch, false);
+		if (resetField) locks = locks.filter((item) => item !== field);
 	}
 	function selectPersona(persona: (typeof personas)[number]) {
 		changePlan(
@@ -349,7 +355,7 @@
 		if (persona === 'mom') register('locale');
 	}
 	function listingHref(id: string) {
-		return resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, { id });
+		return resolve(`/product/[id]?${listingParams}`, { id });
 	}
 	function termName(key: string, productId?: string) {
 		const plain = key.startsWith('spec.') ? key.slice(5) : key;
@@ -367,11 +373,12 @@
 		const definitions = specs[product.category].filter(
 			({ key }) => product.specs[key] !== undefined
 		);
+		const preferred = [
+			...new Set([...activePlan.highlightedSpecs, ...Object.keys(activePlan.specPreferences)])
+		];
 		return [
-			...activePlan.highlightedSpecs.flatMap((key) =>
-				definitions.filter((spec) => spec.key === key)
-			),
-			...definitions.filter(({ key }) => !activePlan.highlightedSpecs.includes(key))
+			...preferred.flatMap((key) => definitions.filter((spec) => spec.key === key)),
+			...definitions.filter(({ key }) => !preferred.includes(key))
 		];
 	}
 	const priorityLabels = $derived([
@@ -815,7 +822,12 @@
 	{:else}
 		<ul class="product-grid" class:list-layout={shelfLayout === 'list' || theme === 'large'}>
 			{#each shelfProducts as product (product.id)}
-				<li class="product" data-product={product.catalogId} data-product-card={product.catalogId}>
+				<li
+					class="product"
+					class:no-art={!eventDemo && !activePlan.details.includes('image')}
+					data-product={product.catalogId}
+					data-product-card={product.catalogId}
+				>
 					{#if eventDemo}
 						<div
 							class="art demo-photo"
@@ -831,100 +843,102 @@
 					{/if}
 					<div class="card-body">
 						<h3>
-							<a
-								class="product-link"
-								href={resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, {
-									id: product.id
-								})}
-							>
+							<a class="product-link" href={listingHref(product.id)}>
 								<FactValue productId={product.catalogId} field="name" locale={language} />
 							</a>
 						</h3>
-						<div class="price">
-							<span class="visually-hidden">{t.price} </span>
-							<FactValue
-								tag="strong"
-								class="figure"
-								productId={product.catalogId}
-								field="price"
-								locale={language}
-							/>
-							{#if product.originalPrice !== null}
-								<span class="visually-hidden">{t.was} </span>
-								<FactValue
-									tag="s"
-									class="figure"
-									productId={product.catalogId}
-									field="originalPrice"
-									locale={language}
-								/>
-							{/if}
-						</div>
-						{#if eventDemo || activePlan.details.includes('shipping')}
-							<div class="shipping">
-								<span>{t.shipping}</span>
-								<span class="leader" aria-hidden="true"></span>
-								<FactValue
-									class="figure"
-									productId={product.catalogId}
-									field="shipping"
-									locale={language}
-								/>
-							</div>
-						{/if}
-						{#if eventDemo || activePlan.details.includes('rating')}
-							<div class="metadata">
-								<span>
-									<svg
-										viewBox="0 0 20 20"
-										width="15"
-										height="15"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="1.5"
-										aria-hidden="true"
-									>
-										<path
-											d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+						{#each eventDemo ? legacyDetails : activePlan.details as detail (detail)}
+							{#if detail === 'price'}
+								<div class="price">
+									<span class="visually-hidden">{t.price} </span>
+									<FactValue
+										tag="strong"
+										class="figure"
+										productId={product.catalogId}
+										field="price"
+										locale={language}
+									/>
+									{#if product.originalPrice !== null}
+										<span class="visually-hidden">{t.was} </span>
+										<FactValue
+											tag="s"
+											class="figure"
+											productId={product.catalogId}
+											field="originalPrice"
+											locale={language}
 										/>
-									</svg>
-									<span class="visually-hidden">{t.rating} </span>
+									{/if}
+								</div>
+							{:else if detail === 'shipping'}
+								<div class="shipping">
+									<span>{t.shipping}</span>
+									<span class="leader" aria-hidden="true"></span>
 									<FactValue
 										class="figure"
 										productId={product.catalogId}
-										field="rating"
+										field="shipping"
 										locale={language}
 									/>
-								</span>
-								<span>
-									{t.sold}
-									<FactValue
-										class="figure"
-										productId={product.catalogId}
-										field="sold"
-										locale={language}
-									/>
-								</span>
-							</div>
-						{/if}
-						{#if eventDemo || activePlan.details.includes('shop')}
-							<FactValue
-								tag="p"
-								class="shop"
-								productId={product.catalogId}
-								field="shop"
-								locale={language}
-							/>{/if}
-						{#if !eventDemo}
-							{#if adapted && plan.details.includes('summary')}
+								</div>
+							{:else if detail === 'rating'}
+								<div class="metadata">
+									<span>
+										<svg
+											viewBox="0 0 20 20"
+											width="15"
+											height="15"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.5"
+											aria-hidden="true"
+										>
+											<path
+												d="m10 2 2.3 5.1 5.6.6-4.2 3.8 1.2 5.5-4.9-2.8L5.1 17l1.2-5.5-4.2-3.8 5.6-.6z"
+											/>
+										</svg>
+										<span class="visually-hidden">{t.rating} </span>
+										<FactValue
+											class="figure"
+											productId={product.catalogId}
+											field="rating"
+											locale={language}
+										/>
+									</span>
+									{#if !eventDemo}<span>
+											{language === 'th' ? 'จำนวนรีวิว' : 'Reviews'}
+											<FactValue
+												class="figure"
+												productId={product.catalogId}
+												field="reviewCount"
+												locale={language}
+											/>
+										</span>{/if}
+									<span>
+										{t.sold}
+										<FactValue
+											class="figure"
+											productId={product.catalogId}
+											field="sold"
+											locale={language}
+										/>
+									</span>
+								</div>
+							{:else if detail === 'shop'}
+								<FactValue
+									tag="p"
+									class="shop"
+									productId={product.catalogId}
+									field="shop"
+									locale={language}
+								/>
+							{:else if detail === 'summary'}
 								<FactValue
 									tag="p"
 									productId={product.catalogId}
 									field="summary"
 									locale={language}
 								/>
-							{/if}
-							{#if activePlan.details.includes('specs')}
+							{:else if detail === 'specs'}
 								<dl class="card-specs">
 									{#each cardSpecs(product.catalogId) as spec (spec.key)}
 										<div>
@@ -939,16 +953,11 @@
 										</div>
 									{/each}
 								</dl>
-							{/if}
-							{#if adapted && plan.details.includes('reviews')}
-								<FactValue
-									tag="p"
-									productId={product.catalogId}
-									field="review.0"
-									locale={language}
-								/>
-							{/if}
-							{#if cardVouchers.get(product.catalogId)?.length}
+							{:else if detail === 'reviews'}
+								{#each ['review.0', 'review.1'] as field (field)}
+									<FactValue tag="p" productId={product.catalogId} {field} locale={language} />
+								{/each}
+							{:else if detail === 'vouchers' && cardVouchers.get(product.catalogId)?.length}
 								<ul class="card-vouchers" aria-label={language === 'th' ? 'โค้ดส่วนลด' : 'Vouchers'}>
 									{#each cardVouchers.get(product.catalogId) ?? [] as voucher (voucher.code)}
 										<li>
@@ -972,6 +981,8 @@
 									{/each}
 								</ul>
 							{/if}
+						{/each}
+						{#if !eventDemo}
 							<div class="card-actions">
 								<AddToCart
 									productId={product.catalogId}
@@ -1350,7 +1361,7 @@
 			</form>
 		{/if}
 
-		{#if hasFilters}
+		{#if hasFilters && (eventDemo || freeShipping || selectedCapacityProduct)}
 			<div class="chips">
 				{#if selectedCapacityProduct}
 					<button type="button" onclick={removeCapacity}>
@@ -1373,7 +1384,7 @@
 						</svg>
 					</button>
 				{/if}
-				{#if maxPrice !== undefined}
+				{#if eventDemo && maxPrice !== undefined}
 					<button
 						type="button"
 						onclick={() => {
@@ -1403,6 +1414,7 @@
 						type="button"
 						onclick={() => {
 							cancelPending();
+							if (!eventDemo) remember();
 							freeShipping = false;
 							draftShipping = false;
 						}}
@@ -1477,24 +1489,9 @@
 					<button type="button" disabled={!undoStack.length} onclick={undo}>{a.undo}</button>
 					<button type="button" onclick={restoreDefaults}>{a.reset}</button>
 				</div>
-				{#if adapted || locks.length}
-					<div class="shopper-actions" aria-label={a.appearance}>
-						{#each ['theme', 'layout', 'locale', 'category', 'maxPrice', 'query', 'specPreferences'] as value (value)}
-							{@const key = value as keyof ShopperPlan}
-							{#if JSON.stringify(activePlan[key]) !== JSON.stringify(defaultPlan[key])}
-								<button
-									type="button"
-									aria-label={`${a.remove} ${changeName(key)}`}
-									onclick={() => removePreference(key)}
-								>
-									{changeName(key)}{key === 'maxPrice' && maxPrice
-										? ` · ${formatBaht(maxPrice, language)}`
-										: ''} ×
-								</button>
-							{/if}
-						{/each}
-					</div>
-				{/if}
+				<div class="preference-controls">
+					<PreferenceChips plan={activePlan} locale={language} onRemove={removePreference} />
+				</div>
 			</section>
 			<XrayDrawer locale={language} bind:open={traceOpen} returnFocus={traceTrigger}>
 				<Xray
@@ -1873,6 +1870,9 @@
 		border-block: 1px solid var(--seam);
 		padding-block: 0.7rem;
 	}
+	.preference-controls {
+		margin-block: 0.55rem;
+	}
 	.shopper-actions {
 		display: flex;
 		flex-wrap: wrap;
@@ -1961,6 +1961,9 @@
 		border-radius: var(--radius);
 		background: var(--surface);
 		overflow-wrap: anywhere;
+	}
+	.product.no-art {
+		grid-template-rows: 1fr;
 	}
 	.art {
 		display: grid;

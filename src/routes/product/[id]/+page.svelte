@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
+	import { defaultPlan } from '#lib/personalization/plan.ts';
 	import ProductChat from '#lib/storefront/ProductChat.svelte';
 	import { getStoreSession } from '#lib/storefront/store.svelte.ts';
 	import ListingHeader from './ListingHeader.svelte';
@@ -63,7 +64,13 @@
 				{/key}
 			</ProductSummary>
 		</div>
-		<ProductDescription {data} openSpecifications={sheet ? openSpecifications : undefined} />
+		<ProductDescription
+			{data}
+			details={data.receiptQuery
+				? (data.listingDetails ?? session.visit?.plan.details ?? defaultPlan.details)
+				: undefined}
+			openSpecifications={sheet ? openSpecifications : undefined}
+		/>
 		<SpecificationsSheet specs={data.specs} {th} bind:sheet />
 	</div>
 	<FactsReceipt root={proofRoot} locale={data.language} />

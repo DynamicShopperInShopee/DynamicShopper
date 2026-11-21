@@ -27,7 +27,7 @@
 		productsFor: (plan: ShopperPlan) => readonly string[];
 		columns: readonly { field: string; label: LocalizedText }[];
 		resolve?: ResolvePrintedFact;
-		listingHref: (id: string, locale: FactLocale, theme: ShopperPlan['theme']) => string;
+		listingHref: (id: string, plan: ShopperPlan) => string;
 		categoryFor?: (id: string) => Category | undefined;
 		vouchersFor?: (id: string) => readonly ShelfVoucher[];
 		locale: FactLocale;
@@ -67,7 +67,7 @@
 		})}
 		{columns}
 		{resolve}
-		listingHref={(id: string) => listingHref(id, plan.locale, plan.theme)}
+		listingHref={(id: string) => listingHref(id, plan)}
 		{categoryFor}
 		{vouchersFor}
 		comparePane

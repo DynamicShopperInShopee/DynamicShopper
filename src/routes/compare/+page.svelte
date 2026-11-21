@@ -3,13 +3,14 @@
 	import { snapshot } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { categories, products, specs, type Category, type Locale } from '#lib/catalog/index.ts';
+	import { categories, products, specs, type Category } from '#lib/catalog/index.ts';
 	import { rankProducts, type ShopperPlan } from '#lib/personalization/index.ts';
 	import { matchesQuery } from '#lib/personalization/ranking.ts';
 	import { optimizeDeal } from '#lib/pricing/index.ts';
 	import { catalog } from '#lib/store-catalog.js';
 	import CompareViews from '#lib/storefront/CompareViews.svelte';
 	import { comparePresets, type ComparePreset } from '#lib/storefront/compare.ts';
+	import { receiptListingParams } from '#lib/storefront/sharedLook.ts';
 	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
 
 	let interactive = $state(false);
@@ -54,13 +55,8 @@
 	const th = $derived(locale === 'th');
 	const title = $derived(th ? 'เทียบมุมมองหน้าร้าน' : 'Compare views');
 
-	function listingHref(id: string, lang: Locale, theme: ShopperPlan['theme']) {
-		const params = new URLSearchParams({
-			view: 'receipt',
-			lang,
-			theme: theme === 'large-print' ? 'large' : theme
-		});
-		return resolve(`/product/[id]?${params.toString()}`, { id });
+	function listingHref(id: string, plan: ShopperPlan) {
+		return resolve(`/product/[id]?${receiptListingParams(plan)}`, { id });
 	}
 	function productsFor(plan: ShopperPlan) {
 		return rankProducts(products, { ...plan, query, category: category ?? null }).map(

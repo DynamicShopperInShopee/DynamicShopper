@@ -6,9 +6,11 @@
 
 	let {
 		data,
-		openSpecifications
+		openSpecifications,
+		receipt = false
 	}: {
 		data: PageData;
+		receipt?: boolean;
 		openSpecifications?: (trigger: HTMLButtonElement) => void;
 	} = $props();
 	const th = $derived(data.language === 'th');
@@ -17,7 +19,10 @@
 	);
 </script>
 
-<section id="details" aria-labelledby="details-title">
+<section
+	id={receipt ? undefined : 'details'}
+	aria-labelledby={!receipt || data.id === 'cooker-one-button' ? 'details-title' : undefined}
+>
 	{#if data.specs.length}
 		<button
 			type="button"
@@ -43,93 +48,103 @@
 			</svg>
 		</button>
 	{/if}
-	<div class="body">
-		<h2 id="details-title">{th ? 'รายละเอียดสินค้า' : 'Product details'}</h2>
-		{#if data.id === 'cooker-one-button'}
-			<div class="story">
-				<figure id="cooker-exterior">
-					<figcaption class="name" {...data.name.attributes}>{data.name.text}</figcaption>
-					<img
-						src={closedCooker}
-						alt={th ? 'หม้อหุงข้าวสีขาวบนเคาน์เตอร์ครัว' : 'White rice cooker on a kitchen counter'}
-						width="1254"
-						height="1254"
-						loading="lazy"
-					/>
-				</figure>
-				<figure id="cooker-capacity">
-					{#if capacity}
-						<figcaption>
-							{capacity.label} <strong {...capacity.attributes}>{capacity.text}</strong>
-						</figcaption>
-					{/if}
-					<img
-						src={openCooker}
-						alt={th
-							? 'หม้อหุงข้าวเปิดฝาให้เห็นข้าวสุกด้านใน'
-							: 'Rice cooker with the lid open and cooked rice inside'}
-						width="840"
-						height="1260"
-						loading="lazy"
-					/>
-				</figure>
-				<figure id="cooker-switch">
-					<figcaption {...data.summary.attributes}>{data.summary.text}</figcaption>
-					<img
-						src={cookerSwitch}
-						alt={th
-							? 'มือกดสวิตช์ด้านหน้าหม้อหุงข้าว'
-							: 'A hand pressing the switch on the front of the cooker'}
-						width="700"
-						height="1050"
-						loading="lazy"
-					/>
-				</figure>
-			</div>
-		{:else}
-			<p {...data.summary.attributes}>{data.summary.text}</p>
-		{/if}
-		{#if data.specs.length}
-			<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
-			<dl class:feature-grid={data.id === 'cooker-one-button'}>
-				{#each data.specs as spec (spec.attributes['data-fact'])}
-					<div>
-						<dt>
-							{#if data.id === 'cooker-one-button'}
-								<svg
-									width="32"
-									height="32"
-									viewBox="0 0 32 32"
-									stroke="currentColor"
-									fill="none"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="1.5"
-									aria-hidden="true"
-								>
-									{#if spec.attributes['data-fact'] === 'spec.capacity'}
-										<path d="M4 10h24l-3 14H7zM7 26h18M9 13h5m-5 4h3" />
-									{:else if spec.attributes['data-fact'] === 'spec.power'}
-										<path d="m18 3-12 16h9l-1 10 12-17h-9z" />
-									{:else if spec.attributes['data-fact'] === 'spec.programs'}
-										<path
-											d="M4 15h24M6 16v7q0 3 3 3h14q3 0 3-3v-7M8 12q8-7 16 0M14 8h4M11 6l1-3m6 3 1-3"
-										/>
-									{:else}
-										<path
-											d="M16 3c4 3 8 4 11 4v9c0 7-8 11-11 13C12 27 5 23 5 16V7c4 0 8-2 11-4zM11 16l4 4 7-8"
-										/>
-									{/if}
-								</svg>
-							{/if}
-							{spec.label}
-						</dt>
-						<dd {...spec.attributes}>{spec.text}</dd>
-					</div>
-				{/each}
-			</dl>
-		{/if}
-	</div>
+	{#if !receipt || data.id === 'cooker-one-button'}
+		<div class="body">
+			<h2 id="details-title">
+				{receipt
+					? th
+						? 'ภาพจากหน้าสินค้า'
+						: 'Photos from the listing'
+					: th
+						? 'รายละเอียดสินค้า'
+						: 'Product details'}
+			</h2>
+			{#if data.id === 'cooker-one-button'}
+				<div class="story">
+					<figure id="cooker-exterior">
+						<figcaption class="name" {...data.name.attributes}>{data.name.text}</figcaption>
+						<img
+							src={closedCooker}
+							alt={th ? 'หม้อหุงข้าวสีขาวบนเคาน์เตอร์ครัว' : 'White rice cooker on a kitchen counter'}
+							width="1254"
+							height="1254"
+							loading="lazy"
+						/>
+					</figure>
+					<figure id="cooker-capacity">
+						{#if capacity}
+							<figcaption>
+								{capacity.label} <strong {...capacity.attributes}>{capacity.text}</strong>
+							</figcaption>
+						{/if}
+						<img
+							src={openCooker}
+							alt={th
+								? 'หม้อหุงข้าวเปิดฝาให้เห็นข้าวสุกด้านใน'
+								: 'Rice cooker with the lid open and cooked rice inside'}
+							width="840"
+							height="1260"
+							loading="lazy"
+						/>
+					</figure>
+					<figure id="cooker-switch">
+						<figcaption {...data.summary.attributes}>{data.summary.text}</figcaption>
+						<img
+							src={cookerSwitch}
+							alt={th
+								? 'มือกดสวิตช์ด้านหน้าหม้อหุงข้าว'
+								: 'A hand pressing the switch on the front of the cooker'}
+							width="700"
+							height="1050"
+							loading="lazy"
+						/>
+					</figure>
+				</div>
+			{:else if !receipt}
+				<p {...data.summary.attributes}>{data.summary.text}</p>
+			{/if}
+			{#if !receipt && data.specs.length}
+				<h3>{th ? 'ข้อมูลสินค้า' : 'Product information'}</h3>
+				<dl class:feature-grid={data.id === 'cooker-one-button'}>
+					{#each data.specs as spec (spec.attributes['data-fact'])}
+						<div>
+							<dt>
+								{#if data.id === 'cooker-one-button'}
+									<svg
+										width="32"
+										height="32"
+										viewBox="0 0 32 32"
+										stroke="currentColor"
+										fill="none"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="1.5"
+										aria-hidden="true"
+									>
+										{#if spec.attributes['data-fact'] === 'spec.capacity'}
+											<path d="M4 10h24l-3 14H7zM7 26h18M9 13h5m-5 4h3" />
+										{:else if spec.attributes['data-fact'] === 'spec.power'}
+											<path d="m18 3-12 16h9l-1 10 12-17h-9z" />
+										{:else if spec.attributes['data-fact'] === 'spec.programs'}
+											<path
+												d="M4 15h24M6 16v7q0 3 3 3h14q3 0 3-3v-7M8 12q8-7 16 0M14 8h4M11 6l1-3m6 3 1-3"
+											/>
+										{:else}
+											<path
+												d="M16 3c4 3 8 4 11 4v9c0 7-8 11-11 13C12 27 5 23 5 16V7c4 0 8-2 11-4zM11 16l4 4 7-8"
+											/>
+										{/if}
+									</svg>
+								{/if}
+								{spec.label}
+							</dt>
+							<dd {...spec.attributes}>{spec.text}</dd>
+						</div>
+					{/each}
+				</dl>
+			{/if}
+		</div>
+	{/if}
 </section>
 
 <style>

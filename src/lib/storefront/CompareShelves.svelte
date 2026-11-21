@@ -5,6 +5,7 @@
 	import FactsReceipt from './FactsReceipt.svelte';
 	import FactValue from './FactValue.svelte';
 	import ShelfTable from './ShelfTable.svelte';
+	import { receiptListingParams } from './sharedLook';
 
 	let {
 		plan,
@@ -29,11 +30,15 @@
 	const eligible = $derived(
 		freeShipping ? products.filter(({ shipping }) => shipping === 0) : products
 	);
+	const techPlan = personaPlan('tech');
+	const momPlan = personaPlan('mom');
+	const techParams = receiptListingParams(techPlan);
+	const momParams = receiptListingParams(momPlan);
 	const tech = $derived(
-		rankProducts(eligible, { ...personaPlan('tech'), ...search }).map(({ product }) => product)
+		rankProducts(eligible, { ...techPlan, ...search }).map(({ product }) => product)
 	);
 	const mom = $derived(
-		rankProducts(eligible, { ...personaPlan('mom'), ...search }).map(({ product }) => product)
+		rankProducts(eligible, { ...momPlan, ...search }).map(({ product }) => product)
 	);
 </script>
 
@@ -41,7 +46,12 @@
 	<div class="panes" bind:this={panes}>
 		<section class="pane tech" data-compare-pane lang="en" aria-label="Tech shopper">
 			<h2>Tech shopper</h2>
-			<ShelfTable products={tech} locale="en" {onDeal} />
+			<ShelfTable
+				products={tech}
+				locale="en"
+				{onDeal}
+				listingHref={(id: string) => resolve(`/product/[id]?${techParams}`, { id })}
+			/>
 		</section>
 		<section class="pane mom" data-compare-pane lang="th" aria-label="โหมดคุณแม่">
 			<h2>โหมดคุณแม่</h2>
@@ -49,9 +59,7 @@
 				<ul>
 					{#each mom as product (product.id)}
 						<li data-product={product.id}>
-							<a
-								href={resolve(`/product/[id]?lang=th&theme=large&view=receipt`, { id: product.id })}
-							>
+							<a href={resolve(`/product/[id]?${momParams}`, { id: product.id })}>
 								<FactValue productId={product.id} field="name" locale="th" />
 							</a>
 							<FactValue productId={product.id} field="summary" locale="th" tag="p" />
