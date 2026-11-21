@@ -40,9 +40,9 @@ Treat shopper-entered amounts separately from model output. Parse budget constra
 | Owner / branch | Owns changes | Consumer and evidence |
 | --- | --- | --- |
 | 1 · `feat/catalog-pricing` | Catalog, fact resolution and formatting, pure optimizer, voucher fixtures and domain tests | Owners 2 and 3 import these interfaces. Check catalog integrity, expiry, floors, caps, tie breaks, unused reasons and cross-surface parity. |
-| 2 · `feat/personalization` | Plan and ranking engine, offline parser, local model adapter, bounded tools, reply guard and engine tests | Owner 3 consumes intent, plan diff, citations and explanation terms. Verify fallback on timeout, field-wise rejection, price-free requests, guarded replies and inert questions. |
-| 3 · `feat/storefront-proof` | Storefront routes and components, visual tokens, UI copy, interaction state, compare panes and DOM verifier | Owner 4 runs the journey against real controls. Test wrong printed text with correct metadata, wrong raw value, empty overlap, Undo, focus and mobile overflow. |
-| 4 · `feat/integration-release` | Runtime isolation, shared config, integration fixtures, end-to-end checks, release evidence, submission and shared documentation | All owners can start the app offline. Review the public artifact in a fresh browser. Record actual check results and remaining limitations. |
+| 2 · Owner’s working branch | Plan and ranking engine, offline parser, local model adapter, bounded tools, reply guard and engine tests | Owner 3 consumes intent, plan diff, citations and explanation terms. Verify fallback on timeout, field-wise rejection, price-free requests, guarded replies and inert questions. |
+| 3 · Owner’s working branch | Storefront routes and components, visual tokens, UI copy, interaction state, compare panes and DOM verifier | Owner 4 runs the journey against real controls. Test wrong printed text with correct metadata, wrong raw value, empty overlap, Undo, focus and mobile overflow. |
+| 4 · Owner’s working branch | Runtime isolation, shared config, integration fixtures, end-to-end checks, release evidence, submission and shared documentation | All owners can start the app offline. Review the public artifact in a fresh browser. Record actual check results and remaining limitations. |
 
 ### How a change moves from idea to main
 
@@ -57,7 +57,7 @@ Owner 4 curates golden messages with expected intent and behavior independently 
 
 ### Repo boundary and release evidence
 
-Keep ownership of the domain with the team member who knows it. After each PR merges, an owner can sync and reuse their assigned branch or start a fresh branch from current main. Check the branch diff against main before beginning the next task. When a bug crosses domains, give one person the failing user journey and let each affected owner review the fix. Update the acceptance example and guideline as part of that change.
+Keep ownership of each domain with its owner. After a PR merges, sync the existing branch with current main and check for leftover changes before starting the next task. A fresh branch from main also works. When a bug crosses domains, give one person the failing user journey and let each affected owner review the fix. Update the existing acceptance example and guideline as part of that change. This gives the next developer a reproducible case without having to reconstruct a chat session.
 
 Give agents this repo as their only project workspace. Keep other repos, personal account data, credential stores and external document connectors outside the task. Keep secrets in local private configuration. Commit named files after inspecting the staged diff. Use synthetic data for test transcripts, X-ray examples and screenshots. Share only reviewed code changes with this repository's configured remote. Keep the organizer PDF local.
 

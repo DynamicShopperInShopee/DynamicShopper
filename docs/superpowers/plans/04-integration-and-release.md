@@ -1,6 +1,6 @@
 # Integration and release implementation plan
 
-**Owner 4** · `feat/integration-release` · **Reviewers** Owner 3 for the journey and each producer for its contract.
+**Owner 4** · Use your own working branch. **Reviewers** Owner 3 for the journey and each producer for its contract.
 
 **Goal.** Give three feature owners a shared starting point and give judges a working, keyless prototype with reproducible evidence. You own the handoffs and release candidate. The repository owner handles public visibility and the team submits the form.
 
@@ -10,9 +10,9 @@ Read [the approved design](../specs/2026-11-21-two-shopper-design.md), [AGENTS.m
 
 ## Start in your own checkout
 
-> I am Owner 4. Execute docs/superpowers/plans/04-integration-and-release.md in this repo on feat/integration-release. Start with the shared contract and keyless boot. Coordinate one producer and one consumer per contract, commit and push each reviewed increment, and report the merge SHA and exact tests. Use synthetic data. Keep production publishing, visibility changes and form submission with the team.
+> I am Owner 4. Execute docs/superpowers/plans/04-integration-and-release.md in this repo on my working branch. Start with the shared contract and keyless boot. Coordinate one producer and one consumer per contract, commit and push each reviewed increment, and report the merge SHA and exact tests. Use synthetic data. Keep production publishing, visibility changes and form submission with the team.
 
-Run `git fetch origin`, then `git switch --track origin/feat/integration-release` on first checkout, or `git switch feat/integration-release` if it exists. Run `git status --short --branch`. Start at the pushed planning commit. Confirm the documentation PR lands before merging dependent product PRs. Use a short baseline PR first. After its merge, sync this branch with main before starting the next increment. Give owners the actual baseline SHA in the PR and their assignments. For repos using squash merges, start the next PR from updated main, with a fresh branch if needed.
+Run `git fetch origin` and switch to your existing working branch. Create a branch from `origin/main` if needed. Run `git status --short --branch` before publishing the baseline. Use a short baseline PR first. After its merge, sync this branch with main before starting the next increment. Give owners the actual baseline SHA in the PR and their assignments. For repos using squash merges, start the next PR from updated main, with a fresh branch if needed.
 
 **Owned paths.** `src/lib/contracts.ts`, `src/lib/fixtures/`, `src/hooks.server.ts`, runtime types and configuration, `tests/e2e/`, root README and contributor rules, and submission evidence. Owners 1–3 own product code, including UI routes and the local AI route. Resolve a failing integration assertion with the owner of the failing behavior.
 

@@ -1,6 +1,6 @@
 # Storefront and proof implementation plan
 
-> **Owner 3** · `feat/storefront-proof` · Use `superpowers:executing-plans` or `superpowers:subagent-driven-development` for implementation. Owner 4 reviews rendering and consumes the routes in release tests.
+> **Owner 3** · Use your own working branch. Use `superpowers:executing-plans` or `superpowers:subagent-driven-development` for implementation. Owner 4 reviews rendering and consumes the routes in release tests.
 
 **Goal.** Two shoppers can recognize the same cooker in different layouts, verify its actual printed facts, open its listing and reproduce its deal offline.
 
@@ -10,7 +10,7 @@
 
 ## Branch and contract handoff
 
-Fetch the configured remote with `git fetch origin`, then run `git switch --track origin/feat/storefront-proof` on first checkout or `git switch feat/storefront-proof` if local. Begin UI tests, bilingual copy and isolated components from the documentation tip. Owner 4 supplies a reviewed contract/keyless startup commit SHA. Merge that commit into this branch before route integration and record the actual SHA in the draft PR. Coordinate type or fixture changes with the producer, affected consumer and Owner 4. Keep changes to shared contracts, runtime hooks, dependencies, test configuration, release E2E and guidelines with their owners.
+Fetch the configured remote with `git fetch origin` and switch to your existing working branch. Create a branch from `origin/main` if needed. Begin UI tests, bilingual copy and isolated components there. Owner 4 supplies a reviewed contract/keyless startup commit SHA. Merge that commit into this branch before route integration and record the actual SHA in the draft PR. Coordinate type or fixture changes with the producer, affected consumer and Owner 4. Keep changes to shared contracts, runtime hooks, dependencies, test configuration, release E2E and guidelines with their owners.
 
 **Contracts.** Import baseline types from `src/lib/contracts.ts` and test examples from `src/lib/fixtures/contract-sample.ts`. Use Owner 1's `resolveFact(productId,field)`, `formatFact(fact,locale)` and `optimizeDeal(basket,context)`, and Owner 2's `rankProducts(products,plan)`, `interpretOffline(message,state)` and `applyTurn(state,turn)`. Follow the repository’s `#lib/*` imports. Owner 2’s signatures are `rankProducts(products: readonly Product[], plan: Plan): RankedProduct[]`, `interpretOffline(message: string, state: StoreState): Turn` and `applyTurn(state: StoreState, turn: Turn): StoreState`. Each ranked result exposes the product and its contributing terms. Before they land, isolate fixtures in tests. The first shared fixture identifies `cooker-one-button` with raw unit price `690`. Production renders catalog records and consumes domain results. Pricing context includes the reference clock and shared simulated balance. Owner 2 owns inference, validation, safe trace projection, reply guard and ranked terms. The UI dispatches controls, Undo and Reset through Owner 2’s reducer, whose state holds the single undo history. Owner 3 owns scoped persistence and rendering.
 
@@ -59,4 +59,4 @@ Fetch the configured remote with `git fetch origin`, then run `git switch --trac
 
 ## Start prompt
 
-> You own Owner 3's storefront and proof assignment on feat/storefront-proof. Work only in this repository and the owned paths listed above. Read the linked design, guidelines and shared fixture. Confirm the branch tip and record the reviewed baseline when available. Start with the first failing DOM check. Send Owner 4 the acceptance result, changed paths, base SHA and any open interface decision. Use Sol for scoped implementation and Astra with the producer and consumer for a shared design decision.
+> You own Owner 3's storefront and proof assignment on my working branch. Work only in this repository and the owned paths listed above. Read the linked design, guidelines and shared fixture. Confirm the branch tip and record the reviewed baseline when available. Start with the first failing DOM check. Send Owner 4 the acceptance result, changed paths, base SHA and any open interface decision. Use Sol for scoped implementation and Astra with the producer and consumer for a shared design decision.
