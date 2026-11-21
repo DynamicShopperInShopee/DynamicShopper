@@ -10,7 +10,7 @@
 	);
 	const scenes = {
 		rice: { src: digitalMedia.pot, anchor: 'digital-nonstick' },
-		controls: { src: digitalMedia.controls, anchor: 'digital-preset' },
+		controls: { src: digitalMedia.intro, anchor: 'digital-intro' },
 		serving: { src: digitalMedia.serving, anchor: 'digital-serving' }
 	};
 </script>
@@ -26,7 +26,11 @@
 				? 'สื่อรีวิวจำลอง'
 				: 'Simulated review media'}
 	>
-		{#if !reviewField}<h3>{th ? 'ภาพรีวิวจำลอง' : 'Simulated review photos'}</h3>{/if}
+		{#if !reviewField}
+			<h3>{th ? 'สรุปจากข้อมูลสินค้า' : 'From the listing'}</h3>
+			<p class="summary" {...data.summary.attributes}>{data.summary.text}</p>
+			<p class="media-label">{th ? 'ภาพรีวิวจำลอง' : 'Simulated review photos'}</p>
+		{/if}
 		<div class="photos">
 			{#each items as item (item.mediaId)}
 				<a href={'#' + scenes[item.mediaId].anchor} aria-label={item.caption.text}>
@@ -54,6 +58,18 @@
 		font-size: 1em;
 		font-weight: 600;
 		margin: 0 0 0.65em;
+	}
+	.summary {
+		margin: 0 0 0.8em;
+		line-height: 1.55;
+	}
+	.media-label {
+		margin: 0 0 0.5em;
+		color: #5d5d63;
+		font-size: 0.8em;
+	}
+	:global(main[data-theme='large']) .media-label {
+		font-size: 1em;
 	}
 	.photos {
 		display: grid;
