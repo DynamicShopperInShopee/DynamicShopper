@@ -58,7 +58,7 @@ Files: digital assets and manifest under `src/lib/assets/products`, route-local 
 - [x] Run affected catalog/pricing tests, all route E2E, build, type check and formatting checks.
 - [x] Inspect every new section in Thai/English and all four themes at both supported sizes. Inspect rendered fact metadata and offline playback.
 - [x] Obtain independent producer/consumer and final visual review, resolve concrete findings, update DESIGN and CATALOG together.
-- [ ] Commit and update the reviewable PR/branch preview, verify deployed behavior and report completion limits honestly.
+- Publish through a reviewable PR/branch preview. Record deployment verification and completion limits in that PR so release status remains current.
 
 ## Integration decisions and evidence
 
@@ -67,3 +67,4 @@ Files: digital assets and manifest under `src/lib/assets/products`, route-local 
 - Resolved: move the phone gallery shop caption below the combined header/cart controls in every theme, with a bilingual overlap regression test.
 - Independent design, producer/consumer, media, conflict-resolution and visual reviews were completed. All sixteen locale/theme/viewport combinations loaded their images and verified the rendered facts.
 - Production build passed; server unit tests: 107 passed with the same five pre-existing personalization contract failures; client unit tests: 78 passed. Type checking reports only the same two unresolved imports in `personalization/contract.spec.ts`, with no warnings. Production E2E passed 112 with the development-only poisoned-model case skipped; that case passed separately in development.
+- After the final phone-caption fix, all nineteen affected listing tests passed on a fresh production Worker. Independent English/Thai phone inspection confirmed the caption clears navigation, with verified facts and no sideways scroll.
