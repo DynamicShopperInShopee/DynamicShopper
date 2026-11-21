@@ -1,5 +1,23 @@
 # Design system: "The Thermal Receipt"
 
+## Optional interview on the root storefront
+
+Accepted on 2026-11-21: keep the current marketplace as the initial view and add
+a compact optional interview entry. Four short steps cover shopping goal,
+preferred evidence, priority and reading. Draft answers stay inside the dialog;
+the final receipt explains the proposal before one Apply. Apply uses the existing
+adaptive storefront, change chips and Undo. Closing an unapplied interview returns
+focus to its trigger. No full-page onboarding replaces shopping.
+
+The user's later instruction explicitly retains Shopee branding on the root
+before and after Apply. A stable orange brand header surrounds the existing
+responsive template and the adapted product content. This scoped branding
+exception supersedes the earlier no-mark/no-orange guidance for this requested
+surface; proof slips and catalog facts remain unchanged. No device frame is used.
+The existing default storefront is owned separately. This integration adds no
+promotion, seller metric or new catalog values. See
+[the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+
 ## North star
 
 > The store may rearrange itself; every number prints like a receipt you can check.
