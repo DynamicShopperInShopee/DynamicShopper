@@ -1,7 +1,7 @@
 import { createContext } from 'svelte';
-import { getStoreOpenedAt } from '#lib/storefront/clock.ts';
 import {
 	initialState,
+	activeCategory,
 	defaultCatalog,
 	applyPatch,
 	applyPersona,
@@ -36,9 +36,8 @@ export class HarnessContext {
 	pending = $state(false);
 	forceOffline = $state(false);
 	poison = $state(false);
-	openedAt = getStoreOpenedAt();
+	openedAt = Date.now();
 	now = $state(Date.now());
-	history: { role: 'shopper' | 'assistant'; text: string }[] = [];
 	private request?: AbortController;
 	private generation = 0;
 	get lang() {
@@ -135,7 +134,6 @@ export class HarnessContext {
 		this.pending = true;
 		const timeout = setTimeout(() => controller.abort(), 13000);
 		let remote: RemoteAnswer | undefined;
-		let succeeded = false;
 		try {
 			if (!this.forceOffline) {
 				const response = await fetcher('/api/assistant', {
@@ -144,8 +142,14 @@ export class HarnessContext {
 					signal: controller.signal,
 					body: JSON.stringify({
 						message: text,
-						history: this.history.slice(-6),
-						plan: this.state.plan,
+						plan: {
+							...this.state.plan,
+							query: '',
+							filters: {
+								...this.state.plan.filters,
+								category: activeCategory(defaultCatalog, this.state.plan)
+							}
+						},
 						focus: this.state.focus,
 						cart: this.state.cart,
 						viewed: this.state.viewed,
@@ -155,7 +159,6 @@ export class HarnessContext {
 				if (response.ok) {
 					const data: unknown = await response.json();
 					remote = data && typeof data === 'object' ? data : { fallbackReason: 'invalid_output' };
-					succeeded = true;
 				} else remote = { fallbackReason: 'api_error' };
 			}
 		} catch {
@@ -188,13 +191,6 @@ export class HarnessContext {
 		this.changes = [...result.changes];
 		this.pending = false;
 		this.request = undefined;
-		// Failed/offline turns never re-enter model history.
-		if (succeeded && result.backend === 'model')
-			this.history = [
-				...this.history,
-				{ role: 'shopper', text },
-				{ role: 'assistant', text: result.turn.reply.text }
-			].slice(-6) as typeof this.history;
 		return this.last;
 	}
 }

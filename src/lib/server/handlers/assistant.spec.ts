@@ -26,7 +26,6 @@ const transport = (output: unknown = hostileOutput): ModelTransport & { calls: n
 	return t;
 };
 const options = (overrides = {}) => ({
-	enabled: true,
 	dev: true,
 	apiKey: SECRET,
 	model: 'gpt-test-model',
@@ -119,7 +118,7 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 			body({ message: 'hi', poison: true, forceModel: true }),
 			'x'.repeat(MAX_BODY_BYTES * 2)
 		]) {
-			const result = await handleAssistant(raw, options({ enabled: false, transport: t }));
+			const result = await handleAssistant(raw, options({ dev: false, transport: t }));
 			expect(result.status).toBe(404);
 		}
 		expect(t.calls).toBe(0);
@@ -143,7 +142,7 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 		expect(t.calls).toBe(0);
 	});
 
-	it('re-validates the client plan and caps history, ids and lists', async () => {
+	it('sends only known intent, catalog and presentation labels to the provider', async () => {
 		const requests: string[] = [];
 		const t: ModelTransport = {
 			complete(request) {
@@ -157,8 +156,12 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 		};
 		const result = await handleAssistant(
 			body({
-				message: 'hello',
-				plan: { theme: 'hacker', filters: { maxPrice: 1500, category: 'mouse' } },
+				message: 'large text for private-shopper@example.test',
+				plan: {
+					query: 'mouse private-search-note',
+					theme: 'hacker',
+					filters: { maxPrice: 1500, category: 'mouse' }
+				},
 				history: Array.from({ length: 20 }, (_, i) => ({
 					role: 'shopper',
 					text: `turn-${String.fromCharCode(97 + i)}`
@@ -174,7 +177,10 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 		expect(sent).not.toContain('1500');
 		expect(sent).toMatch(/hasBudget\\":true/);
 		expect(sent).not.toContain('turn-n');
-		expect(sent).toContain('turn-t');
+		expect(sent).not.toContain('turn-t');
+		expect(sent).not.toContain('private-shopper');
+		expect(sent).not.toContain('private-search-note');
+		expect(sent).toContain('large-text');
 		expect(sent).not.toContain('ghost');
 		expect(sent).not.toContain('"nope"');
 	});
@@ -190,10 +196,8 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 			body({ message: 'hi', poison: true }),
 			options({ dev: false, transport: t })
 		);
-		expect(previewResult.body).toMatchObject({
-			envelope: { intent: 'chat', reply: 'Hi.' },
-			trace: { guard: 'passed' }
-		});
+		expect(previewResult.status).toBe(404);
+		expect(t.calls).toBe(0);
 	});
 
 	it('with no key or model it answers with a fallback reason, not an error', async () => {
@@ -206,21 +210,63 @@ describe('R12 · the model endpoint is local-only and checks its input', () => {
 });
 
 describe('R12 · route gate', () => {
-	it('the route returns 404 outside dev unless ASSISTANT_LOCAL=1', async () => {
+	async function post(
+		dev: boolean,
+		host: string,
+		peer: string,
+		origin: string,
+		type = 'application/json',
+		input: BodyInit = body({ message: 'hello' })
+	) {
 		vi.resetModules();
-		vi.doMock('$app/env', () => ({ dev: false, browser: false, building: false, version: 'test' }));
+		vi.doMock('$app/env', () => ({ dev, browser: false, building: false, version: 'test' }));
 		vi.doMock('$app/env/private', () => ({
-			ASSISTANT_LOCAL: undefined,
-			OPENAI_API_KEY: SECRET,
-			OPENAI_MODEL: 'm'
+			ASSISTANT_LOCAL: '1',
+			OPENAI_API_KEY: '',
+			OPENAI_MODEL: ''
 		}));
 		const { POST } = await import('../../../routes/api/assistant/+server.ts');
-		const request = new Request('http://localhost/api/assistant', {
+		const url = new URL('/api/assistant', host);
+		const request = new Request(url, {
 			method: 'POST',
-			body: body({ message: 'hi', poison: true })
-		});
-		await expect(POST({ request } as never)).rejects.toMatchObject({ status: 404 });
-		vi.doUnmock('$app/env');
-		vi.doUnmock('$app/env/private');
+			headers: { origin, 'content-type': type },
+			body: input,
+			duplex: 'half'
+		} as RequestInit);
+		const response = await POST({ request, url, getClientAddress: () => peer } as never);
+		expect(response.headers.get('cache-control')).toContain('no-store');
+		return response.status;
+	}
+	const local = 'http://127.0.0.1:4582';
+	it('rejects every production request even with the old preview flag', async () => {
+		expect(await post(false, local, '127.0.0.1', local)).toBe(404);
+	});
+	it('requires a development loopback host, local socket peer, matching origin and JSON', async () => {
+		expect(await post(true, 'http://example.test', '127.0.0.1', 'http://example.test')).toBe(404);
+		expect(await post(true, local, '192.0.2.1', local)).toBe(404);
+		expect(await post(true, local, '', local)).toBe(404);
+		expect(await post(true, local, '::1', 'http://localhost:4582')).toBe(403);
+		expect(await post(true, local, '::1', '')).toBe(403);
+		expect(await post(true, local, '::1', local, 'text/plain')).toBe(415);
+		expect(await post(true, local, '::1', local)).toBe(200);
+	});
+	it('cancels a chunked upload when its byte budget is exceeded', async () => {
+		let cancelled = false;
+		let reads = 0;
+		const stream = new ReadableStream<Uint8Array>(
+			{
+				pull(controller) {
+					if (++reads > 8) controller.close();
+					else controller.enqueue(new Uint8Array(4096));
+				},
+				cancel() {
+					cancelled = true;
+				}
+			},
+			{ highWaterMark: 0 }
+		);
+		expect(await post(true, local, '::1', local, 'application/json', stream)).toBe(413);
+		expect(cancelled).toBe(true);
+		expect(reads).toBe(5);
 	});
 });

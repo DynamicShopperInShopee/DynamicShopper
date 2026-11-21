@@ -59,11 +59,13 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'Compare views' })).toBeEnabled();
 	await context.setOffline(true);
+	await page.getByRole('button', { name: 'Chat with the assistant' }).click();
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
 	await page.getByRole('button', { name: 'Send' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'large');
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'th');
 	await expect(page.locator('#products [data-product]')).toHaveCount(3);
+	await page.keyboard.press('Escape');
 	await page.getByRole('button', { name: 'ย้อนกลับ' }).click();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'standard');
 	await page.getByRole('searchbox').fill('rice cooker');
@@ -213,22 +215,10 @@ test('serves the storefront without credentials and isolates unconfigured demo a
 	expect(auth.status()).toBe(503);
 });
 
-test('keeps production model endpoints disabled and falls back safely', async ({
-	page,
-	request
-}) => {
+test('disables live experimentation on the production storefront', async ({ page, request }) => {
 	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
-	await expect(page.getByRole('button', { name: 'Simulate poisoned model' })).toHaveCount(0);
-	await page.getByRole('button', { name: 'Try live model' }).click();
-	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('minimal');
-	await page.getByRole('button', { name: 'Send', exact: true }).click();
-	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
-	await expect(page.getByText('Fallback reason: api_error')).toBeVisible();
-	const assistant = await request.post('/api/assistant', {
-		data: { message: 'hello', poison: true }
-	});
-	expect(assistant.status()).toBe(404);
+	await expect(page.getByRole('button', { name: 'Try live model' })).toHaveCount(0);
 	const result = await request.post('/api/local-assistant', {
 		headers: { origin: new URL(page.url()).origin },
 		data: { hints: ['playful'] }
@@ -252,7 +242,7 @@ test('shops rice cooker results from the default mobile storefront and opens the
 	await shops.getByRole('link').first().click();
 	await expect(page).toHaveURL(/\/product\/cooker-/);
 	await page.getByRole('link', { name: 'Back to store' }).click();
-	await page.getByRole('button', { name: 'Shopping assistant', exact: true }).click();
+	await page.getByRole('link', { name: 'Shopping assistant' }).click();
 	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });
 
@@ -262,7 +252,7 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
-	const cards = page.locator('#products [data-product]');
+	const cards = page.locator('.product-grid > li');
 	await expect(strip).toBeVisible();
 	await page.evaluate(() => scrollTo(0, 500));
 	await expect.poll(async () => (await strip.boundingBox())?.y).toBe(56);
@@ -286,10 +276,7 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await strip.getByLabel('Categories').selectOption('skin');
 	await expect(strip).toHaveCount(0);
 	await expect(page.getByRole('region', { name: 'Matching shops' })).toBeVisible();
-	await expect(page.locator('#products .demo-photo').first()).toHaveAttribute(
-		'data-category',
-		'skin'
-	);
+	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
 });
 
 test('restores a filtered Thai shelf on browser and listing return without sharing the search', async ({
@@ -370,7 +357,7 @@ test('keeps category search controls ahead of the mobile results', async ({ page
 	expect(firstRow!.y - strip!.y - strip!.height).toBeLessThan(12);
 	await expect(filters.getByRole('link', { name: 'Shopping assistant' })).toHaveAttribute(
 		'href',
-		'/?view=receipt'
+		'/?view=receipt#assistant'
 	);
 	await filters.getByLabel('Categories').selectOption('cooker');
 	const search = page.getByRole('search');

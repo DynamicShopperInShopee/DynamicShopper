@@ -63,6 +63,7 @@ export function toOpenAIParams(request: ModelRequest): ChatCompletionCreateParam
 	});
 	return {
 		model: request.model,
+		store: false,
 		messages,
 		tools: request.tools.map((tool) => ({
 			type: 'function' as const,
@@ -85,7 +86,12 @@ export function toOpenAIParams(request: ModelRequest): ChatCompletionCreateParam
  * signal cuts a slow call. Errors propagate and the agent turns them into a fallback.
  */
 export function openAITransport(apiKey: string): ModelTransport {
-	const client = new OpenAI({ apiKey, maxRetries: 0 });
+	const client = new OpenAI({
+		apiKey,
+		baseURL: 'https://api.openai.com/v1',
+		logLevel: 'off',
+		maxRetries: 0
+	});
 	return {
 		async complete(request, signal) {
 			const completion = await client.chat.completions.create(toOpenAIParams(request), { signal });

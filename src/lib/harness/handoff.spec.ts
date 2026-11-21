@@ -10,7 +10,7 @@ const doc = readFileSync(
 describe('R19 · the Codex hand-off prompt matches the code', () => {
 	it('every runtime export the prompt imports exists in the public API', () => {
 		const block =
-			/import \{([^}]+)\} from '#lib\/personalization\/index\.ts';/.exec(doc)?.[1] ?? '';
+			/import \{([^}]+)\} from '#lib\/harness\/index\.ts';/.exec(doc)?.[1] ?? '';
 		const names = block
 			.split(',')
 			.map((name) => name.trim())

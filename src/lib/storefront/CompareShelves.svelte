@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { products, type Locale } from '../catalog';
+	import { products, type Locale, type Product } from '../catalog';
 	import { personaPlan, rankProducts, type ShopperPlan } from '../personalization';
 	import FactsReceipt from './FactsReceipt.svelte';
 	import FactValue from './FactValue.svelte';
@@ -10,11 +10,13 @@
 		plan,
 		locale,
 		freeShipping = false,
+		eligibleProducts = products,
 		onDeal
 	}: {
 		plan: ShopperPlan;
 		locale: Locale;
 		freeShipping?: boolean;
+		eligibleProducts?: readonly Product[];
 		onDeal: (productId: string, locale: Locale) => void;
 	} = $props();
 
@@ -27,7 +29,7 @@
 		mallOnly: plan.mallOnly
 	});
 	const eligible = $derived(
-		freeShipping ? products.filter(({ shipping }) => shipping === 0) : products
+		freeShipping ? eligibleProducts.filter(({ shipping }) => shipping === 0) : eligibleProducts
 	);
 	const tech = $derived(
 		rankProducts(eligible, { ...personaPlan('tech'), ...search }).map(({ product }) => product)
@@ -49,7 +51,9 @@
 				<ul>
 					{#each mom as product (product.id)}
 						<li data-product={product.id}>
-							<a href={resolve(`/product/[id]?lang=th&theme=large&view=receipt`, { id: product.id })}>
+							<a
+								href={resolve(`/product/[id]?lang=th&theme=large&view=receipt`, { id: product.id })}
+							>
 								<FactValue productId={product.id} field="name" locale="th" />
 							</a>
 							<FactValue productId={product.id} field="summary" locale="th" tag="p" />

@@ -8,14 +8,9 @@ import { runAgent, type AgentLimits } from '#lib/server/agent/agent.ts';
 import { openAITransport, type ModelTransport } from '#lib/server/agent/transport.ts';
 
 export const MAX_BODY_BYTES = 16 * 1024;
-export const MAX_HISTORY = 6;
 
 const Body = z.object({
 	message: z.string(),
-	history: z
-		.array(z.object({ role: z.enum(['shopper', 'assistant']), text: z.string().max(500) }))
-		.max(50)
-		.optional(),
 	plan: z.unknown().optional(),
 	focus: z.array(z.string().max(64)).max(20).optional(),
 	cart: z.array(z.string().max(64)).max(50).optional(),
@@ -32,8 +27,6 @@ export type AssistantResponse = Readonly<{
 }>;
 
 export type AssistantOptions = Readonly<{
-	/** dev, or a local preview with ASSISTANT_LOCAL=1. Checked before anything is parsed. */
-	enabled: boolean;
 	/** The poisoned model is honoured only in development. */
 	dev: boolean;
 	apiKey: string | undefined;
@@ -64,7 +57,7 @@ export async function handleAssistant(
 	bodyText: string,
 	options: AssistantOptions
 ): Promise<HandlerResult> {
-	if (!options.enabled) return { status: 404, body: { error: 'Not found' } };
+	if (!options.dev) return { status: 404, body: { error: 'Not found' } };
 	if (new TextEncoder().encode(bodyText).length > MAX_BODY_BYTES)
 		return { status: 413, body: { error: 'Request too large' } };
 
@@ -97,7 +90,6 @@ export async function handleAssistant(
 	const result = await runAgent(
 		{
 			message,
-			history: (body.history ?? []).slice(-MAX_HISTORY),
 			plan,
 			focus: knownIds(catalog, body.focus, 3),
 			cart: knownIds(catalog, body.cart, 20),

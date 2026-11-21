@@ -2,7 +2,7 @@
 
 Baseline: merged PR #9, commit `63f9345`. Branch: `codex/website-agent-harness`. Rebased onto `e248361` after PR #11 landed during validation, preserving its cooker filters, photo captions and listing updates.
 
-The photographic storefront at `/` now opens the assistant in place. The agent harness lives under `src/lib/harness`; a narrow adapter bridges the existing storefront plan. The original catalog, optimizer, product pages, photos and search previews remain the fact sources.
+The photographic storefront at `/` offers **Shopping assistant** for the receipt view and **Explore the agent harness** for the separate `/harness` shelf. The harness opens its chat and inherits the active search and filters in browser navigation state. The agent harness lives under `src/lib/harness`; a narrow adapter bridges the existing storefront plan. The original catalog, optimizer, product pages, photos and search previews remain the fact sources.
 
 ## Decisions and review
 
@@ -15,7 +15,7 @@ The photographic storefront at `/` now opens the assistant in place. The agent h
 - Independent review found no remaining blocking async or fact-safety regressions after the above fixes.
 - Dependencies: OpenAI supplies the delivered server transport; Zod validates its model response schema. Neither credentials nor transport are bundled into the client.
 
-## Local verification — completed follow-up
+## Original PR verification
 
 - Production build and Svelte type check passed (zero errors, zero warnings).
 - All unit/component tests: 255 passed, one deliberately opt-in live-model test skipped. No model key or paid inference was used.
@@ -28,6 +28,8 @@ The photographic storefront at `/` now opens the assistant in place. The agent h
 - Four themes and Thai/English checked at 390×844 and 1440×900 with no document sideways scroll. Large-print adaptive cards use 20px base text, at least 48px buttons, and a 20px floor for cooker photo captions.
 - Independent review covered the migrated tests, parser changes and adaptive card. The category-citation and caption-size findings were fixed and verified.
 
-Local development: `npm run dev -- --host 127.0.0.1 --port 5181`. The assistant defaults to offline. Live calls are opt-in in X-ray; the poisoned-model control is development-only. Public endpoints remain disabled unless the local-preview override is explicitly set.
+Local development: `npm run dev -- --host 127.0.0.1 --port 5181`. The assistant defaults to offline. Live calls are opt-in in X-ray; the poisoned-model control is development-only. Both assistant endpoints require local development, a loopback host and peer, and a same-origin JSON POST. Preview and production use the offline path. The provider receives recognized intent and presentation labels and validated catalog context. Messages, past conversation and search prose stay local.
 
 The draft PR is updated for review. No merge or deployment was performed. Live-model accuracy remains unmeasured; the offline golden set is provisional, not a claim about arbitrary shopper language.
+
+Run the offline production suite with `npm run test:e2e`. The development-only mock-model browser check uses `node_modules/.bin/playwright test --config playwright.harness-local.config.ts` and starts its server with provider credentials cleared.

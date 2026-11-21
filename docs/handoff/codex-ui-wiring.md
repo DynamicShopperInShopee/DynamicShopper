@@ -11,7 +11,7 @@ You are wiring DynamicShopper's agent harness into the storefront UI you are des
 1. `AGENTS.md` (the product rules; every one applies to the UI).
 2. `SPEC.md` (the harness contract, requirements R1–R20).
 3. `guidelines/DESIGN.md`, `guidelines/EXPERIENCE.md`, `guidelines/JOURNEY.md`, `guidelines/TRUST-AND-PROOF.md`.
-4. `src/lib/personalization/index.ts` (the public API below).
+4. `src/lib/harness/index.ts` (the public API below).
 
 ## What you own
 
@@ -20,14 +20,15 @@ You are wiring DynamicShopper's agent harness into the storefront UI you are des
 
 ## What you must not change
 
-- Anything under `src/lib/personalization/`, `src/lib/server/agent/`, `src/lib/server/handlers/`, `src/routes/api/assistant/`, `src/lib/catalog/`, `src/lib/pricing/`. If the UI needs something the API does not give, stop and write the request down; do not work around it.
+- Anything under `src/lib/harness/`, `src/lib/server/agent/`, `src/lib/server/handlers/`, `src/routes/api/assistant/`, `src/lib/catalog/`, `src/lib/pricing/`. If the UI needs something the API does not give, stop and write the request down; do not work around it.
 
 ## The public API
 
-Import only from `#lib/personalization/index.ts` in browser code:
+Import only from `#lib/harness/index.ts` in browser code:
 
 ```ts
 import {
+	activeCategory,
 	defaultCatalog,
 	standardPlan,
 	personaPatches,
@@ -57,7 +58,7 @@ import {
 	projectTrace,
 	templates,
 	MAX_MESSAGE_LENGTH
-} from '#lib/personalization/index.ts';
+} from '#lib/harness/index.ts';
 ```
 
 Types you will use: `RemoteAnswer`, `StoreState`, `Plan`, `PlanPatch`, `PlanPart`, `HandledTurn`, `Turn`, `Trace`, `RankedProduct`, `ExplanationBar`, `Suggestion`, `SignalKind`, `InterviewAnswers`, `ChangeLine`, `Citation`.
@@ -65,7 +66,7 @@ Types you will use: `RemoteAnswer`, `StoreState`, `Plan`, `PlanPatch`, `PlanPart
 ### One chat message, end to end
 
 ```ts
-// 1. Ask the local model endpoint (exists only in `vite dev`, or preview with ASSISTANT_LOCAL=1).
+// 1. Ask the local model endpoint (same-origin JSON from a loopback browser in development).
 //    In the public build it returns 404: treat any non-200 or network error as "no answer".
 let remote: RemoteAnswer | undefined;
 if (!forceOffline) {
@@ -75,8 +76,7 @@ if (!forceOffline) {
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
 				message, // ≤ 500 chars
-				history, // last turns: { role: 'shopper' | 'assistant', text }[]; never resend a failed turn
-				plan: state.plan,
+				plan: { ...state.plan, query: '', filters: { ...state.plan.filters, category: activeCategory(defaultCatalog, state.plan) } },
 				focus: state.focus,
 				cart: state.cart,
 				viewed: state.viewed,

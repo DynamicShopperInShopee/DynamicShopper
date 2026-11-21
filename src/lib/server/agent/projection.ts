@@ -1,4 +1,4 @@
-import { maskAmounts } from '#lib/harness/budget.ts';
+import type { LiveHint } from '#lib/personalization/live.ts';
 import type { CatalogPort } from '#lib/harness/catalog-port.ts';
 import { LEVEL_WEIGHT } from '#lib/harness/plan.ts';
 import {
@@ -17,8 +17,6 @@ import {
 	type Turn
 } from '#lib/harness/types.ts';
 import type { Listing } from './tools.ts';
-
-export type HistoryItem = Readonly<{ role: 'shopper' | 'assistant'; text: string }>;
 
 const nearestLevel = (weight: number): Level =>
 	LEVELS.reduce((best, level) =>
@@ -80,7 +78,7 @@ Rules:
 - A request for the cheapest way to buy something is "find_deal"; it never changes ranking.
 - Use search_catalog and read_listing only for vague or multi-need requests or questions about products you have not read. Do not use tools for pure restyles, resets or undo.
 - Persona "mom" means large print, Thai and three clear choices for an older parent.
-- Reply in Thai when the shopper writes Thai script, otherwise in the store language.
+- Use the supplied language. The request contains only recognized intent, presentation labels and catalog context.
 
 Categories and spec keys:
 ${specLines}
@@ -100,7 +98,6 @@ export function projectPlan(plan: Plan) {
 		language: plan.language,
 		cardFields: plan.cardFields,
 		highlightSpecs: plan.highlightSpecs,
-		query: maskAmounts(plan.query),
 		priorities: Object.fromEntries(
 			Object.entries(plan.priorities).map(([key, weight]) => [key, nearestLevel(weight)])
 		),
@@ -116,20 +113,56 @@ export function projectPlan(plan: Plan) {
 	};
 }
 
-/** The per-turn context. Every shopper-typed string is masked; ids are catalog ids only. */
+/** The provider sees finite request labels and catalog context. Free text stays local. */
 export function userContext(input: {
-	message: string;
-	history: readonly HistoryItem[];
+	requestTurn: Turn;
+	presentationHints: readonly LiveHint[];
+	language: Plan['language'];
 	plan: Plan;
 	focus: readonly Listing[];
 	cart: readonly string[];
 	viewed: readonly string[];
 	hasBudget: boolean;
 }): string {
+	const { requestTurn } = input;
+	const request: Record<string, unknown> = { intent: requestTurn.intent };
+	if (requestTurn.intent === 'persona') request.persona = requestTurn.persona;
+	if ('patch' in requestTurn) {
+		const {
+			theme,
+			layout,
+			density,
+			language,
+			cardFields,
+			highlightSpecs,
+			specPrefs,
+			simplified,
+			sections,
+			filters,
+			priorities
+		} = requestTurn.patch;
+		request.presentation = {
+			theme,
+			layout,
+			density,
+			language,
+			cardFields,
+			highlightSpecs,
+			specPrefs,
+			simplified,
+			sections,
+			category: filters?.category,
+			mallOnly: filters?.mallOnly,
+			priorities: priorities && Object.keys(priorities)
+		};
+	}
+	if (requestTurn.intent === 'ask') request.citations = requestTurn.citations;
+	if (requestTurn.intent === 'find_deal') request.productIds = requestTurn.productIds;
 	return JSON.stringify({
-		message: maskAmounts(input.message),
+		request,
+		presentationHints: input.presentationHints,
+		language: input.language,
 		shopperHasBudget: input.hasBudget,
-		history: input.history.map((item) => ({ role: item.role, text: maskAmounts(item.text) })),
 		plan: projectPlan(input.plan),
 		inFocus: input.focus,
 		cart: input.cart,

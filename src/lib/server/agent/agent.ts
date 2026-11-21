@@ -3,10 +3,12 @@ import type { CatalogPort } from '#lib/harness/catalog-port.ts';
 import { hasThaiScript } from '#lib/harness/guard.ts';
 import { initialState } from '#lib/harness/store.ts';
 import { safeModelName, type ToolStep } from '#lib/harness/trace.ts';
-import { validateEnvelope } from '#lib/harness/turn.ts';
+import { interpretOffline } from '#lib/harness/offline.ts';
+import { projectLiveHints } from '#lib/personalization/live.ts';
+import { shownProducts, validateEnvelope } from '#lib/harness/turn.ts';
 import type { Drop, FallbackReason, Intent, Plan } from '#lib/harness/types.ts';
 import { POISONED_ENVELOPE } from './poison.ts';
-import { systemPrompt, toWireEnvelope, userContext, type HistoryItem } from './projection.ts';
+import { systemPrompt, toWireEnvelope, userContext } from './projection.ts';
 import {
 	MAX_LISTINGS,
 	MAX_SEARCH_RESULTS,
@@ -36,7 +38,6 @@ export const DEFAULT_LIMITS: AgentLimits = {
 
 export type AgentInput = Readonly<{
 	message: string;
-	history: readonly HistoryItem[];
 	plan: Plan;
 	focus: readonly string[];
 	cart: readonly string[];
@@ -181,13 +182,20 @@ export async function runAgent(input: AgentInput, deps: AgentDeps): Promise<Agen
 	}
 	const budget = parseBudget(input.message) ?? input.planBudget;
 
+	const shown = shownProducts(state, catalog);
+	const local = interpretOffline(input.message, state, catalog, shown);
+	const requestTurn = validateEnvelope(local, state, catalog, {
+		citable: shown.map((p) => p.id),
+		lang
+	})!.turn;
 	const messages: ModelMessage[] = [
 		{ role: 'system', content: systemPrompt(catalog) },
 		{
 			role: 'user',
 			content: userContext({
-				message: input.message,
-				history: input.history,
+				requestTurn,
+				presentationHints: projectLiveHints(input.message),
+				language: lang,
 				plan: input.plan,
 				focus: focusListings,
 				cart: input.cart,

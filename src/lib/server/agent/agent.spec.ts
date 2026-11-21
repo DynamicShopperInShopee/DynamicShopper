@@ -58,7 +58,6 @@ const toolResult = <T>(request: ModelRequest): T => {
 
 const input = (overrides: Partial<AgentInput> = {}): AgentInput => ({
 	message: 'something nice for gaming',
-	history: [],
 	plan: standardPlan,
 	focus: [],
 	cart: [],
@@ -92,7 +91,6 @@ describe('R8 · the model never sees a price', () => {
 			'43210',
 			'31337',
 			'24680',
-			'13579',
 			'11223'
 		];
 		const catalog: CatalogPort = {
@@ -122,7 +120,6 @@ describe('R8 · the model never sees a price', () => {
 			catalog,
 			plan,
 			message: 'under 24680 baht',
-			history: 'budget 13579',
 			toolArgs
 		});
 		for (const sentinel of SENTINELS)
@@ -140,10 +137,6 @@ describe('R8 · the model never sees a price', () => {
 		const result = await runAgent(
 			input({
 				message: 'which mouse lasts longest under 24680 baht?',
-				history: [
-					{ role: 'shopper', text: 'my budget is 13579 baht' },
-					{ role: 'assistant', text: 'Sure ฿13579' }
-				],
 				plan,
 				focus: ['vortex-w'],
 				planBudget: 31337

@@ -1,53 +1,64 @@
 import { expect, test } from '@playwright/test';
 
-// Exercise the real browser validator/rendering boundary without a network model or key.
-test('orders every requested card field, omits others, and reverses the change', async ({
-	page
+test('orders and omits card fields offline, keeps the verified price, and reverses the change', async ({
+	page,
+	context
 }) => {
-	let patch: unknown = {
-		cardFields: ['summary', 'specs', 'price'],
-		highlightSpecs: ['battery', 'weight']
-	};
-	await page.route('**/api/assistant', (route) =>
-		route.fulfill({
-			json: {
-				envelope: { intent: 'restyle', patch, reply: 'I have adjusted the view.' }
-			}
-		})
-	);
+	const assistantRequests: string[] = [];
+	page.on('request', (request) => {
+		if (request.url().includes('/api/')) assistantRequests.push(request.url());
+	});
 	await page.goto('/');
-	await page.getByRole('button', { name: 'Shopping assistant', exact: true }).click();
+	await page.getByRole('link', { name: 'Explore the agent harness' }).click();
+	await expect(page).toHaveURL(/\/harness#assistant$/);
+	await context.setOffline(true);
 	await page.getByRole('searchbox').fill('gaming mouse');
 	await page.getByRole('searchbox').press('Enter');
-	await page.getByRole('button', { name: 'X-ray', exact: true }).click();
-	await page.getByRole('button', { name: 'Try live model', exact: true }).click();
-	await page
-		.getByRole('textbox', { name: 'Ask the store', exact: true })
-		.fill('adjust the card details');
-	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	const input = page.getByRole('textbox', { name: 'Ask the store', exact: true });
+	await input.fill('specs first, as a grid');
+	await input.press('Enter');
 	const card = page.locator('#products .adaptive-card').first();
 	const fields = () =>
 		card
 			.locator('[data-card-field]')
-			.evaluateAll((nodes) => nodes.map((n) => n.getAttribute('data-card-field')));
-	await expect.poll(fields).toEqual(['summary', 'specs', 'price']);
-	await expect(card.locator('[data-card-field="specs"] [data-fact]').first()).toHaveAttribute(
-		'data-fact',
-		'spec.battery'
-	);
+			.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-card-field')));
+	await expect.poll(fields).toEqual(['specs', 'price', 'rating', 'shop']);
+	await expect(card.locator('[data-card-field="specs"] [data-fact]').first()).toBeVisible();
 	await expect(card.locator('[data-card-field="image"]')).toHaveCount(0);
 	await expect(page.locator('#products [data-proof]')).toHaveAttribute('data-proof', 'verified');
 	const before = await card.locator('[data-fact="price"]').getAttribute('data-raw');
-	patch = { cardFields: ['reviews', 'image', 'shipping', 'shop', 'rating', 'vouchers', 'price'] };
-	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('change card order');
-	await page.getByRole('button', { name: 'Send', exact: true }).click();
-	await expect
-		.poll(fields)
-		.toEqual(['reviews', 'image', 'shipping', 'shop', 'rating', 'vouchers', 'price']);
+	await input.fill('photos');
+	await input.press('Enter');
+	await expect.poll(fields).toEqual(['image', 'price', 'summary', 'rating']);
 	await expect(card.locator('[data-fact="price"]')).toHaveAttribute('data-raw', before!);
 	await expect(page.locator('#products [data-proof]')).toHaveAttribute('data-proof', 'verified');
 	await page.getByRole('button', { name: 'Undo', exact: true }).click();
-	await expect.poll(fields).toEqual(['summary', 'specs', 'price']);
+	await expect.poll(fields).toEqual(['specs', 'price', 'rating', 'shop']);
+	await input.fill('find the best deal');
+	await input.press('Enter');
+	await expect(page.locator('.quote [data-deal-fact="total"]')).toBeVisible();
+	await page.getByRole('button', { name: 'Reset store' }).click();
+	await expect(page.locator('.quote')).toHaveCount(0);
+	await expect(page.locator('.mode-label')).toHaveCount(0);
+	expect(assistantRequests).toEqual([]);
+});
+
+test('keeps the standalone harness offline in production and its full-message endpoint closed', async ({
+	page,
+	request
+}) => {
+	await page.goto('/harness');
+	await page.getByRole('button', { name: 'Shopping assistant', exact: true }).click();
+	await page.getByRole('button', { name: 'X-ray', exact: true }).click();
+	await expect(page.getByRole('button', { name: 'Try live model' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Simulate poisoned model' })).toHaveCount(0);
+	await page.getByRole('textbox', { name: 'Ask the store' }).fill('minimal');
+	await page.getByRole('button', { name: 'Send', exact: true }).click();
+	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
+	await expect(page.getByText('Fallback reason: forced_offline')).toBeVisible();
+	expect(
+		(await request.post('/api/assistant', { data: { message: 'synthetic probe' } })).status()
+	).toBe(404);
 });
 
 test('visual and large-print cards work offline in both languages without page overflow', async ({
@@ -55,7 +66,7 @@ test('visual and large-print cards work offline in both languages without page o
 	context
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.goto('/');
+	await page.goto('/harness');
 	await page.getByRole('button', { name: 'Shopping assistant', exact: true }).click();
 	await context.setOffline(true);
 	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
@@ -83,4 +94,33 @@ test('visual and large-print cards work offline in both languages without page o
 	await expect(card.getByRole('button', { name: 'Best price' })).toBeVisible();
 	await card.screenshot({ path: test.info().outputPath('adaptive-cards.png') });
 	await expect(page.locator('#products [data-proof]')).toHaveAttribute('data-proof', 'verified');
+});
+
+test('cooker capacity and free shipping also constrain both harness comparison panes', async ({
+	page,
+	context
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.getByRole('link', { name: 'Explore the agent harness' }).click();
+	await expect(page).toHaveURL(/\/harness#assistant$/);
+	await context.setOffline(true);
+	const filters = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	await filters.getByRole('button', { name: '1.8 L', exact: true }).click();
+	await page.getByRole('button', { name: 'Compare views', exact: true }).click();
+	const panes = page.locator('[data-compare-pane]');
+	await expect(panes).toHaveCount(2);
+	for (const pane of await panes.all()) {
+		await expect(pane.locator('[data-product]')).toHaveCount(2);
+		await expect(pane.locator('[data-product="cooker-one-button"]')).toBeVisible();
+		await expect(pane.locator('[data-product="cooker-steamer"]')).toBeVisible();
+	}
+	await filters.getByRole('button', { name: 'Free shipping', exact: true }).click();
+	for (const pane of await panes.all()) await expect(pane.locator('[data-product]')).toHaveCount(0);
+	await filters.getByRole('button', { name: '2.2 L', exact: true }).click();
+	for (const pane of await panes.all()) {
+		await expect(pane.locator('[data-product]')).toHaveCount(1);
+		await expect(pane.locator('[data-product]')).toHaveAttribute('data-product', 'cooker-family');
+	}
 });

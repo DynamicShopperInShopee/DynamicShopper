@@ -1,10 +1,6 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 
 export const variables = defineEnvVars({
-	ASSISTANT_LOCAL: {
-		schema: (value) => value,
-		description: 'Enable assistant for local preview only.'
-	},
 	OPENAI_API_KEY: {
 		schema: (value) => value,
 		description: 'Optional private OpenAI API key for the local development assistant.'

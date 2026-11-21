@@ -46,7 +46,9 @@ describe('adaptive product card', () => {
 			const specFields = [...html.matchAll(/data-fact="spec\.([^"]+)"/g)].map((match) => match[1]);
 			expect(specFields.slice(0, 2)).toEqual(['battery', 'weight']);
 			expect(new Set(specFields).size).toBe(specFields.length);
-			expect(html).toContain(`data-fact="price" data-raw="${product.price}"`);
+			const priceTag = html.match(/<[^>]+data-fact="price"[^>]*>/)?.[0];
+			expect(priceTag).toContain(`data-raw="${product.price}"`);
+			expect(priceTag).toContain('data-source="catalog"');
 			expect(html).toContain(formatBaht(product.price, language));
 			expect(html).toContain('data-fact="review.0"');
 			expect(html).toContain('data-fact="review.1"');

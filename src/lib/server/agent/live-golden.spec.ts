@@ -28,7 +28,7 @@ describe.skipIf(!enabled)('R20 · live golden run (opt-in)', () => {
 					const answer = await runAgent(
 						{
 							message: gold.message,
-							history: [],
+
 							plan: state.plan,
 							focus: state.focus,
 							cart: state.cart,

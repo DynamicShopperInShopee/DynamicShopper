@@ -7,7 +7,6 @@ import { FORBIDDEN_REPLY, standardPlan } from '#lib/harness/index.ts';
 
 const noKey: typeof fetch = async (_input, init) => {
 	const r = await handleAssistant(typeof init?.body === 'string' ? init.body : '', {
-		enabled: true,
 		dev: true,
 		apiKey: undefined,
 		model: undefined
@@ -32,7 +31,6 @@ describe('storefront harness integration', () => {
 		expect(c.last?.deal).toEqual(c.deal(['aero-x']));
 		expect(c.state.plan).toBe(plan);
 		expect(c.last?.backend).toBe('offline');
-		expect(c.history).toEqual([]);
 	});
 	it('a poisoned server response changes neither facts nor plan', async () => {
 		const c = new HarnessContext();
@@ -58,6 +56,22 @@ describe('storefront harness integration', () => {
 		await c.send('hello', () => Promise.resolve(Response.json({ envelope: POISONED_ENVELOPE })));
 		expect(c.state.plan).toEqual(before);
 		expect(c.last?.trace.guard).toBe('replaced');
+	});
+	it('keeps the store search and previous conversation out of the local request body', async () => {
+		const c = new HarnessContext();
+		const payloads: Array<Record<string, unknown>> = [];
+		c.patch({ query: 'mouse synthetic-search-note' });
+		const fetcher: typeof fetch = async (_url, init) => {
+			payloads.push(JSON.parse(String(init?.body)));
+			return Response.json({ envelope: { intent: 'chat', reply: 'Hello.' } });
+		};
+		await c.send('synthetic-first-turn', fetcher);
+		await c.send('large text', fetcher);
+		expect(payloads).toHaveLength(2);
+		expect(payloads[1].message).toBe('large text');
+		expect(payloads[1]).not.toHaveProperty('history');
+		expect(JSON.stringify(payloads)).not.toContain('synthetic-search-note');
+		expect(JSON.stringify(payloads[1])).not.toContain('synthetic-first-turn');
 	});
 	it('explicit controls win over an in-flight reply', async () => {
 		const c = new HarnessContext();
@@ -88,7 +102,7 @@ describe('storefront harness integration', () => {
 		c.reset();
 		await c.send('minimal', () => Promise.resolve(new Response(null, { status: 404 })));
 		expect(c.last?.backend).toBe('offline');
-		expect(c.history).toEqual([]);
+
 		const fetcher = vi.fn();
 		c.forceOffline = true;
 		await c.send('large text', fetcher);

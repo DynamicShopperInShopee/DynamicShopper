@@ -111,7 +111,7 @@ When to use tools: for vague or multi-need requests ("something for my mom", "a 
 
 ## Offline parity: the keyword fallback
 
-The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The bounded catalog agent described above is the broader design.
+The local OpenAI pilot tests presentation proposals during development. It sends only a fixed vocabulary of presentation hints and accepts only theme, layout, density and language changes. Explicit local preferences take precedence. The pilot uses the same plan validator as the fallback and the public build keeps the offline path. The separate agent harness opens from the public results at `/harness`. Both provider routes require a development server, a loopback host and socket peer, and a browser POST from the same origin. The harness reads up to 16 KiB locally and projects the current message into recognized intent and presentation labels, catalog references and a budget-present flag. Shopper messages, conversation history and free-text searches stay off the provider request. Production and preview use the offline interpreter.
 
 The keyword fallback answers whenever the AI cannot: no key, forced offline, an error, a timeout, or unusable output. It produces exactly the same kind of answer as the AI, so everything after "Understand" is identical online and offline.
 
@@ -146,7 +146,7 @@ Every input from outside the system's own logic is treated as untrusted and vali
 
 | Input | Treatment |
 | --- | --- |
-| A chat request | Size cap, shape check, limits on message length, history, cart, focus and viewed lists |
+| A chat request | Size cap, shape check, limits on message length, cart, focus and viewed lists. Unrecognized fields, including legacy history, are discarded |
 | The AI's output | Field-by-field validation, catalog-only ids, citation checks, the fact guard, the search-phrase probe |
 | The AI's tool arguments | Read leniently; anything unknown is ignored rather than trusted |
 | A shared link | Length cap, strict decoding, the same validation as an AI change, ignored silently if invalid |
