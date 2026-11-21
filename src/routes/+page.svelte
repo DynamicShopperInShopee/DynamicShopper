@@ -484,7 +484,16 @@
 				<ul class="product-grid">
 					{#each products as product (product.id)}
 						<li class="product" data-product={product.id}>
-							<div class="art"><CategoryGlyph category={product.category} /></div>
+							{#if eventDemo}
+								<div
+									class="art demo-photo"
+									data-category={product.category}
+									data-model={product.id}
+									aria-hidden="true"
+								></div>
+							{:else}
+								<div class="art"><CategoryGlyph category={product.category} /></div>
+							{/if}
 							<div class="card-body">
 								<h3 data-fact="name" data-raw={product.name[language]}>{product.name[language]}</h3>
 								<div class="price">
@@ -543,8 +552,8 @@
 		<footer>
 			{eventDemo
 				? language === 'th'
-					? 'DynamicShopper · เดโมสำหรับงาน'
-					: 'DynamicShopper · Event demo'
+					? 'DynamicShopper · ภาพประกอบสินค้าจำลอง'
+					: 'DynamicShopper · Illustrative product images'
 				: t.simulated}
 		</footer>
 	</main>
@@ -1045,9 +1054,41 @@
 	}
 	.event-demo .art {
 		aspect-ratio: 1;
-		background: #efefef;
-		color: var(--muted);
 	}
+	.demo-photo:where(.art) {
+		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
+	}
+	.demo-photo[data-category='earbuds'] {
+		background-position: 50% 0;
+	}
+	.demo-photo[data-category='power'] {
+		background-position: 100% 0;
+	}
+	.demo-photo[data-category='cooker'] {
+		background-position: 0 100%;
+	}
+	.demo-photo[data-category='skin'] {
+		background-position: 50% 100%;
+	}
+	.demo-photo[data-category='mouse'] {
+		background-image: url('../lib/assets/products/demo-mice.jpg');
+	}
+	.demo-photo:is([data-model='mouse-2'], [data-model='mouse-8']) {
+		background-position: 50% 0;
+	}
+	.demo-photo[data-model='mouse-3'] {
+		background-position: 100% 0;
+	}
+	.demo-photo[data-model='mouse-4'] {
+		background-position: 0 100%;
+	}
+	.demo-photo[data-model='mouse-5'] {
+		background-position: 50% 100%;
+	}
+	.demo-photo[data-model='mouse-6'] {
+		background-position: 100% 100%;
+	}
+
 	.event-demo .card-body {
 		padding: 0.4rem;
 	}
