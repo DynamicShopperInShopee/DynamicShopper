@@ -122,7 +122,7 @@ The keyword fallback answers whenever the AI cannot: no key, forced offline, an 
 - Replies are fixed templates, so it can never leak a fact.
 - Every offline reply carries an "Offline mode" badge, and X-ray names the reason.
 
-The fallback is intentionally a keyword table. It handles plain phrasing well and misses slang ("จอยๆ", "ไม่เอาแพง"). That gap is exactly what the AI is for, and the accuracy scoreboard shows it.
+The fallback is intentionally a bounded keyword table. It covers the current bilingual golden set, including conversational phrasing such as "จอยๆ" and "ไม่เอาแพง"; unfamiliar wording can still receive a help template. The accuracy scoreboard measures the unchanged shopper messages. Listing questions restrict citations to the named category and decline when the available evidence does not match.
 
 ## Product questions
 

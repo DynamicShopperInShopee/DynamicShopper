@@ -175,6 +175,65 @@ describe('R14 · the keyword fallback understands plain Thai, English and mixed 
 		expect(thai.turn.reply.text).toBe('ไม่สามารถยืนยันเรื่องนี้จากรายละเอียดสินค้าได้');
 	});
 
+	it.each([
+		['make the font bigger, please', 'large-print'],
+		['make the text bigger please, my eyes are tired', 'large-print'],
+		['ขอหน้าร้านจอยๆ', 'vibrant'],
+		['make it pop', 'vibrant'],
+		['ขอคลีนๆ ไม่รก', 'minimal']
+	])('understands conversational presentation request: %s', (message, theme) => {
+		const result = handleTurn(initialState(), { message }, deps);
+		expect(result.turn.intent).toBe('restyle');
+		expect(result.state.plan.theme).toBe(theme);
+	});
+
+	it('understands price aversion, parent synonyms and a specs-only request', () => {
+		const affordable = handleTurn(initialState(), { message: 'ไม่เอาแพง หูฟังสักคู่' }, deps);
+		expect(affordable.state.plan.filters.category).toBe('earbuds');
+		expect(affordable.state.plan.priorities.price).toBe(1);
+		expect(handleTurn(initialState(), { message: 'ของขวัญให้ป๊า ใช้ง่ายๆ' }, deps).turn.intent).toBe(
+			'persona'
+		);
+		expect(
+			handleTurn(mice, { message: 'just the specs, no fluff' }, deps).state.plan.cardFields[0]
+		).toBe('specs');
+	});
+
+	it('a question referring to the current listing may name its category without changing the store', () => {
+		const focused = { ...initialState(), focus: ['sportfit'] };
+		for (const message of ['หูฟังตัวนี้กันน้ำไหม', 'are these earbuds waterproof?']) {
+			const result = handleTurn(focused, { message }, deps);
+			expect(result.turn.intent).toBe('ask');
+			expect(result.state).toBe(focused);
+			expect(result.turn).toMatchObject({ citations: [] });
+		}
+		const battery = handleTurn(
+			{ ...mice, focus: ['aero-x'] },
+			{ message: 'does this mouse battery last all day?' },
+			deps
+		);
+		expect(battery.turn).toMatchObject({
+			intent: 'ask',
+			citations: [{ productId: 'aero-x', kind: 'spec', key: 'battery' }]
+		});
+		expect(offline('which earbuds are cheap under 1000?').intent).toBe('search');
+	});
+
+	it.each([
+		[['aero-x'], 'are these earbuds wireless?'],
+		[[], 'are these earbuds wireless?'],
+		[['sportfit'], 'does this mouse battery last all day?']
+	])(
+		'declines category-mismatched listing questions without changing the store: %s / %s',
+		(focus, message) => {
+			const state = { ...mice, focus };
+			const result = handleTurn(state, { message }, deps);
+			expect(result.state).toBe(state);
+			expect(result.turn).toMatchObject({ intent: 'ask', citations: [] });
+			expect(result.turn.reply.text).toBe("I can't confirm that from the listing.");
+		}
+	);
+
 	it('replies in Thai to Thai script and in the interface language otherwise', () => {
 		expect(handleTurn(initialState(), { message: 'ขอสีสันสดใส' }, deps).turn.reply.lang).toBe('th');
 		expect(handleTurn(initialState(), { message: 'make it colourful' }, deps).turn.reply.lang).toBe(

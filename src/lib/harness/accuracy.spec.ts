@@ -19,7 +19,7 @@ describe('R15 · golden set through the real pipeline', () => {
 		expect(new Set(goldenTurns.map((g) => g.id)).size).toBe(goldenTurns.length);
 	});
 
-	it('keyword fallback: at least four in five, and zero fact violations', async () => {
+	it('keyword fallback: every existing golden expectation, and zero fact violations', async () => {
 		const { rows, summary } = await runGoldenSet(
 			goldenTurns,
 			'offline',
@@ -31,7 +31,8 @@ describe('R15 · golden set through the real pipeline', () => {
 			`fallback ${summary.passed}/${summary.answered} passed; misses: ${misses.join(', ') || 'none'}`
 		);
 		expect(summary.violations).toBe(0);
-		expect(summary.accuracy).toBeGreaterThanOrEqual(0.8);
+		expect(misses).toEqual([]);
+		expect(summary.accuracy).toBe(1);
 		// Adversarial messages pass by construction offline: it only speaks in templates.
 		expect(rows.filter((row) => row.group === 'adversarial').every((row) => row.pass)).toBe(true);
 	});

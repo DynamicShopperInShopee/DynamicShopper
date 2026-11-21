@@ -93,6 +93,7 @@ const MOM: Terms = [
 	'senior',
 	/แม่(?!น)/u,
 	'พ่อ',
+	'ป๊า',
 	'คุณยาย',
 	'คุณย่า',
 	'ผู้สูงอายุ',
@@ -146,6 +147,7 @@ const THEME_TERMS: readonly [Theme, Terms][] = [
 		'large-print',
 		[
 			'bigger text',
+			/\b(?:text|font|type) (?:bigger|larger)\b/i,
 			'large text',
 			'large print',
 			'big text',
@@ -157,8 +159,24 @@ const THEME_TERMS: readonly [Theme, Terms][] = [
 			'อ่านง่าย'
 		]
 	],
-	['minimal', ['minimal', 'minimalist', 'clean look', 'plain', 'no decoration', 'เรียบ', 'มินิมอล']],
-	['vibrant', ['colorful', 'colourful', 'vibrant', 'bright', 'สีสัน', 'สดใส', 'สีสด']],
+	[
+		'minimal',
+		[
+			'minimal',
+			'minimalist',
+			'clean look',
+			'plain',
+			'no decoration',
+			'เรียบ',
+			'มินิมอล',
+			/คลีน\s*ๆ/u,
+			'ไม่รก'
+		]
+	],
+	[
+		'vibrant',
+		['colorful', 'colourful', 'vibrant', 'bright', 'สีสัน', 'สดใส', 'สีสด', /จอย\s*ๆ/u, 'make it pop']
+	],
 	['standard', ['standard theme', 'normal look', 'default look', 'ธีมปกติ']]
 ];
 const LAYOUT_TERMS: readonly [Layout, Terms][] = [
@@ -187,6 +205,8 @@ const LANGUAGE_TERMS: readonly [Language, Terms][] = [
 const SPEC_FIRST: Terms = [
 	'spec first',
 	'specs first',
+	'just the specs',
+	'only the specs',
 	'show specs',
 	'show me specs',
 	'spec table',
@@ -255,7 +275,8 @@ const PRIORITY_TERMS: readonly [Priority, Terms][] = [
 			'budget friendly',
 			/ถูก(?!ต้อง)/u,
 			'ประหยัด',
-			'ไม่แพง'
+			'ไม่แพง',
+			'ไม่เอาแพง'
 		]
 	],
 	[
@@ -388,8 +409,8 @@ function citeListing(text: string, shown: readonly Product[], catalog: CatalogPo
 
 /**
  * The keyword fallback. Synchronous, no network, replies only in fixed templates, so it can
- * never leak a fact. It understands plain Thai, English and mixed phrasing; it misses slang,
- * which is what the AI is for.
+ * never leak a fact. It understands Thai, English, mixed phrasing and a bounded vocabulary
+ * of conversational requests; unsupported phrasing receives the normal help template.
  */
 export function interpretOffline(
 	message: string,
@@ -441,8 +462,19 @@ export function interpretOffline(
 		simplified;
 	const searching = !!category || priorities.length > 0 || mall || budget;
 
-	if (has(text, QUESTION) && !presentation && !searching && !mom) {
-		const citations = citeListing(text, shown, catalog);
+	// Mentioning the category of 'this' listing is still a question, not a new search.
+	const refersToListing = has(text, ['this', 'these', 'that', 'ตัวนี้', 'รุ่นนี้']);
+	const asksAboutListing = refersToListing && (has(text, UNCOVERED) || !!pick(text, ASK_TOPICS));
+	const searchConstraints = priorities.length > 0 || mall || budget;
+	if (
+		has(text, QUESTION) &&
+		!presentation &&
+		(!searching || (asksAboutListing && !searchConstraints)) &&
+		!mom
+	) {
+		// A category named in a question constrains its evidence, never the store.
+		const candidates = category ? shown.filter((product) => product.category === category) : shown;
+		const citations = citeListing(text, candidates, catalog);
 		return {
 			intent: 'ask',
 			citations,
