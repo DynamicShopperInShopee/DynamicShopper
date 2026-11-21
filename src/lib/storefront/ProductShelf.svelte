@@ -21,7 +21,7 @@
 		listingHref
 	}: {
 		productIds: readonly string[];
-		layout: 'table' | 'large-print';
+		layout: 'table' | 'grid' | 'large-print';
 		locale: FactLocale;
 		columns: readonly SpecColumn[];
 		resolve: ResolvePrintedFact;
@@ -80,7 +80,7 @@
 			</table>
 		</div>
 	{:else}
-		<ul class="large-list">
+		<ul class="cards" class:grid={layout === 'grid'}>
 			{#each rows as row (row.id)}
 				<li>
 					<h3>{@render listing(row.id, row.name)}</h3>
@@ -155,21 +155,24 @@
 		line-height: 1.5;
 		color: var(--ink, #0d0d10);
 	}
-	.large-list {
+	.cards {
 		display: grid;
 		gap: 0.75rem;
 		padding: 0;
 		margin: 0;
 		list-style: none;
 	}
-	.large-list li {
+	.cards.grid {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+	}
+	.cards li {
 		border: 1px solid var(--seam, #858172);
 		border-radius: 6px;
 		background: var(--surface, #fff);
 		padding: 0.75rem 1rem;
 		overflow-wrap: anywhere;
 	}
-	.large-list h3 {
+	.cards h3 {
 		margin: 0;
 		font-size: 1.125em;
 	}
