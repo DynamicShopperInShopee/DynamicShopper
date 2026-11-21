@@ -58,3 +58,273 @@ Everyone who shapes DynamicShopper, human or AI, should keep these rules. They p
 - Does it work offline?
 - Does it work in all four themes, in Thai and English, on a phone?
 - Is every change the shopper did not make explained and undoable?
+
+
+## Frontend
+
+Sveltekit, BitsUI, Tailwind
+
+Aim for modularization as much as possible. Do not overload `+page.svelte` with multiple action.
+
+### Declarative with style on repetitive block
+
+When iterating over a list for building block, be declarative. Never apply variable solution to construct Tailwind style. Put Tailwind code in the block itself. For example:
+
+Avoid:
+
+```svelte
+<script lang="ts">
+	const styleMapping = {
+		test: 'bg-black',
+		'test-2': 'bg-white'
+	};
+	const x = ['test', 'test-2'];
+</script>
+
+{#each x as key (key)}
+	<div class={styleMapping[key]}></div>
+{/each}
+```
+
+Aim:
+
+```svelte
+<div class="bg-black"></div><div class="bg-white"></div>
+```
+
+### Modularize/Encapsulate Building Block
+
+NEVER bombard single component / `+page.svelte` with bunch of actions/states that tailors to just one minor part of it. Put it in separate Svelte file and import on parent. For some shared state e.g. open state, where parent also control the visibility of such component as Dialog, Popover or Dropdown Menu of BitsUI, put that state in the parent and pass down to component as `$bindable()`. Form input deserve its dedicated file for state/function management.
+
+Avoid:
+
+```svelte
+<script lang="ts">
+  let { type } = $props()
+  const func = (...) => {...}
+  const func2 = (...) => {...}
+  const func3 = (...) => {...}
+  let x1 = $state('')
+  let x2 = $state('')
+  let x3 = $state('')
+  let shared = $state()
+</script>
+
+{#if type === 1}
+	<button action={func}>
+		<span>{x1}</span>
+		<span>{shared}</span>
+	</button>
+{:else if type === 2}
+	<button action={func2}>
+		<span>{x2}</span>
+		<span>{shared}</span>
+	</button>
+{:else if type === 3}
+	<button action={func3}>
+		<span>{x3}</span>
+		<span>{shared}</span>
+	</button>
+{/if}
+```
+
+Aim:
+
+```svelte
+<script lang="ts">
+	let { type } = $props();
+	import Button1 from './components/Button1.svelte';
+	import Button2 from './components/Button2.svelte';
+	import Button3 from './components/Button3.svelte';
+	let type = $state(1);
+	let shared = $state('');
+</script>
+
+{#if type === 1}
+	<Button1 bind:{shared} />
+{:else if type === 2}
+	<Button2 bind:{shared} />
+{:else if type === 3}
+	<Button3 bind:{shared} />
+{/if}
+```
+
+where Button1-3 have the structure of
+
+```svelte
+<script lang="ts">
+  let x = $state('')
+  let { shared: $bindable() } = $props();
+  const func = () => {}
+</script>
+
+<button action={func}>
+	<span>{x}</span>
+	<span>{shared}</span>
+</button>
+```
+
+### Route-local utilities
+
+If a helper is only used within one route, keep it colocated instead of promoting it to
+`$lib/utils`:
+
+```
+src/routes/orders/[id]/
+  +page.svelte
+  utils.ts       # only imported by this route
+  types.ts       # only used by this route
+```
+
+Promote to `$lib/utils/*` only once a second, unrelated route needs the same helper —
+premature sharing is worse than a little duplication.
+
+Put server only utils in `$lib/server/utils/`
+
+### Data fetching model: SvelteKit `load` + TanStack Query
+
+- **`+page.ts` `load`** for SvelteKit's own navigation cache,
+- **TanStack Query** gives you background refetch, stale-time control, mutation
+  cache invalidation, and cross-component cache sharing _after_ the page has loaded.
+
+Use Tanstack Query by default for caching of data on dashboard, and page.ts / page.server.ts for page that requires no cache.
+
+```ts
+// src/routes/users/+page.ts
+import type { PageLoad } from './$types';
+
+export const load: PageLoad = async ({ fetch }) => {
+	const res = await fetch('/api/users');
+	return { users: await res.json() };
+};
+```
+
+```svelte
+<!-- src/routes/users/+page.svelte -->
+<script lang="ts">
+	import { createQuery } from '@tanstack/svelte-query';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+
+	const usersQuery = createQuery({
+		queryKey: ['users'],
+		queryFn: async () => (await fetch('/api/users')).then((r) => r.json()),
+		initialData: data.users
+	});
+</script>
+```
+
+### Global/scoped state — `context.svelte.ts` + `createContext`
+
+```ts
+// Example of context.svelte.ts
+import { browser } from '$app/environment';
+import { page } from '$app/state';
+import { createContext } from 'svelte';
+
+export type InviteItem = {
+	id: string;
+	organization_id: string;
+	created_by: string | null;
+	expired_at: string;
+	status: 'active' | 'inactive' | string;
+	created_at: string;
+};
+
+export class SettingsContext {
+	invites = $state<InviteItem[]>([]);
+	creatingInvite = $state(false);
+	processingInviteId = $state<string | null>(null);
+
+	get orgId() {
+		return page.params.orgId;
+	}
+
+	update(invites: InviteItem[]) {
+		this.invites = invites;
+	}
+
+	buildInviteUrl = (inviteId: string) => {
+		if (!browser) return `/invite/${inviteId}`;
+		return `${window.location.origin}/invite/${inviteId}`;
+	};
+
+	generateInvite = async () => {
+		if (this.creatingInvite) return;
+		this.creatingInvite = true;
+
+		try {
+  		...
+		} catch (error) {
+			console.error(error);
+		} finally {
+			this.creatingInvite = false;
+		}
+	};
+}
+
+export const [getSettingsContext, setSettingsContext] = createContext<SettingsContext>();
+```
+
+## Backend
+
+Modularize into router, handlers, and db layer
+
+### Router layer
+
+- Wrap the function in `try ... catch { throw error() }`
+- Router layer is categorized into two groups: Form Action and endpoints (`+server.ts`, `+page.server.ts`)
+
+### Form submission / Request body
+
+Use `parseFormData` with a Zod schema, both form submission and HTTP requests with body.
+
+```js
+export function parseFormData<T extends z.ZodType>(
+	formData: FormData,
+	schema: T,
+	arrayKeys: string[] = []
+): z.ZodSafeParseResult<z.infer<T>> {
+	return schema.safeParse(formDataToObject(formData, arrayKeys));
+}
+```
+
+### Handler layer
+
+Handlers are made so executions are independent of where it is placed. It could be in +page.server.ts, and one day it could be in `/api` route.
+Moving only handlers are convenient for these migrations. Put handler in `$lib/server/handlers`.
+
+### DB layer
+
+The app uses Drizzle ORM with SQLite: local development uses `better-sqlite3`, and Cloudflare deployments use D1. Define tables with `sqliteTable` in `src/lib/server/db/schema.ts`; use the shared `Database` type and instance from `src/lib/server/db`.
+
+Keep persistence operations in `src/lib/server/db` and call them from higher-level server functions. Prefer Drizzle's typed query builders over handwritten SQL. Keep repository functions focused and accept only the filters or fields the operation needs; do not expose arbitrary table names, columns, or SQL fragments to request data.
+
+```ts
+import { eq } from 'drizzle-orm';
+import { task } from './schema';
+import type { Database } from './index';
+
+export function findTask(db: Database, id: string) {
+	return db.select().from(task).where(eq(task.id, id)).get();
+}
+
+export function insertTasks(db: Database, rows: (typeof task.$inferInsert)[]) {
+	return db.insert(task).values(rows).run();
+}
+
+export function updateTaskName(db: Database, id: string, name: string) {
+	return db.update(task).set({ name }).where(eq(task.id, id)).run();
+}
+
+export function deleteTask(db: Database, id: string) {
+	return db.delete(task).where(eq(task.id, id)).run();
+}
+```
+
+Use schema-derived types such as `$inferSelect` and `$inferInsert` instead of duplicating row shapes. Put explicit, server-controlled conditions on every update and delete; never allow a missing or untrusted filter to affect every row. Prefer simple queries and avoid joins when a simpler query is clear.
+
+Propagate database failures to the server layer and translate them there using the project's custom error classes. Do not silently swallow or disguise constraint errors.
+
+Use Drizzle transactions for operations that must succeed or fail together, after confirming the operation is supported by both the local SQLite driver and D1. For bulk inserts, pass an array of typed rows to `.values(...)`. Keep database-specific behavior behind repository functions so callers do not depend on the selected SQLite driver.
