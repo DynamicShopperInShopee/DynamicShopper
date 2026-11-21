@@ -1,22 +1,20 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import '../../../lib/assets/fonts/plex.css';
-	import { riceCookerReviews, riceCookerSpecs } from '../../../lib/store-catalog';
-	import { formatBaht, formatNumber } from '../../../lib/store-search';
+	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
+	import ProductDeal from './ProductDeal.svelte';
+	import ProductDescription from './ProductDescription.svelte';
+	import SpecificationsSheet from './SpecificationsSheet.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-	const product = $derived(data.product);
+	let proofRoot = $state<HTMLElement>();
 	const th = $derived(data.language === 'th');
-	const specs = $derived(riceCookerSpecs[product.id]);
-	import SpecificationsSheet from './SpecificationsSheet.svelte';
-	import ProductDescription from './ProductDescription.svelte';
-	const review = $derived(riceCookerReviews[product.id]?.[data.language]);
 </script>
 
-<svelte:head><title>{product.name[data.language]} · DynamicShopper</title></svelte:head>
+<svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
 
-<main lang={data.language} data-product={product.id}>
+<main lang={data.language} data-product={data.id} data-theme={data.theme}>
 	<header>
 		<a class="back" href={resolve('/')} aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}>
 			<svg
@@ -45,58 +43,58 @@
 			</svg>
 			{th ? 'ค้นหาสินค้า' : 'Search products'}
 		</a>
-		<a href={`${resolve('/product/[id]', { id: product.id })}?lang=${th ? 'en' : 'th'}`}>
+		<a
+			href={resolve(
+				`/product/[id]?lang=${th ? 'en' : 'th'}${data.theme === 'standard' ? '' : `&theme=${data.theme}`}`,
+				{
+					id: data.pathId
+				}
+			)}
+		>
 			{th ? 'English' : 'ไทย'}
 		</a>
 	</header>
-	<div class="listing">
-		<div
-			class="art"
-			data-category={product.category}
-			data-model={product.id}
-			aria-hidden="true"
-		></div>
-		<section aria-labelledby="product-title">
-			<dl class="prices">
-				<div>
-					<dt>{th ? 'ราคา' : 'Price'}</dt>
-					<dd data-fact="price" data-raw={product.price}>{formatBaht(product.price)}</dd>
-				</div>
-				{#if product.originalPrice !== null}
+	<div bind:this={proofRoot}>
+		<div class="listing">
+			<div class="art" data-category={data.category} data-model={data.id} aria-hidden="true"></div>
+			<section aria-labelledby="product-title">
+				<dl class="prices">
 					<div>
-						<dt>{th ? 'ราคาเดิม' : 'Original price'}</dt>
-						<dd data-fact="originalPrice" data-raw={product.originalPrice}>
-							<s>{formatBaht(product.originalPrice)}</s>
-						</dd>
+						<dt>{th ? 'ราคา' : 'Price'}</dt>
+						<dd {...data.price.attributes}>{data.price.text}</dd>
 					</div>
-				{/if}
-				<div class="sold">
-					<dt>{th ? 'ขายแล้ว' : 'Sold'}</dt>
-					<dd data-fact="sold" data-raw={product.sold}>{formatNumber(product.sold)}</dd>
-				</div>
-			</dl>
-			<h1 id="product-title" data-fact="name" data-raw={product.name[data.language]}>
-				{product.name[data.language]}
-			</h1>
-			<p data-fact="shop" data-raw={product.shop}>{product.shop}</p>
-			<dl class="facts">
-				<div>
-					<dt>{th ? 'ค่าจัดส่ง' : 'Shipping'}</dt>
-					<dd data-fact="shipping" data-raw={product.shipping}>
-						{product.shipping === 0 ? (th ? 'ฟรี' : 'Free') : formatBaht(product.shipping)}
-					</dd>
-				</div>
-				<div>
-					<dt>{th ? 'คะแนน' : 'Rating'}</dt>
-					<dd data-fact="rating" data-raw={product.rating}>{formatNumber(product.rating)}</dd>
-				</div>
-			</dl>
-		</section>
+					{#if data.originalPrice}
+						<div>
+							<dt>{th ? 'ราคาเดิม' : 'Original price'}</dt>
+							<dd {...data.originalPrice.attributes}><s>{data.originalPrice.text}</s></dd>
+						</div>
+					{/if}
+					<div class="sold">
+						<dt>{th ? 'ขายแล้ว' : 'Sold'}</dt>
+						<dd {...data.sold.attributes}>{data.sold.text}</dd>
+					</div>
+				</dl>
+				<h1 id="product-title" {...data.name.attributes}>{data.name.text}</h1>
+				{#if data.shop}<p {...data.shop.attributes}>{data.shop.text}</p>{/if}
+				<dl class="facts">
+					<div>
+						<dt>{th ? 'ค่าจัดส่ง' : 'Shipping'}</dt>
+						<dd {...data.shipping.attributes}>{data.shipping.text}</dd>
+					</div>
+					<div>
+						<dt>{th ? 'คะแนน' : 'Rating'}</dt>
+						<dd {...data.rating.attributes}>{data.rating.text}</dd>
+					</div>
+				</dl>
+				{#key data.id}
+					<ProductDeal productId={data.id} locale={data.language} />
+				{/key}
+			</section>
+		</div>
+		<ProductDescription {data} />
+		<SpecificationsSheet specs={data.specs} {th} />
 	</div>
-	<ProductDescription {product} language={data.language} {review} />
-	{#if specs}
-		<SpecificationsSheet {specs} {th} hasReview={Boolean(review)} />
-	{/if}
+	<FactsReceipt root={proofRoot} locale={data.language} />
 </main>
 
 <style>
@@ -107,6 +105,23 @@
 		font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
 		color: #16161a;
 		background: #fff;
+	}
+	main[data-theme='large'] {
+		font-size: 1.25rem;
+		--tap: 48px;
+	}
+	main[data-theme='large'] header a {
+		min-block-size: 48px;
+	}
+	main[data-theme='large'] .prices .sold {
+		font-size: 1.25rem;
+	}
+	main[data-theme='minimal'] {
+		--seam: #ecebe6;
+	}
+	main[data-theme='vibrant'] {
+		--seam: #e3e3ef;
+		--accent: #2f3ccf;
 	}
 	header {
 		display: flex;
@@ -149,17 +164,17 @@
 	.art[data-category='earbuds'] {
 		background-position: 50% 0;
 	}
-	.art[data-category='power'] {
+	.art[data-category='power-bank'] {
 		background-position: 100% 0;
 	}
-	.art[data-category='cooker'] {
+	.art[data-category='rice-cooker'] {
 		background-position: 0 100%;
 	}
-	.art[data-model='cooker-1'] {
+	.art[data-model='cooker-one-button'] {
 		background: #d0dce6 url('../../../lib/assets/products/cooker-one-button.jpg') center / cover
 			no-repeat;
 	}
-	.art[data-category='skin'] {
+	.art[data-category='skincare'] {
 		background-position: 50% 100%;
 	}
 
@@ -223,7 +238,7 @@
 		overflow: visible;
 		clip-path: none;
 	}
-	.prices dd[data-fact='price'] {
+	.prices div:first-child dd {
 		font-size: 1.7rem;
 		font-weight: 700;
 	}

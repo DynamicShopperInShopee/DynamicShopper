@@ -1,4 +1,6 @@
-import { catalog, categories, type Category } from './store-catalog';
+import { getProduct } from './catalog';
+import { matchesQuery } from './personalization/ranking';
+import { catalog, type Category } from './store-catalog';
 
 export { catalog };
 
@@ -14,7 +16,6 @@ interface SearchOptions {
 
 const numberFormat = new Intl.NumberFormat('en-TH');
 export const formatNumber = (value: number) => numberFormat.format(value);
-export const formatBaht = (value: number) => `฿${formatNumber(value)}`;
 
 export function searchProducts({
 	query = '',
@@ -23,18 +24,13 @@ export function searchProducts({
 	freeShipping = false,
 	sort = 'default'
 }: SearchOptions = {}) {
-	const words = query.normalize('NFC').toLowerCase().trim().split(/\s+/).filter(Boolean);
 	const matches = catalog.filter((product) => {
 		if (category !== 'all' && product.category !== category) return false;
 		if (maxPrice !== undefined && product.price > maxPrice) return false;
 		if (freeShipping && product.shipping !== 0) return false;
 
-		const labels = categories[product.category];
-		const text = [product.name.en, product.name.th, product.shop, labels.en, labels.th]
-			.join(' ')
-			.normalize('NFC')
-			.toLowerCase();
-		return words.every((word) => text.includes(word));
+		const listing = getProduct(product.catalogId);
+		return listing !== undefined && matchesQuery(listing, query);
 	});
 
 	switch (sort) {

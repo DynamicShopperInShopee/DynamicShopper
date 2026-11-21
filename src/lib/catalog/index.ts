@@ -1,4 +1,4 @@
-export { formatFact, resolveFact } from './facts.ts';
+export { formatBaht, formatFact, resolveFact } from './facts.ts';
 export { getProduct, products } from './products.ts';
 export { categories, specs } from './specs.ts';
 export type { SpecDefinition } from './specs.ts';

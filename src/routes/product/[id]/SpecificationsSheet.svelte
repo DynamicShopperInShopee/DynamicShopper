@@ -1,43 +1,34 @@
 <script lang="ts">
-	import { formatNumber } from '../../../lib/store-search';
+	import type { PageData } from './$types';
 
-	let {
-		specs,
-		th,
-		hasReview
-	}: { specs: readonly [number, number, number, number]; th: boolean; hasReview: boolean } =
-		$props();
+	let { specs, th }: { specs: PageData['specs']; th: boolean } = $props();
 	let sheet = $state<HTMLDialogElement>();
-	const fields = $derived([
-		{ key: 'capacity', label: th ? 'ความจุ' : 'Capacity', unit: th ? 'ลิตร' : 'L' },
-		{ key: 'power', label: th ? 'กำลังไฟ' : 'Power', unit: th ? 'วัตต์' : 'W' },
-		{ key: 'programs', label: th ? 'โปรแกรมหุง' : 'Cooking programs', unit: '' },
-		{ key: 'warranty', label: th ? 'การรับประกัน' : 'Warranty', unit: th ? 'ปี' : 'years' }
-	]);
 </script>
 
 <div class="actions">
-	{#if hasReview}<a href="#reviews">{th ? 'รีวิว' : 'Reviews'}</a>{/if}
+	<a href="#reviews">{th ? 'รีวิว' : 'Reviews'}</a>
 	<a href="#details">{th ? 'รายละเอียด' : 'Details'}</a>
-	<button type="button" aria-haspopup="dialog" onclick={() => sheet?.showModal()}>
-		{th ? 'สเปกสินค้า' : 'Specifications'}
-	</button>
+	{#if specs.length > 0}
+		<button type="button" aria-haspopup="dialog" onclick={() => sheet?.showModal()}>
+			{th ? 'สเปกสินค้า' : 'Specifications'}
+		</button>
+	{/if}
 </div>
 
-<dialog bind:this={sheet} aria-labelledby="specs-title">
-	<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
-	<dl>
-		{#each fields as field, index (field.key)}
-			<div>
-				<dt>{field.label}</dt>
-				<dd data-fact={field.key} data-raw={specs[index]}>
-					{formatNumber(specs[index])}{field.unit ? ` ${field.unit}` : ''}
-				</dd>
-			</div>
-		{/each}
-	</dl>
-	<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
-</dialog>
+{#if specs.length > 0}
+	<dialog bind:this={sheet} aria-labelledby="specs-title">
+		<h2 id="specs-title">{th ? 'สเปกสินค้า' : 'Specifications'}</h2>
+		<dl>
+			{#each specs as spec (spec.attributes['data-fact'])}
+				<div>
+					<dt>{spec.label}</dt>
+					<dd {...spec.attributes}>{spec.text}</dd>
+				</div>
+			{/each}
+		</dl>
+		<form method="dialog"><button>{th ? 'ตกลง' : 'Done'}</button></form>
+	</dialog>
+{/if}
 
 <style>
 	.actions {

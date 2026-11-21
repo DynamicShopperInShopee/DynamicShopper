@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { catalog, searchProducts } from './store-search';
 
 describe('store search', () => {
+	it('finds the canonical Thai shop name', () => {
+		const results = searchProducts({ query: 'ร้านทางการ TechHub' });
+		expect(results.length).toBeGreaterThan(0);
+		expect(results.every(({ shop }) => shop === 'TechHub Official Store')).toBe(true);
+	});
+
 	it('finds the same catalog products in Thai and English', () => {
 		expect(searchProducts({ query: 'เมาส์เกมมิ่ง' })).toEqual(
 			searchProducts({ query: 'gaming mouse' })

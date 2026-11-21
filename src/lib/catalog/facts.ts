@@ -1,4 +1,5 @@
 import { getProduct } from './products.ts';
+import { getShop } from './shops.ts';
 import { specs } from './specs.ts';
 import type { Fact, FactUnit, Locale, Localized } from './types.ts';
 
@@ -24,6 +25,8 @@ export function resolveFact(productId: string, field: string): Fact | undefined 
 			return fact(product.reviews[0]);
 		case 'review.1':
 			return fact(product.reviews[1]);
+		case 'shop':
+			return fact(getShop(product.shopId)?.name);
 		default: {
 			const definition = specs[product.category].find(({ key }) => field === `spec.${key}`);
 			return definition && fact(product.specs[definition.key], definition.unit);
@@ -48,12 +51,17 @@ const numbers = {
 	th: new Intl.NumberFormat('th', { maximumFractionDigits: 20 })
 };
 
+export function formatBaht(amount: number, locale: Locale): string {
+	const printed = numbers[locale].format(amount);
+	return locale === 'th' ? `${printed} บาท` : `฿${printed}`;
+}
+
 export function formatFact({ field, raw, unit }: Fact, locale: Locale): string {
 	if (typeof raw === 'object') return raw[locale];
 	if (typeof raw === 'string') return raw;
 	if (field === 'shipping' && raw === 0) return locale === 'th' ? 'ส่งฟรี' : 'Free';
 
+	if (unit === 'baht') return formatBaht(raw, locale);
 	const amount = numbers[locale].format(raw);
-	if (unit === 'baht') return locale === 'th' ? `${amount} บาท` : `฿${amount}`;
 	return unit ? `${amount} ${units[unit][locale]}` : amount;
 }

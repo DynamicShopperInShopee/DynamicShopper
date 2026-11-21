@@ -6,18 +6,20 @@ In your own checkout, run `git fetch origin` and switch to your existing task br
 
 See the [team setup and security guide](docs/team-setup.md) for required tools, optional Codex skills by role, and repository access rules.
 
-| Owner | Assignment | Branch |
-| --- | --- | --- |
-| 1 | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md) | `feat/catalog-pricing` |
-| 2 | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | Owner’s working branch |
-| 3 | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md) | Owner’s working branch |
-| 4 | [Integration and release](docs/superpowers/plans/04-integration-and-release.md) | Owner’s working branch |
+| Owner | Assignment                                                                          | Branch                 |
+| ----- | ----------------------------------------------------------------------------------- | ---------------------- |
+| 1     | [Catalog and pricing](docs/superpowers/plans/01-catalog-and-pricing.md)             | `feat/catalog-pricing` |
+| 2     | [Personalization and agent](docs/superpowers/plans/02-personalization-and-agent.md) | Owner’s working branch |
+| 3     | [Storefront and proof](docs/superpowers/plans/03-storefront-and-proof.md)           | Owner’s working branch |
+| 4     | [Integration and release](docs/superpowers/plans/04-integration-and-release.md)     | Owner’s working branch |
 
 See the [approved design](docs/superpowers/specs/2026-11-21-two-shopper-design.md) for the two-shopper rehearsal and the [contributor rules](AGENTS.md) for review and merge ownership.
 
 ## Database configuration
 
-The app uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1.
+The storefront and its offline shopping assistant run without a database or AI credentials. After `bun install --frozen-lockfile`, use `bun run dev` and open the root route. The event-demo layout is available at `/?demo=shopee`.
+
+The separate authentication demo uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1. Its routes must be configured before use.
 
 ### Local SQLite
 
