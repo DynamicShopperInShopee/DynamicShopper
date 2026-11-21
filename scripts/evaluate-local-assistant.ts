@@ -47,11 +47,30 @@ if (!apiKey) {
 let liveMatches = 0;
 let offlineMatches = 0;
 let liveReplies = 0;
+let measuredCalls = 0;
+let inputTokens = 0;
+let cachedInputTokens = 0;
+let outputTokens = 0;
+let estimatedUsd = 0;
+let pricedCalls = 0;
 for (const sample of cases) {
 	const local = interpretOffline(sample.message, defaultPlan).patch;
 	const offline = sample.matches(local);
 	const hints = projectLiveHints(sample.message);
-	const result = await requestLivePatch(hints, { apiKey, model: process.env.OPENAI_MODEL });
+	const result = await requestLivePatch(hints, {
+		apiKey,
+		model: process.env.OPENAI_MODEL,
+		onUsage: (usage) => {
+			measuredCalls++;
+			inputTokens += usage.inputTokens;
+			cachedInputTokens += usage.cachedInputTokens;
+			outputTokens += usage.outputTokens;
+			if (usage.estimatedUsd !== null) {
+				pricedCalls++;
+				estimatedUsd += usage.estimatedUsd;
+			}
+		}
+	});
 	const live = result
 		? sample.matches({ ...local, ...fillPresentationGaps(local, result.patch, defaultPlan, []) })
 		: false;
@@ -65,4 +84,10 @@ for (const sample of cases) {
 console.log(
 	`Expected presentation changes matched: offline ${offlineMatches}/${cases.length}, live ${liveMatches}/${liveReplies} replies (${liveReplies}/${cases.length} available).`
 );
+console.log(
+	`Provider usage reported for ${measuredCalls}/${cases.length} cases. Input ${inputTokens} tokens (${cachedInputTokens} cached), output ${outputTokens} tokens.`
+);
+if (pricedCalls)
+	console.log(`Estimated token cost for ${pricedCalls} cases: $${estimatedUsd.toFixed(6)} USD.`);
+else console.log('No supported token cost estimate is available for this run.');
 if (liveReplies === 0) process.exitCode = 1;

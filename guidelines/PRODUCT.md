@@ -1,30 +1,14 @@
 # Product
 
-## Accepted sourced catalog and interview completion
-
-The shopper browses the ordinary marketplace first, then optionally describes
-their needs in a four-step interview. Finishing automatically applies one
-validated presentation proposal and returns to a change receipt, Undo and chat
-refinement. Draft answers leave the shop unchanged; cancelling before completion
-discards them. The main flow does not ask the shopper to choose a UI preset or
-theme, review a proposed view or confirm a separate Apply. Three example views
-remain an inspection demo and cannot change the live shop.
-
-The accepted backend stores 1,500 unique Shopee Thailand listing observations
-in local SQLite and Cloudflare D1, with original photographs and per-listing
-provenance. The separate catalog Worker serves the same UI and read-only API;
-it does not publish the authentication scaffold. Prices were observed on
-2026-11-21, 14:22–14:32 Asia/Bangkok. They are dated listing prices, subject to
-variant and buyer conditions, not guaranteed checkout totals or continuous
-synchronization. Missing stock, shipping, ratings and reviews remain unknown.
-A validated browser snapshot supports offline browsing and local CNN changes.
-Seven earlier records are a clearly labeled fallback if neither API nor saved
-catalog is available. See [the dataset](../catalogs/shopee-2026-11-21/README.md)
-and [cloud delivery](../deploy/catalog/README.md).
-
 ## One line
 
 > The right products, the right information and the right interface for each shopper, with the facts locked.
+
+## Optional sourced shopping preview
+
+The standalone shopping preview uses dated Shopee Thailand listing observations with original source links. The shopper can browse first, then finish an optional four-question interview to apply a validated presentation, see its changes and use Undo or chat. Closing an unfinished interview discards its draft. Separate comparison examples are editable demonstrations. The main storefront keeps its own preview and Apply flow.
+
+Observed amounts can depend on the chosen variant and buyer conditions. Missing stock, shipping, ratings and reviews remain unknown. A local read-only API and a separate catalog Worker can serve the same records. See the [dataset](../catalogs/shopee-2026-11-21/README.md) and [catalog service](../deploy/catalog/README.md).
 
 ## The problem
 
@@ -79,8 +63,8 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ### What it deliberately does not do
 
-- No real accounts, checkout or payment. Marketplace data is limited to the explicitly accepted sourced observations above. The agent never adds to the cart and never buys.
-- The database persists sourced catalog observations only. Shopper presentation, interview answers and Undo remain in the browser, with no cross-device sync.
+- The main storefront uses a simulated catalog. Neither shop provides accounts, checkout or payment. The agent never adds to the cart and never buys.
+- Shopper preferences and Undo stay in the browser. The optional preview's database stores sourced catalog observations.
 - No AI-written markup, copy blocks or images. The page is built only from fixed, fact-locked parts.
 - No seller analytics, photo search, voice input or long-term behaviour tracking.
 - No public deployment of the AI endpoint. It runs locally.
@@ -97,7 +81,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. The accepted marketplace baseline is Shopee-inspired and retains its orange shopping header across interview completion, under DynamicShopper's identity. Do not use Shopee marks or imply affiliation. Disclose simulation for fixtures and dated observations for the sourced catalog. The exception does not introduce promotions or branded coin mechanics.
+- Name: **DynamicShopper**. Independent and not affiliated: no Shopee logos or marks, and "coins", never a branded coin. At the user's explicit request, the default storefront uses an orange marketplace shopping header and photo grid; personalized receipt themes retain the neutral system. This presentation exception does not permit invented promotions or product facts.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like
@@ -119,9 +103,11 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Honesty
 
-- Core fixture products, shops and vouchers remain simulated. The accepted sourced shop uses dated listing observations and original photography, with provenance kept separate from the fixtures.
+- The main storefront labels its catalog and vouchers as simulated. The standalone preview identifies the source and observation date for listing facts.
 - There are no real users, testimonials or metrics, and none may be invented.
 
 ## Ideas for later
 
 Seller insight into what shoppers ask for; photo search; Thai voice input for mom mode; gentle sort suggestions from browsing (never applied automatically); plain-language specs in mom mode ("about 10 cups" next to 1.8 L); running against a local model.
+
+Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.

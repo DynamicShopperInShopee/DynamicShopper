@@ -5,7 +5,6 @@ import { validateProposal } from './turn';
 export const interview = artifact.interview;
 export type Question = 'goal' | 'evidence' | 'priority' | 'reading';
 export type Answers = Partial<Record<Question, string>>;
-export type ProposalSources = Partial<Record<keyof ShopperPlan, 'cnn' | 'answer'>>;
 export type Backend = 'cnn' | 'direct' | 'incomplete' | 'unavailable';
 export type Head = keyof typeof artifact.heads;
 export type Prediction = {
@@ -93,11 +92,15 @@ export function inferInterview(raw: unknown): Prediction {
 export function interviewProposal(
 	raw: unknown,
 	plan: ShopperPlan,
-	options: { directOnly?: boolean; themeLocked?: boolean; infer?: typeof inferInterview } = {}
+	options: {
+		directOnly?: boolean;
+		lockedFields?: readonly (keyof ShopperPlan)[];
+		infer?: typeof inferInterview;
+	} = {}
 ) {
 	const answers = sanitizeAnswers(raw);
 	const patch: Record<string, unknown> = {};
-	const sources: ProposalSources = {};
+	const sources: Partial<Record<keyof ShopperPlan, 'cnn' | 'answer'>> = {};
 	const rejected: string[] = [];
 	if (answers.goal) {
 		patch.layout = { browse: 'grid', compare: 'table', shortlist: 'list', gift: 'grid' }[
@@ -128,6 +131,7 @@ export function interviewProposal(
 			// Decode independent classification heads into fixed presentation recipes.
 			// A rejected head keeps its direct-answer fallback; other heads still apply.
 			for (const head of ['layout', 'details', 'sections'] as const) {
+				if (options.lockedFields?.includes(head)) continue;
 				const label = prediction.labels[head];
 				if (!(artifact.heads[head] as readonly string[]).includes(label)) {
 					rejected.push(head);
@@ -142,7 +146,7 @@ export function interviewProposal(
 				sources[head] = 'cnn';
 			}
 			if (
-				!options.themeLocked &&
+				!options.lockedFields?.includes('theme') &&
 				!patch.theme &&
 				prediction.themeScore >= 0.8 &&
 				prediction.labels.theme !== 'large-print'

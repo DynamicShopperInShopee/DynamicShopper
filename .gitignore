@@ -23,14 +23,16 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
 test-results
+/.playwright-mcp/
+# Local copies for testing combinations of open PRs
+/.worktrees/
 # SQLite
 *.db
 
 *.pdf
-# Sourced catalog runtime data and build output
-/data/catalog.sqlite*
-/data/shopee/
+
+# Sourced catalog runtime data and standalone build output
+/data/
 /preview/dist/
 __pycache__/
 *.pyc
-/data

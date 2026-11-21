@@ -40,6 +40,7 @@ test('composes persona sections in order without listing the same product twice'
 	await page.goto('/?view=receipt');
 	await page.getByRole('searchbox').fill('rice cooker');
 	await page.getByRole('button', { name: 'Search', exact: true }).click();
+	await page.getByRole('button', { name: 'Shopper views', exact: true }).click();
 	await page.getByRole('button', { name: 'Visual vibrant', exact: true }).click();
 	const products = page.locator('#products');
 	await expect(products.getByRole('heading', { name: 'Top picks', exact: true })).toBeVisible();

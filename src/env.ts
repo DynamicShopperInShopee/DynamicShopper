@@ -9,6 +9,11 @@ export const variables = defineEnvVars({
 		schema: (value) => value,
 		description: 'Optional model name for the local development assistant.'
 	},
+	OPENAI_LOG_USAGE: {
+		schema: (value) => value,
+		description:
+			'Set to 1 to log only token counts and the supported cost estimate in local development.'
+	},
 	DATABASE_URL: {
 		schema: (value) => value,
 		description: 'Local SQLite connection string for the auth demo when a D1 binding is absent.'

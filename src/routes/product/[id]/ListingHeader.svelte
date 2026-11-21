@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { carrySearchToListing, readSearchSelection } from '../../search-navigation';
+	import { readInterviewVisit } from '../../interview-navigation';
 	import ListingShare from './ListingShare.svelte';
 	import type { PageData } from './$types';
 	let {
@@ -17,12 +18,19 @@
 	let backLink: HTMLAnchorElement;
 	let inDetails = $state(false);
 	let actionsHeight = $state(50);
-	carrySearchToListing(() => readSearchSelection(page.state.storeSearch));
+	function originSelection() {
+		const value = page.state.storeSearch;
+		return typeof value === 'string' && readInterviewVisit(value)
+			? value
+			: readSearchSelection(value);
+	}
+	carrySearchToListing(originSelection);
 	function returnToShelf(event: MouseEvent) {
-		const selection = readSearchSelection(page.state.storeSearch);
+		const selection = originSelection();
+		const interview = readInterviewVisit(selection);
 		if (
 			!selection ||
-			data.receiptQuery ||
+			(data.receiptQuery && !interview) ||
 			event.button !== 0 ||
 			event.metaKey ||
 			event.ctrlKey ||
@@ -31,7 +39,7 @@
 		)
 			return;
 		event.preventDefault();
-		void goto(resolve('/'), { state: { storeSearch: selection } });
+		void goto(resolve('/') + (interview?.search ?? ''), { state: { storeSearch: selection } });
 	}
 	$effect(() => {
 		if (!hero) return;

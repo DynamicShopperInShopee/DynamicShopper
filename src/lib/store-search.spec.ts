@@ -15,6 +15,10 @@ describe('store search', () => {
 		expect(searchProducts({ query: 'gaming mouse' })).toHaveLength(8);
 	});
 
+	it.each(['timer', 'ตั้งเวลา'])('finds the digital rice cooker for %s', (query) => {
+		expect(searchProducts({ query }).map(({ catalogId }) => catalogId)).toContain('cooker-digital');
+	});
+
 	it('combines category, whole-baht budget and shipping filters', () => {
 		const products = searchProducts({
 			category: 'mouse',

@@ -1,40 +1,27 @@
 # Design system: "The Thermal Receipt"
 
-## Optional interview on the root storefront
+## Default marketplace exception
 
-Accepted on 2026-11-21: keep the current marketplace as the initial view and add
-a compact optional interview entry. Four short steps cover shopping goal,
-preferred evidence, priority and reading. Draft answers stay inside the dialog.
-**Finish interview** / **ตอบเสร็จแล้ว** applies one validated proposal immediately
-and focuses the actual change receipt, with Undo and chat refinement. Final-step
-Skip also completes the interview while preserving skipped settings. Closing an
-unfinished interview is inert. There is no proposed-view chooser, separate Apply
-screen or shopper inference toggle. No full-page onboarding replaces shopping.
+Accepted at the user's explicit request: the default storefront uses a familiar
+orange shopping header, DynamicShopper identity, search, category controls and a
+photo grid. This styling is scoped to `event-demo`; personalized receipt themes
+retain their existing tokens and proof surfaces. No Shopee mark, invented
+promotion, urgency or shopping fact is added. Header orange `#ee4d2d` carries only
+large bold white brand text; the darker action/price ink `#b5321a` supports normal
+text on white. The interview entry remains a compact optional strip.
 
-The latest accepted baseline retains a Shopee-inspired orange shopping header
-before and after interview completion, under DynamicShopper's identity. No
-Shopee marks or affiliation claims are permitted. This scoped marketplace-chrome
-exception supersedes the earlier branding exception; proof slips and catalog
-facts remain unchanged. No device frame is used.
-The existing default storefront is owned separately. This integration adds no
-promotion, seller metric or new catalog values. See
-[the main integration handoff](../docs/INTERVIEW-INTEGRATION.md).
+## Standalone sourced shopping preview
 
-## Sourced shopping and comparison inspection
+The optional sourced preview uses the DynamicShopper identity and a shopping header. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
 
-The sourced shopping surface uses original photographs and observed listing
-facts. Missing facts or images require honest empty states, not fabricated
-promotions, stock, shipping or ratings. All shelf layouts show the same page of
-up to 24 catalog records; comparison products occupy rows. The UI exposes the
-observed date, source links and backend/cache/fallback status. Cloud delivery
-uses the same presentation and source facts as the local catalog.
+## Interview transition
 
-The three-view comparison workspace demonstrates how different interview answers
-affect presentation. Examples can be edited independently, but there is no
-**Use this view** action or mutation of the live shop. The main shopping flow
-uses an interview entry instead of manual UI preset/theme selection. Actual
-changes remain visible, explained and reversible. Receipt styling governs
-change explanations and price provenance.
+The default marketplace has a plain optional interview entry. Its modal shows one
+question at a time with labeled radio choices, Back, Next and Skip, then a proposed
+view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
+sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
+the visible chat-refinement button focuses the existing assistant. No animation is
+required. Large print keeps single-column answers, 20px text and 48px targets.
 
 ## North star
 
@@ -44,7 +31,7 @@ The world is a Thai convenience-store thermal slip: warm off-white paper, carbon
 
 The density is calm and even: a header strip, underline category tabs, a row of what the shopper asked for, then the shelf. When the AI changes the store, the change prints in as a slip with a torn edge, and a green stamp appears only where a real check ran.
 
-Outside the accepted marketplace baseline, the system uses receipt styling. Unsupported promotional badges, banners, countdowns and urgency remain excluded everywhere.
+The system deliberately refuses the orange marketplace grid with badges, banners, countdowns and shouty sale chrome. Trust is the product, and the look should feel like a receipt, not an advert.
 
 **Story:** the shopper sees a calm shop, chats, watches the shelves rearrange, and reads a printed slip of exactly what changed and what they will pay, then believes the numbers.
 
@@ -223,6 +210,8 @@ Semibold, slightly larger than body, underlined by a 2px ink rule, like a receip
 
 Assistant messages sit on the paper as plain text and slips. The shopper's message is a right-aligned accent bubble at most 85% wide. The waiting line pulses only when motion is allowed. Error messages have a red border.
 
+Keep **Compare views** visible beside the **Shopper views** disclosure. Collapsing the presets keeps the product shelf closer to the top on phones. When the presets are open, the next tab reaches the first preset. Escape closes the disclosure and returns focus to its trigger. Undo, Reset, and X-ray use quieter buttons with the same target sizes. The public storefront link scrolls to and focuses the assistant section. Voucher expiry updates an open receipt in place and announces the changed content politely.
+
 ## Motion
 
 - **Receipt print:** 260ms, exponential ease-out (clip reveal plus a 0.5rem drop). Once, on appearance.
@@ -243,7 +232,7 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 - Use green or red for anything but state: no red sale prices, no green promos.
 - Add shadows, gradients or glossy fills.
 - Stamp a slip unless a check ran on it.
-- Add marketplace chrome outside the accepted baseline, unsupported promotional badges or countdown urgency, or any Shopee mark.
+- Add marketplace chrome: badges, banners, countdown urgency, orange sale styling, or any Shopee mark.
 - Use Unicode glyphs for icons.
 - Animate anything under reduced motion.
 
@@ -277,4 +266,14 @@ The cooker capacity panel uses a locally bundled serving scene with its catalog 
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
 
+The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf heading receives focus and the bilingual chat action sits beside the updated shelf. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.
+
 The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+Shopping criteria use three compact disclosures listing active settings. Product comparison and deal calculation open on demand and return focus to their respective buttons. The comparison fits the phone viewport, labels missing catalog facts and lets shoppers choose which fields to inspect.
+
+The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
+
+Digital review photos and silent clips are explicitly labeled as simulated examples. Their captions and association with the existing simulated review excerpts come from the catalog. Photo links jump to the corresponding description; videos play only on request, close with Escape, and return focus to their trigger. Local clips are buffered after the listing mounts so they remain playable if connectivity drops. The search card, same-shop shelf and listing use the same digital hero image. Neither these illustrations nor the expanded catalog changes pricing inputs or model context.
+
+The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.

@@ -119,6 +119,34 @@ describe('local assistant transport', () => {
 		expect(await response.json()).toEqual({ error: 'unavailable' });
 	});
 
+	it('reports tokens without estimating prices for other configured models', async () => {
+		const onUsage = vi.fn(() => {
+			throw new Error('terminal logging unavailable');
+		});
+		const provider = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json({
+				status: 'completed',
+				output: [
+					{ type: 'message', content: [{ type: 'output_text', text: '{"layout":"list"}' }] }
+				],
+				usage: { input_tokens: 200, output_tokens: 40 }
+			})
+		);
+		const response = await handleLocalAssistant(
+			request(JSON.stringify({ hints })),
+			url,
+			{ ...options, model: 'another-model', onUsage },
+			provider
+		);
+		expect(onUsage).toHaveBeenCalledExactlyOnceWith({
+			inputTokens: 200,
+			cachedInputTokens: 0,
+			outputTokens: 40,
+			estimatedUsd: null
+		});
+		expect(await response.json()).toEqual({ patch: { layout: 'list' }, model: 'another-model' });
+	});
+
 	it('skips a paid call if the shopper request has already been cancelled', async () => {
 		const provider = vi.fn<typeof fetch>();
 		const cancelled = new Request(request(JSON.stringify({ hints })), {
@@ -128,14 +156,57 @@ describe('local assistant transport', () => {
 		expect(provider).not.toHaveBeenCalled();
 	});
 
-	it('falls back on unusable model content', async () => {
-		const provider = vi.fn<typeof fetch>().mockResolvedValue(providerOutput({ reply: '฿1' }));
+	it('preserves rejection evidence when every proposed field is invalid', async () => {
+		const provider = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(providerOutput({ layout: 'foreign', reply: '฿1' }));
 		const response = await handleLocalAssistant(
 			request(JSON.stringify({ hints })),
 			url,
 			options,
 			provider
 		);
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({ patch: {}, model: 'gpt-5-mini', rejected: true });
+	});
+
+	it('falls back on usable responses with no proposal', async () => {
+		const provider = vi.fn<typeof fetch>().mockResolvedValue(providerOutput({ layout: null }));
+		const response = await handleLocalAssistant(
+			request(JSON.stringify({ hints })),
+			url,
+			options,
+			provider
+		);
+		expect(response.status).toBe(502);
+		expect(await response.json()).toEqual({ error: 'unavailable' });
+	});
+
+	it('records provider usage for a fallback without returning billing data to the browser', async () => {
+		const onUsage = vi.fn();
+		const provider = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json({
+				status: 'incomplete',
+				usage: {
+					input_tokens: 200,
+					input_tokens_details: { cached_tokens: 100 },
+					output_tokens: 40,
+					output_tokens_details: { reasoning_tokens: 20 }
+				}
+			})
+		);
+		const response = await handleLocalAssistant(
+			request(JSON.stringify({ hints })),
+			url,
+			{ ...options, onUsage },
+			provider
+		);
+		expect(onUsage).toHaveBeenCalledExactlyOnceWith({
+			inputTokens: 200,
+			cachedInputTokens: 100,
+			outputTokens: 40,
+			estimatedUsd: 0.0001075
+		});
 		expect(response.status).toBe(502);
 		expect(await response.json()).toEqual({ error: 'unavailable' });
 	});

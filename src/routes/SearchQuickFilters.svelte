@@ -17,6 +17,7 @@
 		openFilters,
 		changeCategory,
 		toggleLanguage,
+		shoppingTasks,
 		harnessLink
 	}: {
 		language: Language;
@@ -28,6 +29,7 @@
 		openFilters: (trigger: HTMLButtonElement) => void;
 		changeCategory: (value: Category | 'all') => void;
 		toggleLanguage: () => void;
+		shoppingTasks?: Snippet;
 		harnessLink?: Snippet;
 	} = $props();
 	const th = $derived(language === 'th');
@@ -114,6 +116,7 @@
 			{th ? 'English' : 'ไทย'}
 		</button>
 		<a href={resolve('/?view=receipt#assistant')}>{th ? 'ผู้ช่วยช้อปปิ้ง' : 'Shopping assistant'}</a>
+		{@render shoppingTasks?.()}
 		{@render harnessLink?.()}
 	</div>
 	{#if cooker}

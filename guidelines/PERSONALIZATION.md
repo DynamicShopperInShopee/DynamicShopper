@@ -1,27 +1,28 @@
 # Personalization
 
-## Accepted interview completion flow
+## Interview before chat
 
-The sourced shop starts with the ordinary marketplace. Its optional four-question
-interview gathers shopping needs; the system chooses the presentation. Completing
-the last step validates and applies one proposal immediately, closes the sheet,
-and focuses the change receipt with Undo and chat refinement. Drafts remain inert
-until completion; Back retains answers, Skip preserves skipped settings, and
-Close/Escape cancels an unfinished draft. No separate preview/Apply screen,
-manual UI chooser or production inference toggle is required.
+Accepted: the default marketplace offers an optional short interview, followed by
+chat refinement. Every question is optional; drafts never alter the shelf. Apply
+uses the existing validated plan and records one undo step, including the prior
+interview answers and locks. Undo also restores the saved presentation. Applying
+equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
+remain intact. Reset removes the interview and restores the default view.
 
-Full answers use the exported browser CNN; skipped/partial answers and inference
-failure use deterministic mappings. Each predicted head is allowlisted and an
-invalid part falls back independently. The model receives answer IDs, never
-prices or product facts. Synthetic training accuracy does not establish real
-shopper preference accuracy. Missing scores, reviews or specifications cannot
-be invented to satisfy an answer.
+The local synthetic-trained CNN chooses allowlisted layout, information and section
+recipes and may suggest an unlocked theme. Reading density, an explicit large-text
+choice and ranking priorities follow the answers directly. Theme-picker selections
+remain protected. Later chat requests can refine CNN-suggested fields through the
+existing interpretation and validation pipeline. Answer-sourced fields retain
+the shopper’s explicit choice until edited or removed. Missing answers or failed model
+inference use direct mappings. No real shopper preference accuracy is claimed.
 
-Three example views remain an editable inspection demo. They share the sourced
-catalog and shelf renderer but cannot apply a view to the shop. Existing
-explicit locks, filters and saved products remain intact during ordinary
-interview personalization. Personas below describe fixed plan recipes; they do
-not require a manual picker in the accepted sourced-shop flow.
+Proposed: evaluate interview completion, corrections and task success with shoppers
+before treating learned suggestions as an improvement over direct controls.
+
+## Standalone sourced interview
+
+The optional sourced preview uses the same local CNN and proposal validator. Finish applies once, and the preview offers Undo and chat refinement. The three editable example views demonstrate presentation changes independently of the shop. Skipping a question preserves its existing settings, and closing the draft cancels it.
 
 ## The plan
 
@@ -127,6 +128,12 @@ Chat is the main control, but never the only one.
 
 What the shopper sets explicitly is applied as-is and can always be seen and removed.
 
+**Proposed section editor.** Once the storefront section composer and preferences are wired into the receipt route, let shoppers show, hide, and reorder optional sections from the fixed library. Start with bilingual Move up and Move down buttons. Drag and drop can use the same actions once touch and keyboard behavior are verified. Keep Products present at the end. Route each edit through validated plan history so Undo restores the prior order and later assistant proposals respect an explicit order. Keep product ranking, prices and citation sources under their existing rules. Reusing the storefront components gives both the assistant and the shopper one source of layout state.
+
 ## Sharing a store
 
 A shopper can share their store's look as a link. The link carries the plan and nothing else: no cart, no conversation, nothing personal. Opening one is treated as untrusted input: it is validated exactly like an AI proposal, opened as one undoable step with a "Shared store opened" note, and ignored silently if it is invalid or oversized. The intended use is the family case: set up mom mode with rice cookers, then send it to the parent over LINE.
+
+Both comparison views opened from the shelf use its active capacity, free shipping, price ceiling and shop filters. The standalone comparison keeps those selections within the shopper’s open tab.
+
+Adaptive list and grid cards follow the validated detail order and omit unselected fields. Direct criteria edits use the store’s standard Undo history and protect the edited field against later inference. Shopper-selected comparison products stay independent of model ranking.

@@ -1,20 +1,18 @@
 # Sourced marketplace shopping prototype
 
-From a fresh clone, run `npm run dev:shopping:cloud` and open
-http://127.0.0.1:5176 to use the published catalog API and original cloud images.
-This requires no local database or expanded image cache. For a fully local
-backend, import the versioned metadata and stage original images as described in
-[the dataset guide](../../../catalogs/shopee-2026-11-21/README.md), then run
-`npm run dev:catalog` and `npm run dev:shopping`. The local catalog service reads
-the imported SQLite catalog; see
-[the catalog backend](../server/catalog/README.md) for import and API details.
-The home route and standalone preview both mount `MobileShop.svelte`. The accepted
-cloud target packages this standalone frontend with a separate Cloudflare Worker,
-D1 catalog data and the referenced original images; see
-[cloud delivery](../../../deploy/catalog/README.md). The browser uses the same
-relative API paths in both environments. A confirmed public URL and release
-verification belong in the deployment record, not in the local startup steps.
-The default route opens a Shopee-inspired shopping page under the DynamicShopper
+Run `npm run dev:shopping` and open http://127.0.0.1:5176 for the standalone
+preview. Without a catalog service, it shows a labeled starter set. For the
+local SQLite catalog and original images, follow the
+[dataset guide](../../../catalogs/shopee-2026-11-21/README.md), start
+`npm run dev:catalog` in another terminal, and reload the preview. The
+[catalog backend](../server/catalog/README.md) documents the read-only API.
+
+`preview/main.ts` mounts `MobileShop.svelte`. The production SvelteKit home and
+`/harness` keep their existing shopper journeys. An optional catalog Worker
+can serve the standalone bundle, D1 data and referenced images through the
+same relative API paths. See [cloud delivery](../../../deploy/catalog/README.md).
+
+The standalone preview opens a shopping page under the DynamicShopper
 identity: orange search header, gray ground, shop navigation, filters and product
 grids. `marketplace.css` spans the desktop viewport with a centered content area;
 phones use two product columns, while large print uses one. Verify at 1440×900
@@ -38,9 +36,9 @@ changes and exposes Undo and **Chat to refine** / **แชตปรับต่�
 the prior view and interview metadata; Close/Escape before completion cancels
 the draft without changing the shop.
 
-The system selects presentation from shopping needs. The main shop does not
-ask the shopper to select a UI preset or theme, review a proposed view, or use
-a separate Apply action. This replaces the earlier preview-then-Apply flow.
+In this standalone preview, finishing the interview applies the presentation
+selected from the shopping answers. The main storefront separately previews
+changes and lets the shopper choose Apply.
 
 ## Compare example answers
 

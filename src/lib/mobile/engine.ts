@@ -82,7 +82,7 @@ export function applyInterview(state: View, raw: unknown, directOnly = false): V
 	const result = interviewProposal(
 		answers,
 		{ ...state.plan, ...restoredTheme },
-		{ directOnly, themeLocked: inheritedLock }
+		{ directOnly, lockedFields: inheritedLock ? ['theme'] : [] }
 	);
 	const patch = { ...restoredTheme, ...result.patch };
 	const plan = { ...state.plan, ...patch };

@@ -2,42 +2,6 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
-## Accepted marketplace baseline
-
-Accepted on 2026-11-21: the sourced shop starts with a familiar Shopee-inspired
-shopping page, including an orange search header, gray ground, shop navigation,
-filters and product grids. Keep DynamicShopper's identity; do not imply Shopee
-affiliation or use Shopee marks. This scoped marketplace-chrome exception
-supersedes the earlier branding exception and does not permit invented promotions,
-stock, ratings, review counts or shipping promises. Proof and price details keep
-receipt styling.
-
-## Accepted sourced catalog and interview completion
-
-The user-requested sourced shopping surface uses 1,500 dated Shopee Thailand
-observations and original photographs, with local SQLite and a separate
-Cloudflare catalog Worker backed by D1. The cloud package exposes read-only
-catalog APIs and serves the shopping frontend; it does not publish the Node/auth
-scaffold or give an agent a catalog write path. Catalog-only imports preserve
-unrelated tables. See [cloud delivery](deploy/catalog/README.md) and the
-[versioned snapshot](catalogs/shopee-2026-11-21/README.md). Simulated fixtures
-retain their simulation disclosure; the sourced shop identifies its observation
-date and original listing links instead. Do not invent missing product facts or
-describe observed prices as continuously synchronized or guaranteed at checkout.
-Keep original URLs and collection times, reject stale observations at ingestion,
-and validate API and saved browser snapshots as untrusted input. Imports and
-publication are explicit operator actions; there is no automatic price refresh.
-
-The accepted shopping flow is store first, an optional four-step interview,
-automatic application of one validated proposal on completion, then a change
-receipt, Undo and chat refinement. Draft answers do not change the shop; closing
-an unfinished draft is inert. The shopper describes needs and the system chooses
-presentation. The main flow has no separate preview/Apply gate or manual UI
-preset/theme chooser. Comparison examples are inspection-only and cannot apply
-a view to the shop. This scoped flow supersedes the earlier interview Apply step.
-Cloud publication does not establish learned shopper-preference accuracy,
-continuous ingestion, checkout or completed production-agent integration.
-
 ## Product rules
 
 1. **Facts come only from the catalog and the pricing logic.** Price, original price, rating, review count, units sold, shipping, specs, voucher terms and deal amounts are never computed, rounded, restated or invented anywhere else.
@@ -64,7 +28,8 @@ continuous ingestion, checkout or completed production-agent integration.
 - Thai and English are equal: every string exists in both, written for each language.
 - The store stays usable after any message: readable, navigable, never blank.
 - Green and red mean state only. A stamp appears only where a check ran and passed.
-- New proof surfaces look like receipt slips. No shadows, gradients or unsupported promotional badges and banners. Marketplace chrome is limited to the accepted baseline above. No Shopee marks.
+- New proof surfaces look like receipt slips, with no shadows, gradients, badges or sale banners. Personalized receipt themes keep this visual system.
+- At the user's explicit request, the default marketplace storefront may use an orange shopping header, category/sort controls and a photo grid. This exception is scoped to the default storefront; keep DynamicShopper identity, no Shopee marks, and no invented offers or product facts.
 - Every theme meets WCAG AA; large print keeps 20px text and 48px targets; reduced motion means no motion.
 - Every screen works at laptop (1440×900) and phone (390×844) size with no sideways scroll.
 
@@ -73,6 +38,7 @@ continuous ingestion, checkout or completed production-agent integration.
 - **Every rule should be provable.** Each product rule above deserves an automated check that states the behaviour. A broken rule is fixed by first showing it is broken.
 - **Keep the golden set honest.** Golden messages are written as real shoppers write, never tuned to what the fallback understands. The fallback's understanding should only ever improve.
 - **The core journey always works.** [JOURNEY.md](guidelines/JOURNEY.md) should work end to end, offline included, after every change.
+- **Check both storefront entry points.** Verify the public `/` route, its **Shopping assistant** link, and the adaptive `/?view=receipt` route. Keep provider credentials out of production and run the local assistant browser suite with credentials cleared.
 - **Small, reviewed changes.** One idea per change, read by someone who did not write it, checked against these rules.
 - **Ideas and concerns are written down.** A new idea gets a status (proposed, accepted, dropped) and a one-line reason. Every concern raised is either resolved or written down with a decision.
 - **The guidelines move with the product.** A change to behaviour updates these guidelines; a change to the visual system updates [DESIGN.md](guidelines/DESIGN.md).
@@ -81,6 +47,7 @@ continuous ingestion, checkout or completed production-agent integration.
 
 ## Team workflow
 
+- Follow the [team development checklist](docs/team-setup.md#from-assignment-to-main) for branch sync, verification, review and release handoffs.
 - Pick one [team assignment](README.md#choose-your-team-assignment) per coding session. Work in this repository on your own task branch. Start from the team's agreed baseline. Commit and push small, reviewable increments to that branch.
 - Each assignment names its owner, owned paths, consumers and acceptance check. Use Astra for shared design decisions and Sol for scoped implementation. Give agents the relevant guideline, contract, diff and test result.
 - The producer and an affected consumer agree on shared contract changes. The integration owner coordinates shared configuration and reconciles these rules at every merge. Include guideline edits in the same PR as the behavior they govern.
