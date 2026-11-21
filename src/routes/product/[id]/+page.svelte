@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getStoreSession, returnToStore } from '#lib/storefront/store.svelte.ts';
-	import { resolve } from '$app/paths';
+	import { getStoreSession } from '#lib/storefront/store.svelte.ts';
+	import ListingHeader from './ListingHeader.svelte';
 	import '../../../lib/assets/fonts/plex.css';
 	import FactsReceipt from '../../../lib/storefront/FactsReceipt.svelte';
 	import CartControls from '../../../lib/storefront/CartControls.svelte';
@@ -14,6 +14,7 @@
 
 	const session = getStoreSession();
 	let { data }: PageProps = $props();
+	let hero = $state<HTMLDivElement>();
 	let proofRoot = $state<HTMLElement>();
 	let productDeal = $state<ReturnType<typeof ProductDeal>>();
 	const th = $derived(data.language === 'th');
@@ -22,57 +23,21 @@
 <svelte:head><title>{data.name.text} · DynamicShopper</title></svelte:head>
 
 <main lang={data.language} data-product={data.id} data-theme={data.theme}>
-	<header>
-		<a
-			class="back"
-			href={resolve(returnToStore(session))}
-			aria-label={th ? 'กลับหน้าร้าน' : 'Back to store'}
-		>
-			<svg
-				viewBox="0 0 24 24"
-				width="24"
-				height="24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="1.6"
-				aria-hidden="true"
-			>
-				<path d="M21 12H4m7-7-7 7 7 7" />
-			</svg>
-		</a>
-		<a class="header-search" href={resolve(returnToStore(session))}>
-			<svg
-				viewBox="0 0 20 20"
-				width="18"
-				height="18"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="1.5"
-				aria-hidden="true"
-			>
-				<circle cx="8" cy="8" r="5" /><path d="m12 12 5 5" />
-			</svg>
-			{th ? 'ค้นหาสินค้า' : 'Search products'}
-		</a>
-		<a
-			href={resolve(
-				`/product/[id]?lang=${th ? 'en' : 'th'}${data.theme === 'standard' ? '' : `&theme=${data.theme}`}`,
-				{
-					id: data.pathId
-				}
-			)}
-		>
-			{th ? 'English' : 'ไทย'}
-		</a>
+	<ListingHeader
+		data={{ ...data, receiptQuery: session.visit?.search.slice(1) ?? data.receiptQuery }}
+		{hero}
+	/>
+	<div class="listing-cart">
 		<CartControls
 			locale={data.language}
 			onBestPrice={(basket) => productDeal?.showBasket(basket)}
 		/>
-	</header>
+	</div>
 	<div bind:this={proofRoot}>
 		<div class="listing">
 			<div
 				class="art"
+				bind:this={hero}
 				data-category={data.category}
 				data-model={data.id}
 				data-cooker-photo={data.id}
@@ -132,7 +97,13 @@
 </main>
 
 <style>
+	.listing-cart {
+		display: flex;
+		justify-content: flex-end;
+		padding-inline: 1rem;
+	}
 	main {
+		--product-figure-font: 'IBM Plex Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 		max-width: 72rem;
 		margin: auto;
 		padding: 0 0 2rem;
@@ -143,9 +114,7 @@
 	main[data-theme='large'] {
 		font-size: 1.25rem;
 		--tap: 48px;
-	}
-	main[data-theme='large'] header a {
-		min-block-size: 48px;
+		--action-font-floor: 1.25rem;
 	}
 	main[data-theme='large'] .prices .sold {
 		font-size: 1.25rem;
@@ -156,34 +125,6 @@
 	main[data-theme='vibrant'] {
 		--seam: #e3e3ef;
 		--accent: #2f3ccf;
-	}
-	header {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-		border-bottom: 1px solid #e9e6dc;
-		position: sticky;
-		top: 0;
-		z-index: 1;
-		background: #fff;
-		padding: 0.375rem 0.75rem;
-	}
-	header a {
-		min-height: 44px;
-		display: flex;
-		align-items: center;
-		color: inherit;
-	}
-	.back {
-		flex: 0 0 44px;
-		justify-content: center;
-	}
-	.header-search {
-		flex: 1;
-		min-width: 0;
-		gap: 0.5rem;
-		padding-inline: 0.65rem;
-		background: #f4f4f4;
 	}
 	.listing {
 		display: grid;
@@ -226,7 +167,7 @@
 	}
 	dd {
 		margin: 0;
-		font-family: 'IBM Plex Mono', ui-monospace, monospace;
+		font-family: var(--product-figure-font);
 	}
 	section {
 		min-width: 0;
@@ -285,6 +226,11 @@
 		min-height: 44px;
 		align-items: center;
 		border-top: 1px solid #e9e6dc;
+	}
+	@media (max-width: 699px) {
+		main {
+			padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+		}
 	}
 	@media (min-width: 700px) {
 		.listing {
