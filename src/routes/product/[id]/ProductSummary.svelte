@@ -160,8 +160,8 @@
 		align-content: center;
 		min-height: 3.75rem;
 		padding-block: 0.8rem;
-		font-size: max(1.125rem, var(--action-font-floor, 0rem));
-		font-weight: 600;
+		font-size: max(1.0625rem, var(--action-font-floor, 0rem));
+		font-weight: 400;
 		line-height: 1.4;
 		overflow-wrap: anywhere;
 	}
