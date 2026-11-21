@@ -104,7 +104,7 @@
 	let freeShipping = $state(false);
 	let filtersOpen = $state(false);
 	let filterDialog = $state<HTMLDialogElement>();
-	const eventDemo = $derived(page.url.searchParams.get('demo') === 'shopee');
+	const eventDemo = $derived(page.url.searchParams.get('view') !== 'receipt');
 
 	const t = $derived(copy[language]);
 	const hasFilters = $derived(maxPrice !== undefined || freeShipping);
@@ -495,7 +495,14 @@
 								<div class="art"><CategoryGlyph category={product.category} /></div>
 							{/if}
 							<div class="card-body">
-								<h3 data-fact="name" data-raw={product.name[language]}>{product.name[language]}</h3>
+								<h3 data-fact="name" data-raw={product.name[language]}>
+									<a
+										class="product-link"
+										href={`${resolve('/product/[id]', { id: product.id })}?lang=${language}`}
+									>
+										{product.name[language]}
+									</a>
+								</h3>
 								<div class="price">
 									<span class="visually-hidden">{t.price} </span>
 									<strong class="figure" data-fact="price" data-raw={product.price}>
@@ -797,7 +804,17 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.75rem;
 	}
+	.product-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+	.product:has(.product-link:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
 	.product {
+		position: relative;
 		min-width: 0;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
@@ -1057,6 +1074,9 @@
 	}
 	.demo-photo:where(.art) {
 		background: white url('../lib/assets/products/demo-categories.jpg') no-repeat 0 0 / 300% 200%;
+	}
+	.demo-photo[data-model='cooker-1'] {
+		background: #d0dce6 url('../lib/assets/products/cooker-one-button.jpg') center / cover no-repeat;
 	}
 	.demo-photo[data-category='earbuds'] {
 		background-position: 50% 0;
