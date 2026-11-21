@@ -196,3 +196,13 @@ Credentials never leave the server. The only configuration value the shopper can
 ## Measuring understanding
 
 A **golden set** of about sixty real shopper messages (Thai, English, code-switched, slang and adversarial) is run through the real pipeline for both the AI and the fallback. A message passes when the intent and the expected plan changes match. Separately, three **safety checks** run on every answer: no fact in the reply, no plan value outside the allowlists, no product id outside the catalog. Any safety failure is a **fact violation**, and the target is zero. Adversarial messages are scored on safety only. The fallback's score should never be allowed to slip; the AI's score is kept alongside its typical response time and how often its output had to be trimmed or guarded. See [TRUST-AND-PROOF.md](TRUST-AND-PROOF.md).
+
+## Preset inspection boundary
+
+The 177-module registry describes authored design needs and dependencies. Its 73 ready
+and 104 service entries are design classifications, not live-feature certifications.
+The twenty presentation examples select only theme, layout, density, details and
+sections through the existing validator. `/presets` holds selections locally with no
+store mutation callback or agent write path. Example shelves use the shared deterministic ranking, catalog and pricing logic.
+Missing services and original photographs remain unavailable. The sourced catalog
+handoff and cloud publication belong to the data owner and are outside this change.

@@ -51,6 +51,7 @@ for (const width of [390, 1440]) {
 			await page.setViewportSize({ width, height: 900 });
 			await page.goto('/product/vitamin-c-serum?view=receipt');
 			await page.getByRole('button', { name: /^Add to cart/ }).click();
+			await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
 			await page.getByRole('link', { name: 'Back to store', exact: true }).click();
 			const panel = page.getByRole('region', { name: 'Smart Basket', exact: true });
 			await expect(panel).toBeVisible();
@@ -135,6 +136,7 @@ test('easy-use suggestions preserve the shopper’s explicit price order and Tha
 		.getByRole('button', { name: /Add to cart/ })
 		.first()
 		.click();
+	await expect(page.getByText('Added to cart', { exact: true })).toBeVisible();
 	await page.goto('/');
 	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
 	await expect(

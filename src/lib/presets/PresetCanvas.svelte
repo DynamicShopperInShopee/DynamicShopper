@@ -226,7 +226,6 @@
 							'การตรวจแบบนี้ใช้ชุดข้อมูลแค็ตตาล็อกร่วม และรอฐานสินค้าเวอร์ชันอัปเดต'
 						)}
 					</p>
-					<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
 				{:else if block === 'saved'}
 					{#if saved.length}<ul>
 							{#each saved as id (id)}{@const name = resolveCatalogFact(
@@ -280,6 +279,9 @@
 	{/if}
 </div>
 
+{#if recipe.availability === 'ready' && dataState === 'ready' && recipe.blocks.includes('source')}
+	<FactsSlip {scope} resolve={resolveCatalogFact} {locale} />
+{/if}
 {/snippet}
 </PresetReading>
 

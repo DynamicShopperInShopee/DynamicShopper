@@ -18,8 +18,7 @@
 	let width = $state('fluid');
 	let dataState = $state<'ready' | 'empty' | 'loading' | 'error'>('ready');
 	const t = (en: string, th: string) => (locale === 'th' ? th : en);
-	let selectedModule = $state<string>();
-	const requested = $derived(selectedModule ?? page.url.searchParams.get('module'));
+	const requested = $derived(page.url.searchParams.get('module'));
 	const part = $derived(parts.find((p) => p.recipes.some((r) => r.id === requested)) ?? parts[0]);
 	const recipe = $derived(part.recipes.find((r) => r.id === requested) ?? part.recipes[0]);
 	const total = parts.reduce((sum, p) => sum + p.recipes.length, 0);
@@ -30,12 +29,8 @@
 		{ value: 'large-print', label: t('Large print', 'ตัวอักษรใหญ่') }
 	]);
 	function choose(id: string) {
-		selectedModule = id;
 		dataState = 'ready';
-		void goto(resolve(`/presets?module=${encodeURIComponent(id)}`), {
-			replace: true,
-			reset: false
-		});
+		void goto(resolve(`/presets?module=${encodeURIComponent(id)}`), { replace: true, reset: false });
 	}
 </script>
 

@@ -369,7 +369,7 @@
 	}
 	async function applyInterviewAnswers(answers: Answers, directOnly: boolean) {
 		const result = interviewProposal(answers, activePlan, {
-			directOnly,
+			directOnly: true,
 			lockedFields: locks
 		});
 		const previous = $state.snapshot(activePlan);

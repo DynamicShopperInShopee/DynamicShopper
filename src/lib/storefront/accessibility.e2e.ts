@@ -136,7 +136,13 @@ async function assertReadable(scope: Locator, large: boolean) {
 				const ratio = image
 					? await captionContrast(node, image, foreground)
 					: contrast(foreground, background(element));
-				if (ratio < 4.5) problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
+				// WCAG 1.4.3: 18pt regular or 14pt bold text uses the 3:1 threshold.
+				// https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+				const weight = Number.parseFloat(style(element).fontWeight);
+				const largeText = font >= 24 || (font >= (14 * 96) / 72 && weight >= 700);
+				const minimumContrast = largeText ? 3 : 4.5;
+				if (ratio < minimumContrast)
+					problems.add(`Text "${text}" has a contrast ratio of ${ratio.toFixed(2)}`);
 			}
 
 			for (const element of root.querySelectorAll<HTMLElement>(

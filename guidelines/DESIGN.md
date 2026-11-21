@@ -292,3 +292,5 @@ optimizer context and coin balance. Add is explicit, rejection hides the offer f
 this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
 The catalog remains simulated; this is not a clinical compatibility guarantee or a
 new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
+
+The default marketplace keeps its orange header and the DynamicShopper wordmark. In the adaptive receipt, the same identity uses the active theme’s ink and paper, including after chat changes the reading style.
