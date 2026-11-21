@@ -1,7 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
-import { auth } from '#lib/server/auth.ts';
 import { APIError } from 'better-auth/api';
 
 const parseEntry = (input: FormDataEntryValue | null): string =>
@@ -21,7 +20,7 @@ export const actions: Actions = {
 		const password = parseEntry(formData.get('password'));
 
 		try {
-			await auth.api.signInEmail({
+			await event.locals.auth.api.signInEmail({
 				body: {
 					email,
 					password,
@@ -44,7 +43,7 @@ export const actions: Actions = {
 		const name = parseEntry(formData.get('name'));
 
 		try {
-			await auth.api.signUpEmail({
+			await event.locals.auth.api.signUpEmail({
 				body: {
 					email,
 					password,

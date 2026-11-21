@@ -1,10 +1,30 @@
-import { drizzle } from 'drizzle-orm/node-sqlite';
-import { DatabaseSync } from 'node:sqlite';
+import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
+import type { D1Database } from '@cloudflare/workers-types';
 import * as schema from './schema';
-import { DATABASE_URL } from '$app/env/private';
 
-if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
+export type Database = ReturnType<typeof drizzleD1<typeof schema>>;
 
-const client = new DatabaseSync(DATABASE_URL);
+const d1Clients = new WeakMap<D1Database, Database>();
+const sqliteClients = new Map<string, Promise<Database>>();
 
-export const db = drizzle(client, { schema });
+export async function createDatabase(database: D1Database | undefined, databaseUrl: string) {
+	if (database) {
+		let client = d1Clients.get(database);
+		if (!client) {
+			client = drizzleD1(database, { schema });
+			d1Clients.set(database, client);
+		}
+		return client;
+	}
+
+	if (!databaseUrl) throw new Error('DATABASE_URL is required when a D1 binding is not configured');
+	let client = sqliteClients.get(databaseUrl);
+	if (!client) {
+		client = Promise.all([import('drizzle-orm/better-sqlite3'), import('better-sqlite3')]).then(
+			([{ drizzle }, { default: BetterSqlite3 }]) =>
+				drizzle(new BetterSqlite3(databaseUrl), { schema }) as unknown as Database
+		);
+		sqliteClients.set(databaseUrl, client);
+	}
+	return client;
+}

@@ -1,5 +1,32 @@
 # sv
 
+## Database configuration
+
+The app uses the same SQLite schema and Drizzle queries with either a local SQLite file or Cloudflare D1.
+
+### Local SQLite
+
+Set `DATABASE_URL` to a file path in `.env` (the default is `local.db`), then run:
+
+```sh
+bun install
+bun run db:push
+bun run dev
+```
+
+### Cloudflare D1
+
+Create a D1 database, replace `database_id` in `wrangler.jsonc` with its ID, and set `ORIGIN` and `BETTER_AUTH_SECRET` as Worker secrets/vars. Generate migration SQL from the shared schema and apply it locally or remotely:
+
+```sh
+bun run db:generate
+bun run db:d1:local
+# For the deployed database:
+bun run db:d1:remote
+```
+
+Run the app in the Cloudflare runtime with `bun run dev:d1`. The `DB` binding selects D1 automatically; without it the app uses `DATABASE_URL` and local SQLite. To deploy, run `bun run build:d1` and `bunx wrangler deploy`.
+
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
 ## Creating a project

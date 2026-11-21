@@ -10,6 +10,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"build:d1": "DEPLOY_TARGET=cloudflare vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -23,14 +24,21 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
+		"db:d1:local": "wrangler d1 migrations apply DB --local",
+		"db:d1:remote": "wrangler d1 migrations apply DB --remote",
+		"dev:d1": "bun run build:d1 && wrangler dev",
 		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20261121.1",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.65.1",
-		"@sveltejs/adapter-auto": "^8.0.1",
+		"@sveltejs/adapter-cloudflare": "^9.0.0",
+		"@sveltejs/adapter-node": "^6.0.5",
 		"@sveltejs/kit": "^3.2.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@tailwindcss/vite": "^4.3.5",
+		"@types/better-sqlite3": "^9.6.0",
 		"@types/node": "^24",
 		"@vitest/browser-playwright": "^5.1.0",
 		"auth": "^1.7.25",
@@ -44,12 +52,18 @@
 		"playwright": "^1.65.1",
 		"prettier": "^3.10.1",
 		"prettier-plugin-svelte": "^4.1.1",
+		"prettier-plugin-tailwindcss": "^0.8.1",
 		"svelte": "^5.57.3",
 		"svelte-check": "^4.7.8",
+		"tailwindcss": "^4.3.5",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.72.2",
 		"vite": "^8.3.8",
 		"vitest": "^5.1.0",
-		"vitest-browser-svelte": "^3.1.0"
+		"vitest-browser-svelte": "^3.1.0",
+		"wrangler": "^4.166.0"
+	},
+	"dependencies": {
+		"better-sqlite3": "^13.2.0"
 	}
 }

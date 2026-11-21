@@ -1,0 +1,16 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "dynamic-shopper",
+	"compatibility_date": "2026-11-21",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+        "d1_databases": [
+                {
+                        "binding": "DB",
+                        "database_name": "dynamic-shopper",
+                        "database_id": "0098249a-09f0-405d-ab80-0a970d478011",
+                        "migrations_dir": "drizzle"
+                }
+        ]
+}
