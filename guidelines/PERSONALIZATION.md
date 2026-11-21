@@ -5,14 +5,16 @@
 Accepted: the default marketplace offers an optional short interview, followed by
 chat refinement. Every question is optional; drafts never alter the shelf. Apply
 uses the existing validated plan and records one undo step, including the prior
-interview answers. Search, category, budget, cooker capacity and explicit sorting
+interview answers and locks. Undo also restores the saved presentation. Applying
+equivalent settings creates no new lock or Undo step. Search, category, budget, cooker capacity and explicit sorting
 remain intact. Reset removes the interview and restores the default view.
 
 The local synthetic-trained CNN chooses allowlisted layout, information and section
 recipes and may suggest an unlocked theme. Reading density, an explicit large-text
 choice and ranking priorities follow the answers directly. Theme-picker selections
-remain protected. Later chat requests can refine the applied proposal through the
-existing interpretation and validation pipeline. Missing answers or failed model
+remain protected. Later chat requests can refine CNN-suggested fields through the
+existing interpretation and validation pipeline. Answer-sourced fields retain
+the shopper’s explicit choice until edited or removed. Missing answers or failed model
 inference use direct mappings. No real shopper preference accuracy is claimed.
 
 Proposed: evaluate interview completion, corrections and task success with shoppers

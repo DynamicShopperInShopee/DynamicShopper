@@ -2,11 +2,39 @@ import { describe, expect, it } from 'vitest';
 import { products } from '../catalog';
 import { defaultPlan } from './plan';
 import { rankProducts } from './ranking';
-import { inferInterview, interviewProposal } from './interview';
+import { inferInterview, interview, interviewProposal } from './interview';
 
 const answers = { goal: 'compare', evidence: 'specs', priority: 'durability', reading: 'large' };
 
 describe('storefront interview proposal', () => {
+	it('keeps facts and search context unchanged for every complete or skipped combination', () => {
+		const before = JSON.stringify(products);
+		const plan = { ...structuredClone(defaultPlan), query: 'rice cooker', maxPrice: 1500 };
+		let inputs: Record<string, string>[] = [{}];
+		for (const q of interview.questions)
+			inputs = inputs.flatMap((input) => [
+				input,
+				...q.options.map((o) => ({ ...input, [q.id]: o.id }))
+			]);
+		expect(inputs).toHaveLength(625);
+		for (const input of inputs) {
+			const result = interviewProposal(input, plan);
+			expect(
+				Object.keys(result.patch).every((k) =>
+					['theme', 'layout', 'density', 'details', 'sections', 'priorities'].includes(k)
+				)
+			).toBe(true);
+			if (result.patch.sections) expect(result.patch.sections).toContain('products');
+			if (result.patch.details) expect(result.patch.details).toContain('price');
+			if (input.reading === 'large')
+				expect(result.patch).toMatchObject({ theme: 'large-print', density: 'spacious' });
+			if (Object.keys(input).length < 4) expect(result.backend).toBe('incomplete');
+			expect(result.dropped).toEqual([]);
+		}
+		expect(plan.query).toBe('rice cooker');
+		expect(plan.maxPrice).toBe(1500);
+		expect(JSON.stringify(products)).toBe(before);
+	});
 	it('composes catalog-backed views without changing filters, language, or facts', () => {
 		const before = JSON.stringify(products);
 		const plan = {
