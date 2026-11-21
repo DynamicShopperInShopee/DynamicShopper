@@ -348,6 +348,42 @@ test('rice cooker filters pin below search and select the catalog capacity', asy
 	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
 });
 
+test('compacts the cooker controls without displacing the product shelf', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	await page.evaluate(() => document.fonts.ready);
+	const strip = page.getByRole('navigation', { name: 'Rice cooker filters' });
+	const shelf = page.locator('.product-grid');
+	const position = () =>
+		shelf.evaluate((element) => Math.round(element.getBoundingClientRect().top + window.scrollY));
+
+	await page.evaluate(() => scrollTo(0, 179));
+	await expect(strip).not.toHaveClass(/condensed/);
+	const expandedPosition = await position();
+	const expandedHeight = (await strip.boundingBox())!.height;
+	await page.evaluate(() => scrollTo(0, 181));
+	await expect(strip).toHaveClass(/condensed/);
+	expect((await strip.boundingBox())!.height).toBeLessThan(expandedHeight);
+	await expect.poll(position).toBe(expandedPosition);
+});
+
+test('opens the interview from the category results quick controls', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
+	await page.getByRole('button', { name: 'Skincare', exact: true }).click();
+	const strip = page.getByRole('navigation', { name: 'Skincare filters' });
+	const interview = strip.getByRole('button', { name: 'Start a quick interview' });
+	await interview.click();
+	const dialog = page.getByRole('dialog', { name: 'Make the shop fit you' });
+	await expect(dialog).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(interview).toBeFocused();
+	await expect(page.locator('.product-grid .art').first()).toHaveAttribute('data-category', 'skin');
+});
+
 test('restores a filtered Thai shelf on browser and listing return without sharing the search', async ({
 	page
 }) => {

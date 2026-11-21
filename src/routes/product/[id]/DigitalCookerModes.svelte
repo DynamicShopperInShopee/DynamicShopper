@@ -15,22 +15,15 @@
 
 {#if modes.length}
 	<section id="digital-modes" aria-labelledby="digital-modes-title">
-		<h3
-			class="mx-0 mt-0 mb-[0.45em] flex flex-wrap items-baseline justify-between gap-x-[0.75em] gap-y-[0.25em] text-[1.25em] font-semibold"
-			id="digital-modes-title"
-		>
-			{th ? 'โหมดการปรุง' : 'Cooking modes'}
+		<h3 id="digital-modes-title">
 			{#if programCount}
-				<span class="font-[family-name:var(--product-figure-font)]" {...programCount.attributes}>
-					{programCount.text}
-				</span>
+				<span {...programCount.attributes}>{programCount.text}</span>
 			{/if}
+			{th ? 'โหมดการปรุง' : 'cooking modes'}
 		</h3>
-		<ul class="m-0 grid list-none grid-cols-3 border-s border-t border-[var(--detail-seam)] p-0">
+		<ul>
 			{#each modes as mode (mode.attributes['data-fact'])}
-				<li
-					class="flex flex-col items-center justify-center gap-[0.3em] border-e border-b border-[var(--detail-seam)] px-[0.3em] py-[0.75em] text-center leading-[1.35] text-balance wrap-anywhere"
-				>
+				<li>
 					<CookerModeIcon field={mode.attributes['data-fact']} />
 					<span {...mode.attributes}>{mode.text}</span>
 				</li>
@@ -38,3 +31,42 @@
 		</ul>
 	</section>
 {/if}
+
+<style>
+	section {
+		padding: 0.7em 0 0.5em;
+		background: var(--detail-panel);
+		scroll-margin-top: 5rem;
+	}
+	h3 {
+		margin: 0 0 0.3em;
+		font-size: 1.45em;
+		font-weight: 600;
+		text-align: center;
+	}
+	h3 span {
+		font-family: var(--product-figure-font);
+	}
+	ul {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	li {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.42em;
+		min-block-size: 6rem;
+		padding: 0.55em 0.2em;
+		line-height: 1.35;
+		text-align: center;
+		text-wrap: balance;
+		overflow-wrap: anywhere;
+	}
+	li :global(svg) {
+		color: var(--detail-muted);
+	}
+</style>

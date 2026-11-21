@@ -12,12 +12,26 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Interview transition
 
-The default marketplace has a plain optional interview entry. Its modal shows one
-question at a time with labeled radio choices, Back, Next and Skip, then a proposed
-view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
-sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
-the visible chat-refinement button focuses the existing assistant. No animation is
-required. Large print keeps single-column answers, 20px text and 48px targets.
+The default marketplace has a plain optional needs interview. Its modal shows four
+questions with labeled radio choices, Back, Next and Skip. Finishing or skipping the
+last question automatically applies one validated proposal, closes the modal and
+focuses the change receipt. Drafts and cancellation leave the store unchanged. Undo
+restores the plan and answers; chat refines the same view. There is no separate preview
+or Apply screen and no preset, persona or theme chooser in the main shopping flow.
+Desktop centers the dialog; phones use a bottom sheet. Large print keeps 20px text
+and 48px targets, with no motion when reduced motion is requested.
+
+## Preset inspection library
+
+`/presets` is a separate design-review surface containing the reference's exact 177
+modules across twelve parts and twenty authored presentation examples. Each module
+shows its need, trigger, information order, dependency and default/empty/loading/error
+states. Missing services show neutral unavailable anatomy. No example can apply to
+the store. Existing catalog fixtures and the optimizer support inspection until the
+updated sourced catalog arrives; original photographs are explicitly pending rather
+than substituted with category illustrations. This surface keeps the orange shopping
+identity, DynamicShopper wordmark, receipt proof surfaces and all four accessible
+themes. See [the module inventory](../docs/PRESETS.md).
 
 ## North star
 
@@ -276,11 +290,31 @@ Digital review photos and silent clips are explicitly labeled as simulated examp
 
 The phone shop caption clears the navigation and cart controls in every theme. In large print it uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
 
-## Style implementation
+## Direct decision help and Smart Basket
 
-Component presentation uses literal Tailwind utilities in markup. Shared inherited
-custom properties, fonts and product asset mappings remain in shared stylesheets.
-Theme state, responsive boundaries, hidden content and focus/tap targets retain
-this design system through utilities; the migration does not change the visual
-system. Literal class arrays may be used to preserve arbitrary selectors during
-server rendering, without selecting utility strings through a lookup table.
+Accepted: cooker results offer explicit easy-use and comparison tasks without an
+interview or chat. They preserve current eligibility and theme; an independent Undo
+restores the previous decision view without mutating search, filters or cart. Easy-use
+selects up to three catalog-tagged simple models ordered by program count then ID.
+The comparison shows catalog price, capacity, programs and warranty, with cart actions.
+
+Smart Basket offers at most one curated catalog-supported companion, with a cited
+source review and the target skin-type fact. The current demo pairs vitamin-C serum
+with ceramide moisturiser; no cooker companion is asserted. Both quotes use the same
+optimizer context and coin balance. Add is explicit, rejection hides the offer for
+this mounted shopping visit, and unavailable pricing or an already-owned item hides it.
+The catalog remains simulated; this is not a clinical compatibility guarantee or a
+new promotion. No new theme, checkout, deployment or automatic purchase is introduced.
+
+## Brand and presentation update
+
+The shopping header stays orange (#ee4d2d), the DynamicShopper wordmark stays
+white and large/bold, and the search action stays dark orange (#b5321a) with white
+foreground in every theme. Chat changes the body and product presentation only.
+The root storefront passes directOnly:true to its validated interview mapping; CNN
+inference is not used by this route. Existing model experiments remain archival.
+The current main chat uses its bounded live adapter with offline fallback.
+
+The digital description reads as one continuous illustrated listing. Introductory and capacity captions sit in the photographs' quiet areas; large print may place text above a photo to keep it readable. Cooking modes use large, unboxed symbols, and the preset timer uses a clock illustration. Dimension values stay beside their measurement arrows, with technical facts below. Package contents form one group. Every caption and measurement retains its catalog fact metadata. The review-photo panel leads with the catalog summary under “From the listing” and separately identifies its simulated photos.
+
+On phone category results, a single sticky search row replaces the home masthead and keeps language selection visible beside search and sorting/filtering. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.

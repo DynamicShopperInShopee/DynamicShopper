@@ -1,72 +1,86 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { PageData } from './$types';
-	import ListingFactRows from './ListingFactRows.svelte';
 
 	let {
 		id,
 		src,
 		alt,
-		width,
-		height,
-		title,
-		icon,
-		overlay,
-		summary,
-		rows = []
+		layout,
+		caption,
+		footer
 	}: {
 		id: string;
 		src: string;
 		alt: string;
-		width: number;
-		height: number;
-		title: string | PageData['name'];
-		icon?: Snippet;
-		overlay?: Snippet;
-		summary?: PageData['summary'];
-		rows?: readonly (PageData['specs'][number] | undefined)[];
+		layout: 'intro' | 'serving' | 'pot' | 'cutaway' | 'inset';
+		caption: Snippet;
+		footer?: Snippet;
 	} = $props();
 </script>
 
-<figure class="m-0 scroll-mt-20" {id}>
-	<figcaption
-		class={['border-t border-[var(--detail-seam)] py-[0.85em_0.55em] [&_dl]:mt-[0.45em]']}
-	>
-		<div class="caption-title flex items-center gap-[0.5em]">
-			{@render icon?.()}
-			{#if typeof title === 'string'}
-				<h3 class="m-0 text-[1.25em] leading-[1.35] font-semibold text-balance">{title}</h3>
-			{:else}
-				<h3
-					class="m-0 text-[1.25em] leading-[1.35] font-semibold text-balance"
-					{...title.attributes}
-				>
-					{title.text}
-				</h3>
-			{/if}
-		</div>
-		{#if summary}
-			<p class="mx-0 mt-[0.45em] mb-0 text-[var(--detail-muted)]" {...summary.attributes}>
-				{summary.text}
-			</p>
-		{/if}
-		{#if rows.length}
-			<ListingFactRows {rows} />
-		{/if}
-	</figcaption>
-	<div
-		class={[
-			'photo relative [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:inset-0 [&>svg]:size-full'
-		]}
-	>
-		<img
-			class="block h-auto w-full bg-[var(--detail-seam)]"
-			{src}
-			{alt}
-			{width}
-			{height}
-			loading="lazy"
-		/>
-		{@render overlay?.()}
-	</div>
+<figure {id} class={layout}>
+	<figcaption>{@render caption()}</figcaption>
+	<img {src} {alt} width="700" height="1050" loading="lazy" />
+	{@render footer?.()}
 </figure>
+
+<style>
+	figure {
+		margin: 0;
+		scroll-margin-top: 5rem;
+	}
+	figcaption {
+		text-align: center;
+	}
+	img {
+		display: block;
+		width: 100%;
+		height: auto;
+		background: var(--detail-panel);
+	}
+	:is(.intro, .serving, .pot) {
+		display: grid;
+	}
+	:is(.intro, .serving, .pot) > :is(figcaption, img) {
+		grid-area: 1 / 1;
+	}
+	:is(.intro, .serving, .pot) figcaption {
+		z-index: 1;
+		align-self: start;
+		padding: 7% 6% 0;
+	}
+	.intro figcaption {
+		padding: 16% 7% 0;
+		text-align: start;
+	}
+	.serving figcaption {
+		padding-inline-start: 29%;
+	}
+	.cutaway {
+		background: #f6f6f6;
+	}
+	.cutaway figcaption,
+	.inset figcaption {
+		padding: 1.3em 0.35em 0.65em;
+	}
+	.cutaway img,
+	.inset img {
+		aspect-ratio: 1;
+		object-fit: cover;
+		object-position: center 79%;
+	}
+	.inset {
+		padding: 0 4% 4%;
+		background: var(--detail-panel);
+	}
+	.inset img {
+		aspect-ratio: 1.1;
+	}
+	:global([data-theme='large']) :is(.intro, .serving, .pot) {
+		display: block;
+		background: var(--detail-panel);
+	}
+	:global([data-theme='large']) :is(.intro, .serving, .pot) figcaption {
+		padding: 0.9em 0.65em;
+	}
+</style>

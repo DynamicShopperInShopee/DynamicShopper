@@ -4,12 +4,12 @@
 
 <svg
 	aria-hidden="true"
-	width="36"
-	height="36"
-	viewBox="0 0 32 32"
+	width="56"
+	height="56"
+	viewBox="2 2 28 28"
 	fill="none"
 	stroke="currentColor"
-	stroke-width="1.5"
+	stroke-width="1.8"
 	stroke-linecap="round"
 	stroke-linejoin="round"
 >
