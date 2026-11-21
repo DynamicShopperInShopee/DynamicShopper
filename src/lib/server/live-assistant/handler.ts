@@ -1,5 +1,5 @@
 import { parseLiveHints } from '../../personalization/live';
-import { requestLivePatch } from './openai';
+import { requestLivePatch, type LiveUsage } from './openai';
 import { readJson } from './read-json';
 
 const loopback = ['localhost', '127.0.0.1', '[::1]'];
@@ -14,7 +14,13 @@ function error(status: number, reason: string) {
 export async function handleLocalAssistant(
 	request: Request,
 	url: URL,
-	options: { enabled: boolean; peer: string; apiKey?: string; model?: string },
+	options: {
+		enabled: boolean;
+		peer: string;
+		apiKey?: string;
+		model?: string;
+		onUsage?: (usage: LiveUsage) => void;
+	},
 	provider: typeof fetch = fetch
 ) {
 	if (!options.enabled || !loopback.includes(url.hostname) || !loopbackPeers.includes(options.peer))
@@ -48,7 +54,7 @@ export async function handleLocalAssistant(
 	if (!apiKey) return error(503, 'unavailable');
 	const result = await requestLivePatch(
 		hints,
-		{ apiKey, model: options.model, signal: request.signal },
+		{ apiKey, model: options.model, signal: request.signal, onUsage: options.onUsage },
 		provider
 	);
 	return result ? Response.json(result, { headers }) : error(502, 'unavailable');

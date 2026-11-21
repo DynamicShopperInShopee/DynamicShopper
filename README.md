@@ -29,7 +29,7 @@ The storefront and its offline shopping assistant run without a database or AI c
 
 Use **Shopper views** to try the four presets, **Compare views** to check shared facts side by side, and **Best price** to open an optimizer receipt. **Undo** restores the previous store state. The assistant, comparison, and receipts work offline.
 
-Run `bun run check`, `bun run test:unit -- --run`, and `bun run test:e2e` for the type, unit, and production browser checks. The production suite builds and serves the app locally.
+Run `bun run check`, `bunx vitest run`, and `bun run test:e2e` for the type, unit, and production browser checks. The production suite builds and serves the app locally.
 
 ## Optional local OpenAI test
 
@@ -41,7 +41,9 @@ The local model receives a short list of allowlisted presentation hints. Product
 
 Run `bunx playwright test --config playwright.local.config.ts` for the local browser security and fallback checks. That suite uses a separate development server with the provider credentials cleared.
 
-Run `bun run scripts/evaluate-local-assistant.ts` to compare the model and fallback on five fixed synthetic presentation cases. This opt-in command makes billable API requests and prints per-case matches without printing keys or provider payloads. Treat the results as smoke-test evidence.
+Run `bun run scripts/evaluate-local-assistant.ts` to compare the model and fallback on five fixed synthetic presentation cases. This opt-in command makes billable API requests. It prints per-case matches, provider-reported token totals, and the estimated standard token cost for `gpt-5-mini`. Treat the results as smoke-test evidence.
+
+To see per-request usage while testing in the browser, start the local server with `OPENAI_LOG_USAGE=1 bun run dev --host 127.0.0.1`. Only the server terminal receives token counts and any supported estimate. Requests with no reported usage and other API activity may still be billable. Check the [OpenAI usage dashboard](https://platform.openai.com/usage) for billing totals and the [model pricing page](https://developers.openai.com/api/docs/models/gpt-5-mini) for current rates.
 
 ## Database configuration
 
