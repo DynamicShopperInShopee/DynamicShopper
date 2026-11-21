@@ -895,7 +895,9 @@
 		if (eventDemo) filterDialog?.close();
 	}
 
-	function clearFilters() {
+	function clearFilters(recordChange = true) {
+		if (recordChange && (capacity !== undefined || maxPrice !== undefined || freeShipping))
+			remember();
 		cancelPending();
 		capacity = undefined;
 		locks = locks.filter((key) => key !== 'maxPrice');
@@ -953,7 +955,7 @@
 		query = '';
 		category = 'all';
 		sort = 'default';
-		clearFilters();
+		clearFilters(false);
 	}
 </script>
 
@@ -1547,7 +1549,7 @@
 			</label>
 			<div class="filter-actions">
 				<button class="primary" type="submit">{t.apply}</button>
-				<button type="button" onclick={clearFilters}>{t.clear}</button>
+				<button type="button" onclick={() => clearFilters()}>{t.clear}</button>
 			</div>
 		{/snippet}
 
@@ -1618,6 +1620,7 @@
 					<button
 						type="button"
 						onclick={() => {
+							remember();
 							cancelPending();
 							locks = locks.filter((key) => key !== 'maxPrice');
 							maxPrice = undefined;
@@ -1640,14 +1643,7 @@
 					</button>
 				{/if}
 				{#if freeShipping}
-					<button
-						type="button"
-						onclick={() => {
-							cancelPending();
-							freeShipping = false;
-							draftShipping = false;
-						}}
-					>
+					<button type="button" onclick={() => updateShipping(false)}>
 						{t.freeOnly}
 						<svg
 							viewBox="0 0 16 16"
