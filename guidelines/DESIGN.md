@@ -206,3 +206,7 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 - Add marketplace chrome: badges, banners, countdown urgency, orange sale styling, or any Shopee mark.
 - Use Unicode glyphs for icons.
 - Animate anything under reduced motion.
+
+## Event demo
+
+The local Sea × OpenAI demo at `/?demo=shopee` follows the approved Shopee Thailand mobile screenshots for the sticky search row and horizontally scrollable quick filters, sort tabs, and two-column grid. The filter drawer is based on the earlier Shopee reference. It uses the same simulated catalog as the standard storefront, with locally bundled illustrative product photos in its cards. The Thermal Receipt design governs the standard storefront.
