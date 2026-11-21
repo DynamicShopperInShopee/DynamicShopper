@@ -214,3 +214,5 @@ The default storefront at `/` follows the approved Shopee Thailand mobile screen
 The product detail route uses a square product illustration, with the same locally bundled scene used for the one-button cooker in the grid, a catalog-backed price and shipping summary, and a specification slip opened from the bottom action bar. On phones the illustration is full width, the back, search and language controls stay visible while scrolling, and specifications open as a bottom sheet. On desktop the illustration and details sit side by side.
 
 Below the price and delivery summary, the product route shows available catalog review excerpts, the seller, and product details. The bottom action bar links to reviews and product details and opens the specification sheet when that data exists.
+
+The event demo uses locally bundled illustrative photos for rice cookers. The one-button listing has a square gallery with two views, swipe navigation, and keyboard-accessible image controls. Other illustrated cooker models use the same image on the shelf and listing.

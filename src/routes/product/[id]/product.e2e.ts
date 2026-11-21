@@ -18,8 +18,22 @@ test('keeps legacy links and shows the canonical cooker in both languages', asyn
 	await page.getByRole('link', { name: 'English' }).click();
 	await expect(page).toHaveURL(/\/product\/cooker-1\?lang=en$/);
 	await expect(page.locator('[data-fact="price"]')).toHaveText('฿690');
+	const gallery = page.getByRole('region', { name: 'Product photos' });
+	await gallery.getByRole('button', { name: 'Alternate photo' }).click();
+	await expect(gallery.getByRole('button', { name: 'Alternate photo' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+	await expect(
+		gallery.getByRole('img', { name: 'Rice cooker on a kitchen counter' })
+	).toBeInViewport();
 	const width = await page.evaluate(() => document.documentElement.scrollWidth);
 	expect(width).toBe(390);
+	await page.goto('/product/cooker-one-button?theme=large');
+	const control = page.getByRole('button', { name: 'Main photo' });
+	const box = await control.boundingBox();
+	expect(box?.width).toBeGreaterThanOrEqual(48);
+	expect(box?.height).toBeGreaterThanOrEqual(48);
 });
 
 test('prices a canonical product offline and renders its category specs', async ({
