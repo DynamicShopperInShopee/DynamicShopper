@@ -25,3 +25,7 @@ Use the existing assets and fixed catalog rows. Compose headings within image he
 ## Acceptance evidence
 
 Compare before/after rendered sections against A1–A10 and B1–B8, plus the skincare search pair. Do not equate passing behavioral tests with visual similarity. Verify every changed fact on screen, both locales, four themes, phone and laptop, reduced motion, keyboard focus, image loading and offline reading. Record permitted differences (simulated assets/facts, required font, neutral proof surfaces) separately from unresolved composition gaps. Keep the goal active while any required area lacks visual evidence.
+
+## Integration with the subsequent team baseline
+
+Main advanced to `99131f3` during verification. Preserve its visible locale selection, interview Undo, explicit filter history and shopping tasks. The home and desktop language control remains in the brand header; phone category results place the same control in the sticky search row so it stays visible without restoring a separate masthead. The compact interview opens the existing dialog and does not change its draft, application or Undo behavior. Shared presentation decision reviewed by the design reviewer and the search implementer.

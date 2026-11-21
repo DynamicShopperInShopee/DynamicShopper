@@ -206,6 +206,8 @@ Semibold, slightly larger than body, underlined by a 2px ink rule, like a receip
 
 Assistant messages sit on the paper as plain text and slips. The shopper's message is a right-aligned accent bubble at most 85% wide. The waiting line pulses only when motion is allowed. Error messages have a red border.
 
+Keep **Compare views** visible beside the **Shopper views** disclosure. Collapsing the presets keeps the product shelf closer to the top on phones. When the presets are open, the next tab reaches the first preset. Escape closes the disclosure and returns focus to its trigger. Undo, Reset, and X-ray use quieter buttons with the same target sizes. The public storefront link scrolls to and focuses the assistant section. Voucher expiry updates an open receipt in place and announces the changed content politely.
+
 ## Motion
 
 - **Receipt print:** 260ms, exponential ease-out (clip reveal plus a 0.5rem drop). Once, on appearance.
@@ -254,11 +256,19 @@ The specification sheet includes the catalog product name, seller, category spec
 
 Search cards group the delivery amount and seller on one metadata row. The matching-shop panel uses shorter vertical spacing so the first row of square product photos begins higher in the viewport.
 
+The storefront header includes the language switch on phones and laptops. Shoppers can choose Thai or English before searching or starting the interview.
+
 Skincare results lead with the shop panel, sort tabs and a single row of working quick controls, beginning with Free shipping. The result heading and count remain available to assistive technology without adding another visible row. Cooker searches place the submit icon inside the leading edge of the input on phones, with full-size tap targets.
 
 The cooker capacity panel uses a locally bundled serving scene with its catalog capacity over the image. Its review thumbnail previews the same scene. The final text separates Highlights from Product information, and each factual sentence and value still comes from the catalog.
 
 Returning from a listing to the default storefront restores the originating search, language, filters, sort and scroll position in the same tab. Browser Back uses the storefront snapshot; the listing's Back and Search controls carry a validated selection through local navigation state. Search text never enters a shared product link. In large print on phones, the gallery's shop caption sits below the navigation controls.
+
+The marketplace interview starts on the first question. Its progress list includes Review. Closing returns keyboard focus to the entry button. After Apply, the shelf receives focus. Chat, Edit my answers and Undo sit beside the updated products and remain visible at that handoff. A shortlist links to the first eligible ranked products, and evidence choices render catalog facts in the chosen layout. Large print uses one column of choices.
+
+The large-print phone shop caption uses ink on a solid white backing so the lowered caption stays readable over every part of the product photo.
+
+Shopping criteria use three compact disclosures listing active settings. Product comparison and deal calculation open on demand and return focus to their respective buttons. The comparison fits the phone viewport, labels missing catalog facts and lets shoppers choose which fields to inspect.
 
 The digital cooker has its own locally bundled gallery and an extended illustrated description: cooking modes, serving capacity, preset timer, inner pot, heating, soup, keep-warm use, dimensions, package contents, highlights and product information. Mode icons and dimension arrows are SVG; all labels, quantities and measurements remain catalog-backed HTML. The specifications sheet includes the same optional detail facts without duplicating rows. Numeric ranges use the figure face too.
 
@@ -268,4 +278,4 @@ The phone shop caption clears the navigation and cart controls in every theme. I
 
 The digital description reads as one continuous illustrated listing. Introductory and capacity captions sit in the photographs' quiet areas; large print may place text above a photo to keep it readable. Cooking modes use large, unboxed symbols, and the preset timer uses a clock illustration. Dimension values stay beside their measurement arrows, with technical facts below. Package contents form one group. Every caption and measurement retains its catalog fact metadata. The review-photo panel leads with the catalog summary under “From the listing” and separately identifies its simulated photos.
 
-On phone category results, a single sticky search row replaces the home masthead. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.
+On phone category results, a single sticky search row replaces the home masthead and keeps language selection visible beside search and sorting/filtering. The existing interview stays reachable from a compact control, without repeating its home introduction. Collapsing cooker filters keeps the product shelf in the same document position. Home, desktop and adapted receipt views retain their existing entry controls.

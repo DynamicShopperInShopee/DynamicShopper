@@ -47,8 +47,8 @@ Owner: integration. Files: `DigitalReviewMedia.svelte`, `ProductReviews.svelte` 
 
 - [x] Add the marked catalog summary above summary photos with a clear source label, without copying a buyer claim into UI prose.
 - [x] Capture every reference section before/after; independent reviewer checks the actual composition and identifies any remaining gaps.
-- [ ] Run affected E2E, type check, full unit/build as required by integration; sync main and obtain independent review.
-- [ ] Publish a reviewable PR and verify preview/production according to existing authorization. Report actual remaining goal work, not an invented percentage.
+- [x] Run affected E2E, type check, full unit/build as required by integration; sync main and obtain independent review.
+- Release status: publish a reviewable PR and record preview/production verification there, so the deployment result is associated with the actual release revision.
 
 ## Observed comparison and review
 
@@ -59,3 +59,15 @@ The introduction starts about 11.5% into its portrait; the three-column mode pan
 Independent review covered both search categories, gallery and summary, reviews and video, seller rail/inventory, specifications sheet, every illustrated module, highlights and final information. Findings resolved: missing final dimensions, unmarked highlights, and the controls thumbnail's obsolete timer target. The reviewer checked Thai and English in standard and large print, fact verification, horizontal overflow, keyboard interview access and restored focus. No unresolved findings remain on that reviewed patch.
 
 Intentional differences remain: simulated catalog facts and photos, DynamicShopper identity, neutral proof and action controls, no invented offers or seller metrics, no OS status bar, and language switching instead of duplicated bilingual listing prose. These are the selected product constraints, not unfinished layout work.
+
+## Combined verification
+
+The candidate includes main `99131f3`. The independent reviewer repeated both categories at phone/laptop widths and verified the single visible language control, interview/comparison focus restoration, applied-view Undo, and restoration of the original query and selected capacity. No unresolved integration findings remained.
+
+- `npm run check`: zero errors and warnings.
+- `OPENAI_API_KEY='' OPENAI_MODEL='' npm run test:unit -- --run`: 377 passed, one live-provider test skipped.
+- Full browser suite against the fresh local Cloudflare production build: 153 passed, one development-only poison check skipped.
+- Credential-cleared local assistant/development suite: all six passed, including that poisoned-model check.
+- Changed-source Prettier and ESLint: passed. This does not claim whole-repository lint is clean.
+- Credential-cleared `build:d1` and Wrangler deployment dry run: passed.
+- Scoped red/green regressions cover collapsing filters without moving products, matching review-photo destinations, and final dimension facts.

@@ -103,3 +103,5 @@ Everyone who uses the store should come away believing two things at once: "the 
 ## Ideas for later
 
 Seller insight into what shoppers ask for; photo search; Thai voice input for mom mode; gentle sort suggestions from browsing (never applied automatically); plain-language specs in mom mode ("about 10 cups" next to 1.8 L); running against a local model.
+
+Shoppers can compare two products they select and choose the fields to inspect. A selection outside the current results is identified in the comparison. Selections stay in the open tab. The deal task takes an explicitly selected product and uses the same quantity and optimizer as the shelf.

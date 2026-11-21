@@ -2,6 +2,12 @@
 
 One walk through the product that touches every idea in these guidelines. It is the reference experience: every part of the product should make this journey work, with or without the network.
 
+Open **Shopping assistant** from the results heading on `/`, or go directly to `/?view=receipt`. The browser demo uses the offline assistant by default. To rehearse the local live-model proof or development-only poisoned model, use the loopback setup in the [README](../README.md#optional-local-openai-test).
+
+A cooker capacity selected on the public storefront stays active when the shopper opens **Shopping assistant**, restyles the shelf, or opens **Compare views**. Both views use the same capacity and shipping filters. The shopper can remove the capacity chip or reset the store, then use Undo to restore it. Choosing a new category clears the cooker capacity and any incompatible cooker search.
+
+Changing the category under **Shopping criteria → Requirements** keeps a matching search and clears an incompatible one. Undo restores the previous category, search and shelf together.
+
 After applying an interview, opening a listing and returning with browser Back, Back to store or Search products restores the accepted view, its filters and Undo history in the same tab. Shared listing links carry only listing information.
 
 ## The arc
@@ -36,9 +42,11 @@ The product always offers a direct path to the same result:
 | If | The shopper can |
 | --- | --- |
 | A reply does not reshape as expected | Use the matching suggestion chip, or Reset and send again |
-| Mom mode does not trigger | Pick "Mom mode" in the persona picker, then search "หม้อหุงข้าว" |
+| Mom mode does not trigger | Open **Shopper views**, pick **Mom mode**, then search "หม้อหุงข้าว" |
 | The answer is "I can't confirm that from the listing" | Ask about something the listing covers, such as weight; the refusal is the honest answer |
 | A deal does not appear | Press "Best price" on a card |
 | The compare check says "Nothing to compare yet" | Search "rice cooker" on the compare page |
 | The network or the AI is unavailable | Carry on: the store answers in Offline mode |
-| The store is in a confusing state | Reset |
+| The store is in a confusing state | **Reset store** restores the default shelf and clears the previous reply and deal receipt |
+
+For the research workflow, ask for lightweight gaming mice under a budget. Open Shopping criteria, adjust the budget, remove a ranking preference, change the layout or reading settings, and Undo each change. Compare two chosen products, then calculate one product’s deal. The selected fields and receipt read from the catalog and optimizer. The same controls work in English and Thai offline.
