@@ -1,5 +1,5 @@
 /* Shopee-inspired shopping baseline, accepted for this prototype by the user.
-   Theme changes use presentation tokens; catalog facts stay in ShopShelf. */
+   Brand tokens stay fixed while body presentation tokens follow the theme. */
 body {
 	margin: 0;
 	background: #f5f5f5;
@@ -14,8 +14,9 @@ body {
 	--muted: #656565;
 	--line: #e5e5e5;
 	--accent: #b63113;
-	--header: #ee4d2d;
-	--header-copy: #482016;
+	--shop-brand: #c43e1c;
+	--shop-on-brand: #fff;
+	--shop-brand-tint: #fff3ef;
 	--tint: #fff3ef;
 	min-height: 100dvh;
 	color: var(--ink);
@@ -25,28 +26,22 @@ body {
 	line-height: 1.5;
 }
 .phone.minimal {
-	--header-copy: #fff;
 	--paper: #f8f8f8;
 	--accent: #252525;
-	--header: #252525;
 	--tint: #eee;
 }
 .phone.vibrant {
-	--header-copy: #fff;
 	--paper: #f5f6fd;
 	--accent: #2f3ccf;
-	--header: #2f3ccf;
 	--tint: #eceeff;
 	--line: #dfe2f1;
 }
 .phone.large-print {
-	--header-copy: #fff;
 	--paper: #fbfbf8;
 	--ink: #0d0d10;
 	--muted: #3d3d42;
 	--line: #858172;
 	--accent: #16161a;
-	--header: #16161a;
 	--tint: #efefe9;
 	font-size: 20px;
 }
@@ -108,11 +103,11 @@ body {
 	margin-inline: auto;
 }
 .phone .market-header {
-	background: var(--header);
-	color: white;
+	background: var(--shop-brand);
+	color: var(--shop-on-brand);
 }
 .phone .utility {
-	color: var(--header-copy);
+	color: var(--shop-on-brand);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -130,7 +125,7 @@ body {
 .phone .utility button {
 	background: transparent;
 	border: 0;
-	color: var(--header-copy);
+	color: var(--shop-on-brand);
 	padding: 0 8px;
 	min-height: 34px;
 }
@@ -144,7 +139,7 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 9px;
-	color: white;
+	color: var(--shop-on-brand);
 	background: transparent;
 	border: 0;
 	padding: 0;
@@ -179,12 +174,12 @@ body {
 	place-items: center;
 	min-width: 62px;
 	border: 0;
-	background: var(--accent);
-	color: white;
+	background: var(--shop-brand);
+	color: var(--shop-on-brand);
 }
 .phone .header-icon {
 	border: 0;
-	color: white;
+	color: var(--shop-on-brand);
 	background: transparent;
 	padding: 8px;
 	display: grid;
@@ -201,7 +196,7 @@ body {
 	padding: 0;
 	min-height: 30px;
 	font-size: 12px;
-	color: var(--header-copy);
+	color: var(--shop-on-brand);
 	background: transparent;
 	border: 0;
 }
@@ -351,10 +346,14 @@ body {
 	align-items: center;
 }
 .phone .market-header :focus-visible {
-	outline-color: white;
+	outline-color: var(--shop-on-brand);
 }
 .phone .market-header .search :focus-visible {
-	outline-color: var(--accent);
+	outline-color: var(--shop-brand);
+}
+.phone .market-header .search button:focus-visible {
+	outline-color: var(--shop-on-brand);
+	outline-offset: -4px;
 }
 .phone .shop-identity {
 	display: flex;
@@ -363,10 +362,10 @@ body {
 	min-width: 0;
 }
 .phone .shop-avatar {
-	border: 1px solid var(--line);
+	border: 1px solid var(--shop-brand);
 	border-radius: 50%;
-	background: var(--tint);
-	color: var(--accent);
+	background: var(--shop-brand-tint);
+	color: var(--shop-brand);
 	width: 64px;
 	height: 64px;
 	display: grid;
