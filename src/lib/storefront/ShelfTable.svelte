@@ -55,7 +55,7 @@
 				{#each products as product (product.id)}
 					<tr data-product={product.id}>
 						<th scope="row">
-							<a href={resolve(`/product/[id]?lang=${locale}`, { id: product.id })}>
+							<a href={resolve(`/product/[id]?lang=${locale}&view=receipt`, { id: product.id })}>
 								<FactValue productId={product.id} field="name" {locale} />
 							</a>
 						</th>

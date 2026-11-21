@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('verifies rendered Thai facts and withdraws the proof when the price changes', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
 	const cooker = page.locator('[data-product="cooker-one-button"]');
 	const price = cooker.locator('[data-fact="price"]');
@@ -30,7 +30,7 @@ test('preserves explicit sorting and prices each chat-selected product offline',
 	page,
 	context
 }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await context.setOffline(true);
 	const sort = page.getByLabel('Sort by');
@@ -56,7 +56,7 @@ test('adapts and reverses the shelf offline and compares the same cooker deal', 
 	context
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await expect(page.getByRole('button', { name: 'Compare views' })).toBeEnabled();
 	await context.setOffline(true);
 	await page.getByRole('textbox', { name: 'Ask the store' }).fill('ซื้อของขวัญให้แม่ หม้อหุงข้าว ใช้ง่ายๆ');
@@ -133,8 +133,13 @@ test('searches, sorts and filters the simulated catalog offline on mobile', asyn
 
 test('renders the event demo grid and filters in a modal drawer', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.goto('/?demo=shopee');
+	await page.goto('/');
 	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	for (const model of ['mouse-1', 'cooker-1', 'earbuds-1']) {
+		const photo = page.locator('.art[data-model="' + model + '"]');
+		await expect(photo).toHaveCSS('background-image', /url\(/);
+		await expect(photo).toHaveCSS('background-size', /cover|300% 200%/);
+	}
 	await expect(page.locator('.store')).toHaveAttribute('lang', 'en');
 	await expect(page.getByRole('button', { name: 'ไทย', exact: true })).toBeEnabled();
 	await page.evaluate(() => window.scrollTo(0, 900));
@@ -204,7 +209,7 @@ test('serves the storefront without credentials and isolates unconfigured demo a
 });
 
 test('disables live experimentation on the production storefront', async ({ page, request }) => {
-	await page.goto('/');
+	await page.goto('/?view=receipt');
 	await page.getByRole('button', { name: 'X-ray' }).click();
 	await expect(page.getByRole('button', { name: 'Try live model' })).toHaveCount(0);
 	const result = await request.post('/api/local-assistant', {
@@ -212,4 +217,23 @@ test('disables live experimentation on the production storefront', async ({ page
 		data: { hints: ['playful'] }
 	});
 	expect(result.status()).toBe(404);
+});
+
+test('shops rice cooker results from the default mobile storefront and opens the adaptive assistant', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
+	const shops = page.getByRole('region', { name: 'Matching shops' });
+	await expect(shops).toBeVisible();
+	await shops.getByRole('button', { name: 'View shop' }).click();
+	const inventory = page.getByRole('dialog');
+	await expect(inventory.getByRole('link').first()).toBeVisible();
+	await inventory.getByRole('button', { name: 'Close' }).click();
+	await shops.getByRole('link').first().click();
+	await expect(page).toHaveURL(/\/product\/cooker-/);
+	await page.getByRole('link', { name: 'Back to store' }).click();
+	await page.getByRole('link', { name: 'Shopping assistant' }).click();
+	await expect(page.getByRole('textbox', { name: 'Ask the store' })).toBeVisible();
 });

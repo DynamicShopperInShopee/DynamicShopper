@@ -1,0 +1,38 @@
+.demo-photo {
+	background: white url('./demo-categories.jpg') no-repeat 0 0 / 300% 200%;
+}
+.demo-photo[data-model='cooker-1'] {
+	background: #d0dce6 url('./cooker-one-button.jpg') center / cover no-repeat;
+}
+.demo-photo[data-category='earbuds'] {
+	background-position: 50% 0;
+}
+.demo-photo[data-category='power'] {
+	background-position: 100% 0;
+}
+.demo-photo[data-category='cooker']:not([data-model='cooker-1']) {
+	background-image: var(--cooker-image, url('./demo-categories.jpg'));
+	background-position: var(--cooker-position, 0 100%);
+	background-size: var(--cooker-size, 300% 200%);
+}
+.demo-photo[data-category='skin'] {
+	background-position: 50% 100%;
+}
+.demo-photo[data-category='mouse'] {
+	background-image: url('./demo-mice.jpg');
+}
+.demo-photo:is([data-model='mouse-2'], [data-model='mouse-8']) {
+	background-position: 50% 0;
+}
+.demo-photo[data-model='mouse-3'] {
+	background-position: 100% 0;
+}
+.demo-photo[data-model='mouse-4'] {
+	background-position: 0 100%;
+}
+.demo-photo[data-model='mouse-5'] {
+	background-position: 50% 100%;
+}
+.demo-photo[data-model='mouse-6'] {
+	background-position: 100% 100%;
+}

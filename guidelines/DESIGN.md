@@ -216,3 +216,7 @@ The product detail route uses a square product illustration, with the same local
 Below the price and delivery summary, the product route shows available catalog review excerpts, the seller, and product details. The bottom action bar links to reviews and product details and opens the specification sheet when that data exists.
 
 The event demo uses locally bundled illustrative photos for rice cookers. The one-button listing has a square gallery with two views, swipe navigation, and keyboard-accessible image controls. Other illustrated cooker models use the same image on the shelf and listing.
+
+The phone listing starts with the gallery at the top of the viewport. Navigation overlays the image and becomes a solid search row after the image scrolls away. The action bar stays at the bottom. Opening specifications shows a tall sheet with scrollable rows and a pinned confirmation button.
+
+When every result is a rice cooker, the mobile storefront previews a matching shop above the grid. Its strip links to products in result order, and the shop button opens that seller’s local catalog. The results heading links to the adaptive shopping assistant.
