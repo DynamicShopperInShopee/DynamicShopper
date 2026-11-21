@@ -99,8 +99,12 @@ test('opens a rice cooker from the shelf and reads its catalog specifications', 
 	);
 	await expect(page).toHaveURL(/\/product\/cooker-1/);
 	await expect(page.locator('[data-fact="price"]')).toHaveAttribute('data-raw', '690');
-	await page.getByText('Specifications', { exact: true }).click();
+	await page.getByRole('button', { name: 'Specifications' }).click();
+	const sheet = page.getByRole('dialog', { name: 'Specifications' });
+	await expect(sheet).toBeVisible();
 	await expect(page.locator('[data-fact="capacity"]')).toHaveText('1.8 L');
+	await sheet.getByRole('button', { name: 'Done' }).click();
+	await expect(sheet).toBeHidden();
 	await page.getByRole('link', { name: 'ไทย' }).click();
 	await expect(page.locator('[data-fact="name"]')).toContainText('หม้อหุงข้าว');
 });

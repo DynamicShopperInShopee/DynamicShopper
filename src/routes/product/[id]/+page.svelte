@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import '../../../lib/assets/fonts/plex.css';
 	import CategoryGlyph from '../../../lib/CategoryGlyph.svelte';
 	import { riceCookerSpecs } from '../../../lib/store-catalog';
 	import { formatBaht, formatNumber } from '../../../lib/store-search';
@@ -9,12 +10,7 @@
 	const product = $derived(data.product);
 	const th = $derived(data.language === 'th');
 	const specs = $derived(riceCookerSpecs[product.id]);
-	const fields = $derived([
-		{ key: 'capacity', label: th ? 'ความจุ' : 'Capacity', unit: th ? 'ลิตร' : 'L' },
-		{ key: 'power', label: th ? 'กำลังไฟ' : 'Power', unit: th ? 'วัตต์' : 'W' },
-		{ key: 'programs', label: th ? 'โปรแกรมหุง' : 'Cooking programs', unit: '' },
-		{ key: 'warranty', label: th ? 'การรับประกัน' : 'Warranty', unit: th ? 'ปี' : 'years' }
-	]);
+	import SpecificationsSheet from './SpecificationsSheet.svelte';
 </script>
 
 <svelte:head><title>{product.name[data.language]} · DynamicShopper</title></svelte:head>
@@ -31,11 +27,7 @@
 			{#if product.category !== 'cooker'}<CategoryGlyph category={product.category} />{/if}
 		</div>
 		<section aria-labelledby="product-title">
-			<h1 id="product-title" data-fact="name" data-raw={product.name[data.language]}>
-				{product.name[data.language]}
-			</h1>
-			<p data-fact="shop" data-raw={product.shop}>{product.shop}</p>
-			<dl>
+			<dl class="prices">
 				<div>
 					<dt>{th ? 'ราคา' : 'Price'}</dt>
 					<dd data-fact="price" data-raw={product.price}>{formatBaht(product.price)}</dd>
@@ -48,6 +40,12 @@
 						</dd>
 					</div>
 				{/if}
+			</dl>
+			<h1 id="product-title" data-fact="name" data-raw={product.name[data.language]}>
+				{product.name[data.language]}
+			</h1>
+			<p data-fact="shop" data-raw={product.shop}>{product.shop}</p>
+			<dl class="facts">
 				<div>
 					<dt>{th ? 'ค่าจัดส่ง' : 'Shipping'}</dt>
 					<dd data-fact="shipping" data-raw={product.shipping}>
@@ -63,41 +61,33 @@
 					<dd data-fact="sold" data-raw={product.sold}>{formatNumber(product.sold)}</dd>
 				</div>
 			</dl>
-			{#if specs}
-				<details>
-					<summary>{th ? 'สเปกสินค้า' : 'Specifications'}</summary>
-					<dl>
-						{#each fields as field, index (field.key)}
-							<div>
-								<dt>{field.label}</dt>
-								<dd data-fact={field.key} data-raw={specs[index]}>
-									{formatNumber(specs[index])}{field.unit ? ` ${field.unit}` : ''}
-								</dd>
-							</div>
-						{/each}
-					</dl>
-				</details>
-			{/if}
 		</section>
 	</div>
+	{#if specs}
+		<SpecificationsSheet {specs} {th} />
+	{/if}
 </main>
 
 <style>
 	main {
 		max-width: 72rem;
 		margin: auto;
-		padding: 0 1rem 2rem;
+		padding: 0 0 2rem;
+		font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
 		color: #16161a;
-		background: #fbfbf8;
+		background: #fff;
 	}
 	header {
 		display: flex;
 		justify-content: space-between;
 		border-bottom: 1px solid #e9e6dc;
-		margin-bottom: 1rem;
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background: #fff;
+		padding-inline: 1rem;
 	}
-	header a,
-	summary {
+	header a {
 		min-height: 44px;
 		display: flex;
 		align-items: center;
@@ -105,7 +95,7 @@
 	}
 	.listing {
 		display: grid;
-		gap: 1rem;
+		gap: 0;
 	}
 	.art {
 		width: 100%;
@@ -117,10 +107,6 @@
 	.cooker {
 		background: white url('../../../lib/assets/products/demo-categories.jpg') no-repeat 0 100% /
 			300% 200%;
-	}
-	h1 {
-		font-size: clamp(1.5rem, 4vw, 2rem);
-		overflow-wrap: anywhere;
 	}
 	dl {
 		margin: 1rem 0;
@@ -137,9 +123,50 @@
 		margin: 0;
 		font-family: ui-monospace, monospace;
 	}
-	summary {
-		cursor: pointer;
-		font-weight: 600;
+	section {
+		min-width: 0;
+		padding: 0 1rem;
+	}
+	h1 {
+		overflow-wrap: anywhere;
+		font-size: 1.25rem;
+		line-height: 1.4;
+		margin: 0.75rem 0 0.25rem;
+	}
+	p {
+		margin: 0 0 0.75rem;
+	}
+	.prices {
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+		align-items: baseline;
+		border-top: 0;
+		border-bottom: 1px solid #e9e6dc;
+	}
+	.prices div {
+		display: block;
+	}
+	.prices dt {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+	.prices dd[data-fact='price'] {
+		font-size: 1.7rem;
+		font-weight: 700;
+	}
+	.facts {
+		border: 0;
+		margin: 0;
+	}
+	.facts div {
+		min-height: 44px;
+		align-items: center;
+		border-top: 1px solid #e9e6dc;
 	}
 	@media (min-width: 700px) {
 		.listing {

@@ -211,4 +211,4 @@ Assistant messages sit on the paper as plain text and slips. The shopper's messa
 
 The default storefront at `/` follows the approved Shopee Thailand mobile screenshots for the sticky search row and horizontally scrollable quick filters, sort tabs, and two-column grid. The filter drawer is based on the earlier Shopee reference. It uses the same simulated catalog as the standard storefront, with locally bundled illustrative product photos in its cards. The Thermal Receipt storefront remains available at `/?view=receipt`.
 
-The product detail route uses a square product illustration, a catalog-backed price and shipping summary, and an expandable specification slip. The mobile layout stacks these sections, and the desktop layout places the illustration beside the details.
+The product detail route uses a square product illustration, a catalog-backed price and shipping summary, and a specification slip opened from the bottom action bar. On phones the illustration is full width, the header stays visible while scrolling, and specifications open as a bottom sheet. On desktop the illustration and details sit side by side.
