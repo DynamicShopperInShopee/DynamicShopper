@@ -12,7 +12,7 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Standalone sourced shopping preview
 
-The optional sourced preview uses the DynamicShopper identity and a shopping header. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
+The optional sourced preview uses the DynamicShopper identity. Its shopping header and search action keep their orange colors across themes. Show the observation date, listing source and status of the data. Missing images, stock, prices or evidence have honest empty states. Interview completion reveals a receipt with Undo and chat refinement. The editable comparison examples use the same data and cannot change the current shop.
 
 ## Interview transition
 

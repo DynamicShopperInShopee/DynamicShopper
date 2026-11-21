@@ -80,3 +80,23 @@ For the first release, keep a failed deployment unpublished until fixed.
 
 Prices remain observations captured at 14:22–14:32 Asia/Bangkok on 2026-11-21.
 Publishing them does not add automatic price refresh or guarantee checkout terms.
+
+## Stable orange branding update
+
+Published as Worker version `7c9290ab-d4f7-4b6a-97b9-783fd78fa14c`.
+The header, DynamicShopper mark and search action now use fixed brand tokens
+independent of the shopper theme. Orange `#c43e1c` with white has a WCAG contrast
+ratio of 5.18:1. Body layouts, density and details still adapt.
+
+Browser verification on localhost checked standard, minimal, vibrant and large
+print: the computed header and search backgrounds stayed `rgb(196, 62, 28)`.
+On the published cloud release, completing the CNN interview changed the grid
+to a minimal comparison table and preserved the same orange branding. See
+`preview/evidence/cloud-orange-brand.jpg`. The cloud catalog still exposes
+1,500 products. Localhost on port 5176 now uses the cloud catalog through the
+development proxy.
+
+The PR includes the latest main storefront/listing integration and adapts its
+standalone interview to the shared `lockedFields` API. Both explicit-theme
+regressions, all 32 focused tests, Svelte/typecheck, targeted ESLint and the
+standalone production build passed after integration.
