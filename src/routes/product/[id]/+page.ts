@@ -1,6 +1,12 @@
 import { error } from '@sveltejs/kit';
-import { formatFact, getProduct, resolveFact, specs } from '../../../lib/catalog';
-import type { Fact, Locale } from '../../../lib/catalog';
+import {
+	formatFact,
+	getListingDetails,
+	getProduct,
+	resolveFact,
+	specs
+} from '../../../lib/catalog';
+import type { DetailRow, Fact, Locale } from '../../../lib/catalog';
 import { catalog } from '../../../lib/store-catalog';
 import { isValidLook } from '#lib/storefront/sharedLook.ts';
 import { rawAttribute } from '../../../lib/storefront/verify';
@@ -16,6 +22,32 @@ function presentFact(fact: Fact, locale: Locale) {
 			'data-source': 'catalog',
 			'data-raw': rawAttribute(fact.raw)
 		}
+	};
+}
+
+function presentDetails(productId: string, locale: Locale) {
+	const details = getListingDetails(productId);
+	if (!details) return undefined;
+
+	const rows = (items: readonly DetailRow[]) =>
+		items.flatMap(({ field, label }) => {
+			const value = resolveFact(productId, field);
+			return value ? [{ label: label[locale], ...presentFact(value, locale) }] : [];
+		});
+	const packageCount = resolveFact(productId, 'detail.packageCount');
+
+	return {
+		features: rows(details.features),
+		modes: rows(details.modes),
+		dimensions: rows(details.dimensions),
+		packageItems: rows(details.packageItems),
+		highlights: rows(details.highlights),
+		technical: rows(details.technical),
+		packageCount: packageCount && presentFact(packageCount, locale),
+		reviewMedia: details.reviewMedia.flatMap(({ reviewField, mediaId, captionField }) => {
+			const caption = resolveFact(productId, captionField);
+			return caption ? [{ reviewField, mediaId, caption: presentFact(caption, locale) }] : [];
+		})
 	};
 }
 
@@ -57,6 +89,7 @@ export const load: PageLoad = ({ params, url }) => {
 		reviewCount: fact('reviewCount'),
 		reviews: [fact('review.0'), fact('review.1')],
 		summary: fact('summary'),
+		listingDetails: presentDetails(product.id, language),
 		shop: shop && presentFact(shop, language),
 		shopProducts: catalog
 			.filter(
