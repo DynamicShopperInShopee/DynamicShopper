@@ -35,7 +35,6 @@
 	import {
 		defaultPlan,
 		interpretOffline,
-		personaPlan,
 		rankProducts,
 		validateProposal,
 		type ShopperPlan,
@@ -229,7 +228,6 @@
 		return session.cart.find((item) => item.productId === productId)?.quantity ?? 1;
 	}
 	const a = $derived(assistantCopy[language]);
-	const personas = ['standard', 'tech', 'visual', 'mom'] as const;
 
 	let restoredFields = $state<(keyof ShopperPlan)[]>([]);
 	let cartRestored = $state(false);
@@ -360,9 +358,9 @@
 		adapted = true;
 		turn = undefined;
 		await tick();
-		const shelf = document.getElementById('products');
-		shelf?.scrollIntoView({ block: 'start', behavior: 'instant' });
-		shelf?.focus({ preventScroll: true });
+		const receipt = document.getElementById('store-change-receipt');
+		receipt?.scrollIntoView({ block: 'start', behavior: 'instant' });
+		receipt?.focus({ preventScroll: true });
 	}
 	async function focusAssistant() {
 		await tick();
@@ -372,28 +370,6 @@
 		const previous = [...locks];
 		changePlan({ [key]: structuredClone(defaultPlan[key]) }, false);
 		locks = previous.filter((item) => item !== key);
-	}
-	function selectPersona(persona: (typeof personas)[number]) {
-		changePlan(
-			{
-				...personaPlan(persona, language),
-				query,
-				category: activePlan.category,
-				maxPrice: activePlan.maxPrice
-			},
-			false
-		);
-		for (const field of [
-			'theme',
-			'layout',
-			'density',
-			'details',
-			'simplified',
-			'sections',
-			'priorities'
-		] as const)
-			register(field);
-		if (persona === 'mom') register('locale');
 	}
 	function listingHref(id: string) {
 		return resolve(`/product/[id]?lang=${language}&theme=${theme}${originQuery}`, { id });
@@ -1199,11 +1175,6 @@
 					>
 						{a.compare}
 					</a>
-					<select aria-label={t.theme} bind:value={theme} onchange={() => register('theme')}>
-						{#each themes as option (option)}
-							<option value={option}>{t[option]}</option>
-						{/each}
-					</select>
 					<button
 						type="button"
 						lang={language === 'th' ? 'en' : 'th'}
@@ -1646,7 +1617,7 @@
 					</div>
 				{/if}
 				{#if changes.length}
-					<div class="assistant-reply" role="status">
+					<div id="store-change-receipt" tabindex="-1" class="assistant-reply" role="status">
 						<strong>{a.changed}</strong>
 						<p>{[...new Set(changes.map(changeName))].join(' · ')}</p>
 					</div>
@@ -1670,16 +1641,6 @@
 					{theme}
 				/>
 				<div class="shopper-actions">
-					{#each personas as persona (persona)}
-						<button
-							id={`persona-${persona}`}
-							type="button"
-							disabled={!interactive}
-							onclick={() => selectPersona(persona)}
-						>
-							{a[persona]}
-						</button>
-					{/each}
 					<button
 						type="button"
 						aria-expanded={compareOpen}

@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-test('persona and shared-look changes explain themselves and clear on Undo', async ({ page }) => {
+test('chat and shared-look changes explain themselves and clear on Undo', async ({ page }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('minimal');
+	await page.getByRole('button', { name: 'Send', exact: true }).click();
 	const notice = page
 		.getByRole('status')
 		.filter({ has: page.getByText('What changed', { exact: true }) });

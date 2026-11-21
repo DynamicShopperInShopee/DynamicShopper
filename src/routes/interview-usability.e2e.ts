@@ -8,9 +8,7 @@ const languages = {
 		compare: 'Compare',
 		next: 'Next',
 		skip: 'Skip — keep my current settings',
-		review: 'Review your view',
-		stage: 'Review',
-		apply: 'Apply my view',
+		stage: 'Reading',
 		chat: 'Refine this view in chat',
 		input: 'Ask the store'
 	},
@@ -21,9 +19,7 @@ const languages = {
 		compare: 'เปรียบเทียบ',
 		next: 'ถัดไป',
 		skip: 'ข้าม — ใช้การตั้งค่าปัจจุบัน',
-		review: 'ตรวจมุมมองที่เสนอ',
-		stage: 'ทบทวน',
-		apply: 'ใช้มุมมองนี้',
+		stage: 'การอ่าน',
 		chat: 'แชตปรับมุมมองต่อ',
 		input: 'ถามหน้าร้าน'
 	}
@@ -56,15 +52,16 @@ for (const viewport of [
 			await page.keyboard.press('ArrowRight');
 			await expect(dialog.getByRole('radio', { name: text.compare, exact: true })).toBeChecked();
 			await dialog.getByRole('button', { name: text.next }).press('Enter');
-			for (let remaining = 0; remaining < 3; remaining++)
+			for (let remaining = 0; remaining < 2; remaining++)
 				await dialog.getByRole('button', { name: text.skip }).press('Enter');
-			await expect(dialog.getByRole('heading', { name: text.review })).toBeFocused();
+			await expect(dialog.locator('#interview-step-title')).toBeFocused();
 			await expect(dialog.locator('[aria-current="step"]')).toHaveText(text.stage);
-			await expect(dialog.getByRole('button', { name: text.apply })).toBeInViewport();
-			await dialog.getByRole('button', { name: text.apply }).press('Enter');
-			await expect(page.locator('#products')).toBeFocused();
+			await dialog.getByRole('button', { name: text.skip }).press('Enter');
+			await expect(dialog).toHaveCount(0);
+			await expect(page.locator('#store-change-receipt')).toBeFocused();
+			await expect(page.locator('#store-change-receipt')).toBeInViewport();
 			const chat = page.getByRole('button', { name: text.chat });
-			await expect(chat).toBeInViewport({ ratio: 1 });
+			await expect(chat).toBeVisible();
 			await chat.press('Enter');
 			await expect(page.getByRole('textbox', { name: text.input })).toBeFocused();
 			expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewport.width);

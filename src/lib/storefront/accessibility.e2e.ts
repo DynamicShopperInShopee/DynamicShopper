@@ -201,13 +201,11 @@ for (const theme of themes) {
 			}) => {
 				await page.emulateMedia({ reducedMotion: 'reduce' });
 				await page.setViewportSize({ width, height });
-				await page.goto('/?view=receipt');
+				await page.goto(`/?view=receipt&look=${theme}.grid.${lang}`);
 				const store = page.locator('.store');
 				const search = page.getByRole('searchbox');
 				await expect(search).toBeEnabled();
 
-				if (lang === 'th') await page.getByRole('button', { name: 'ไทย', exact: true }).click();
-				await page.getByLabel(lang === 'th' ? 'ธีม' : 'Theme', { exact: true }).selectOption(theme);
 				await expect(store).toHaveAttribute('lang', lang);
 				await expect(store).toHaveAttribute('data-theme', theme);
 				await search.fill(lang === 'th' ? 'หม้อหุงข้าว' : 'rice cooker');

@@ -12,12 +12,26 @@ text on white. The interview entry remains a compact optional strip.
 
 ## Interview transition
 
-The default marketplace has a plain optional interview entry. Its modal shows one
-question at a time with labeled radio choices, Back, Next and Skip, then a proposed
-view receipt and one Apply action. Desktop centers the dialog; phones use a bottom
-sheet. Cancel leaves the store unchanged. Apply focuses the changed product shelf;
-the visible chat-refinement button focuses the existing assistant. No animation is
-required. Large print keeps single-column answers, 20px text and 48px targets.
+The default marketplace has a plain optional needs interview. Its modal shows four
+questions with labeled radio choices, Back, Next and Skip. Finishing or skipping the
+last question automatically applies one validated proposal, closes the modal and
+focuses the change receipt. Drafts and cancellation leave the store unchanged. Undo
+restores the plan and answers; chat refines the same view. There is no separate preview
+or Apply screen and no preset, persona or theme chooser in the main shopping flow.
+Desktop centers the dialog; phones use a bottom sheet. Large print keeps 20px text
+and 48px targets, with no motion when reduced motion is requested.
+
+## Preset inspection library
+
+`/presets` is a separate design-review surface containing the reference's exact 177
+modules across twelve parts and twenty authored presentation examples. Each module
+shows its need, trigger, information order, dependency and default/empty/loading/error
+states. Missing services show neutral unavailable anatomy. No example can apply to
+the store. Existing catalog fixtures and the optimizer support inspection until the
+updated sourced catalog arrives; original photographs are explicitly pending rather
+than substituted with category illustrations. This surface keeps the orange shopping
+identity, DynamicShopper wordmark, receipt proof surfaces and all four accessible
+themes. See [the module inventory](../docs/PRESETS.md).
 
 ## North star
 

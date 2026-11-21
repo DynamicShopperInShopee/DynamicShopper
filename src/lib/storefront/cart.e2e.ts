@@ -46,7 +46,8 @@ test('restores the saved presentation before applying a shared look as one undo 
 	page
 }) => {
 	await page.goto('/?view=receipt');
-	await page.getByRole('button', { name: 'Tech minimal', exact: true }).click();
+	await page.getByRole('textbox', { name: 'Ask the store', exact: true }).fill('minimal');
+	await page.getByRole('button', { name: 'Send', exact: true }).click();
 	await page.reload();
 	await expect(page.locator('.store')).toHaveAttribute('data-theme', 'minimal');
 	await expect(page.getByText('Restored your saved store')).toBeVisible();
@@ -67,5 +68,5 @@ test('a missing Thai listing keeps its requested theme and links to the receipt 
 	await expect(main).toHaveAttribute('data-storefront-theme', 'large-print');
 	await expect(main.getByRole('heading', { name: 'ไม่พบสินค้า' })).toBeVisible();
 	await main.getByRole('link', { name: 'กลับหน้าร้าน' }).click();
-	await expect(page.getByRole('button', { name: 'Mom mode', exact: true })).toBeVisible();
+	await expect(page.getByRole('searchbox')).toBeVisible();
 });

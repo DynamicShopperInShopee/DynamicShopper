@@ -40,14 +40,14 @@
 					? 'ปรับมุมมองตามคำตอบแล้ว'
 					: 'Your preferences are applied'
 				: th
-					? 'เลือกรูปแบบและขนาดตัวอักษร'
-					: 'Choose your layout and text size'}
+					? 'บอกสิ่งที่คุณต้องการ'
+					: 'Tell us what you need'}
 		</h2>
 		{#if !compact && !applied}
 			<p>
 				{th
-					? 'เลือกข้อมูลที่อยากเห็นก่อน แล้วดูตัวอย่างก่อนใช้'
-					: 'Choose which details come first and preview the result.'}
+					? 'ตอบคำถามสั้น ๆ ร้านจะปรับตามความต้องการเมื่อตอบเสร็จ'
+					: 'Answer a few questions. The shop adjusts when you finish.'}
 			</p>
 		{/if}
 	</div>

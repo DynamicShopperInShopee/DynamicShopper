@@ -9,7 +9,7 @@ invalid heads retain their direct-answer fallback independently. The existing
 proposal validator checks the final patch. A complete interview may also suggest
 an unlocked theme; explicit reading settings and priorities remain deterministic.
 
-Apply preserves current filters and writes one plan/history entry before revealing
+Interview completion preserves current filters and writes one plan/history entry before revealing
 the existing adaptive receipt renderer. Undo restores both plan and interview
 metadata. The same catalog, deterministic ranking and optimizer serve this view;
 no separate pricing or product data path is introduced. The optional local live
@@ -57,7 +57,7 @@ Reasoning: an AI cannot misquote what it never saw, and anything price-shaped in
 
 The root storefront can also obtain a presentation proposal from the optional
 four-question interview. The browser model receives answer IDs only and feeds
-the same proposal validator. Draft answers are isolated; one Apply passes the
+the same proposal validator. Draft answers are isolated; finishing the last question passes the
 validated patch to the existing root change function and undo stack. Catalog
 facts, deterministic ranking and the optimizer stay on their existing paths.
 Model failure falls back to direct answers. See
@@ -196,3 +196,13 @@ Credentials never leave the server. The only configuration value the shopper can
 ## Measuring understanding
 
 A **golden set** of about sixty real shopper messages (Thai, English, code-switched, slang and adversarial) is run through the real pipeline for both the AI and the fallback. A message passes when the intent and the expected plan changes match. Separately, three **safety checks** run on every answer: no fact in the reply, no plan value outside the allowlists, no product id outside the catalog. Any safety failure is a **fact violation**, and the target is zero. Adversarial messages are scored on safety only. The fallback's score should never be allowed to slip; the AI's score is kept alongside its typical response time and how often its output had to be trimmed or guarded. See [TRUST-AND-PROOF.md](TRUST-AND-PROOF.md).
+
+## Preset inspection boundary
+
+The 177-module registry describes authored design needs and dependencies. Its 73 ready
+and 104 service entries are design classifications, not live-feature certifications.
+The twenty presentation examples select only theme, layout, density, details and
+sections through the existing validator. `/presets` holds selections locally with no
+store mutation callback, agent write path, new pricing logic or product ranking.
+Missing services and original photographs remain unavailable. The sourced catalog
+handoff and cloud publication belong to the data owner and are outside this change.
