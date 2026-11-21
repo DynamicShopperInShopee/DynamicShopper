@@ -28,9 +28,10 @@ for (const viewport of [
 		const marketplace = await decodedPhoto(page.locator(digital).first());
 		expect(marketplace?.width).toBeGreaterThan(0);
 		await page.getByRole('link', { name: 'Shopping assistant' }).first().click();
+		await expect(page).toHaveURL((url) => url.searchParams.get('view') === 'receipt');
 		const card = page.locator('#products [data-product-card="cooker-digital"]');
-		await expect(card.locator(digital)).toHaveCount(1);
-		expect(await decodedPhoto(card.locator(digital))).toEqual(marketplace);
+		const assistantPhoto = card.locator('[data-card-field="image"]').locator(digital);
+		await expect.poll(() => decodedPhoto(assistantPhoto)).toEqual(marketplace);
 		await expect(page.locator('#products [data-product-card="clearcall"] .art svg')).toHaveCount(1);
 		await page.goto('/compare?category=rice-cooker');
 		await expect(page.locator(digital)).toHaveCount(1);
