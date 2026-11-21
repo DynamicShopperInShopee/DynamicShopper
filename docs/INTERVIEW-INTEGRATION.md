@@ -2,8 +2,12 @@
 
 Status: accepted for the root storefront; production effectiveness of the model is unmeasured.
 
-Baseline: `origin/main` at `e248361`. The user requested a PR for the integration
-owner while another chat owns the default Shopee-style surface. This change
+Baseline: `origin/main` at `e248361`, merged with `8364e30`. The user requested a PR for the integration
+owner while another chat owns the default Shopee-style surface. The user's follow-up
+explicitly requires retaining Shopee branding before and after CNN Apply. A small
+`MarketplaceBrand` header stays mounted across both renderers; presentation
+changes stay below that brand shell. The existing desktop and phone layouts
+remain responsive, with no device frame. This change
 ports the existing interview work into main's catalog, validator, ranking and
 undo history. It does not replace the root with the separate sourced-shop demo
 or import that demo's seven listings or its component-preview workspace.
@@ -23,7 +27,8 @@ continue to use main's state and catalog.
 The root's `eventDemo` is its current marketplace/search renderer. It remains
 the initial renderer. After an effective Apply, the existing adaptive renderer
 shows the selected layout and chat. Undo to an unadapted root restores the
-marketplace. An explicit `view=receipt` URL remains supported. The default-page
+marketplace. The orange Shopee shell remains in both root states. An explicit
+historical `view=receipt` URL remains supported. The default-page
 owner can move the single `PersonalizeShop` mount without changing its contract.
 
 ## Model scope
@@ -45,7 +50,8 @@ measured study; the number of possible layouts is not evidence of improvement.
 
 ## Handoff
 
-- Keep the default storefront work in its owner's PR.
+- Keep the default storefront work in its owner's PR; the brand header is a small
+  shared integration seam and can be moved into the teammate's final shell.
 - No catalog schema, pricing, dependency, runtime or deployment change is required.
 - The 144 component arrangements remain in the earlier design workspace; they
   are not represented as completed product features in this integration.
@@ -53,3 +59,29 @@ measured study; the number of possible layouts is not evidence of improvement.
 - Main currently contains an older `contract.spec.ts` expecting an unexported
   `applyTurn` and a different shared fixture contract. Track that upstream
   failure separately; this PR does not replace the shared state contract.
+
+The existing assistant refines session preferences through its validated preset
+pipeline and offline fallback. The optional local live-model path remains governed
+by main's development gate. This PR does not claim online model training,
+behavioral tracking or deployment of a new agent service.
+
+## Verification on the combined tree
+
+- Production build passes with the Node adapter.
+- 82 tests in 11 relevant server suites pass, including all 625 complete/skipped
+  interview combinations, invalid model heads, inference failure, theme locks,
+  catalog immutability, ranking, pricing and the existing assistant boundary.
+- Scoped ESLint and `git diff --check` pass.
+- Browser checks: 390×844 and 1440×900 fit the page; English and Thai; unchanged
+  draft; Apply preserves a selected cooker capacity; direct answers survive a
+  conflicting visual chat preset; one Undo restores the marketplace and filter;
+  a no-op Apply adds neither an undo entry nor a hidden density lock. Shopee
+  branding remains visible after Apply and locale change.
+- `npm run check` still reports the two existing errors in
+  `src/lib/personalization/contract.spec.ts` noted above. The full server suite
+  also has five failures in that same stale contract suite. They are not hidden
+  by modifying or deleting the test. The targeted suites are the passing scope.
+- These are focused checks, not the full browser suite or a claim of real-shopper
+  effectiveness. Independent review found three state regressions and a listing
+  origin regression; the fixes preserve capacity, provenance locks, no-op history,
+  and branded search capture across product navigation.

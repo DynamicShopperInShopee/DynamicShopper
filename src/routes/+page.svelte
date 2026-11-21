@@ -40,6 +40,7 @@
 	import ShelfTable from '../lib/storefront/ShelfTable.svelte';
 	import ShoppingAssistant from '../lib/storefront/ShoppingAssistant.svelte';
 	import PersonalizeShop from '../lib/storefront/PersonalizeShop.svelte';
+	import MarketplaceBrand from '../lib/storefront/MarketplaceBrand.svelte';
 	import type { ProposalSources } from '../lib/personalization/interview';
 	import { getStoreOpenedAt } from '../lib/storefront/clock';
 	import { fillPresentationGaps, requestLivePreview } from '../lib/storefront/live-preview';
@@ -74,11 +75,12 @@
 		/^(standard|minimal|vibrant|large)\.(grid|list|table)\.(en|th)$/.test(sharedLook)
 	);
 	let adapted = $state(false);
+	const marketplaceBrand = $derived(page.url.searchParams.get('view') !== 'receipt' && !validLook);
 	const eventDemo = $derived(
 		page.url.searchParams.get('view') !== 'receipt' && !validLook && !adapted
 	);
 	const originQuery = $derived(
-		eventDemo ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
+		marketplaceBrand ? '' : validLook ? '&view=receipt&look=' + sharedLook : '&view=receipt'
 	);
 	let proofRoot = $state<HTMLElement>();
 	let plan = $state<ShopperPlan>(structuredClone(defaultPlan));
@@ -428,7 +430,7 @@
 				(queryMatches.length > 0 && queryMatches.every((item) => item.category === 'skin')))
 	);
 	function captureSearch() {
-		return eventDemo
+		return marketplaceBrand
 			? {
 					category,
 					language,
@@ -444,7 +446,7 @@
 	}
 	function restoreSearch(input: unknown) {
 		const selection = readSearchSelection(input);
-		if (!eventDemo || !selection) return;
+		if (!marketplaceBrand || !selection) return;
 		({ category, language, sort, query, draftQuery, maxPrice, freeShipping, capacity } = selection);
 		draftPrice = maxPrice;
 		draftShipping = freeShipping;
@@ -569,12 +571,29 @@
 <div
 	class="store"
 	class:event-demo={eventDemo}
+	class:marketplace-brand={marketplaceBrand}
 	data-theme={theme}
 	data-density={adapted ? plan.density : 'comfortable'}
 	lang={language}
 >
 	<a class="skip" href="#products">{t.skip}</a>
-	{#if !eventDemo}
+	{#if marketplaceBrand}
+		<MarketplaceBrand
+			locale={language}
+			showControls={!eventDemo}
+			enabled={interactive}
+			{theme}
+			themes={themes.map((value) => ({ value, label: t[value] }))}
+			ontheme={(value: string) => {
+				theme = value as Theme;
+				register('theme');
+			}}
+			onlocale={() => {
+				register('locale');
+				language = language === 'th' ? 'en' : 'th';
+			}}
+		/>
+	{:else if !eventDemo}
 		<header class="masthead">
 			<div class="wrap masthead-inner">
 				<a class="brand" href={resolve('/')} aria-label="DynamicShopper">
@@ -1410,6 +1429,10 @@
 		--paper: #fff;
 		--seam: #ecebe6;
 		--radius: 0;
+	}
+	.store.marketplace-brand[data-theme='standard'] {
+		--paper: #f5f5f5;
+		--accent: #b63113;
 	}
 	.store[data-theme='vibrant'] {
 		--accent: #2f3ccf;

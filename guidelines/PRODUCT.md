@@ -75,7 +75,7 @@ Everyone who uses the store should come away believing two things at once: "the 
 
 ## Brand
 
-- Name: **DynamicShopper**. Shopee-inspired, independent, not affiliated: no Shopee logos, marks, orange marketplace look, or brand names in the copy ("coins", never a branded coin).
+- Name: **DynamicShopper**. The user-requested root marketplace flow retains Shopee branding and an orange header across CNN Apply, with DynamicShopper attribution and the catalog simulation disclosure. This scoped exception does not change the historical receipt view or introduce affiliation claims, promotions or branded coin mechanics.
 - Personality: calm, exact, honest. A thermal receipt, not a sale banner (see [DESIGN.md](DESIGN.md)).
 
 ## Success looks like

@@ -2,6 +2,15 @@
 
 Everyone who shapes DynamicShopper, human or AI, should keep these rules. They protect the product's one promise: **the AI may change the presentation, never a fact.** Read [PRODUCT.md](guidelines/PRODUCT.md) and [SYSTEM-DESIGN.md](guidelines/SYSTEM-DESIGN.md) before designing anything, and [DESIGN.md](guidelines/DESIGN.md) before any visual work.
 
+## Accepted storefront branding scope
+
+The user explicitly requested on 2026-11-21 that the current main template retain
+Shopee branding before and after the CNN interview, followed by agent refinement
+through fixed UI presets. For the root marketplace flow, the orange Shopee header
+is an accepted exception to the no-mark/no-marketplace guidance below. Keep the
+DynamicShopper project attribution and the existing catalog simulation disclosure.
+The exception changes presentation only; all fact, pricing and control rules apply.
+
 ## Product rules
 
 1. **Facts come only from the catalog and the pricing logic.** Price, original price, rating, review count, units sold, shipping, specs, voucher terms and deal amounts are never computed, rounded, restated or invented anywhere else.
