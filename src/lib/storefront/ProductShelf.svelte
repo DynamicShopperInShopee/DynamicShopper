@@ -137,7 +137,7 @@
 	a {
 		display: inline-flex;
 		align-items: center;
-		min-height: 44px;
+		min-height: var(--tap, 44px);
 		color: inherit;
 		text-decoration: underline;
 		text-underline-offset: 0.15em;
@@ -171,7 +171,7 @@
 	}
 	.cards li {
 		border: 1px solid var(--seam, #858172);
-		border-radius: 6px;
+		border-radius: var(--radius, 6px);
 		background: var(--surface, #fff);
 		padding: 0.75rem 1rem;
 		overflow-wrap: anywhere;

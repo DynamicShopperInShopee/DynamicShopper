@@ -1,0 +1,49 @@
+[data-storefront-theme] {
+	--paper: #fbfbf8;
+	--surface: #ffffff;
+	--ink: #16161a;
+	--muted: #5d5d63;
+	--accent: #16161a;
+	--on-accent: #ffffff;
+	--seam: #e9e6dc;
+	--tile: #e9e6dc;
+	--verified: #0f7b4a;
+	--void: #d1263b;
+	--radius: 4px;
+	--storefront-text: 16px;
+	--storefront-small: 12px;
+	--tap: 44px;
+	--sans: 'IBM Plex Sans Thai', 'Noto Sans Thai', sans-serif;
+	--mono: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
+	background-color: var(--paper);
+	color: var(--ink);
+	font-family: var(--sans);
+	font-size: var(--storefront-text);
+}
+
+[data-storefront-theme='minimal'] {
+	--paper: #ffffff;
+	--seam: #ecebe6;
+	--tile: #ecebe6;
+	--radius: 0px;
+}
+
+[data-storefront-theme='vibrant'] {
+	--muted: #4f5068;
+	--accent: #2f3ccf;
+	--seam: #e3e3ef;
+	--tile: #e3e3ef;
+	--radius: 6px;
+}
+
+[data-storefront-theme='large-print'] {
+	--ink: #0d0d10;
+	--muted: #3d3d42;
+	--seam: #858172;
+	--verified: #0b6b3f;
+	--void: #b01e31;
+	--radius: 6px;
+	--storefront-text: 20px;
+	--storefront-small: 20px;
+	--tap: 48px;
+}
