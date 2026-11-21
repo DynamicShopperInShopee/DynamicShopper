@@ -6,6 +6,8 @@ The local `integration/storefront-demo` branch combines the owned branch with re
 
 The job preserves reviewed merge resolutions across normal advances to the owned branch or an included PR. A closed PR or rewritten input triggers a fresh build from the owned branch. A conflict leaves the last complete candidate available, records both parent SHAs and the affected paths, and stores the partial result under `refs/sync/partial`. Independent PRs can still join that partial result. Resolve conflicts in a separate local worktree, test the result, and seed the reviewed candidate.
 
+The hourly check also observes public activity on every open repository PR, including drafts, forks and PRs targeting feature branches. It records new and closed PRs, head changes, GitHub update timestamps, review requests, submitted review states, check runs and commit statuses. The private `pr-activity.json` retains the most recent 48 batches of changes. It stores identifiers and states. Comments, review text, check logs and personal inbox notifications stay outside this record. A failed activity check preserves the previous observation and reports the error class in `status.json`.
+
 ## Inspect and pause
 
 ```sh

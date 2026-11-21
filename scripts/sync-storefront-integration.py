@@ -88,18 +88,62 @@ def merge(left, right, label, conflicts):
     return git("commit-tree", tree, "-p", left, "-p", right, "-m", "Merge " + label).stdout.strip()
 
 
-def pulls():
+def public_pages(endpoint, key=None):
     for page in range(1, 101):
-        url = f"https://api.github.com/repos/{PROJECT}/pulls?state=open&base=main&per_page=100&page={page}"
+        separator = "&" if "?" in endpoint else "?"
+        url = f"https://api.github.com/repos/{PROJECT}/{endpoint}{separator}per_page=100&page={page}"
         request = urllib.request.Request(url, headers={"User-Agent": LABEL})
         with urllib.request.urlopen(request, timeout=30) as response:
-            items = json.load(response)
+            data = json.load(response)
+        items = data[key] if key else data
         if not isinstance(items, list):
-            raise RuntimeError("Invalid pull request listing")
+            raise ValueError("Invalid GitHub listing")
         yield from items
         if len(items) < 100:
             return
-    raise RuntimeError("Pull request listing exceeded the page limit")
+    raise RuntimeError("GitHub listing exceeded the page limit")
+
+
+def pulls():
+    return public_pages("pulls?state=open")
+
+
+def review_checks(number, sha):
+    reviews = sorted((r["id"], r["state"]) for r in public_pages(f"pulls/{number}/reviews"))
+    checks = sorted((c["id"], c["status"], c["conclusion"]) for c in
+                    public_pages(f"commits/{sha}/check-runs?filter=latest", "check_runs"))
+    statuses = {}
+    for status in public_pages(f"commits/{sha}/statuses"):
+        # GitHub returns newest first. The private record only needs IDs and outcomes.
+        statuses.setdefault(status["context"], [status["id"], status["state"]])
+    return {"review": [list(r) for r in reviews], "checks": [list(c) for c in checks],
+            "status": sorted(statuses.values())}
+
+
+def observe_pulls(items, report):
+    last = read_json("pr-activity.json")
+    previous = last.get("open", {})
+    current = {}
+    changes = {}
+    for pr in items:
+        number, sha = pr["number"], pr["head"]["sha"]
+        if type(number) is not int or number <= 0 or not re.fullmatch(r"[0-9a-f]{40}", sha):
+            raise ValueError("Invalid PR identity")
+        key = str(number)
+        record = {"head": sha, "draft": pr["draft"], "updated": pr.get("updated_at"),
+                  "review_requests": sorted(r["id"] for r in pr.get("requested_reviewers", [])),
+                  "team_requests": sorted(r["id"] for r in pr.get("requested_teams", [])),
+                  **review_checks(number, sha)}
+        current[key] = record
+        fields = [field for field in record if record[field] != previous.get(key, {}).get(field)]
+        if fields:
+            changes[key] = fields if key in previous else ["opened"]
+    changes.update({key: ["closed"] for key in previous.keys() - current.keys()})
+    events = last.get("events", [])
+    if changes:
+        events.append({"time": datetime.datetime.now(datetime.timezone.utc).isoformat(), "changes": changes})
+    save_json("pr-activity.json", {"open": current, "events": events[-48:]})
+    report["pr_activity"] = changes
 
 
 def fetch(*refspecs):
@@ -152,6 +196,12 @@ def sync(report):
     fetch("+refs/heads/main:refs/sync/main", f"+refs/heads/{OWNED}:refs/sync/owned")
     main, owned = tip("refs/sync/main"), tip("refs/sync/owned")
     conflicts = report["conflicts"] = []
+    items = list(pulls())
+    try:
+        observe_pulls(items, report)
+    except (OSError, ValueError, KeyError, RuntimeError) as error:
+        # Keep the last complete observation and continue safe Git synchronization.
+        report["pr_activity_error"] = type(error).__name__
     merged = merge(owned, main, "origin/main", conflicts)
     report.update(main=main, owned_before=owned)
     if merged is None:
@@ -163,7 +213,7 @@ def sync(report):
     report["owned"] = merged
     included = report["included"] = []
     selected = {}
-    for pr in sorted(pulls(), key=lambda item: item["number"]):
+    for pr in sorted(items, key=lambda item: item["number"]):
         head = pr["head"]
         if (pr["base"]["ref"] != "main" or head["ref"] in {OWNED, LOCAL} or
                 (head["repo"] or {}).get("full_name") != PROJECT):

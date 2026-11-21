@@ -27,6 +27,7 @@ class SyncTest(unittest.TestCase):
             tracker, ROOT=self.state, REPO=self.state / "repo.git", REMOTE=str(self.origin),
             GIT_OPTIONS=[*tracker.GIT_OPTIONS, "-c", "protocol.file.allow=always"],
             pulls=lambda: iter(self.prs),
+            review_checks=lambda number, sha: {"review": [], "checks": [], "status": "pending"},
         )
         scoped.start()
         self.addCleanup(scoped.stop)
@@ -152,6 +153,28 @@ class SyncTest(unittest.TestCase):
         self.assertEqual(report["conflicts"][0]["files"], ["collision.txt"])
         self.assertEqual(self.git("--git-dir", self.origin, "rev-parse", tracker.OWNED), owned)
         self.assertEqual(self.git("--git-dir", self.origin, "rev-parse", "main"), main)
+
+    def test_activity_includes_drafts_and_other_bases_even_when_owned_branch_conflicts(self):
+        self.git("switch", tracker.OWNED)
+        self.commit("collision.txt", "owner")
+        self.git("push", "origin", tracker.OWNED)
+        self.git("switch", "main")
+        self.commit("collision.txt", "collaborator")
+        self.git("push", "origin", "main")
+        self.pull(21, "docs/a.md", "fixture", fork=True)
+        self.prs[0]["base"]["ref"] = "feature"
+        report = self.sync()
+        self.assertEqual(report["pr_activity"], {"21": ["opened"]})
+        self.assertEqual(self.sync()["pr_activity"], {})
+        self.prs[0].update(draft=False, updated_at="2026-11-21T00:00:00Z", body="private prose")
+        with patch.object(tracker, "review_checks", return_value={
+            "review": [[123, "CHANGES_REQUESTED"]], "checks": [[456, "completed", "failure"]], "status": "failure"
+        }):
+            changed = self.sync()
+        self.assertEqual(set(changed["pr_activity"]["21"]), {"draft", "updated", "review", "checks", "status"})
+        self.assertNotIn("private prose", (self.state / "pr-activity.json").read_text())
+        self.prs.clear()
+        self.assertEqual(self.sync()["pr_activity"], {"21": ["closed"]})
 
     def test_paused_job_performs_no_git_or_network_operations(self):
         with patch.object(tracker, "sync", side_effect=AssertionError("Unexpected sync")):
