@@ -45,13 +45,16 @@
 </script>
 
 <article
-	class="adaptive-card"
+	class={[
+		"adaptive-card group/adaptive box-border flex h-full min-w-0 flex-col gap-[calc(var(--card-padding,0.875rem)*0.75)] rounded-[var(--radius,4px)] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-[var(--card-padding,0.875rem)] wrap-anywhere [--action-font-floor:var(--small,14px)] data-[density=comfortable]:[--card-padding:0.875rem] data-[density=compact]:[--card-padding:0.5rem] data-[density=spacious]:[--card-padding:1.25rem] [&_[data-fact]]:tabular-nums [&_[data-fact]:is([data-fact=price],[data-fact=originalPrice],[data-fact=shipping],[data-fact=rating],[data-fact=reviewCount],[data-fact=sold],[data-fact^='spec.'])]:[font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace]"
+	]}
 	data-product={product.id}
 	data-density={plan.density}
 	data-layout={plan.layout}
 >
-	<h3>
+	<h3 class="m-0 text-[1.125em]/[1.4]">
 		<a
+			class="inline-flex min-h-[var(--tap,44px)] items-center text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
 			href={resolve(`/product/[id]?lang=${locale}&theme=${theme}${photos ? '' : '&view=receipt'}`, {
 				id: model?.id ?? product.id
 			})}
@@ -59,13 +62,16 @@
 			<FactValue productId={product.id} field="name" {locale} />
 		</a>
 	</h3>
-	<div class="fields">
+	<div class="fields flex flex-col gap-[calc(var(--card-padding,0.875rem)*0.75)]">
 		{#each plan.cardFields as field (field)}
 			{#if field === 'image'}
-				<div data-card-field={field} class="image">
+				<div
+					data-card-field={field}
+					class="image w-full max-w-[26rem] self-center min-[640px]:group-data-[layout=list]/adaptive:max-w-72 min-[640px]:group-data-[layout=list]/adaptive:[align-self:start]"
+				>
 					{#if photos && model}
 						<div
-							class="demo-photo"
+							class="demo-photo relative aspect-square"
 							data-category={model.category}
 							data-model={model.id}
 							data-cooker-photo={product.id}
@@ -73,20 +79,28 @@
 						>
 							{#if model.id === 'cooker-1'}<CookerPhotoCaption {locale} compact />{/if}
 						</div>
-					{:else if model}<div class="glyph" aria-hidden="true">
+					{:else if model}<div
+							class={[
+								'glyph relative grid aspect-square place-items-center bg-[var(--seam,#e9e6dc)] [&_svg]:size-1/2'
+							]}
+							aria-hidden="true"
+						>
 							<CategoryGlyph category={model.category} />
 						</div>{/if}
 				</div>
 			{:else if field === 'price'}
-				<div data-card-field={field} class="price">
+				<div
+					data-card-field={field}
+					class={['price flex flex-wrap items-baseline gap-2 [&_strong]:text-[1.6em]']}
+				>
 					<FactValue tag="strong" productId={product.id} {field} {locale} />
-					{#if product.originalPrice !== undefined}<span class="was">
+					{#if product.originalPrice !== undefined}<span class="was text-[var(--muted,#5d5d63)]">
 							{th ? 'ราคาเดิม' : 'Was'}
 							<FactValue tag="s" productId={product.id} field="originalPrice" {locale} />
 						</span>{/if}
 				</div>
 			{:else if field === 'rating'}
-				<div data-card-field={field} class="rating">
+				<div data-card-field={field} class="rating flex flex-wrap gap-x-4 gap-y-2">
 					<span>
 						{th ? 'คะแนน' : 'Rating'}
 						<FactValue productId={product.id} {field} {locale} />
@@ -101,10 +115,14 @@
 					</span>
 				</div>
 			{:else if field === 'specs' && columns.length}
-				<dl data-card-field={field} class="specs">
-					{#each columns as spec (spec.key)}<div>
-							<dt>{spec.label[locale]}</dt>
-							<dd><FactValue productId={product.id} field={`spec.${spec.key}`} {locale} /></dd>
+				<dl data-card-field={field} class="specs m-0 grid gap-1">
+					{#each columns as spec (spec.key)}<div
+							class="flex flex-wrap justify-between gap-x-4 gap-y-1"
+						>
+							<dt class="text-[var(--muted,#5d5d63)]">{spec.label[locale]}</dt>
+							<dd class="m-0 text-end">
+								<FactValue productId={product.id} field={`spec.${spec.key}`} {locale} />
+							</dd>
 						</div>{/each}
 				</dl>
 			{:else if field === 'summary'}
@@ -112,13 +130,15 @@
 					<FactValue tag="p" productId={product.id} {field} {locale} />
 				</div>
 			{:else if field === 'reviews'}
-				<div data-card-field={field} class="reviews">
-					{#each Object.keys(product.reviews) as index (index)}<blockquote>
+				<div data-card-field={field} class="reviews grid gap-3">
+					{#each Object.keys(product.reviews) as index (index)}<blockquote
+							class="m-0 border-s border-[var(--seam,#e9e6dc)] ps-3"
+						>
 							<FactValue productId={product.id} field={`review.${index}`} {locale} />
 						</blockquote>{/each}
 				</div>
 			{:else if field === 'shipping'}
-				<div data-card-field={field} class="line">
+				<div data-card-field={field} class="line flex flex-wrap justify-between gap-x-4 gap-y-1">
 					<span>{th ? 'ค่าจัดส่ง' : 'Shipping'}</span><FactValue
 						productId={product.id}
 						{field}
@@ -130,13 +150,18 @@
 			{:else if field === 'vouchers' && deal}
 				<section
 					data-card-field={field}
-					class="vouchers"
+					class="vouchers grid gap-2 border-y border-dashed border-[var(--seam,#e9e6dc)] py-3"
 					aria-label={th ? 'คูปองในราคาที่คำนวณ' : 'Vouchers in the calculated deal'}
 				>
-					<h4>{th ? 'คูปองในราคาที่คำนวณ' : 'Vouchers in the calculated deal'}</h4>
+					<h4 class="m-0 text-[1em]">
+						{th ? 'คูปองในราคาที่คำนวณ' : 'Vouchers in the calculated deal'}
+					</h4>
 					{#each deal.appliedVouchers as voucher (voucher.code)}
-						<div class="line">
-							<span data-deal-fact="voucherCode" data-raw={voucher.code}>{voucher.code}</span><span
+						<div class="line flex flex-wrap justify-between gap-x-4 gap-y-1">
+							<span class="tabular-nums" data-deal-fact="voucherCode" data-raw={voucher.code}>
+								{voucher.code}
+							</span><span
+								class="[font-family:'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace] tabular-nums"
 								data-deal-fact="voucherAmount"
 								data-voucher={voucher.code}
 								data-raw={voucher.amount}
@@ -144,193 +169,36 @@
 								{formatBaht(voucher.amount, locale)}
 							</span>
 						</div>
-					{:else}<p>
+					{:else}<p class="m-0">
 							{th ? 'ไม่มีคูปองที่ใช้ได้ในชุดนี้' : 'No voucher applies to this combination.'}
 						</p>{/each}
 				</section>
 			{/if}
 		{/each}
 	</div>
-	<button type="button" onclick={() => onDeal(product.id)}>{th ? 'ราคาดีที่สุด' : 'Best price'}</button>
+	<button
+		class="mt-auto min-h-[var(--tap,44px)] cursor-pointer rounded-[var(--radius,4px)] border border-[var(--ink,#16161a)] bg-[var(--surface,#fff)] px-3 py-2 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
+		type="button"
+		onclick={() => onDeal(product.id)}
+	>
+		{th ? 'ราคาดีที่สุด' : 'Best price'}
+	</button>
 	{#if reasons.length}<details>
-			<summary>{th ? 'ทำไมเรียงแบบนี้?' : 'Why this order?'}</summary>
-			<ul>
+			<summary
+				class="min-h-[var(--tap,44px)] cursor-pointer content-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent,#16161a)]"
+			>
+				{th ? 'ทำไมเรียงแบบนี้?' : 'Why this order?'}
+			</summary>
+			<ul class="list-none p-0">
 				{#each reasons as reason (reason.label.en)}<li>
-						{reason.label[locale]}<span class="rank-bar" style:width={`${reason.width * 25}%`}
+						{reason.label[locale]}<span
+							class="rank-bar my-[6px] block h-[6px] bg-current"
+							class:w-[25%]={reason.width === 1}
+							class:w-[50%]={reason.width === 2}
+							class:w-[75%]={reason.width === 3}
+							class:w-full={reason.width === 4}
 						></span>
 					</li>{/each}
 			</ul>
 		</details>{/if}
 </article>
-
-<style>
-	.adaptive-card {
-		--action-font-floor: var(--small, 0.875rem);
-		--action-font-floor: var(--small, 14px);
-		min-width: 0;
-		height: 100%;
-		box-sizing: border-box;
-		border: 1px solid var(--seam, #e9e6dc);
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		padding: var(--card-padding, 0.875rem);
-		display: flex;
-		flex-direction: column;
-		gap: calc(var(--card-padding, 0.875rem) * 0.75);
-		overflow-wrap: anywhere;
-	}
-	.adaptive-card[data-density='compact'] {
-		--card-padding: 0.5rem;
-	}
-	.adaptive-card[data-density='comfortable'] {
-		--card-padding: 0.875rem;
-	}
-	.adaptive-card[data-density='spacious'] {
-		--card-padding: 1.25rem;
-	}
-	h3,
-	h4,
-	p,
-	dl,
-	dd,
-	blockquote {
-		margin: 0;
-	}
-	h3 {
-		font-size: 1.125em;
-		line-height: 1.4;
-	}
-	h4 {
-		font-size: 1em;
-	}
-	a {
-		color: inherit;
-		display: inline-flex;
-		min-height: var(--tap, 44px);
-		align-items: center;
-	}
-	.fields {
-		display: flex;
-		flex-direction: column;
-		gap: calc(var(--card-padding, 0.875rem) * 0.75);
-	}
-	.image {
-		width: 100%;
-		max-width: 26rem;
-		align-self: center;
-	}
-	.demo-photo,
-	.glyph {
-		aspect-ratio: 1;
-		position: relative;
-	}
-	.glyph {
-		display: grid;
-		place-items: center;
-		background: var(--seam, #e9e6dc);
-	}
-	.glyph :global(svg) {
-		width: 50%;
-		height: 50%;
-	}
-	.price {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.5rem;
-	}
-	.price :global(strong) {
-		font-size: 1.6em;
-	}
-	.was {
-		color: var(--muted, #5d5d63);
-	}
-	.rating {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1rem;
-	}
-	.line,
-	.specs > div {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		gap: 0.25rem 1rem;
-	}
-	.specs {
-		display: grid;
-		gap: 0.25rem;
-	}
-	dt {
-		color: var(--muted, #5d5d63);
-	}
-	dd {
-		text-align: end;
-	}
-	blockquote {
-		border-inline-start: 1px solid var(--seam, #e9e6dc);
-		padding-inline-start: 0.75rem;
-	}
-	.reviews {
-		display: grid;
-		gap: 0.75rem;
-	}
-	.vouchers {
-		border-block: 1px dashed var(--seam, #e9e6dc);
-		padding-block: 0.75rem;
-		display: grid;
-		gap: 0.5rem;
-	}
-	:global(.adaptive-card [data-fact]),
-	[data-deal-fact] {
-		font-variant-numeric: tabular-nums;
-	}
-	:global(.adaptive-card [data-fact='price']),
-	:global(.adaptive-card [data-fact='originalPrice']),
-	:global(.adaptive-card [data-fact='shipping']),
-	:global(.adaptive-card [data-fact='rating']),
-	:global(.adaptive-card [data-fact='reviewCount']),
-	:global(.adaptive-card [data-fact='sold']),
-	:global(.adaptive-card [data-fact^='spec.']),
-	[data-deal-fact='voucherAmount'] {
-		font-family: 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace;
-	}
-	button {
-		min-height: var(--tap, 44px);
-		font: inherit;
-		color: inherit;
-		border: 1px solid var(--ink, #16161a);
-		border-radius: var(--radius, 4px);
-		background: var(--surface, #fff);
-		padding: 0.5rem 0.75rem;
-		cursor: pointer;
-		margin-top: auto;
-	}
-	summary {
-		min-height: var(--tap, 44px);
-		cursor: pointer;
-		align-content: center;
-	}
-	a:focus-visible,
-	button:focus-visible,
-	summary:focus-visible {
-		outline: 2px solid var(--accent, #16161a);
-		outline-offset: 2px;
-	}
-	ul {
-		list-style: none;
-		padding: 0;
-	}
-	.rank-bar {
-		display: block;
-		height: 6px;
-		background: currentColor;
-		margin-block: 6px;
-	}
-	@media (min-width: 640px) {
-		.adaptive-card[data-layout='list'] .image {
-			max-width: 18rem;
-			align-self: start;
-		}
-	}
-</style>

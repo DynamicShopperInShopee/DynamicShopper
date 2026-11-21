@@ -30,13 +30,23 @@
 </script>
 
 {#if rows.length}
-	<section lang={locale} aria-label={locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}>
-		<h2>{locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}</h2>
-		<ul>
+	<section
+		class="max-w-[28rem] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+		lang={locale}
+		aria-label={locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}
+	>
+		<h2 class="m-0 text-[inherit]">{locale === 'th' ? 'จากรายการสินค้า' : 'From the listing'}</h2>
+		<ul class="mt-2 mb-0 ps-5">
 			{#each rows as row, index (index)}
 				<li>
-					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The caller supplies the resolved listing URL. -->
-					<a href={listingHref(row.productId)}><Fact fact={row} /></a>
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- The caller supplies the resolved listing URL. -->
+					<a
+						class="inline-flex min-h-[var(--tap,3rem)] items-center text-inherit underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+						href={listingHref(row.productId)}
+					>
+						<Fact fact={row} />
+					</a>
+					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 				</li>
 			{/each}
 		</ul>
@@ -46,31 +56,3 @@
 		{locale === 'th' ? 'ยืนยันจากรายการสินค้าไม่ได้' : "I can't confirm that from the listing"}
 	</p>
 {/if}
-
-<style>
-	section {
-		max-width: 28rem;
-		padding: 1rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-	}
-	h2 {
-		margin: 0;
-		font-size: inherit;
-	}
-	ul {
-		margin: 0.5rem 0 0;
-		padding-inline-start: 1.25rem;
-	}
-	a {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--tap, 3rem);
-		color: inherit;
-		text-decoration: underline;
-	}
-	a:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-</style>

@@ -4,12 +4,15 @@
 	let { rows }: { rows: readonly (PageData['specs'][number] | undefined)[] } = $props();
 </script>
 
-<dl>
+<dl class="m-0">
 	{#each rows as row, index (row?.attributes['data-fact'] ?? index)}
 		{#if row}
-			<div>
-				<dt>{row.label}</dt>
+			<div
+				class="grid grid-cols-[minmax(0,38%)_minmax(0,1fr)] gap-[0.75em] border-t border-[var(--detail-seam)] py-[0.5em] leading-normal wrap-anywhere"
+			>
+				<dt class="text-[var(--detail-muted)]">{row.label}</dt>
 				<dd
+					class={['m-0 [&.figure]:font-[family-name:var(--product-figure-font)]']}
 					class:figure={Number.isFinite(Number(row.attributes['data-raw'])) ||
 						row.attributes['data-fact'] === 'detail.voltage'}
 					{...row.attributes}
@@ -20,27 +23,3 @@
 		{/if}
 	{/each}
 </dl>
-
-<style>
-	dl {
-		margin: 0;
-	}
-	dl div {
-		display: grid;
-		grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
-		gap: 0.75em;
-		padding-block: 0.5em;
-		border-top: 1px solid var(--detail-seam);
-		line-height: 1.5;
-		overflow-wrap: anywhere;
-	}
-	dt {
-		color: var(--detail-muted);
-	}
-	dd {
-		margin: 0;
-	}
-	dd.figure {
-		font-family: var(--product-figure-font);
-	}
-</style>

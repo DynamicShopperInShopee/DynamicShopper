@@ -18,9 +18,12 @@
 	const options = $derived(outside ? [selected, ...ids] : ids);
 </script>
 
-<label>
+<label class="grid min-w-0 gap-[0.3rem]">
 	<span>{label}</span>
-	<select bind:value={selected}>
+	<select
+		class="min-h-[2.75em] w-full border border-[var(--seam,currentColor)] bg-[var(--paper,white)] p-[0.3em] text-inherit"
+		bind:value={selected}
+	>
 		<option value="">{locale === 'th' ? 'เลือกสินค้า' : 'Select a product'}</option>
 		{#each options as id (id)}
 			{@const fact = resolveFact(id, 'name')}
@@ -39,26 +42,6 @@
 		{/each}
 	</select>
 </label>
-{#if outside}<p role="status">
+{#if outside}<p class="mx-0 my-[0.2rem]" role="status">
 		{locale === 'th' ? 'อยู่นอกผลลัพธ์ปัจจุบัน' : 'Outside current results'}
 	</p>{/if}
-
-<style>
-	label {
-		display: grid;
-		gap: 0.3rem;
-		min-width: 0;
-	}
-	select {
-		width: 100%;
-		min-height: 2.75em;
-		padding: 0.3em;
-		background: var(--paper, white);
-		color: inherit;
-		border: 1px solid var(--seam, currentColor);
-		font: inherit;
-	}
-	p {
-		margin: 0.2rem 0;
-	}
-</style>

@@ -50,13 +50,13 @@ for (const width of [390, 1440]) {
 		await page.getByRole('button', { name: 'Rice cookers', exact: true }).click();
 		await page.getByRole('button', { name: '1.8 L', exact: true }).click();
 		await interview(page);
-		await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
+		await expect(page.locator('.store')).not.toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 		await expect(page.getByRole('link', { name: 'DynamicShopper', exact: true })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Cart', exact: true })).toBeVisible();
 		await expect(page.locator('.store')).toHaveAttribute('data-density', 'compact');
 		await page.locator('[data-product-card] .product-link').first().click();
 		await page.getByRole('link', { name: 'Back to store', exact: true }).click();
-		await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
+		await expect(page.locator('.store')).not.toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 		await expect(page.locator('.store')).toHaveAttribute('data-density', 'compact');
 		await expect(page.locator('#products [data-fact="spec.capacity"]').first()).toHaveAttribute(
 			'data-raw',
@@ -69,9 +69,9 @@ for (const width of [390, 1440]) {
 		await expect(page.locator('.store')).toHaveAttribute('data-density', 'compact');
 		if (width === 390) await page.keyboard.press('Escape');
 		await page.getByRole('button', { name: 'Undo', exact: true }).click();
-		await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
+		await expect(page.locator('.store')).not.toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 		await page.getByRole('button', { name: 'Undo', exact: true }).click();
-		await expect(page.locator('.store')).toHaveClass(/event-demo/);
+		await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 		await expect(page.getByRole('button', { name: '1.8 L', exact: true })).toHaveAttribute(
 			'aria-pressed',
 			'true'
@@ -99,7 +99,7 @@ test('interview drafts leave the store alone and Thai CNN completion retains the
 	await page.getByRole('button', { name: 'Start a quick interview', exact: true }).click();
 	await page.locator('input[name="goal"][value="compare"]').check();
 	await page.keyboard.press('Escape');
-	await expect(page.locator('.store')).toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await page.getByRole('button', { name: 'ไทย', exact: true }).click();
 	await interview(page, true, false);
 	await expect(page.getByRole('link', { name: 'DynamicShopper', exact: true })).toBeVisible();

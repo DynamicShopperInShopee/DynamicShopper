@@ -23,7 +23,7 @@ test('a Legacy capacity choice survives assistant, Undo, ranking and listing nav
 	expect(selected.length).toBeLessThan(6);
 	await filters.getByRole('link', { name: 'Shopping assistant', exact: true }).click();
 	await expect(page).toHaveURL(/\?view=receipt/);
-	await expect(page.locator('.store')).not.toHaveClass(/event-demo/);
+	await expect(page.locator('.store')).not.toHaveClass(/(?:^|\s)event-demo(?:\s|$)/);
 	await expect.poll(ids).toEqual(selected);
 	const capacityChip = page
 		.locator('.chips button')

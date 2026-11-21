@@ -72,41 +72,29 @@
 	});
 </script>
 
-<section aria-label={t.title} aria-live="polite">
-	<h2>{t.title}</h2>
+<section
+	class="max-w-[28rem] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+	aria-label={t.title}
+	aria-live="polite"
+>
+	<h2 class="mx-0 mt-0 mb-2 text-[length:inherit]">{t.title}</h2>
 	{#if !result}
 		<p>{t.pending}</p>
 	{:else if result.mismatches.length}
-		<ul>
+		<ul class="text-[var(--void,#b01e31)]">
 			{#each result.mismatches as mismatch, index (index)}
 				<li>{t[mismatch.side]} · {t[mismatch.reason]} · {mismatch.productId} · {mismatch.field}</li>
 			{/each}
 		</ul>
 	{:else if result.checked > 0}
-		<p data-proof="passed" data-raw={result.checked}>{t.passed(result.checked)}</p>
+		<p
+			class="inline-block border border-current px-[0.5em] py-[0.25em] text-[var(--verified,#0f7b4a)]"
+			data-proof="passed"
+			data-raw={result.checked}
+		>
+			{t.passed(result.checked)}
+		</p>
 	{:else}
 		<p>{t.empty}</p>
 	{/if}
 </section>
-
-<style>
-	section {
-		max-width: 28rem;
-		padding: 1rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-	}
-	h2 {
-		margin: 0 0 0.5rem;
-		font-size: inherit;
-	}
-	[data-proof='passed'] {
-		display: inline-block;
-		padding: 0.25em 0.5em;
-		border: 1px solid currentColor;
-		color: var(--verified, #0f7b4a);
-	}
-	ul {
-		color: var(--void, #b01e31);
-	}
-</style>

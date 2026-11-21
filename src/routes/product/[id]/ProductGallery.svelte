@@ -82,10 +82,11 @@
 	]);
 </script>
 
-<div class="gallery" role="region" aria-label={th ? 'รูปสินค้า' : 'Product photos'}>
+<div class="gallery relative h-full" role="region" aria-label={th ? 'รูปสินค้า' : 'Product photos'}>
 	{#if watching}
-		<div class="player">
+		<div class="player size-full">
 			<video
+				class="block size-full bg-[#16161a] object-contain"
 				src={playbackSource}
 				poster={mainPhoto}
 				controls
@@ -95,7 +96,7 @@
 				aria-label={th ? 'วิดีโอแสดงหม้อหุงข้าวจากมุมต่าง ๆ' : 'Rice cooker overview video'}
 			></video>
 			<button
-				class="close"
+				class="close absolute end-2 top-16 grid size-[var(--tap,44px)] cursor-pointer place-items-center rounded-[50%] border border-[rgb(255_255_255/80%)] bg-[rgb(22_22_26/78%)] text-white focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-current focus-visible:outline-solid"
 				type="button"
 				bind:this={closeControl}
 				onclick={closeVideo}
@@ -116,7 +117,7 @@
 		</div>
 	{:else}
 		<div
-			class="photos"
+			class="photos flex h-full snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto overflow-y-hidden overscroll-x-contain"
 			bind:this={strip}
 			onscroll={(event) => {
 				const { scrollLeft, clientWidth } = event.currentTarget;
@@ -124,8 +125,9 @@
 			}}
 		>
 			{#each photos as photo, index (photo.src)}
-				<div class="slide">
+				<div class="slide relative h-full flex-[0_0_100%] snap-start">
 					<img
+						class="size-full snap-start object-cover"
 						src={photo.src}
 						alt={photo.alt}
 						draggable="false"
@@ -135,20 +137,28 @@
 		</div>
 		{#if active === 0}
 			<button
-				class="play"
+				class="play absolute top-1/2 left-1/2 grid size-[68px] [transform:translate(-50%,-50%)] cursor-pointer place-items-center rounded-[50%] border border-[rgb(255_255_255/80%)] bg-[rgb(22_22_26/78%)] text-white focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-current focus-visible:outline-solid"
 				type="button"
 				bind:this={playControl}
 				onclick={openVideo}
 				aria-label={th ? 'เล่นวิดีโอแนะนำหม้อหุงข้าว' : 'Play rice cooker overview'}
 			>
-				<svg width="27" height="27" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+				<svg
+					class="ms-[3px]"
+					width="27"
+					height="27"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					aria-hidden="true"
+				>
 					<path d="M6 3.5v17l14-8.5z" />
 				</svg>
 			</button>
 		{/if}
-		<div class="controls">
+		<div class="controls absolute end-2 bottom-2 flex rounded-[24px] bg-white">
 			{#each photos as photo, index (photo.src)}
 				<button
+					class="grid size-[var(--tap,44px)] cursor-pointer place-items-center rounded-[24px] bg-transparent text-[#16161a] [border:0] after:size-2.5 after:rounded-[50%] after:border after:border-current after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-current focus-visible:outline-solid aria-pressed:after:bg-current"
 					type="button"
 					aria-label={photo.label}
 					aria-pressed={index === active}
@@ -158,95 +168,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	.gallery {
-		position: relative;
-		height: 100%;
-	}
-	.photos {
-		display: flex;
-		height: 100%;
-		overflow: auto hidden;
-		overscroll-behavior-x: contain;
-		scroll-snap-type: x mandatory;
-		scrollbar-width: none;
-	}
-	.slide {
-		position: relative;
-		flex: 0 0 100%;
-		height: 100%;
-		scroll-snap-align: start;
-	}
-	.photos img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		scroll-snap-align: start;
-	}
-	.controls {
-		position: absolute;
-		inset-inline-end: 8px;
-		bottom: 8px;
-		display: flex;
-		border-radius: 24px;
-		background: white;
-	}
-	button {
-		display: grid;
-		place-items: center;
-		width: var(--tap, 44px);
-		height: var(--tap, 44px);
-		border: 0;
-		border-radius: 24px;
-		background: transparent;
-		color: #16161a;
-		cursor: pointer;
-	}
-	.controls button::after {
-		content: '';
-		width: 10px;
-		height: 10px;
-		border: 1px solid currentColor;
-		border-radius: 50%;
-	}
-	button[aria-pressed='true']::after {
-		background: currentColor;
-	}
-	button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: -4px;
-	}
-	.play,
-	.close {
-		position: absolute;
-		color: white;
-		background: rgb(22 22 26 / 78%);
-		border: 1px solid rgb(255 255 255 / 80%);
-		border-radius: 50%;
-	}
-	.play {
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 68px;
-		height: 68px;
-	}
-	.play svg {
-		margin-inline-start: 3px;
-	}
-	.player,
-	video {
-		width: 100%;
-		height: 100%;
-	}
-	video {
-		display: block;
-		object-fit: contain;
-		background: #16161a;
-	}
-	.close {
-		top: 64px;
-		inset-inline-end: 8px;
-	}
-</style>

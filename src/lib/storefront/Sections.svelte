@@ -138,28 +138,41 @@
 	<section
 		id={comparePane || !productTarget ? undefined : 'products'}
 		tabindex="-1"
-		class="empty"
+		class="empty min-w-0 border border-dashed border-[var(--seam,#858172)] p-4"
 		aria-label={t.empty}
 		lang={locale}
 	>
-		<h2>{t.empty}</h2>
+		<h2 class="mx-0 mt-0 mb-2 border-0 border-none text-[1.125em]">
+			{t.empty}
+		</h2>
 		{#if activeFilters.length}
 			<ul>
 				{#each activeFilters as filter, index (index)}<li>{filter}</li>{/each}
 			</ul>
 		{/if}
-		{#if onClear}<button type="button" onclick={onClear}>{t.clear}</button>{/if}
+		{#if onClear}<button
+				class="min-h-[var(--tap,44px)] border border-current bg-[var(--surface,#fff)] px-3 text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+				type="button"
+				onclick={onClear}
+			>
+				{t.clear}
+			</button>{/if}
 	</section>
 {:else}
-	<div class="sections" lang={locale}>
+	<div class="sections grid min-w-0 grid-cols-1 gap-4" lang={locale}>
 		{#each ordered.sections as section (section)}
 			{#if section === 'products' && ordered.remaining.length}
 				<section
+					class="min-w-0"
 					id={!comparePane && productTarget && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t.products}
 				>
-					{#if ordered.sections.length > 1}<h2>{t.products}</h2>{/if}
+					{#if ordered.sections.length > 1}<h2
+							class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]"
+						>
+							{t.products}
+						</h2>{/if}
 					{#if renderShelf}{@render renderShelf(ordered.remaining, layout)}{:else}
 						<ProductShelf
 							productIds={ordered.remaining}
@@ -175,11 +188,14 @@
 				</section>
 			{:else if section === 'picks' || section === 'compare'}
 				<section
+					class="min-w-0"
 					id={!comparePane && productTarget && firstShelf === section ? 'products' : undefined}
 					tabindex="-1"
 					aria-label={t[section]}
 				>
-					<h2>{t[section]}</h2>
+					<h2 class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+						{t[section]}
+					</h2>
 					{#if renderShelf}{@render renderShelf(
 							top,
 							section === 'compare' ? 'table' : layout
@@ -198,77 +214,45 @@
 						/>{/if}
 				</section>
 			{:else if section === 'matters'}
-				<section aria-label={t.matters}>
-					<h2>{t.matters}</h2>
+				<section class="min-w-0" aria-label={t.matters}>
+					<h2 class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+						{t.matters}
+					</h2>
 					<ul>
 						{#each priorities as priority, index (index)}<li>{priority[locale]}</li>{/each}
 					</ul>
 				</section>
 			{:else if section === 'reviews'}
-				<section aria-label={t.reviews}>
-					<h2>{t.reviews}</h2>
+				<section class="min-w-0" aria-label={t.reviews}>
+					<h2 class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+						{t.reviews}
+					</h2>
 					{#each reviewGroups as group (group.id)}
-						<h3><Fact fact={group.name} /></h3>
+						<h3 class="mx-0 mt-0 mb-2 text-[1.125em]"><Fact fact={group.name} /></h3>
 						{#each group.quotes as quote (quote.field)}
-							<blockquote><Fact fact={quote} /></blockquote>
+							<blockquote
+								class="mx-0 mt-0 mb-2 ps-3 [border-inline-start:1px_solid_var(--seam,#e9e6dc)]"
+							>
+								<Fact fact={quote} />
+							</blockquote>
 						{/each}
 					{/each}
 				</section>
 			{:else if section === 'deal'}
-				<section aria-label={t.deal}>
-					<h2>{t.deal}</h2>
+				<section class="min-w-0" aria-label={t.deal}>
+					<h2 class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+						{t.deal}
+					</h2>
 					{@render deal?.(top[0])}
 				</section>
 			{:else if section === 'share'}
-				<section aria-label={t.share}>
-					<h2>{t.share}</h2>
+				<section class="min-w-0" aria-label={t.share}>
+					<h2 class="mx-0 mt-0 mb-2 text-[1.125em] [border-bottom:2px_solid_currentColor]">
+						{t.share}
+					</h2>
 					{@render share?.()}
 				</section>
 			{/if}
 		{/each}
 	</div>
 {/if}
-
-<style>
-	.sections {
-		display: grid;
-		gap: 1rem;
-		min-width: 0;
-		grid-template-columns: minmax(0, 1fr);
-	}
-	section {
-		min-width: 0;
-	}
-	h2,
-	h3 {
-		margin: 0 0 0.5rem;
-		font-size: 1.125em;
-	}
-	h2 {
-		border-bottom: 2px solid currentColor;
-	}
-	blockquote {
-		margin: 0 0 0.5rem;
-		padding-inline-start: 0.75rem;
-		border-inline-start: 1px solid var(--seam, #e9e6dc);
-	}
-	.empty {
-		padding: 1rem;
-		border: 1px dashed var(--seam, #858172);
-	}
-	.empty h2 {
-		border: 0;
-	}
-	button {
-		min-height: var(--tap, 44px);
-		font: inherit;
-		color: inherit;
-		background: var(--surface, #fff);
-		border: 1px solid currentColor;
-		padding-inline: 0.75rem;
-	}
-	button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
-	}
-</style>

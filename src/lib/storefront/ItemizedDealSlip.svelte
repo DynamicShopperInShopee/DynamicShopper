@@ -85,15 +85,26 @@
 </script>
 
 {#snippet raw(field: string, value: number, text: string)}
-	<span class="figure" data-source="pricing" data-field={field} data-raw={JSON.stringify(value)}>
+	<span
+		class="figure font-[family-name:var(--mono,'IBM_Plex_Mono','IBM_Plex_Sans_Thai',monospace)] tabular-nums"
+		data-source="pricing"
+		data-field={field}
+		data-raw={JSON.stringify(value)}
+	>
 		{text}
 	</span>
 {/snippet}
 
 {#snippet money(field: string, label: string, value: number, emphasis?: 'total' | 'applied')}
-	<div class="line" class:total={emphasis === 'total'} class:applied={emphasis === 'applied'}>
-		<dt>{label}</dt>
-		<dd>{@render raw(field, value, formatMoney(value, locale))}</dd>
+	<div
+		class={[
+			'line grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 py-1 [border-bottom:1px_dotted_var(--seam,#e9e6dc)] [&.applied]:text-[var(--verified,#0f7b4a)] [&.total]:text-[1.5em] [&.total]:font-bold [&.total]:[border-top:2px_solid_currentColor]'
+		]}
+		class:total={emphasis === 'total'}
+		class:applied={emphasis === 'applied'}
+	>
+		<dt class="wrap-anywhere">{label}</dt>
+		<dd class="m-0 text-end">{@render raw(field, value, formatMoney(value, locale))}</dd>
 	</div>
 {/snippet}
 
@@ -102,50 +113,74 @@
 	<span data-source="pricing" data-field="voucher.code" data-raw={JSON.stringify(line.code)}>
 		{line.code}
 	</span>
-	{#if line.expiresSoon}<span class="state"> · {t.expiry}</span>{/if}
+	{#if line.expiresSoon}<span class="state text-[var(--void,#b01e31)]"> · {t.expiry}</span>{/if}
 {/snippet}
 
-<section lang={locale} aria-label={t.title}>
-	<h2>{t.title}</h2>
+<section
+	class="max-w-[28rem] border border-[var(--seam,#e9e6dc)] bg-[var(--surface,#fff)] p-4"
+	lang={locale}
+	aria-label={t.title}
+>
+	<h2 class="m-0 text-[length:inherit]">{t.title}</h2>
 	{#if receipt}
-		<p class="stamp" data-proof="calculated">{t.proof}</p>
+		<p
+			class="stamp m-0 my-2 inline-block border border-current px-[0.5em] py-[0.25em] text-[var(--verified,#0f7b4a)]"
+			data-proof="calculated"
+		>
+			{t.proof}
+		</p>
 		{#each receipt.items as item (item.productId)}
-			<div class="item" data-item={item.productId}>
-				<h3>{productName(item.productId, locale) ?? item.productId}</h3>
-				<dl>
-					<div class="line">
-						<dt>{t.quantity}</dt>
-						<dd>{@render raw('item.quantity', item.quantity, number.format(item.quantity))}</dd>
+			<div class="item [border-top:1px_dashed_var(--seam,#e9e6dc)]" data-item={item.productId}>
+				<h3 class="m-0 mt-3 mb-1 text-[length:inherit]">
+					{productName(item.productId, locale) ?? item.productId}
+				</h3>
+				<dl class="m-0">
+					<div
+						class="line grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 py-1 [border-bottom:1px_dotted_var(--seam,#e9e6dc)]"
+					>
+						<dt class="wrap-anywhere">{t.quantity}</dt>
+						<dd class="m-0 text-end">
+							{@render raw('item.quantity', item.quantity, number.format(item.quantity))}
+						</dd>
 					</div>
 					{@render money('item.unitPrice', t.unitPrice, item.unitPrice)}
 					{@render money('item.subtotal', t.subtotal, item.subtotal)}
 				</dl>
 			</div>
 		{/each}
-		<dl>
+		<dl class="m-0">
 			{@render money('subtotal', t.subtotal, receipt.subtotal)}
 			{@render money('shipping', t.shipping, receipt.shipping)}
 			{@render money('baseline', t.baseline, receipt.baseline)}
 			{#each receipt.appliedVouchers as applied (applied.code)}
-				<div class="line applied">
-					<dt>{@render voucher(applied)}</dt>
-					<dd>
+				<div
+					class="line applied grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 py-1 text-[var(--verified,#0f7b4a)] [border-bottom:1px_dotted_var(--seam,#e9e6dc)]"
+				>
+					<dt class="wrap-anywhere">{@render voucher(applied)}</dt>
+					<dd class="m-0 text-end">
 						{@render raw('voucher.amount', applied.amount, formatMoney(applied.amount, locale))}
 					</dd>
 				</div>
 			{/each}
-			<div class="line">
-				<dt>{t.coins}</dt>
-				<dd>{@render raw('coinsUsed', receipt.coinsUsed, number.format(receipt.coinsUsed))}</dd>
+			<div
+				class="line grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 py-1 [border-bottom:1px_dotted_var(--seam,#e9e6dc)]"
+			>
+				<dt class="wrap-anywhere">{t.coins}</dt>
+				<dd class="m-0 text-end">
+					{@render raw('coinsUsed', receipt.coinsUsed, number.format(receipt.coinsUsed))}
+				</dd>
 			</div>
 			{@render money('total', t.total, receipt.total, 'total')}
 			{@render money('savings', t.savings, receipt.savings, 'applied')}
 		</dl>
 		{#if receipt.unusedVouchers.length}
-			<h3>{t.unused}</h3>
-			<ul>
+			<h3 class="m-0 mt-3 mb-1 text-[length:inherit]">{t.unused}</h3>
+			<ul class="m-0 ps-5">
 				{#each receipt.unusedVouchers as unused (unused.code)}
-					<li class:expired={unused.reason === 'expired'}>
+					<li
+						class={['[&.expired]:text-[var(--void,#b01e31)]']}
+						class:expired={unused.reason === 'expired'}
+					>
 						{@render voucher(unused)} · {t[unused.reason]}
 						{#if unused.gap !== undefined}
 							{@render raw('voucher.gap', unused.gap, formatMoney(unused.gap, locale))}
@@ -155,8 +190,8 @@
 			</ul>
 		{/if}
 		{#if addOns.length}
-			<h3>{t.addOns}</h3>
-			<ul>
+			<h3 class="m-0 mt-3 mb-1 text-[length:inherit]">{t.addOns}</h3>
+			<ul class="m-0 ps-5">
 				{#each addOns as addOn (addOn.productId)}
 					<li>
 						{productName(addOn.productId, locale) ?? addOn.productId}
@@ -167,79 +202,12 @@
 						>
 							{addOn.voucherCode}
 						</span>
-						<dl>{@render money('addOn.extraCost', t.extraCost, addOn.extraCost)}</dl>
+						<dl class="m-0">{@render money('addOn.extraCost', t.extraCost, addOn.extraCost)}</dl>
 					</li>
 				{/each}
 			</ul>
 		{/if}
 	{:else}
-		<p>{t.pending}</p>
+		<p class="m-0">{t.pending}</p>
 	{/if}
 </section>
-
-<style>
-	section {
-		max-width: 28rem;
-		padding: 1rem;
-		border: 1px solid var(--seam, #e9e6dc);
-		background: var(--surface, #fff);
-	}
-	h2,
-	h3,
-	p,
-	ul,
-	dl,
-	dd {
-		margin: 0;
-	}
-	h2,
-	h3 {
-		font-size: inherit;
-	}
-	h3 {
-		margin-block: 0.75rem 0.25rem;
-	}
-	.item {
-		border-top: 1px dashed var(--seam, #e9e6dc);
-	}
-	.line {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 0.5rem;
-		align-items: baseline;
-		padding-block: 0.25rem;
-		border-bottom: 1px dotted var(--seam, #e9e6dc);
-	}
-	dt {
-		overflow-wrap: anywhere;
-	}
-	dd {
-		text-align: end;
-	}
-	.figure {
-		font-family: var(--mono, 'IBM Plex Mono', 'IBM Plex Sans Thai', monospace);
-		font-variant-numeric: tabular-nums;
-	}
-	.total {
-		border-top: 2px solid currentColor;
-		font-weight: 700;
-		font-size: 1.5em;
-	}
-	.applied,
-	.stamp {
-		color: var(--verified, #0f7b4a);
-	}
-	.expired,
-	.state {
-		color: var(--void, #b01e31);
-	}
-	.stamp {
-		display: inline-block;
-		margin-block: 0.5rem;
-		padding: 0.25em 0.5em;
-		border: 1px solid currentColor;
-	}
-	ul {
-		padding-inline-start: 1.25rem;
-	}
-</style>

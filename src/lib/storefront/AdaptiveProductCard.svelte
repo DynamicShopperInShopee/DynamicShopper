@@ -31,14 +31,27 @@
 	const t = $derived(storefrontCopy[locale]);
 </script>
 
-<li class="product" data-product={id} data-product-card={id} data-density={plan.density}>
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- The storefront resolves this listing URL with its current theme and return route. -->
-	<h3><a class="product-link" {href}><FactValue productId={id} field="name" {locale} /></a></h3>
+<li
+	class="product relative flex min-w-0 flex-col gap-2 rounded-[var(--radius)] border border-[var(--seam)] bg-[var(--surface)] p-[0.8rem] wrap-anywhere has-[.product-link:focus-visible]:outline-2 has-[.product-link:focus-visible]:outline-offset-2 has-[.product-link:focus-visible]:outline-[var(--accent)] data-[density=compact]:gap-[0.3rem] data-[density=compact]:p-2 data-[density=spacious]:gap-[0.65rem] data-[density=spacious]:p-4"
+	data-product={id}
+	data-product-card={id}
+	data-density={plan.density}
+>
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- The storefront resolves this listing URL with its current theme and return route. -->
+	<h3 class="m-0 text-[length:var(--size)]">
+		<a
+			class="product-link text-[var(--ink)] no-underline after:absolute after:inset-0 after:content-['']"
+			{href}
+		>
+			<FactValue productId={id} field="name" {locale} />
+		</a>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
+	</h3>
 	{#each plan.details as field (field)}
 		{#if field === 'image'}
 			{#if photos}
 				<div
-					class="art demo-photo"
+					class="art demo-photo grid min-h-[7.5rem] place-items-center text-[var(--accent)]"
 					data-card-field={field}
 					data-category={product.category}
 					data-model={product.id}
@@ -48,49 +61,68 @@
 					{#if product.id === 'cooker-1'}<CookerPhotoCaption {locale} compact />{/if}
 				</div>
 			{:else}
-				<div class="art glyph" data-card-field={field} aria-hidden="true">
+				<div
+					class="art glyph grid min-h-[7.5rem] place-items-center bg-[#e9e6dc] text-[var(--accent)]"
+					data-card-field={field}
+					aria-hidden="true"
+				>
 					<CategoryGlyph category={product.category} />
 				</div>
 			{/if}
 		{:else if field === 'price'}
-			<div class="price" data-card-field={field}>
-				<span class="sr-only">{t.price}</span>
+			<div
+				class={[
+					'price flex flex-wrap items-baseline gap-x-[0.6rem] gap-y-1 [&_s]:text-[length:var(--small)] [&_s]:text-[var(--void)] [&_strong]:text-[length:max(1.45rem,var(--size))]'
+				]}
+				data-card-field={field}
+			>
+				<span class="sr-only absolute h-px w-px overflow-hidden [clip-path:inset(50%)]">
+					{t.price}
+				</span>
 				<FactValue productId={id} {field} {locale} tag="strong" class="figure" />
 				{#if product.originalPrice !== null}
-					<span class="sr-only">{t.was}</span>
+					<span class="sr-only absolute h-px w-px overflow-hidden [clip-path:inset(50%)]">
+						{t.was}
+					</span>
 					<FactValue productId={id} field="originalPrice" {locale} tag="s" class="figure" />
 				{/if}
 			</div>
 		{:else if field === 'rating'}
-			<div class="metadata" data-card-field={field}>
+			<div
+				class="metadata flex flex-wrap items-baseline justify-between gap-x-[0.6rem] gap-y-1 text-[length:var(--small)] text-[var(--muted)]"
+				data-card-field={field}
+			>
 				<span>{t.rating} <FactValue productId={id} {field} {locale} class="figure" /></span>
 				<span>{t.sold} <FactValue productId={id} field="sold" {locale} class="figure" /></span>
 			</div>
 		{:else if field === 'shipping'}
-			<div class="shipping" data-card-field={field}>
-				{t.shipping}<span class="leader" aria-hidden="true"></span><FactValue
-					productId={id}
-					{field}
-					{locale}
-					class="figure"
-				/>
+			<div
+				class="shipping flex flex-wrap items-baseline gap-x-[0.6rem] gap-y-1 py-1 text-[length:var(--small)] text-[var(--muted)] [border-block-end:1px_dashed_var(--seam)]"
+				data-card-field={field}
+			>
+				{t.shipping}<span
+					class="leader flex-1 [border-bottom:1px_dotted_var(--muted)]"
+					aria-hidden="true"
+				></span><FactValue productId={id} {field} {locale} class="figure" />
 			</div>
 		{:else if field === 'shop' || field === 'summary' || field === 'reviews'}
-			<p data-card-field={field}>
+			<p class="m-0" data-card-field={field}>
 				<FactValue productId={id} field={field === 'reviews' ? 'review.0' : field} {locale} />
 			</p>
 		{:else if field === 'specs' && columns.length}
-			<dl class="card-specs" data-card-field={field}>
+			<dl class="card-specs m-0" data-card-field={field}>
 				{#each columns as spec (spec.key)}
-					<div>
+					<div
+						class="flex flex-wrap items-baseline justify-between gap-x-[0.6rem] gap-y-1 py-1 [border-block-end:1px_dashed_var(--seam)]"
+					>
 						<dt>{spec.label[locale]}</dt>
-						<dd><FactValue productId={id} field={`spec.${spec.key}`} {locale} /></dd>
+						<dd class="m-0"><FactValue productId={id} field={`spec.${spec.key}`} {locale} /></dd>
 					</div>
 				{/each}
 			</dl>
 		{:else if field === 'vouchers' && vouchers.length}
 			<ul
-				class="card-vouchers"
+				class="card-vouchers m-0 ps-5"
 				data-card-field={field}
 				aria-label={locale === 'th' ? 'โค้ดส่วนลด' : 'Vouchers'}
 			>
@@ -121,102 +153,3 @@
 	{/each}
 	{@render children()}
 </li>
-
-<style>
-	.product {
-		position: relative;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 0.8rem;
-		border: 1px solid var(--seam);
-		border-radius: var(--radius);
-		background: var(--surface);
-		overflow-wrap: anywhere;
-	}
-	.product[data-density='compact'] {
-		gap: 0.3rem;
-		padding: 0.5rem;
-	}
-	.product[data-density='spacious'] {
-		gap: 0.65rem;
-		padding: 1rem;
-	}
-	h3,
-	p,
-	dl,
-	ul,
-	dd {
-		margin: 0;
-	}
-	h3 {
-		font-size: var(--size);
-	}
-	.product-link {
-		color: var(--ink);
-		text-decoration: none;
-	}
-	.product-link::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-	}
-	.product:has(.product-link:focus-visible) {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	.art {
-		min-height: 7.5rem;
-		display: grid;
-		place-items: center;
-		color: var(--accent);
-	}
-	.glyph {
-		background: #e9e6dc;
-	}
-	.price,
-	.metadata,
-	.shipping,
-	.card-specs > div {
-		display: flex;
-		gap: 0.25rem 0.6rem;
-		align-items: baseline;
-		flex-wrap: wrap;
-	}
-	.price :global(strong) {
-		font-size: max(1.45rem, var(--size));
-	}
-	.price :global(s) {
-		color: var(--void);
-		font-size: var(--small);
-	}
-	.metadata,
-	.card-specs > div {
-		justify-content: space-between;
-	}
-	.shipping,
-	.card-specs > div {
-		padding-block: 0.25rem;
-		border-block-end: 1px dashed var(--seam);
-	}
-	.metadata,
-	.shipping {
-		color: var(--muted);
-		font-size: var(--small);
-	}
-	.leader {
-		flex: 1;
-		border-bottom: 1px dotted var(--muted);
-	}
-	.card-vouchers {
-		padding-inline-start: 1.25rem;
-	}
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-	}
-</style>

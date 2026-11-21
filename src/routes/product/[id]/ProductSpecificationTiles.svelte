@@ -3,11 +3,11 @@
 	let { specs, th }: { specs: PageData['specs']; th: boolean } = $props();
 </script>
 
-<section aria-label={th ? 'คุณลักษณะสินค้า' : 'Product specifications'}>
-	<dl class="feature-grid">
+<section class="bg-[#f6f6f4] px-2 py-5" aria-label={th ? 'คุณลักษณะสินค้า' : 'Product specifications'}>
+	<dl class="feature-grid mx-auto my-0 grid max-w-xl grid-cols-2 gap-0.5">
 		{#each specs as spec (spec.attributes['data-fact'])}
-			<div>
-				<dt>
+			<div class="block bg-[#f6f6f4] px-[0.6rem] py-[1.1rem] text-center">
+				<dt class="grid justify-items-center gap-[0.3rem]">
 					<svg
 						width="32"
 						height="32"
@@ -35,43 +35,13 @@
 					</svg>
 					{spec.label}
 				</dt>
-				<dd {...spec.attributes}>{spec.text}</dd>
+				<dd
+					class="m-0 font-[family-name:var(--product-figure-font)] font-bold"
+					{...spec.attributes}
+				>
+					{spec.text}
+				</dd>
 			</div>
 		{/each}
 	</dl>
 </section>
-
-<style>
-	section {
-		background: #f6f6f4;
-		padding: 1.25rem 0.5rem;
-	}
-	dl,
-	dd {
-		margin: 0;
-	}
-	dd {
-		font-family: var(--product-figure-font);
-	}
-	.feature-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 2px;
-		max-width: 36rem;
-		margin-inline: auto;
-	}
-	.feature-grid div {
-		display: block;
-		background: #f6f6f4;
-		text-align: center;
-		padding: 1.1rem 0.6rem;
-	}
-	.feature-grid dt {
-		display: grid;
-		justify-items: center;
-		gap: 0.3rem;
-	}
-	.feature-grid dd {
-		font-weight: 700;
-	}
-</style>
